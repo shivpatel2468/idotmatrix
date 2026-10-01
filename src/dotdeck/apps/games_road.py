@@ -191,7 +191,7 @@ class StreetSurge(GameApp):
         self.racers: list[Racer] = []
         self.players: dict[int, Racer] = {}
         for seat in sorted(self.roster) if self.roster else (1, 2):
-            col = self.colour_of(seat) if self.roster else SEAT_COLORS[seat - 1]
+            col = self.colour_of(seat) if self.roster else self.seat_colour(seat)
             row = (seat - 1) // 2  # a two-wide grid: seats 3 and 4 start a row behind
             r = Racer("player", -1.4 * row, -0.45 if seat % 2 else 0.45, col, seat)
             self.players[seat] = r

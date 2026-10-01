@@ -10,6 +10,7 @@ game speed is independent of the stream fps. All game code and pixel art here is
 from __future__ import annotations
 
 import random
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ from pydantic import Field, create_model
 
 from ..engine.app import Action, App, AppSettings, Choice
 from ..gfx import RGB, Frame, measure, mix, scale
+from ..gfx.avatars import AVATARS, draw_avatar
 from ..gfx.font import fit
 
 HUMAN_IDLE = 10.0  # seconds without input before the AI takes over again
@@ -128,6 +130,19 @@ THEME_LABELS = {"classic": "Classic", "neon": "Neon", "retro": "Retro", "mono": 
 
 SEAT_RGB: dict[int, RGB] = {1: (0, 200, 255), 2: (255, 60, 90), 3: (80, 255, 120), 4: (255, 200, 0)}
 TEAM_RGB: dict[int, RGB] = {0: (0, 200, 255), 1: (255, 60, 90)}  # team A (left), team B (right)
+_HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def _hex_rgb(v: Any) -> RGB | None:
+    """'#rrggbb' → RGB; anything else → None (phone profiles are already validated; this is a second guard)."""
+    if not isinstance(v, str) or not _HEX.match(v):
+        return None
+    n = int(v[1:], 16)
+    return (n >> 16, (n >> 8) & 255, n & 255)
+
+
+def _hex(c: RGB) -> str:
+    return f"#{c[0]:02x}{c[1]:02x}{c[2]:02x}"
 
 
 @dataclass(frozen=True)
@@ -345,8 +360,12 @@ class GameApp(App):
         self.score = 0
         self.over_at: float | None = None
         self.flash = 0.0
-        self.seats: dict[int, dict[str, Any]] = {}  # seat (2..max) -> {"name", "at"} for phones that joined
+        # seat (2..max) -> {"name", "at", "color" (RGB | None), "avatar", "team", "ready"} for phones that joined
+        self.seats: dict[int, dict[str, Any]] = {}
         self.lobby_url: str | None = None  # while a lobby is open, the panel shows this as a QR code
+        self.join_card: tuple[int, float, str] | None = (
+            None  # (seat, since, "JOINED" | "READY") on the QR screen
+        )
         self.reset()
 
     # ------------------------------------------------------------- hooks
@@ -419,13 +438,22 @@ class GameApp(App):
         r = self.roster.get(seat)
         return None if r is None else r.get("team")
 
+    def seat_colour(self, seat: int) -> RGB:
+        """The player's own colour: what a phone player picked, else the seat's default."""
+        s = self.seats.get(seat)
+        return (s.get("color") if s else None) or SEAT_RGB.get(seat, WHITE)
+
+    def seat_name(self, seat: int) -> str:
+        s = self.seats.get(seat)
+        return str(s.get("name") or f"P{seat}") if s else f"P{seat}"
+
     def colour_of(self, seat: int) -> RGB:
         """Seat colour; in team modes the team colour (tinted per seat so teammates stay distinguishable)."""
         t = self.team_of(seat)
         if self.play_mode.teams == "versus" and t is not None:
             rank = sorted(k for k, r in self.roster.items() if r.get("team") == t).index(seat)
             return mix(TEAM_RGB[t], WHITE, 0.45 * rank) if rank else TEAM_RGB[t]
-        return SEAT_RGB.get(seat, WHITE)
+        return self.seat_colour(seat)
 
     def result(
         self,
@@ -634,12 +662,23 @@ class GameApp(App):
             for x, dark in enumerate(row):
                 if dark:
                     f.set(off + x, off + y, (0, 0, 0))
-        # joined seats blink as dots in the corners, in their colours
-        cols = ((0, 200, 255), (255, 60, 90), (80, 255, 120), (255, 200, 0))
+        # joined seats blink as dots in the corners, in the colours they picked
         for seat in range(2, self.max_players + 1):
             if seat in self.seats and int(now * 2) % 2 == 0:
                 cx, cy = ((31, 0), (0, 31), (31, 31))[(seat - 2) % 3]
-                f.set(cx, cy, cols[(seat - 1) % 4])
+                f.set(cx, cy, self.seat_colour(seat))
+        card = self.join_card
+        if card is not None and card[0] in self.seats and now - card[1] < 1.6:
+            self.draw_join_card(f, card[0], card[2])
+
+    def draw_join_card(self, f: Frame, seat: int, label: str) -> None:
+        """A phone just joined or got ready: its avatar (the hero), name and state, in the colour it picked."""
+        col = self.seat_colour(seat)
+        f.clear(BLACK)
+        f.rect(0, 0, 32, 1, scale(col, 0.5))
+        draw_avatar(f, 8, 2, str(self.seats[seat].get("avatar") or ""), col, zoom=2)
+        f.text_center(20, fit(self.seat_name(seat).upper(), 30), col)
+        f.text_center(26, label, WHITE if label == "READY" else scale(WHITE, 0.6))
 
     async def action(self, name: str, payload: dict[str, Any]) -> Any:
         if name == "input":
@@ -674,14 +713,11 @@ class GameApp(App):
                         self.reset()
                 else:
                     self.key_p(k, player)
-        elif name == "seat":  # the lobby seats / unseats a phone player
+        elif name == "seat":  # the lobby seats / unseats a phone player (and carries its profile)
             player = int(payload.get("player", 0))
             if 2 <= player <= self.max_players:
                 if payload.get("joined", True):
-                    self.seats[player] = {
-                        "name": str(payload.get("name", f"P{player}"))[:12],
-                        "at": self._clock(),
-                    }
+                    self._seat(player, payload)
                 else:
                     self.seats.pop(player, None)
         elif name == "lobby":
@@ -709,6 +745,37 @@ class GameApp(App):
         else:
             raise KeyError(name)
         return self.status()
+
+    def _seat(self, player: int, payload: dict[str, Any]) -> None:
+        """Store a phone's seat and profile: name, colour, avatar, preferred team, ready (all optional)."""
+        now = self._clock()
+        prev = self.seats.get(player)
+        team = payload.get("team")
+        avatar = payload.get("avatar")
+        seat = {
+            "name": str(payload.get("name") or f"P{player}")[:12],
+            "at": now,
+            "color": _hex_rgb(payload.get("color")),
+            "avatar": avatar if isinstance(avatar, str) and avatar in AVATARS else None,
+            "team": team if type(team) is int and team in (0, 1) else None,
+            "ready": payload.get("ready") is True,
+        }
+        self.seats[player] = seat
+        if prev is None or prev.get("local"):
+            self.join_card = (player, now, "JOINED")
+        elif seat["ready"] and not prev.get("ready"):
+            self.join_card = (player, now, "READY")
+        r = self.roster.get(player)
+        if (
+            self.flow == "teams"
+            and r is not None
+            and r["human"]
+            and not r["ready"]
+            and seat["team"] is not None
+        ):
+            r["team"] = seat[
+                "team"
+            ]  # the side picked on the phone moves the player on the side-select screen
 
     # ================================================================ game flow
     def _was_human(self, now: float) -> bool:
@@ -768,9 +835,10 @@ class GameApp(App):
             self.roster[seat] = {"team": team, "human": human, "ready": False}
         self.human_at = self._clock()
         if m.teams == "versus" and n > 1:
-            # default sides: people alternate left/right, AI fills later
+            # default sides: people alternate left/right (or take the side they picked on the phone), AI fills later
             for i, seat in enumerate([s for s in self.roster if self.roster[s]["human"]]):
-                self.roster[seat]["team"] = i % 2
+                want = self.seats.get(seat, {}).get("team")
+                self.roster[seat]["team"] = want if want in (0, 1) else i % 2
             self.flow, self.flow_t = "teams", self._clock()
         else:
             self._start_intro()
@@ -916,7 +984,7 @@ class GameApp(App):
             r = self.roster[seat]
             y = 8 + i * 6
             x = {0: 2, None: 12, 1: 22}[r["team"]]
-            col = SEAT_RGB.get(seat, WHITE)
+            col = self.seat_colour(seat)
             # a tiny controller glyph: body + two grips, with the seat number
             f.rect(x + 1, y, 6, 3, col)
             f.set(x, y + 2, col)
@@ -963,9 +1031,12 @@ class GameApp(App):
             who = (
                 "YOU"
                 if o["seat"] == 1 and len([r for r in self.roster.values() if r.get("human")]) <= 1
-                else f"P{o['seat']}"
+                else self.seat_name(o["seat"]).upper()
             )
-            f.text_center(4, who, col, font="small")
+            if measure(who, "small") <= 30:
+                f.text_center(4, who, col, font="small")
+            else:
+                f.text_center(5, fit(who, 30), col)
             f.text_center(14, "WIN" if who == "YOU" else "WINS", WHITE)
         elif o.get("text"):
             f.text_center(8, fit(str(o["text"]).upper(), 30), th.x)
@@ -1016,6 +1087,9 @@ class GameApp(App):
                     "seat": n,
                     "human": self.is_human(n),
                     "name": "YOU" if n == 1 else self.seats.get(n, {}).get("name", "AI"),
+                    "color": _hex(self.seat_colour(n)),
+                    "avatar": self.seats.get(n, {}).get("avatar"),
+                    "ready": bool(self.seats.get(n, {}).get("ready")),
                 }
                 for n in range(1, self.max_players + 1)
             ]

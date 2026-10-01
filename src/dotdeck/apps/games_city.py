@@ -207,7 +207,7 @@ class NeonHeat(GameApp):
         for seat in sorted(self.roster) if self.roster else (1, 2):
             i, j, d = starts[(seat - 1) % 4]
             x, y = self._lane_pos(self.VX[i] + (6 if d == E else -6), self.HY[j], d)
-            col = self.colour_of(seat) if self.roster else SEAT_COLORS[seat - 1]
+            col = self.colour_of(seat) if self.roster else self.seat_colour(seat)
             cop = cops and self.team_of(seat) == 1
             car = Car("player", x, y, d, 11.5 if cop else 11.0, col, seat)
             self.cars.append(car)

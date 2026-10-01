@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **idotmatrix branding:** a neon LED logo ("i" pink, "dot" amber, "matrix" cyan) that builds, strikes and loops in the
+  header, plus sealed 50/50 intro/outro doors.
+- **Roaming fly:** a fly on every page; click it and it takes over the current game.
+- **Phone controller:** a join flow with character select (name, colour, avatar, team, ready), a live lobby roster
+  shown on phones and the panel, better controls, and reconnects that keep your seat.
+- **New idotmatrix.com site:**
+  - an "AI agent" setup prompt and a step-by-step guide;
+  - an apps explorer covering every app and setting, generated from the code by `scripts/build_site_data.py`.
+- **Fix:** the calendar timeline hid a meeting in progress just after midnight.
 - 🪰 **Fruit-fly brain** (`dotdeck.fly`), a real-time model of the fly's visual circuit:
   - the pathway runs from T4/T5 motion detectors, through lobula-plate HS/VS cells and LPLC2 looming detectors to
     the giant fibre and the descending neurons;

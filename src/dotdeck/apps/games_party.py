@@ -165,7 +165,7 @@ class LightCycles(GameApp):
 
     def rgb(self, seat: int) -> RGB:
         """A bike's colour: its seat colour, or its team's (tinted per rider) in team play."""
-        return self.colour_of(seat) if self.teams else SEAT_RGB[seat]
+        return self.colour_of(seat) if self.teams else self.seat_colour(seat)
 
     # ------------------------------------------------------------------ input
     def key_p(self, k: str, player: int) -> None:

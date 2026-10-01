@@ -209,7 +209,7 @@ Pong = 2, Light Cycles = 4).
 | POST | `/api/play/lobby/start` | hide the QR, play with whoever joined (the host's A key does the same) |
 | DELETE | `/api/play/lobby` | close it and disconnect the phones |
 | GET | `/p/{code}` | the phone controller page (reachable from the LAN) |
-| WS | `/ws/p/{code}` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`; server → `hello {seat, color, game}`, `state {status}` (4 Hz), `pong`, `full`, `closed` |
+| WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes}`, `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
 
 **LAN access.** The engine listens on all interfaces (`host = "0.0.0.0"`) so phones can join, but the `LanGate`
 middleware only lets other devices reach `/p/…` and `/ws/p/…` with a valid room code; the studio and every other

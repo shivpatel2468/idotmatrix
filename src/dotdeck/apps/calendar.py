@@ -188,7 +188,9 @@ class Calendar(App):
             active = e["start"] <= now < e["end"]
             past = e["end"] <= now
             c = scale(col, 0.25) if past else (col if active else scale(col, 0.6))
-            f.rect(x0, y, max(1, x1 - x0), 2, c)
+            # the meeting on now stays visible beside the now tick, however short its part of the day is
+            w = max(3 if active else 1, x1 - x0)
+            f.rect(min(x0, 30 - w), y, w, 2, c)
         if lo <= now <= hi:
             f.vline(x_of(now), y - 1, 4, WHITE)
 

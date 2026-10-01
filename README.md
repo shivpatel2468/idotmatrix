@@ -60,7 +60,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
     *   pets, generative art, 3D wireframes, a raycaster and falling sand;
     *   chess puzzles, trivia, a pixel canvas, text and fonts.
     *   They're all original pixel art, with no copied sprites.
-*   **🎮 22 games with real multiplayer:** 2–4 players on the same Wi-Fi.
+*   **🎮 25 games, 21 with real multiplayer:** 2–4 players on the same Wi-Fi.
     *   Friends scan a QR code on the panel and their phone becomes the controller.
     *   There's a FIFA-style side select, plus intro screens, results screens and a red damage flash.
 *   **🎞️ Baked native loops:** deterministic animations are rendered once and stored on the panel as GIFs, so they
@@ -84,8 +84,8 @@ that anyone, including an AI agent, can make a new app in one Python file.
 
 | What you get | Count | Details |
 | --- | --- | --- |
-| Apps | **92** | time, live data, media, pets, games, creative, focus & agents, ambient |
-| Games | **22** | every one with an AI that plays itself; most with 2–4 player modes, maps and themes |
+| Apps | **90** | time, live data, media, pets, games, creative, focus & agents, ambient |
+| Games | **25** | every one with an AI that plays itself; most with 2–4 player modes, maps and themes |
 | Live data sources | **45+** | Open-Meteo, USGS, adsb.lol, Launch Library 2, ESPN, Binance, Yahoo Finance and more |
 | Phone controller layouts | **7** | d-pad, analog stick, swipe, tap zones, keyboard, gamepad, tilt |
 | MCP tools | **21** | `panel_snapshot`, `show_app`, `draw_pixel_art`, `notify`, `agent_state`, `playlist`… |
@@ -399,7 +399,7 @@ flowchart LR
 src/dotdeck/
 ├── engine/        # runtime, scheduler, playlist, presets, hand-off, app base classes
 ├── device/        # the only code that touches Bluetooth: protocol bytes, BLE, Android bridge, simulator
-├── apps/          # 91 apps — one file each (games in games_*.py on a shared GameApp framework)
+├── apps/          # 90 apps — one file each (games in games_*.py on a shared GameApp framework)
 ├── providers/     # live data: weather, flights, quakes, markets, sports, media, system…
 ├── gfx/           # Frame primitives, bitmap fonts, colour calibration, GIF encoder, world map, sprites
 ├── server.py      # HTTP + WebSocket API (docs/API.md)

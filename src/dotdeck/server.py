@@ -38,6 +38,7 @@ from pydantic import BaseModel, Field, ValidationError
 from . import __version__
 from .apps import load_plugins
 from .apps.canvas import frame_from_rows
+from .apps.games_core import KEYS
 from .config import Config, Store
 from .device import Device, SimDevice
 from .engine import REGISTRY, Engine, Notice, Playlist, presets
@@ -50,7 +51,16 @@ from .gfx.calib import PanelCalibration
 from .gfx.font import FONTS
 from .gfx.image import encode_gif_budget, import_media
 from .media import MediaLibrary
-from .multiplayer import CONTROLLER_HTML, SEAT_COLORS, LanGate, Lobby
+from .multiplayer import (
+    CONTROLLER_HTML,
+    PLAYER_COLORS,
+    LanGate,
+    Lobby,
+    Room,
+    avatar_table,
+    clean_cid,
+    game_profile,
+)
 from .power import start_power_watch
 from .previews import Previews
 from .providers import build_hub
@@ -346,62 +356,116 @@ def create_app(cfg: Config) -> FastAPI:
             )
         return HTMLResponse(CONTROLLER_HTML, headers={"Cache-Control": "no-store"})
 
+    async def broadcast_roster(room: Room) -> None:
+        """Tell every phone in the room who is in the lobby (after a join, leave or profile change)."""
+        msg = json.dumps({"type": "roster", "players": room.roster()})
+        for sock in list(phones.values()):
+            with contextlib.suppress(Exception):
+                await sock.send_text(msg)
+
     @app.websocket("/ws/p/{code}")
     async def controller_ws(sock: WebSocket, code: str) -> None:
+        """A phone controller. Messages in: {"k": key} (a press), {"type": "ping", "t"},
+        {"type": "profile", name?, color?, avatar?, team?, ready?}. Out: hello, state, pong, roster,
+        full, closed, replaced. Connect with ?cid=<client id> to get the same seat back after a reconnect."""
         await sock.accept()
         room = lobby.room
         if room is None or not lobby.valid(code):
             await sock.send_text(json.dumps({"type": "closed"}))
             await sock.close()
             return
-        seat = room.free_seat()
-        if seat is None:
+        cid = clean_cid(sock.query_params.get("cid"))
+        got = room.join(cid)
+        if got is None:
             await sock.send_text(json.dumps({"type": "full"}))
             await sock.close()
             return
-        room.seats[seat] = {"name": f"P{seat}"}
+        seat, prof, resumed = got
+        old = phones.get(seat)
         phones[seat] = sock
+        if old is not None and old is not sock:  # the same phone reconnected before its old socket closed
+            with contextlib.suppress(Exception):
+                await old.send_text(json.dumps({"type": "replaced"}))
+                await old.close()
         app_id = room.app
-        await engine.action(app_id, "seat", {"player": seat, "joined": True, "name": f"P{seat}"})
+        await engine.action(app_id, "seat", {"player": seat, "joined": True, **game_profile(prof)})
         cls = REGISTRY[app_id]
         await sock.send_text(
             json.dumps(
                 {
                     "type": "hello",
                     "seat": seat,
-                    "color": SEAT_COLORS.get(seat),
+                    "color": prof["color"],
                     "game": cls.name,
                     "controls": list(getattr(cls, "controls", ("dpad",))),
+                    "cid": prof.get("cid"),
+                    "resumed": resumed,
+                    "profile": game_profile(prof),
+                    "max_players": room.max_players,
+                    "palette": [{"color": c, "name": n} for c, n in PLAYER_COLORS.items()],
+                    "avatars": avatar_table(),
+                    "modes": [
+                        {"id": m.id, "name": m.name, "teams": m.teams} for m in getattr(cls, "modes", ())
+                    ],
                 }
             )
         )
+        await broadcast_roster(room)
         engine.changed()
 
         async def push_state() -> None:
+            # poll fast, send only on change (plus a heartbeat) so turn / flow changes reach the phone quickly
+            last, sent_at = "", 0.0
             while True:
-                await asyncio.sleep(0.25)
+                await asyncio.sleep(0.12)
                 cur = engine.current
                 st = cur.app.status() if cur and cur.app.id == app_id else {}
-                await sock.send_text(json.dumps({"type": "state", "status": st}, default=str))
+                txt = json.dumps({"type": "state", "status": st}, default=str)
+                t = time.monotonic()
+                if txt != last or t - sent_at > 2.0:
+                    await sock.send_text(txt)
+                    last, sent_at = txt, t
 
         pusher = asyncio.create_task(push_state())
         try:
             while True:
-                msg = json.loads(await sock.receive_text())
-                if msg.get("type") == "ping":
-                    await sock.send_text(json.dumps({"type": "pong", "t": msg.get("t")}))
+                raw = await sock.receive_text()
+                if len(raw) > 2048:  # nothing legitimate is this big
+                    continue
+                try:
+                    msg = json.loads(raw)
+                except ValueError:
+                    continue
+                if not isinstance(msg, dict) or phones.get(seat) is not sock:
+                    continue
+                kind = msg.get("type")
+                if kind == "ping":
+                    t = msg.get("t")
+                    await sock.send_text(
+                        json.dumps({"type": "pong", "t": t if isinstance(t, (int, float)) else None})
+                    )
+                elif kind == "profile" and lobby.room is room:
+                    if room.apply_profile(seat, msg):
+                        await engine.action(
+                            app_id, "seat", {"player": seat, "joined": True, **game_profile(room.seats[seat])}
+                        )
+                        engine.changed()
+                    await broadcast_roster(room)  # also corrects a phone whose pick was refused
                 elif "k" in msg and lobby.room is room:
-                    await engine.action(app_id, "input", {"key": str(msg["k"])[:8], "player": seat})
-        except (WebSocketDisconnect, RuntimeError, json.JSONDecodeError):
+                    k = str(msg["k"]).lower()[:8]
+                    if k in KEYS:  # the press goes straight to the game, no queue
+                        await engine.action(app_id, "input", {"key": k, "player": seat})
+        except (WebSocketDisconnect, RuntimeError, KeyError):
             pass
         finally:
             pusher.cancel()
             if phones.get(seat) is sock:
                 phones.pop(seat, None)
                 if lobby.room is room:
-                    room.seats.pop(seat, None)
+                    room.leave(seat)
                     with contextlib.suppress(Exception):
                         await engine.action(app_id, "seat", {"player": seat, "joined": False})
+                    await broadcast_roster(room)
             engine.changed()
 
     @app.exception_handler(ValidationError)
