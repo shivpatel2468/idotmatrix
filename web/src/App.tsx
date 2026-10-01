@@ -2,6 +2,7 @@ import { LayoutGrid, ListMusic, MonitorPlay, SlidersHorizontal } from "lucide-re
 import { useEffect, useRef, useState } from "react";
 import { AiCreator } from "./components/AiCreator";
 import { Boot } from "./components/Boot";
+import { RoamingFly } from "./components/RoamingFly";
 import { Inspector } from "./components/Inspector";
 import { Library } from "./components/Library";
 import { CommandPalette, DropZone, NotifyComposer, Toasts } from "./components/Overlays";
@@ -200,6 +201,7 @@ export default function App() {
 
   return (
     <div className="noise flex h-full flex-col">
+      <div className="app-shell flex min-h-0 flex-1 flex-col">
       <TopBar />
       {phone ? (
         <PhoneLayout />
@@ -225,6 +227,7 @@ export default function App() {
           </div>
         </>
       )}
+      </div>
       <Drawers />
       <NotifyComposer />
       <SettingsSheet />
@@ -233,6 +236,7 @@ export default function App() {
       <CommandPalette />
       <DropZone />
       <Toasts />
+      <RoamingFly />
       <Boot />
     </div>
   );

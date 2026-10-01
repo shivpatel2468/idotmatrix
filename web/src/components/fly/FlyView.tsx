@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import { Bug, Gauge, PanelLeftOpen, RotateCcw, Settings2, X } from "lucide-react";
+import { Bug, Gauge, Hand, PanelLeftOpen, RotateCcw, Settings2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  DEFAULT_GFX, FLY_KEYS, type FlyGfx, type FlyKey, KEY_GLYPH, KEY_ROLE, THEMES, closeFlyView, useFly,
+  DEFAULT_GFX, FLY_KEYS, type FlyGfx, type FlyKey, KEY_GLYPH, KEY_ROLE, THEMES, closeFlyView, flyCanPilot, flyHandBack, useFly,
 } from "../../lib/fly";
 import { appMeta } from "../../lib/store";
 import { Slider, Toggle } from "../controls";
@@ -174,6 +174,11 @@ export function FlyBar() {
       <button className="key !h-8" onClick={() => set({ settingsOpen: !open })} aria-expanded={open} title="Graphics and Fly view settings">
         <Settings2 size={14} /> <span className="hidden lg:inline">Graphics</span>
       </button>
+      {flyCanPilot(snap.app) && (
+        <button className="key !h-8" onClick={flyHandBack} title="Take the game back from the fly; it goes back to roaming the screen">
+          <Hand size={14} /> <span className="hidden lg:inline">Take back</span>
+        </button>
+      )}
       <button className="key !h-8" onClick={closeFlyView} title="Close the Fly view and bring the side panels back">
         <PanelLeftOpen size={14} /> <span className="hidden lg:inline">Panels</span>
       </button>
@@ -286,6 +291,7 @@ function FlySettings({ onClose }: { onClose: () => void }) {
               <Toggle on={g.autoOpen} onChange={(autoOpen) => setGfx({ autoOpen })} label="Open automatically" />
             </Line>
             <Line label="Swap sides" hint="Keyboard on the left, brain on the right"><Toggle on={g.swap} onChange={(swap) => setGfx({ swap })} label="Swap sides" /></Line>
+            <Line label="Roaming fly" hint="A fly wanders the screen; click it and it takes over the game"><Toggle on={g.roam} onChange={(roam) => setGfx({ roam })} label="Roaming fly" /></Line>
           </>
         )}
       </div>

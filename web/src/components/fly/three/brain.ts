@@ -39,7 +39,7 @@ class Signals {
   }
 
   fire(ci: number, boost = 1) {
-    if (!this.n) return;
+    if (!this.n || !this.curves[ci]) return; // a pulse scheduled just before a rebuild
     const i = this.next;
     this.next = (this.next + 1) % this.n;
     this.curve[i] = ci;
@@ -377,8 +377,7 @@ export class BrainScene implements FlyScene {
     host.root.add(ring);
     this.rings.push({ mesh: ring, life: 1 });
     this.sparks.burst(soma.mesh.position, soma.color, Math.round(26 * host.lv.particles) + 4, 3.2);
-    const ci = k === "a" ? this.gfCurve : this.dnCurve[k];
-    for (let i = 0; i < 4; i++) setTimeout(() => this.signals.fire(ci, 1.6), i * 45);
+    for (let i = 0; i < 4; i++) setTimeout(() => this.signals.fire(k === "a" ? this.gfCurve : this.dnCurve[k], 1.6), i * 45);
     if (k === "a") for (const n of this.lplc2) n.flash = 1;
     const el = this.outLabels[k];
     if (el) {

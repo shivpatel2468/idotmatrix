@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { api } from "./api";
+import { appMeta, toast, useStore } from "./store";
 
 /** One reading of the fruit-fly brain (GET /api/fly; src/dotdeck/fly/brain.py `snapshot`). Studio only:
  *  the panel shows just the game the fly is playing. */
@@ -61,12 +63,13 @@ export type FlyGfx = {
   showFps: boolean;
   swap: boolean; // keyboard on the left, brain on the right
   shadows: boolean;
+  roam: boolean; // the fly that wanders the screen (click it to let it play)
 };
 
 export const DEFAULT_GFX: FlyGfx = {
   autoOpen: true, quality: "auto", fpsCap: 60, bloom: true, bloomStrength: 1.1, particles: 0.7, trails: true,
   labels: true, theme: "neon", autoRotate: true, rotateSpeed: 0.6, camera: "orbit", brainSpread: 1, fly: "wild",
-  flySize: 1, wingShimmer: true, board: "midnight", hud: true, showFps: false, swap: false, shadows: true,
+  flySize: 1, wingShimmer: true, board: "midnight", hud: true, showFps: false, swap: false, shadows: true, roam: true,
 };
 
 export type Theme = {
@@ -124,6 +127,7 @@ type FlyStore = {
   dismissedFor: string | null;
   /** The person opened the Fly view by hand (even with auto-open off). */
   forced: boolean;
+  forcedAt: number;
   settingsOpen: boolean;
   setGfx: (p: Partial<FlyGfx>) => void;
   set: (p: Partial<FlyStore>) => void;
@@ -138,6 +142,7 @@ export const useFly = create<FlyStore>((set, get) => ({
   gfx: loadGfx(),
   dismissedFor: null,
   forced: false,
+  forcedAt: 0,
   settingsOpen: false,
   set: (p) => set(p),
   setGfx: (p) => {
@@ -166,7 +171,36 @@ export function closeFlyView() {
 }
 
 export function openFlyView() {
-  useFly.getState().set({ forced: true, dismissedFor: null });
+  useFly.getState().set({ forced: true, forcedAt: performance.now(), dismissedFor: null });
+}
+
+/** Can this app be played by the fly? (Games built on GameApp have the `pilot` setting.) */
+export function flyCanPilot(app: string | null | undefined): boolean {
+  return !!appMeta(app)?.schema?.properties?.pilot;
+}
+
+/** The roaming fly was clicked: it takes over the game on the panel (or starts its own Fly Brain app), and the
+ *  Fly view opens — the side drawers close and its brain fills their space. */
+export async function flyTakeOver() {
+  const cur = useStore.getState().state?.engine.current?.app;
+  try {
+    if (cur && flyCanPilot(cur)) {
+      await api.patchSettings(cur, { pilot: "fly" });
+      await api.action(cur, "fly").catch(() => undefined); // older engines: it takes over after the idle wait
+    } else {
+      await api.activate("flybrain");
+    }
+    openFlyView();
+  } catch {
+    toast("The fly couldn't get to the panel", "error");
+  }
+}
+
+/** Give the game back to its built-in AI (or you): the fly leaves the panel and goes back to roaming. */
+export async function flyHandBack() {
+  const app = useFly.getState().snap.app;
+  if (app && flyCanPilot(app)) await api.patchSettings(app, { pilot: "ai" }).catch(() => undefined);
+  closeFlyView();
 }
 
 // ------------------------------------------------------------------ live events (for the 3D scenes)
@@ -189,7 +223,8 @@ function ingest(snap: FlySnap) {
     lastApp = snap.app;
     lastStep = -1;
     seen = new Set();
-    useFly.setState({ presses: [], counts: { ...ZERO }, dismissedFor: s.dismissedFor === snap.app ? s.dismissedFor : null, forced: false });
+    const keep = performance.now() - s.forcedAt < 8000; // opened by hand just now (e.g. the fly started Fly Brain)
+    useFly.setState({ presses: [], counts: { ...ZERO }, dismissedFor: s.dismissedFor === snap.app ? s.dismissedFor : null, forced: keep && s.forced });
   }
   const step = snap.step ?? 0;
   if (step < lastStep) seen = new Set(); // a baked loop wrapped around: its steps start again

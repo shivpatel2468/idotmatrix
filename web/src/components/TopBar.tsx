@@ -2,23 +2,15 @@ import { RefreshCw, Search, Settings2, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { openSettings, useStore } from "../lib/store";
+import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
 
+/** The idotmatrix logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
-  // the logo is itself a 3x3 LED glyph
-  const on = [1, 1, 0, 1, 0, 1, 0, 1, 1];
+  const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
-    <div className="flex shrink-0 items-center gap-3">
-      <div className="grid grid-cols-3 gap-[2px] rounded-[5px] bg-chassis-0 p-[4px] shadow-[inset_0_1px_3px_#000]" aria-hidden>
-        {on.map((v, i) => (
-          <span key={i} className="h-[5px] w-[5px] rounded-[1.5px]"
-            style={{ background: v ? "var(--color-ember)" : "#26262d", boxShadow: v ? "0 0 6px var(--color-ember)" : "none" }} />
-        ))}
-      </div>
-      <div className="hidden leading-none sm:block">
-        <div className="font-display text-[19px] font-[680] tracking-[-0.02em]">DotDeck</div>
-        <div className="engrave mt-1 !text-[8px]">Studio · 32×32</div>
-      </div>
+    <div className="flex shrink-0 justify-center" title="idotmatrix · DotDeck studio">
+      <NeonMark pitch={phone ? 2.6 : 3.8} />
     </div>
   );
 }
@@ -115,11 +107,10 @@ function Brightness() {
 export function TopBar() {
   const set = useStore((s) => s.set);
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 px-3 sm:gap-3 md:px-5">
+    <header className="grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
+      <div className="flex min-w-0 items-center"><StatusPill /></div>
       <Wordmark />
-      <div className="mx-1 hidden h-6 w-px bg-line md:block" />
-      <StatusPill />
-      <div className="flex-1" />
+      <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
       <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">
         <Search size={13} /> <span className="normal-case tracking-normal">Find anything</span>
         <kbd className="ml-1 rounded bg-chassis-0 px-1.5 py-0.5 text-[9px] text-ink-3">Ctrl K</kbd>
@@ -132,6 +123,7 @@ export function TopBar() {
         <Settings2 size={15} />
       </button>
       <SafetySwitch />
+      </div>
     </header>
   );
 }

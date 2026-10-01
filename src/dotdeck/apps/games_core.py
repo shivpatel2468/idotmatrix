@@ -699,6 +699,13 @@ class GameApp(App):
             self.begin()
         elif name == "demo":
             self.human_at = -1e9
+        elif (
+            name == "fly"
+        ):  # the studio's roaming fly takes over now (pilot = fly is set by the settings PATCH)
+            self.human_at = self._real_human_at = -1e9
+            if self.flow != "attract" and not self.lobby_waiting():
+                self.flow = "attract"
+                self.reset()
         else:
             raise KeyError(name)
         return self.status()

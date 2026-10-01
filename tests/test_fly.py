@@ -225,3 +225,16 @@ async def test_a_person_takes_over_from_the_fly() -> None:
 
 def test_the_built_in_ai_stays_the_default() -> None:
     assert REGISTRY["pong"].Settings().pilot == "ai"  # type: ignore[attr-defined]
+
+
+async def test_the_studio_fly_takes_over_straight_away() -> None:
+    cls = REGISTRY["pong"]
+    app = cls(Ctx(), cls.Settings(pilot="fly"))  # type: ignore[arg-type,call-arg]
+    clock = {"t": 1000.0}
+    app._clock = lambda: clock["t"]  # type: ignore[method-assign]
+    app.reset()
+    await app.action("input", {"key": "up"})  # a person was just playing
+    app.open_home()  # and had the menu open
+    assert not app._fly_driving(clock["t"])
+    await app.action("fly", {})
+    assert app._fly_driving(clock["t"]), "clicking the fly hands it the game at once"
