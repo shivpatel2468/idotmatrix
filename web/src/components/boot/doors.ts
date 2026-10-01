@@ -1,15 +1,16 @@
 import { type LogoTimeline, NEON, NeonLogo } from "../../lib/logo";
 
-/** The intro / outro. One sealed LED-matrix face covers the screen — no seam while shut. The idotmatrix logo
- *  builds and strikes in the middle. To open: a power surge lights every LED in a ring from the logo outwards, a
- *  crack of light splits the face down the middle, and the two halves slide apart 50/50 (tilting back a little in
- *  3D), light pouring through. Closing plays it backwards and the crack heals once the halves meet.
+/** The intro / outro: a warm retro-synthwave sunset with a lo-fi finish. A plum-to-ember sky with twinkling
+ *  stars, a striped retro sun breathing on the horizon, soft mountain silhouettes, a neon perspective grid gliding
+ *  towards you, film grain, faint scanlines and a vignette. The idotmatrix logo is a neon sign in the sky.
  *
- *  The face is drawn once per frame into an offscreen canvas and blitted half into each door canvas; the doors
- *  themselves move with CSS transforms (GPU), so the motion stays smooth on modest hardware. */
+ *  It is one sealed scene (no seam while shut). Opening: the sun flares, a streak of light runs along the horizon,
+ *  a crack of light splits the middle, and the two halves glide apart 50/50. Closing plays it back and the crack
+ *  heals once the halves meet. The scene is drawn into one offscreen canvas and blitted half into each door canvas;
+ *  the doors move with CSS transforms (GPU). Static layers are pre-rendered per size, so a frame is cheap. */
 
 export const BOOT_LOGO: LogoTimeline = { build: 1.3, hold: Infinity, off: 1 };
-const PITCH = 14;
+const HORIZON = 0.64; // horizon height (share of the screen)
 
 function canvas(w: number, h: number) {
   const c = document.createElement("canvas");
@@ -23,102 +24,88 @@ function rng(seed: number) {
   return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
 }
 
-/** The whole sealed face: brushed metal, an LED matrix, circuit traces — and a lit twin of the dots and traces. */
-function paintFace(w: number, h: number, dpr: number) {
-  const base = canvas(w * dpr, h * dpr);
-  const lit = canvas(w * dpr, h * dpr);
-  const g = base.getContext("2d")!;
-  const l = lit.getContext("2d")!;
+type Layers = { sky: HTMLCanvasElement; grain: HTMLCanvasElement; finish: HTMLCanvasElement; stars: [number, number, number, number][] };
+
+/** Sky, mountains (static), a grain tile, and the scanline + vignette finish. */
+function paintLayers(w: number, h: number, dpr: number): Layers {
+  const rand = rng(23);
+  const hy = h * HORIZON;
+  const sky = canvas(w * dpr, h * dpr);
+  const g = sky.getContext("2d")!;
   g.scale(dpr, dpr);
-  l.scale(dpr, dpr);
-  const rand = rng(11);
-  const cx = w / 2;
-  // metal: brighter in the middle, falling into darkness at the edges
-  const grad = g.createRadialGradient(cx, h * 0.42, 0, cx, h * 0.42, Math.max(w, h) * 0.75);
-  grad.addColorStop(0, "#17171f");
-  grad.addColorStop(0.6, "#0d0d12");
-  grad.addColorStop(1, "#060608");
-  g.fillStyle = grad;
-  g.fillRect(0, 0, w, h);
-  for (let i = 0; i < h; i += 2) {
-    g.fillStyle = `rgba(255,255,255,${0.006 + rand() * 0.012})`;
-    g.fillRect(0, i, w, 1);
-  }
-  // the LED matrix, symmetric about the centre so the two halves mirror each other
-  const cols = Math.floor((w - 60) / PITCH / 2) * 2;
-  const rows = Math.floor((h - 60) / PITCH);
-  const x0 = cx - (cols / 2) * PITCH;
-  const y0 = (h - rows * PITCH) / 2;
-  for (let r = 0; r < rows; r++)
-    for (let c = 0; c < cols; c++) {
-      const x = x0 + c * PITCH + PITCH / 2;
-      const y = y0 + r * PITCH + PITCH / 2;
-      g.fillStyle = "#14141a";
-      g.beginPath();
-      g.arc(x, y, 2.7, 0, Math.PI * 2);
-      g.fill();
-      g.fillStyle = "rgba(255,255,255,0.04)";
-      g.beginPath();
-      g.arc(x - 0.7, y - 0.9, 1, 0, Math.PI * 2);
-      g.fill();
-      l.globalAlpha = 0.3 + rand() * 0.7;
-      l.fillStyle = "#fff";
-      l.beginPath();
-      l.arc(x, y, 2.5, 0, Math.PI * 2);
-      l.fill();
+  const sg = g.createLinearGradient(0, 0, 0, hy);
+  sg.addColorStop(0, "#0b0614");
+  sg.addColorStop(0.45, "#2a0c2c");
+  sg.addColorStop(0.78, "#6a1838");
+  sg.addColorStop(0.94, "#c2353e");
+  sg.addColorStop(1, "#ff7a3c");
+  g.fillStyle = sg;
+  g.fillRect(0, 0, w, hy + 1);
+  // the ground below the horizon: deep plum, lit warm at the horizon
+  const gg = g.createLinearGradient(0, hy, 0, h);
+  gg.addColorStop(0, "#3a0d22");
+  gg.addColorStop(0.25, "#16081a");
+  gg.addColorStop(1, "#07040b");
+  g.fillStyle = gg;
+  g.fillRect(0, hy, w, h - hy);
+  // two ranges of soft mountains, mirrored so the sealed scene is symmetric
+  const range = (base: number, amp: number, color: string, seed: number) => {
+    const r = rng(seed);
+    const pts: number[] = [];
+    const n = 14;
+    for (let i = 0; i <= n; i++) pts.push(base - (0.35 + r() * 0.65) * amp * (1 - Math.abs(i / n - 0.5) * 0.9));
+    g.fillStyle = color;
+    g.beginPath();
+    g.moveTo(0, hy);
+    for (let i = 0; i <= n; i++) {
+      const x = (i / n) * (w / 2);
+      g.lineTo(x, pts[i]);
     }
-  l.globalAlpha = 1;
-  // circuit traces running from the edges in towards the logo (mirrored left/right)
-  const traces = Math.round(h / 52);
-  for (let i = 0; i < traces; i++) {
-    let y = 40 + rand() * (h - 80);
-    let x = 20;
-    const pts: [number, number][] = [[x, y]];
-    const goal = cx - 120 - rand() * (w * 0.18);
-    while (x < goal) {
-      x = Math.min(goal, x + 40 + rand() * 110);
-      pts.push([x, y]);
-      if (rand() < 0.6) {
-        y = Math.min(h - 30, Math.max(30, y + (rand() - 0.5) * 80));
-        x += 16;
-        pts.push([x, y]);
-      }
-    }
-    for (const mirror of [false, true])
-      for (const [ctx, style, wdt] of [[g, "#1d1d26", 2.2], [l, "#fff", 1.6]] as const) {
-        ctx.strokeStyle = style;
-        ctx.lineWidth = wdt;
-        ctx.lineJoin = "round";
-        ctx.beginPath();
-        pts.forEach(([px, py], k) => {
-          const X = mirror ? w - px : px;
-          if (k) ctx.lineTo(X, py);
-          else ctx.moveTo(X, py);
-        });
-        ctx.stroke();
-        const [ex, ey] = pts[pts.length - 1];
-        ctx.fillStyle = style;
-        ctx.beginPath();
-        ctx.arc(mirror ? w - ex : ex, ey, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    for (let i = n; i >= 0; i--) g.lineTo(w - (i / n) * (w / 2), pts[i]);
+    g.lineTo(w, hy);
+    g.closePath();
+    g.fill();
+  };
+  range(hy, h * 0.13, "rgba(70,18,52,0.85)", 5);
+  range(hy, h * 0.07, "rgba(34,9,32,0.95)", 9);
+  // a warm haze along the horizon
+  const haze = g.createLinearGradient(0, hy - h * 0.06, 0, hy + h * 0.04);
+  haze.addColorStop(0, "rgba(255,122,60,0)");
+  haze.addColorStop(0.6, "rgba(255,122,60,0.35)");
+  haze.addColorStop(1, "rgba(255,122,60,0)");
+  g.fillStyle = haze;
+  g.fillRect(0, hy - h * 0.06, w, h * 0.1);
+  // stars (twinkled per frame), mirrored
+  const stars: [number, number, number, number][] = [];
+  for (let i = 0; i < Math.round((w * h) / 9000); i++) {
+    const x = rand() * (w / 2);
+    const y = rand() * hy * 0.78;
+    const s = 0.4 + rand() * 1.2;
+    const ph = rand() * Math.PI * 2;
+    stars.push([x, y, s, ph], [w - x, y, s, ph + 1.3]);
   }
-  // the lit twin takes the logo's colours: pink on the left, amber in the middle, cyan on the right
-  l.globalCompositeOperation = "source-in";
-  const lg = l.createLinearGradient(0, 0, w, 0);
-  lg.addColorStop(0, NEON[0]);
-  lg.addColorStop(0.5, NEON[1]);
-  lg.addColorStop(1, NEON[2]);
-  l.fillStyle = lg;
-  l.fillRect(0, 0, w, h);
-  // engraved captions
-  g.font = '500 10px "Martian Mono", "Cascadia Mono", monospace';
-  g.fillStyle = "rgba(255,255,255,0.16)";
-  g.textAlign = "left";
-  g.fillText("32 × 32 RGB · BLUETOOTH LE", 30, h - 26);
-  g.textAlign = "right";
-  g.fillText("LIVE DESKTOP COMPANION", w - 30, h - 26);
-  return { base, lit };
+  // film grain tile
+  const grain = canvas(160, 160);
+  const gc = grain.getContext("2d")!;
+  const img = gc.createImageData(160, 160);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = rand() * 255;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 18;
+  }
+  gc.putImageData(img, 0, 0);
+  // scanlines + vignette
+  const finish = canvas(w * dpr, h * dpr);
+  const f = finish.getContext("2d")!;
+  f.scale(dpr, dpr);
+  f.fillStyle = "rgba(0,0,0,0.18)";
+  for (let y = 0; y < h; y += 3) f.fillRect(0, y, w, 1);
+  const v = f.createRadialGradient(w / 2, h * 0.45, Math.min(w, h) * 0.25, w / 2, h * 0.45, Math.hypot(w, h) * 0.62);
+  v.addColorStop(0, "rgba(0,0,0,0)");
+  v.addColorStop(1, "rgba(0,0,0,0.72)");
+  f.fillStyle = v;
+  f.fillRect(0, 0, w, h);
+  return { sky, grain, finish, stars };
 }
 
 const easeInOut = (k: number) => (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2);
@@ -130,17 +117,18 @@ export class Doors {
   private w = 0;
   private h = 0;
   private dpr = 1;
-  private face: { base: HTMLCanvasElement; lit: HTMLCanvasElement } | null = null;
+  private layers: Layers | null = null;
   private out = canvas(1, 1);
-  private scratchC: HTMLCanvasElement | null = null;
   private logo = new NeonLogo();
   open = 0; // 0 = sealed, 1 = fully apart
   private crack = 0; // the light splitting the seal, 0..1
-  private surge = -1; // the power-surge ring, 0..1 (−1 = none)
+  private streak = 0; // the horizon light streak when opening, 0..1
   private dir: 0 | 1 = 0;
   private t = 1; // progress of the current open/close, 0..1
   private t0 = performance.now();
   private flare = 0;
+  private grainPattern: CanvasPattern | null = null;
+  private sunC: HTMLCanvasElement | null = null;
 
   constructor(readonly left: HTMLCanvasElement, readonly right: HTMLCanvasElement, startOpen = false) {
     if (startOpen) {
@@ -161,117 +149,210 @@ export class Doors {
       c.style.width = `${half}px`;
       c.style.height = `${this.h}px`;
     }
-    this.face = paintFace(this.w, this.h, this.dpr);
+    this.layers = paintLayers(this.w, this.h, this.dpr);
     this.out = canvas(this.w * this.dpr, this.h * this.dpr);
+    this.grainPattern = null;
   }
 
   slide(to: 0 | 1) {
     if (this.dir === to && this.t < 1) return;
     this.dir = to;
     this.t = 0;
-    if (to === 1) this.surge = 0;
-    else this.t0 = performance.now() + 900; // the logo builds again once the doors are sealed
+    if (to === 0) this.t0 = performance.now() + 900; // the logo builds again once the doors are sealed
   }
 
   get idle() {
     return this.t >= 1;
   }
 
-  private scratch() {
-    if (!this.scratchC || this.scratchC.width !== this.out.width || this.scratchC.height !== this.out.height) {
-      this.scratchC = canvas(this.out.width, this.out.height);
+  /** The retro sun: a gradient disc cut by horizontal gaps that widen towards the horizon and drift down. */
+  private sun(o: CanvasRenderingContext2D, now: number, glow: number) {
+    const { w, h } = this;
+    const hy = h * HORIZON;
+    const r = Math.min(w * 0.15, h * 0.23) * (1 + Math.sin(now * 0.7) * 0.006);
+    const cx = w / 2;
+    const cy = hy - r * 0.18;
+    // halo
+    o.globalCompositeOperation = "lighter";
+    const halo = o.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * (2.4 + glow));
+    halo.addColorStop(0, `rgba(255,140,46,${0.35 + glow * 0.4})`);
+    halo.addColorStop(0.5, `rgba(255,79,123,${0.12 + glow * 0.2})`);
+    halo.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = halo;
+    o.fillRect(cx - r * 3.5, cy - r * 3.5, r * 7, r * 7);
+    o.globalCompositeOperation = "source-over";
+    // the disc goes on its own layer so the gaps show the sky, not whatever is behind the doors
+    const size = Math.ceil(r * 2 + 4);
+    if (!this.sunC || this.sunC.width !== size) this.sunC = canvas(size, size);
+    const s = this.sunC.getContext("2d")!;
+    s.setTransform(1, 0, 0, 1, 0, 0);
+    s.globalCompositeOperation = "source-over";
+    s.clearRect(0, 0, size, size);
+    const sx = cx - size / 2;
+    const sy = cy - size / 2;
+    s.translate(-sx, -sy);
+    s.beginPath();
+    s.arc(cx, cy, r, 0, Math.PI * 2);
+    const sg = s.createLinearGradient(0, cy - r, 0, hy);
+    sg.addColorStop(0, "#ffe9a0");
+    sg.addColorStop(0.35, NEON[2]);
+    sg.addColorStop(0.7, NEON[1]);
+    sg.addColorStop(1, NEON[0]);
+    s.fillStyle = sg;
+    s.fill();
+    s.globalCompositeOperation = "destination-out";
+    const drift = (now * 0.08) % 1;
+    for (let i = 0; i < 8; i++) {
+      const k = (i + drift) / 8;
+      const y = cy - r * 0.42 + k * r * 0.62;
+      const hgt = 1.5 + k ** 1.4 * r * 0.075;
+      s.fillRect(cx - r, y, r * 2, hgt);
     }
-    return this.scratchC;
+    s.fillRect(cx - r - 2, hy, r * 2 + 4, r * 2); // below the horizon
+    o.drawImage(this.sunC, sx, sy, size, size);
   }
 
-  /** Light only the LEDs and traces under a radial band (centre cx, cy; inner → outer radius), additively. */
-  private lightRing(o: CanvasRenderingContext2D, cx: number, cy: number, r0: number, r1: number, peak: number, inner = 0) {
-    const { w, h, dpr } = this;
-    const sc = this.scratch().getContext("2d")!;
-    sc.setTransform(1, 0, 0, 1, 0, 0);
-    sc.globalCompositeOperation = "source-over";
-    sc.clearRect(0, 0, this.scratch().width, this.scratch().height);
-    sc.setTransform(dpr, 0, 0, dpr, 0, 0);
-    sc.drawImage(this.face!.lit, 0, 0, w, h);
-    sc.globalCompositeOperation = "destination-in";
-    const g = sc.createRadialGradient(cx, cy, Math.max(0, r0), cx, cy, Math.max(r0 + 1, r1));
-    g.addColorStop(0, `rgba(0,0,0,${inner})`);
-    g.addColorStop(0.82, `rgba(0,0,0,${peak})`);
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    sc.fillStyle = g;
-    sc.fillRect(0, 0, w, h);
+  /** The neon floor: lines converge to the vanishing point; cross lines glide towards the viewer. */
+  private grid(o: CanvasRenderingContext2D, now: number, glow: number) {
+    const { w, h } = this;
+    const hy = h * HORIZON;
+    const cx = w / 2;
+    o.save();
+    o.beginPath();
+    o.rect(0, hy, w, h - hy);
+    o.clip();
     o.globalCompositeOperation = "lighter";
-    o.drawImage(this.scratch(), 0, 0, w, h);
+    o.lineWidth = 1.2;
+    const n = 22;
+    for (let i = -n; i <= n; i++) {
+      const xb = cx + i * (w / n) * 1.6;
+      const a = 0.22 + (1 - Math.abs(i) / n) * 0.25 + glow * 0.3;
+      o.strokeStyle = `rgba(255,79,123,${a})`;
+      o.beginPath();
+      o.moveTo(cx + i * 6, hy);
+      o.lineTo(xb, h);
+      o.stroke();
+    }
+    const speed = 0.35;
+    for (let k = 0; k < 14; k++) {
+      const z = (k + ((now * speed) % 1)) / 14; // 0 at the horizon → 1 at the viewer
+      const y = hy + (h - hy) * z * z;
+      const a = Math.min(1, z * 1.6) * (0.55 + glow * 0.4);
+      o.strokeStyle = `rgba(255,140,46,${a})`;
+      o.lineWidth = 0.8 + z * 1.6;
+      o.beginPath();
+      o.moveTo(0, y);
+      o.lineTo(w, y);
+      o.stroke();
+    }
+    // the horizon line itself
+    o.strokeStyle = `rgba(255,207,77,${0.55 + glow * 0.45})`;
+    o.lineWidth = 1.5;
+    o.beginPath();
+    o.moveTo(0, hy);
+    o.lineTo(w, hy);
+    o.stroke();
+    o.restore();
     o.globalCompositeOperation = "source-over";
   }
 
   /** Advance and draw; returns the pose for the CSS transforms of the two door elements. */
   frame(dt: number): DoorPose {
-    if (!this.face) this.resize();
+    if (!this.layers) this.resize();
     const { w, h, dpr } = this;
-    const OPEN_S = 2.3;
-    const CLOSE_S = 1.1;
+    const L = this.layers!;
+    const OPEN_S = 2.4;
+    const CLOSE_S = 1.2;
     if (this.t < 1) {
       const before = this.t;
       this.t = Math.min(1, this.t + dt / (this.dir ? OPEN_S : CLOSE_S));
       const k = this.t;
       if (this.dir === 1) {
-        // 0–.3 power surge, .2–.38 the crack, .32–1 the slide
-        this.surge = Math.min(1, k / 0.3);
+        // 0–.3 the sun flares and the horizon streak runs out; .22–.4 the crack; .34–1 the glide
         this.flare = Math.max(this.flare, Math.sin(Math.min(1, k / 0.3) * Math.PI));
-        this.crack = Math.min(1, Math.max(0, (k - 0.2) / 0.18));
-        this.open = easeInOut(Math.min(1, Math.max(0, (k - 0.32) / 0.68)));
+        this.streak = Math.min(1, k / 0.3);
+        this.crack = Math.min(1, Math.max(0, (k - 0.22) / 0.18));
+        this.open = easeInOut(Math.min(1, Math.max(0, (k - 0.34) / 0.66)));
       } else {
-        this.surge = -1;
+        this.streak = 0;
         this.open = 1 - easeOut(Math.min(1, k / 0.82));
         this.crack = k < 0.82 ? 1 : 1 - (k - 0.82) / 0.18; // sealed: the crack heals
-        if (k >= 0.82 && before < 0.82) this.flare = 0.8; // the thud of the seal
+        if (k >= 0.82 && before < 0.82) this.flare = 0.8; // the soft thud of the seal
       }
     }
-    this.flare = Math.max(0, this.flare - dt * 1.4);
+    this.flare = Math.max(0, this.flare - dt * 1.2);
+    const now = performance.now() / 1000;
     const o = this.out.getContext("2d")!;
     o.setTransform(dpr, 0, 0, dpr, 0, 0);
     o.globalCompositeOperation = "source-over";
     o.globalAlpha = 1;
-    o.drawImage(this.face!.base, 0, 0, w, h);
-    const cx = w / 2;
-    const cy = h * 0.42;
-    const reach = Math.hypot(w, h) * 0.62;
-    // ---- a slow breathing scan from the logo outwards, and the power-surge ring when opening
-    const band = ((performance.now() / 1000) % 3.2) / 3.2 * reach;
-    this.lightRing(o, cx, cy, band - 150, band + 30, 0.42);
-    if (this.surge >= 0 && this.surge < 1) {
-      const r = easeOut(this.surge) * reach * 1.4;
-      this.lightRing(o, cx, cy, r - 240, r + 10, 1, 0.3);
+    o.drawImage(L.sky, 0, 0, w, h);
+    // twinkling stars
+    o.fillStyle = "#ffe9d6";
+    for (const [x, y, s, ph] of L.stars) {
+      o.globalAlpha = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(now * 1.3 + ph));
+      o.fillRect(x, y, s, s);
     }
-    // ---- the logo, centred; a gap between LED columns falls exactly on the split
-    const p = Math.max(9, Math.min(30, (w * 0.6) / this.logo.cols));
-    const ox = Math.round(cx - Math.round(this.logo.cols / 2) * p);
-    const oy = cy - (this.logo.rows * p) / 2;
-    const plate = o.createRadialGradient(cx, cy, 0, cx, cy, this.logo.cols * p * 0.6);
-    plate.addColorStop(0, "rgba(3,3,5,0.88)");
-    plate.addColorStop(1, "rgba(3,3,5,0)");
-    o.fillStyle = plate;
-    o.fillRect(0, 0, w, h);
-    this.logo.draw(o, (performance.now() - this.t0) / 1000, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare });
-    // ---- the crack of light down the middle (only while splitting or healing — sealed, there's no seam)
-    if (this.crack > 0.01) {
+    o.globalAlpha = 1;
+    this.sun(o, now, this.flare);
+    this.grid(o, now, this.flare);
+    const hy = h * HORIZON;
+    // the opening streak: light racing out along the horizon from the centre
+    if (this.streak > 0 && this.streak < 1) {
       o.globalCompositeOperation = "lighter";
-      const len = this.crack * h * 0.62;
-      const cg = o.createLinearGradient(0, cy - len, 0, cy + len);
-      cg.addColorStop(0, "rgba(255,255,255,0)");
-      cg.addColorStop(0.5, `rgba(255,240,225,${0.95 * Math.min(1, this.crack * 1.4)})`);
-      cg.addColorStop(1, "rgba(255,255,255,0)");
-      o.fillStyle = cg;
-      o.fillRect(cx - 1.2, cy - len, 2.4, len * 2);
-      const halo = o.createRadialGradient(cx, cy, 0, cx, cy, 170 * this.crack);
-      halo.addColorStop(0, `rgba(255,190,120,${0.35 * this.crack})`);
-      halo.addColorStop(1, "rgba(0,0,0,0)");
-      o.fillStyle = halo;
-      o.fillRect(cx - 170, cy - 170, 340, 340);
+      const len = easeOut(this.streak) * w * 0.6;
+      const sg = o.createLinearGradient(w / 2 - len, 0, w / 2 + len, 0);
+      sg.addColorStop(0, "rgba(255,255,255,0)");
+      sg.addColorStop(0.5, `rgba(255,236,210,${0.9 * (1 - this.streak * 0.6)})`);
+      sg.addColorStop(1, "rgba(255,255,255,0)");
+      o.fillStyle = sg;
+      o.fillRect(w / 2 - len, hy - 2, len * 2, 4);
       o.globalCompositeOperation = "source-over";
     }
-    // ---- split into the two doors
+    // the logo: a neon sign in the sky; a gap between LED columns falls exactly on the split
+    const p = Math.max(9, Math.min(28, (w * 0.56) / this.logo.cols));
+    const cx = w / 2;
+    const ly = h * 0.24;
+    const ox = Math.round(cx - Math.round(this.logo.cols / 2) * p);
+    const oy = ly - (this.logo.rows * p) / 2;
+    const plate = o.createRadialGradient(cx, ly, 0, cx, ly, this.logo.cols * p * 0.62);
+    plate.addColorStop(0, "rgba(8,3,12,0.55)");
+    plate.addColorStop(1, "rgba(8,3,12,0)");
+    o.fillStyle = plate;
+    o.fillRect(0, 0, w, h);
+    this.logo.draw(o, (performance.now() - this.t0) / 1000, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare * 0.8 });
+    // the crack of light down the middle (only while splitting or healing)
+    if (this.crack > 0.01) {
+      o.globalCompositeOperation = "lighter";
+      const len = this.crack * h * 0.7;
+      const my = h * 0.48;
+      const cg = o.createLinearGradient(0, my - len, 0, my + len);
+      cg.addColorStop(0, "rgba(255,255,255,0)");
+      cg.addColorStop(0.5, `rgba(255,236,214,${0.95 * Math.min(1, this.crack * 1.4)})`);
+      cg.addColorStop(1, "rgba(255,255,255,0)");
+      o.fillStyle = cg;
+      o.fillRect(cx - 1.2, my - len, 2.4, len * 2);
+      const halo = o.createRadialGradient(cx, my, 0, cx, my, 190 * this.crack);
+      halo.addColorStop(0, `rgba(255,170,90,${0.3 * this.crack})`);
+      halo.addColorStop(1, "rgba(0,0,0,0)");
+      o.fillStyle = halo;
+      o.fillRect(cx - 190, my - 190, 380, 380);
+      o.globalCompositeOperation = "source-over";
+    }
+    // lo-fi finish: moving grain, scanlines, vignette
+    this.grainPattern ??= o.createPattern(L.grain, "repeat");
+    if (this.grainPattern) {
+      const gx = Math.floor(Math.random() * 160);
+      const gy = Math.floor(Math.random() * 160);
+      o.save();
+      o.translate(-gx, -gy);
+      o.fillStyle = this.grainPattern;
+      o.fillRect(gx, gy, w + 160, h + 160);
+      o.restore();
+    }
+    o.drawImage(L.finish, 0, 0, w, h);
+
+    // split into the two doors
     const half = Math.ceil(w / 2);
     for (const [c, sx] of [[this.left, 0], [this.right, w - half]] as const) {
       const g = c.getContext("2d")!;
@@ -279,13 +360,16 @@ export class Doors {
       g.clearRect(0, 0, c.width, c.height);
       g.drawImage(this.out, sx * dpr, 0, half * dpr, h * dpr, 0, 0, c.width, c.height);
       if (this.open > 0.002) {
-        // the inner edge catches the light pouring through
+        // the inner edge: a thin warm neon rim
         const ex = sx === 0 ? c.width - 3 * dpr : 0;
-        const eg = g.createLinearGradient(ex, 0, ex + 3 * dpr, 0);
-        eg.addColorStop(0, "rgba(255,230,210,0.9)");
-        eg.addColorStop(1, "rgba(255,230,210,0.2)");
+        const eg = g.createLinearGradient(0, 0, 0, c.height);
+        eg.addColorStop(0, NEON[0]);
+        eg.addColorStop(0.5, NEON[1]);
+        eg.addColorStop(1, NEON[2]);
+        g.globalAlpha = 0.9;
         g.fillStyle = eg;
         g.fillRect(ex, 0, 3 * dpr, c.height);
+        g.globalAlpha = 1;
       }
     }
     return { open: this.open, crack: this.crack, shine: Math.min(1, this.crack) * (1 - this.open * 0.85) };

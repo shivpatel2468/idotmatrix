@@ -124,7 +124,7 @@ export function Boot() {
       <div ref={shine} className="boot-shine" />
       <div ref={doorL} className="boot-door boot-door-l"><canvas ref={cvL} /></div>
       <div ref={doorR} className="boot-door boot-door-r"><canvas ref={cvR} /></div>
-      <div className="boot-ui pointer-events-none absolute inset-x-0 top-[calc(42%+min(6.2vw,110px)+46px)] mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-6">
+      <div className="boot-ui pointer-events-none absolute inset-x-0 top-[67%] boot-glass mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-6">
         <div className="engrave !text-[9px] !tracking-[0.42em] !text-ink-3">DeskDot studio · all in one for your iDotMatrix</div>
         <div className="w-full">
           <div className="h-[3px] overflow-hidden rounded-full bg-white/[0.06]">

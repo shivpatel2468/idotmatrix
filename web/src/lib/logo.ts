@@ -55,8 +55,8 @@ const STRIKE: [number, number][][] = [
 /** Each tube is struck a moment after the last, like a sign coming on letter-group by letter-group. */
 const DELAY = [0, 0.28, 0.12];
 
-/** A neon-sign palette: hot pink, amber, ice cyan. */
-export const NEON: [string, string, string] = ["#ff2d78", "#ffb21a", "#1fe0ff"];
+/** A warm neon-sign palette: rose, tangerine, gold. */
+export const NEON: [string, string, string] = ["#ff3f78", "#ff7419", "#ffcc33"];
 
 function strike(part: Part, t: number): number {
   if (t < 0) return 0;
@@ -220,10 +220,11 @@ export class NeonLogo {
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
-          ctx.globalAlpha = Math.min(1, light * 0.8);
-          ctx.fillStyle = "#ffffff";
+          // a small hot core keeps each tube's colour readable
+          ctx.globalAlpha = Math.min(1, light * 0.5);
+          ctx.fillStyle = "#fff4e0";
           ctx.beginPath();
-          ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+          ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalCompositeOperation = "source-over";
         }
