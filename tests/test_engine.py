@@ -181,3 +181,32 @@ async def test_gif_upload_is_never_abandoned_midway() -> None:
     assert all(c in joined for c in chunks_a), "the in-flight GIF was completed"
     assert all(c in joined for c in chunks_b), "then the newer GIF was sent"
     await dev.stop()
+
+
+async def test_a_hung_connect_is_abandoned_and_retried() -> None:
+    """After Windows sleeps, a Bluetooth connect can hang forever; the supervisor must give up and try again."""
+    import asyncio
+
+    from dotdeck.device import SimDevice
+
+    class Hangs(SimDevice):
+        attempts = 0
+
+        async def _connect(self) -> None:
+            type(self).attempts += 1
+            if type(self).attempts == 1:
+                await asyncio.Event().wait()  # never returns
+            await super()._connect()
+
+    dev = Hangs(min_frame_interval=0.0)
+    dev.connect_timeout = 0.2
+    await dev.start()
+    try:
+        for _ in range(100):
+            if dev.connected:
+                break
+            await asyncio.sleep(0.05)
+        assert dev.connected, "the supervisor recovered from a connect that never returned"
+        assert Hangs.attempts == 2
+    finally:
+        await dev.stop()

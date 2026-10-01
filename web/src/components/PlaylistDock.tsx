@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import { Check, ChevronDown, ChevronUp, GripVertical, Plus, Save, Search, Shuffle, SkipBack, SkipForward, Square, Play, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, GripVertical, Maximize2, Plus, Save, Search, Shuffle, SkipBack, SkipForward, Square, Play, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, loadPresets } from "../lib/api";
-import { EMPTY_LIST, appMeta, toast, useStore } from "../lib/store";
+import { DOCK_MAX_SHARE, EMPTY_LIST, appMeta, toast, useStore } from "../lib/store";
 import type { AppMeta, PlaylistItem, Preset } from "../lib/types";
 import { Icon } from "./Icon";
+import { NowPlaying } from "./NowPlaying";
 
 /**
  * Playback: the ONE place that answers "what's playing, what's next".
@@ -14,7 +15,7 @@ import { Icon } from "./Icon";
 
 type Variant = "dock" | "sheet";
 
-function usePlayback() {
+export function usePlayback() {
   const pl = useStore((s) => s.state?.engine.playlist);
   const mode = useStore((s) => s.state?.engine.mode);
   const focus = useStore((s) => s.state?.engine.focus);
@@ -36,7 +37,7 @@ function usePlayback() {
 }
 
 /** A thin bar that fills while the current playlist item is on screen (animated locally, no re-renders). */
-function Progress({ duration, className }: { duration: number; className?: string }) {
+export function Progress({ duration, className }: { duration: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let raf = 0;
@@ -60,7 +61,7 @@ function Progress({ duration, className }: { duration: number; className?: strin
 }
 
 /** Seconds left on the current item, ticking locally. */
-function Countdown() {
+export function Countdown() {
   const [, force] = useState(0);
   useEffect(() => {
     const t = setInterval(() => force((x) => x + 1), 1000);
@@ -176,7 +177,7 @@ function PresetSkeleton({ variant }: { variant: Variant }) {
   );
 }
 
-export function PresetList({ variant }: { variant: Variant }) {
+export function PresetList({ variant, wrap = false }: { variant: Variant; wrap?: boolean }) {
   const presets = useStore((s) => s.presets);
   const { activeId, running, items } = usePlayback();
   const mine = presets?.filter((p) => !p.builtin) ?? [];
@@ -184,7 +185,7 @@ export function PresetList({ variant }: { variant: Variant }) {
   const cards = (list: Preset[]) => list.map((p) => <PresetCard key={p.id} p={p} active={running && activeId === p.id} variant={variant} />);
   if (variant === "dock") {
     return (
-      <div className="-mx-1 flex min-w-0 gap-2 overflow-x-auto px-1 pb-1 pt-1.5" role="list" aria-label="Presets">
+      <div className={clsx("-mx-1 flex min-w-0 gap-2 px-1 pb-1 pt-1.5", wrap ? "flex-wrap" : "overflow-x-auto")} role="list" aria-label="Presets">
         {presets === null ? <PresetSkeleton variant={variant} /> : <>{cards(mine)}{cards(builtin)}</>}
         <SavePreset variant={variant} disabled={!items.length} />
       </div>
@@ -208,7 +209,7 @@ export function PresetList({ variant }: { variant: Variant }) {
 }
 
 // ---------------------------------------------------------------- transport
-function Transport({ variant }: { variant: Variant }) {
+function Transport({ variant, onFullscreen }: { variant: Variant; onFullscreen?: () => void }) {
   const { running, focus, active, cur, next, items } = usePlayback();
   const shuffle = useStore((s) => s.shuffle);
   const queueOpen = useStore((s) => s.queueOpen);
@@ -260,6 +261,11 @@ function Transport({ variant }: { variant: Variant }) {
         title={shuffle ? "Shuffle is on — presets play in random order" : "Shuffle presets"} onClick={() => prefs({ shuffle: !shuffle })}>
         <Shuffle size={13} /> <span className={variant === "dock" ? "hidden 2xl:inline" : ""}>Shuffle</span>
       </button>
+      {variant === "dock" && onFullscreen && (
+        <button className="key key-icon shrink-0 !h-9 !w-9" onClick={onFullscreen} title="Full screen (like a music player's now-playing view)" aria-label="Full screen">
+          <Maximize2 size={14} />
+        </button>
+      )}
       {variant === "dock" && (
         <button className="key shrink-0 !h-9" aria-expanded={queueOpen} onClick={() => prefs({ queueOpen: !queueOpen })}
           title={queueOpen ? "Hide the playlist editor" : "Edit what plays and for how long"}>
@@ -311,7 +317,7 @@ function AddApp({ onAdd, variant }: { onAdd: (id: string) => void; variant: Vari
   );
 }
 
-function Queue({ variant }: { variant: Variant }) {
+function Queue({ variant, wrap = false }: { variant: Variant; wrap?: boolean }) {
   const { pl, running, focus } = usePlayback();
   const drag = useRef<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
@@ -329,7 +335,7 @@ function Queue({ variant }: { variant: Variant }) {
   };
 
   return (
-    <div className={clsx(variant === "dock" ? "flex min-w-0 gap-2 overflow-x-auto border-t border-line pb-1 pt-2.5" : "space-y-1.5")}>
+    <div className={clsx(variant === "dock" ? clsx("flex min-w-0 gap-2 border-t border-line pb-1 pt-2.5", wrap ? "flex-wrap" : "overflow-x-auto") : "space-y-1.5")}>
       {!pl.items.length && (
         <p className={clsx("text-[12.5px] text-ink-3", variant === "dock" ? "self-center px-2" : "py-2")}>
           The playlist is empty — play a preset, or add apps one by one.
@@ -393,16 +399,56 @@ function Queue({ variant }: { variant: Variant }) {
 }
 
 // ---------------------------------------------------------------- exports
+/** Tall enough to lay presets and the playlist out as wrapping grids instead of one scrolling row. */
+const DOCK_WRAP_AT = 230;
+
 export function PlaylistDock() {
   const pl = useStore((s) => s.state?.engine.playlist);
   const queueOpen = useStore((s) => s.queueOpen);
+  const dockHeight = useStore((s) => s.dockHeight);
+  const prefs = useStore((s) => s.prefs);
+  const [full, setFull] = useState(false);
+  const box = useRef<HTMLElement>(null);
   if (!pl) return <div className="skeleton h-[108px] rounded-[14px]" />;
+  const wrap = dockHeight >= DOCK_WRAP_AT;
   return (
-    <footer className="surface flex shrink-0 flex-col p-2.5 pb-1.5" aria-label="Playback">
-      <Transport variant="dock" />
-      <PresetList variant="dock" />
-      {queueOpen && <Queue variant="dock" />}
-    </footer>
+    <>
+      <footer ref={box} className="surface relative flex shrink-0 flex-col p-2.5 pb-1.5" aria-label="Playback"
+        style={dockHeight ? { height: dockHeight } : undefined}>
+        <DockResizer
+          start={() => box.current?.getBoundingClientRect().height ?? 120}
+          set={(h) => prefs({ dockHeight: h })} />
+        <Transport variant="dock" onFullscreen={() => setFull(true)} />
+        <div className={clsx("min-h-0", dockHeight ? "flex-1 overflow-y-auto" : "")}>
+          <PresetList variant="dock" wrap={wrap} />
+          {(queueOpen || wrap) && <Queue variant="dock" wrap={wrap} />}
+        </div>
+      </footer>
+      {full && <NowPlaying onClose={() => setFull(false)} />}
+    </>
+  );
+}
+
+/** The glowing bar on the dock's top edge: drag up for a taller dock (its contents re-flow), double-click to reset. */
+function DockResizer({ start, set }: { start: () => number; set: (h: number) => void }) {
+  const [drag, setDrag] = useState(false);
+  const from = useRef({ y: 0, h: 0 });
+  const clamp = (h: number) => {
+    const max = Math.round(window.innerHeight * DOCK_MAX_SHARE);
+    return h < 104 ? 0 : Math.min(max, Math.round(h)); // dragging below the natural height snaps back to "fit"
+  };
+  return (
+    <div className="splitter-h" data-drag={drag} role="separator" aria-orientation="horizontal" aria-label="Playback dock height"
+      title="Playback dock — drag to resize, double-click to reset"
+      onDoubleClick={() => set(0)}
+      onPointerDown={(e) => {
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+        from.current = { y: e.clientY, h: start() };
+        setDrag(true);
+      }}
+      onPointerMove={(e) => drag && set(clamp(from.current.h + (from.current.y - e.clientY)))}
+      onPointerUp={() => setDrag(false)}
+      onPointerCancel={() => setDrag(false)} />
   );
 }
 

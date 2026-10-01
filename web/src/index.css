@@ -241,6 +241,25 @@
 }
 .splitter:hover::after, .splitter[data-drag="true"]::after { background: var(--color-ember); top: 12%; bottom: 12%; box-shadow: 0 0 10px var(--color-ember); }
 
+/* the playback dock's height handle: the same glowing bar, laid horizontally on its top edge */
+.splitter-h { position: absolute; left: 0; right: 0; top: -8px; height: 12px; cursor: row-resize; touch-action: none; z-index: 5; }
+.splitter-h::after {
+  content: ""; position: absolute; top: 5px; left: 38%; right: 38%; height: 2px; border-radius: 2px;
+  background: var(--color-line-2); transition: background 0.15s, left 0.2s, right 0.2s;
+}
+.splitter-h:hover::after, .splitter-h[data-drag="true"]::after { background: var(--color-ember); left: 12%; right: 12%; box-shadow: 0 0 10px var(--color-ember); }
+
+/* full-screen now playing: an ambient ember wash behind the panel (like a music player's colour wash) */
+.nowplaying .np-wash {
+  background:
+    radial-gradient(60% 55% at 30% 45%, rgba(249, 74, 24, 0.20), transparent 70%),
+    radial-gradient(45% 45% at 75% 60%, rgba(0, 200, 255, 0.08), transparent 70%),
+    linear-gradient(180deg, #0d0d12, #07070a);
+}
+.nowplaying .np-panel { filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(249, 74, 24, 0.18)); }
+.nowplaying .np-play:hover:not(:disabled) { transform: scale(1.06); }
+.nowplaying .np-play:disabled { opacity: 0.4; }
+
 /* ------------------------------------------------------------- settings panel adapts to its width */
 /* The inspector is a size container: drag its splitter and the contents re-flow (not just the viewport). */
 .inspector-box { container-type: inline-size; container-name: inspector; }

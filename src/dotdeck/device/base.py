@@ -60,6 +60,8 @@ class Device(ABC):
 
     #: bytes per ATT write; backends set this after connecting
     packet_size: int = 20
+    #: a connect attempt (scan + GATT connect + setup) that takes longer than this is abandoned and retried
+    connect_timeout: float = 45.0
 
     def __init__(
         self,
@@ -240,7 +242,13 @@ class Device(ABC):
                 continue
             try:
                 self._set(status="connecting")
-                await self._connect()
+                try:
+                    # Verified 2026-10-01: after Windows sleeps, a WinRT connect can hang forever, which left the
+                    # supervisor stuck and the panel never reconnected. Abandon a hung attempt and retry.
+                    await asyncio.wait_for(self._connect(), self.connect_timeout)
+                except TimeoutError:
+                    await self._disconnect()
+                    raise ConnectionError(f"connect timed out after {self.connect_timeout:.0f}s") from None
                 delay = 1.0
                 self._set(status="connected", connected_since=time.time(), last_error=None, mode="unknown")
                 self._connected.set()

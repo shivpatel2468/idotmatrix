@@ -29,19 +29,23 @@ type Prefs = {
   shuffle: boolean; // presets play in random order
   queueOpen: boolean; // playlist editor expanded in the playback dock
   lastGame: string; // the game Play mode opens when nothing playable is showing
+  dockHeight: number; // playback dock height in px; 0 = fit its content
 };
 const DEFAULT_PREFS: Prefs = {
   libraryWidth: 300, inspectorWidth: 340, libraryView: "grid", cardSize: 112, favorites: [], category: "all",
-  shuffle: false, queueOpen: false, lastGame: "",
+  shuffle: false, queueOpen: false, lastGame: "", dockHeight: 0,
 };
 export const LIBRARY_MAX = 460;
 export const INSPECTOR_MAX = 560;
+/** The dock may grow to this share of the window (the panel preview stays the hero). */
+export const DOCK_MAX_SHARE = 0.62;
 function loadPrefs(): Prefs {
   try {
     const p: Prefs = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem("dotdeck.prefs") ?? "{}") };
     // the panel preview is the hero: never let a stored rail width crush it
     p.libraryWidth = Math.max(240, Math.min(LIBRARY_MAX, p.libraryWidth));
     p.inspectorWidth = Math.max(300, Math.min(INSPECTOR_MAX, p.inspectorWidth));
+    p.dockHeight = Math.max(0, Math.min(Math.round(window.innerHeight * DOCK_MAX_SHARE), p.dockHeight || 0));
     return p;
   } catch {
     return DEFAULT_PREFS;
@@ -111,7 +115,7 @@ export const useStore = create<Store>((set, get) => ({
     const keep: Prefs = {
       libraryWidth: s.libraryWidth, inspectorWidth: s.inspectorWidth, libraryView: s.libraryView,
       cardSize: s.cardSize, favorites: s.favorites, category: s.category, shuffle: s.shuffle, queueOpen: s.queueOpen,
-      lastGame: s.lastGame,
+      lastGame: s.lastGame, dockHeight: s.dockHeight,
     };
     try {
       localStorage.setItem("dotdeck.prefs", JSON.stringify(keep));
