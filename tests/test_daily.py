@@ -14,15 +14,15 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.currency import Currency, CurrencySettings, compact, group_digits, short_num, unit_for
-from dotdeck.apps.daily import Daily, DailySettings, flow_pages, wrap_text
-from dotdeck.apps.headlines import Headlines, HeadlinesSettings, age_text
-from dotdeck.apps.trivia import Trivia, TriviaSettings
-from dotdeck.gfx import Frame, measure
-from dotdeck.providers import currency as fx
-from dotdeck.providers import daily as dd
-from dotdeck.providers import headlines as hl
-from dotdeck.providers import trivia as tv
+from deskdot.apps.currency import Currency, CurrencySettings, compact, group_digits, short_num, unit_for
+from deskdot.apps.daily import Daily, DailySettings, flow_pages, wrap_text
+from deskdot.apps.headlines import Headlines, HeadlinesSettings, age_text
+from deskdot.apps.trivia import Trivia, TriviaSettings
+from deskdot.gfx import Frame, measure
+from deskdot.providers import currency as fx
+from deskdot.providers import daily as dd
+from deskdot.providers import headlines as hl
+from deskdot.providers import trivia as tv
 
 FIX = Path(__file__).parent / "fixtures" / "daily"
 
@@ -538,8 +538,8 @@ def test_currency_formatting() -> None:
 
 
 def test_currency_from_home_board_scales_each_page() -> None:
-    from dotdeck.apps.currency import page_unit, sig_text, unit_token
-    from dotdeck.gfx.font import FONTS
+    from deskdot.apps.currency import page_unit, sig_text, unit_token
+    from deskdot.gfx.font import FONTS
 
     per_inr = [1 / 95.74, 1 / 109.25, 1 / 127.1, 1 / 0.6063]  # USD EUR GBP JPY
     unit = page_unit(per_inr, 17)

@@ -9,8 +9,8 @@ from typing import Any
 
 import pytest
 
-from dotdeck.engine import REGISTRY, AppSettings
-from dotdeck.gfx import Frame
+from deskdot.engine import REGISTRY, AppSettings
+from deskdot.gfx import Frame
 
 
 def _variants(cls: type) -> list[dict[str, Any]]:
@@ -103,7 +103,7 @@ def test_ids_unique_and_complete() -> None:
 
 
 def test_canvas_pixel_art(engine) -> None:  # type: ignore[no-untyped-def]
-    from dotdeck.apps.canvas import frame_from_rows
+    from deskdot.apps.canvas import frame_from_rows
 
     f = frame_from_rows(["#.", ".#"], {"#": "#ff0000"})
     assert f.get(0, 0) == (255, 0, 0) and f.get(1, 0) == (0, 0, 0)
@@ -134,7 +134,7 @@ def test_app_icons_exist_in_the_studio_icon_set() -> None:
 
 def test_synthwave_loop_is_seamless() -> None:
     """The baked loop must wrap without a jump: frame N (one past the end) equals frame 0, at every speed."""
-    from dotdeck.apps.synthwave import N_FRAMES, Synthwave, SynthwaveSettings
+    from deskdot.apps.synthwave import N_FRAMES, Synthwave, SynthwaveSettings
 
     class Ctx:
         data: dict[str, object] = {}  # noqa: RUF012

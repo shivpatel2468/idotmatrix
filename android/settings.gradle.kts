@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DotDeck"
+rootProject.name = "DeskDot"
 include(":app")

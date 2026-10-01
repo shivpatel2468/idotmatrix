@@ -21,22 +21,22 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.apps import currency as fx_app
-from dotdeck.apps import gamedeals as deals_app
-from dotdeck.apps import headlines as hl_app
-from dotdeck.apps import quakes as qk_app
-from dotdeck.apps import radar as radar_app
-from dotdeck.apps import rainradar as rr_app
-from dotdeck.apps import stocks as stocks_app
-from dotdeck.apps import tides as tides_app
-from dotdeck.apps import wear as wear_app
-from dotdeck.apps import weather as wx
-from dotdeck.gfx import Frame, measure
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
-from dotdeck.providers import gamedeals as deals_p
-from dotdeck.providers import headlines as hl_p
-from dotdeck.providers import quakes as qk_p
-from dotdeck.providers import rainradar as rr_p
+from deskdot.apps import currency as fx_app
+from deskdot.apps import gamedeals as deals_app
+from deskdot.apps import headlines as hl_app
+from deskdot.apps import quakes as qk_app
+from deskdot.apps import radar as radar_app
+from deskdot.apps import rainradar as rr_app
+from deskdot.apps import stocks as stocks_app
+from deskdot.apps import tides as tides_app
+from deskdot.apps import wear as wear_app
+from deskdot.apps import weather as wx
+from deskdot.gfx import Frame, measure
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.providers import gamedeals as deals_p
+from deskdot.providers import headlines as hl_p
+from deskdot.providers import quakes as qk_p
+from deskdot.providers import rainradar as rr_p
 
 FIX = Path(__file__).parent / "fixtures"
 HOME = {"city": "Mumbai", "lat": 19.0760, "lon": 72.8777, "country": "IN"}
@@ -407,7 +407,7 @@ def test_currency_converter_result_clears_the_caption() -> None:
 
 
 def test_dim_structure_stays_lit() -> None:
-    from dotdeck.apps import airquality, planets, sysmon
+    from deskdot.apps import airquality, planets, sysmon
 
     assert max(airquality.TRACK) >= VISIBLE and airquality.UNLIT_K >= 0.35
     assert max(planets.HORIZON) >= 100

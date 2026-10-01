@@ -7,9 +7,9 @@ from datetime import date
 
 from pydantic import Field
 
-from dotdeck.apps._kit import ring
-from dotdeck.engine import App, AppSettings, Color, register
-from dotdeck.gfx import Frame, scale
+from deskdot.apps._kit import ring
+from deskdot.engine import App, AppSettings, Color, register
+from deskdot.gfx import Frame, scale
 
 
 class DaysUntilSettings(AppSettings):

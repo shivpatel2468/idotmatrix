@@ -11,9 +11,9 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from dotdeck.config import Config
-from dotdeck.multiplayer import LanGate, is_local
-from dotdeck.server import create_app
+from deskdot.config import Config
+from deskdot.multiplayer import LanGate, is_local
+from deskdot.server import create_app
 
 
 def _client(tmp_path: Path) -> TestClient:
@@ -40,7 +40,7 @@ def test_lobby_controller_and_seats(tmp_path: Path) -> None:
         assert _ttt(c).lobby_waiting()
 
         assert c.get(f"/p/{code}").status_code == 200
-        assert "DotDeck controller" in c.get(f"/p/{code}").text
+        assert "DeskDot controller" in c.get(f"/p/{code}").text
         assert c.get("/p/ZZZZ").status_code == 404
 
         with c.websocket_connect(f"/ws/p/{code}") as ws:
@@ -72,8 +72,8 @@ def test_lobby_controller_and_seats(tmp_path: Path) -> None:
 
 
 async def test_tictactoe_two_players_take_turns() -> None:
-    from dotdeck.apps.games_board import TicTacToe
-    from dotdeck.engine.app import AppSettings  # noqa: F401 — registry import side effect
+    from deskdot.apps.games_board import TicTacToe
+    from deskdot.engine.app import AppSettings  # noqa: F401 — registry import side effect
 
     class Ctx:
         def __init__(self) -> None:
@@ -129,8 +129,8 @@ def test_lan_gate(client: str, path: str, allowed: bool) -> None:
 
 
 async def test_light_cycles_four_players_and_frame_size() -> None:
-    from dotdeck.apps.games_party import LightCycles
-    from dotdeck.gfx import Frame
+    from deskdot.apps.games_party import LightCycles
+    from deskdot.gfx import Frame
 
     class Ctx:
         def __init__(self) -> None:
@@ -211,7 +211,7 @@ def _roster_until(ws: Any, ok: Any) -> dict[str, Any]:
 
 
 def test_profile_sets_seat_data_and_broadcasts_roster(tmp_path: Path) -> None:
-    from dotdeck.gfx.avatars import AVATAR_IDS
+    from deskdot.gfx.avatars import AVATAR_IDS
 
     with _client(tmp_path) as c:
         code = c.post("/api/play/lobby", json={"app": "cycles"}).json()["code"]
@@ -265,7 +265,7 @@ def test_profile_sets_seat_data_and_broadcasts_roster(tmp_path: Path) -> None:
 
 
 def test_profile_input_is_sanitised() -> None:
-    from dotdeck.multiplayer import NAME_MAX, Room, clean_cid, clean_name
+    from deskdot.multiplayer import NAME_MAX, Room, clean_cid, clean_name
 
     assert clean_name("  <b>Zo\u00eb</b>  the\n\tgreat ") == "bZob thegr"
     assert clean_name("x" * 50) == "x" * NAME_MAX
@@ -342,8 +342,8 @@ def test_reconnect_reclaims_seat_by_cid(tmp_path: Path) -> None:
 
 
 async def test_panel_uses_picked_name_colour_and_team() -> None:
-    from dotdeck.apps.games_party import LightCycles
-    from dotdeck.gfx import Frame
+    from deskdot.apps.games_party import LightCycles
+    from deskdot.gfx import Frame
 
     class Ctx:
         def __init__(self) -> None:

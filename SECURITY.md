@@ -7,7 +7,7 @@ Please **don't open a public issue** for security problems. Use GitHub's private
 
 Helpful details: what you found, how to reproduce it, and what an attacker could do with it.
 
-## How DotDeck is designed to be safe
+## How DeskDot is designed to be safe
 
 - **Local-first, no accounts, no telemetry.** The engine runs on your own computer, Pi or phone.
 - **LAN-closed by default.** The engine listens on your network only so friends' phones can join games:
@@ -17,7 +17,7 @@ Helpful details: what you found, how to reproduce it, and what an attacker could
 - **Secrets stay on your machine.** Tokens and passwords you type into the studio are stored only in
   `data/state.json` (git-ignored). They are masked as `••••••` in every API response and snapshot, never logged,
   and never sent anywhere except the service they belong to.
-- **Never commit `dotdeck.toml`, `.env*` or `data/`.** The repo's `.gitignore` excludes them; please keep it that way
+- **Never commit `deskdot.toml`, `.env*` or `data/`.** The repo's `.gitignore` excludes them; please keep it that way
   in forks and pull requests.
 - **One Bluetooth owner.** Only the engine talks to the panel; everything else goes through the HTTP API.
 

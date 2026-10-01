@@ -8,12 +8,12 @@ import { create } from "zustand";
  */
 export type PanelLook = "glow" | "pixel" | "led";
 
-const KEY = "dotdeck.panelLook";
+const KEY = "deskdot.panelLook";
 const LOOKS: PanelLook[] = ["glow", "pixel", "led"];
 
 function load(): PanelLook {
   try {
-    const v = localStorage.getItem(KEY) as PanelLook | null;
+    const v = (localStorage.getItem(KEY) ?? localStorage.getItem(KEY.replace("deskdot", "dotdeck"))) as PanelLook | null;
     return v && LOOKS.includes(v) ? v : "glow";
   } catch {
     return "glow";
@@ -24,7 +24,7 @@ function load(): PanelLook {
  * Bloom amount for the "glow" look, 0..1 (0 = crisp, no bloom; 0.5 = the classic glow; 1 = twice as soft).
  * Shown as the "Sharpness" slider in Play mode's Display menu.
  */
-const BLOOM_KEY = "dotdeck.panelBloom";
+const BLOOM_KEY = "deskdot.panelBloom";
 export const DEFAULT_BLOOM = 0.5;
 function loadBloom(): number {
   try {

@@ -1,8 +1,8 @@
 <div align="center">
 
-[![DotDeck: Synthwave, a live clock, London weather, the cat loop, Light Cycles, Pet World, a 3D wireframe and falling sand, playing on a 32×32 iDotMatrix panel](docs/media/hero.gif)](docs/media/hero.gif)
+[![DeskDot: Synthwave, a live clock, London weather, the cat loop, Light Cycles, Pet World, a 3D wireframe and falling sand, playing on a 32×32 iDotMatrix panel](docs/media/hero.gif)](docs/media/hero.gif)
 
-# 🟧 DotDeck
+# 🟧 DeskDot
 
 ### Turn your iDotMatrix into a live desktop companion — the all-in-one app for your iDotMatrix.
 
@@ -23,16 +23,16 @@ _1,024 pixels. Zero subscriptions._
 </div>
 
 > [!NOTE]
-> **DotDeck is an independent, community-built project.** It is not affiliated with, endorsed by or supported by
+> **DeskDot is an independent, community-built project.** It is not affiliated with, endorsed by or supported by
 > the makers of iDotMatrix. "iDotMatrix" is used only to say which panels it works with; all trademarks belong to
-> their owners. DotDeck talks to your own panel over Bluetooth, and nothing is sent to the manufacturer.
+> their owners. DeskDot talks to your own panel over Bluetooth, and nothing is sent to the manufacturer.
 
 * * *
 
 ## 🔲 Why This Exists
 
 The iDotMatrix is a lovely little 32×32 RGB pixel frame. Out of the box, its phone app lets you push a picture or a
-GIF and walk away. DotDeck turns the same panel into something that's **alive**:
+GIF and walk away. DeskDot turns the same panel into something that's **alive**:
 
 - a clock that knows your calendar;
 - weather for where you actually are;
@@ -95,7 +95,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
 
 ## 🖼️ The Apps
 
-[![40 of DotDeck's apps rendered on a simulated iDotMatrix panel](docs/media/apps-grid.png)](docs/media/apps-grid.png)
+[![40 of DeskDot's apps rendered on a simulated iDotMatrix panel](docs/media/apps-grid.png)](docs/media/apps-grid.png)
 
 | | Category | Apps |
 | --- | --- | --- |
@@ -123,7 +123,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
 </tr>
 </table>
 
-<sub>All media in this README is rendered by DotDeck itself from the simulated panel, drawn with an LED-panel look.</sub>
+<sub>All media in this README is rendered by DeskDot itself from the simulated panel, drawn with an LED-panel look.</sub>
 
 * * *
 
@@ -134,28 +134,28 @@ Python 3.13 for you) and Node.js 20+ (only to build the studio once). **Close th
 panel accepts one Bluetooth connection at a time.
 
 ```bash
-git clone https://github.com/shivpatel2468/idotmatrix.git dotdeck
-cd dotdeck
+git clone https://github.com/shivpatel2468/idotmatrix.git deskdot
+cd deskdot
 uv sync --extra mcp                    # engine + MCP server
 (cd web && npm ci && npm run build)    # the studio, built once
-uv run dotdeck scan                    # find your panel (IDM-xxxxxx)
-uv run dotdeck doctor                  # draws a test pattern on it
-uv run dotdeck serve                   # → open http://127.0.0.1:8765
+uv run deskdot scan                    # find your panel (IDM-xxxxxx)
+uv run deskdot doctor                  # draws a test pattern on it
+uv run deskdot serve                   # → open http://127.0.0.1:8765
 ```
 
-No panel yet? `uv run dotdeck serve --sim` runs everything against a simulated panel.
+No panel yet? `uv run deskdot serve --sim` runs everything against a simulated panel.
 
 <details>
 <summary><b>🍓 Always on: Raspberry Pi (recommended host)</b></summary>
 
-A Pi Zero 2 W / 3 / 4 / 5 has built-in Bluetooth LE and runs DotDeck at 1–3 W, 24/7.
+A Pi Zero 2 W / 3 / 4 / 5 has built-in Bluetooth LE and runs DeskDot at 1–3 W, 24/7.
 
 ```bash
 # on your computer: build the studio, then copy the folder over
 (cd web && npm ci && npm run build)
-scp -r . pi@raspberrypi.local:~/dotdeck
+scp -r . pi@raspberrypi.local:~/deskdot
 # on the Pi
-cd ~/dotdeck && bash scripts/install-pi.sh   # installs uv + a systemd service
+cd ~/deskdot && bash scripts/install-pi.sh   # installs uv + a systemd service
 ```
 
 Then open `http://raspberrypi.local:8765` from any device on your Wi-Fi. More hosts and trade-offs:
@@ -165,7 +165,7 @@ Then open `http://raspberrypi.local:8765` from any device on your Wi-Fi. More ho
 <details>
 <summary><b>📱 Always on: a spare Android phone (🧪 beta)</b></summary>
 
-The **DotDeck Android app** runs the whole Python engine on the phone (via Chaquopy) as a foreground service. It keeps
+The **DeskDot Android app** runs the whole Python engine on the phone (via Chaquopy) as a foreground service. It keeps
 the panel connected with the screen off, restarts itself after a reboot, and shows the studio full screen.
 
 > [!WARNING]
@@ -176,11 +176,11 @@ the panel connected with the screen off, restarts itself after a reboot, and sho
 <details>
 <summary><b>⚙️ Configuration</b></summary>
 
-Copy [`dotdeck.example.toml`](dotdeck.example.toml) to `dotdeck.toml`; it's git-ignored, so it never leaves your
-machine. Every key can also be set as an environment variable (`DOTDECK_<KEY>`). The two you'll care about:
+Copy [`deskdot.example.toml`](deskdot.example.toml) to `deskdot.toml`; it's git-ignored, so it never leaves your
+machine. Every key can also be set as an environment variable (`DESKDOT_<KEY>`). The two you'll care about:
 
 ```toml
-address = "AA:BB:CC:DD:EE:FF"   # your panel's MAC from `dotdeck scan` (empty = first IDM-* found)
+address = "AA:BB:CC:DD:EE:FF"   # your panel's MAC from `deskdot scan` (empty = first IDM-* found)
 lan_studio = false              # true = open the full studio to other devices on your Wi-Fi
 ```
 </details>
@@ -266,11 +266,11 @@ in.
 
 ## 🤖 Talk to It — AI agents & MCP
 
-DotDeck ships an **MCP server**, a thin client over the engine's HTTP API, so Claude Code, Claude Desktop or any MCP
+DeskDot ships an **MCP server**, a thin client over the engine's HTTP API, so Claude Code, Claude Desktop or any MCP
 client can **see the panel and drive it**:
 
 ```json
-{ "mcpServers": { "dotdeck": { "command": "uv", "args": ["run", "--project", "/path/to/dotdeck", "dotdeck-mcp"] } } }
+{ "mcpServers": { "deskdot": { "command": "uv", "args": ["run", "--project", "/path/to/deskdot", "deskdot-mcp"] } } }
 ```
 
 | Tool | What the agent can do |
@@ -315,7 +315,7 @@ The full list, with the APIs we tried and rejected (and why): [DATA_SOURCES.md](
 
 ## 💡 Use Cases
 
-| You are… | DotDeck becomes… |
+| You are… | DeskDot becomes… |
 | --- | --- |
 | 🧑‍💻 **A developer** | a CI radiator, a GitHub graph, a Claude mascot that tells you when your agent needs you, a Pomodoro |
 | 🎧 **Working from home** | an "On Air" light for calls, a calendar countdown, eye-break reminders, a focus pet |
@@ -333,7 +333,7 @@ The full list, with the APIs we tried and rejected (and why): [DATA_SOURCES.md](
 | --- | --- | --- |
 | **Windows 10/11** | ✅ Verified on hardware | Bluetooth LE via WinRT; sleep/wake hand-off |
 | **Raspberry Pi OS / Debian / Ubuntu** | 🟡 Supported, installer untested on a real Pi | BlueZ; `scripts/install-pi.sh` sets up a systemd service |
-| **macOS** | 🟡 Should work, untested | CoreBluetooth hides MAC addresses, so DotDeck finds the panel by its `IDM-` name |
+| **macOS** | 🟡 Should work, untested | CoreBluetooth hides MAC addresses, so DeskDot finds the panel by its `IDM-` name |
 | **Android 8+ (64-bit)** | 🧪 Beta, not yet run on a phone | the [Android app](android/README.md) runs the whole engine on the phone |
 | **iPhone / iPad** | ❌ as a host | iOS suspends background apps; use it as a studio or controller instead |
 | **Any browser** | ✅ Studio & controller | Chrome, Edge, Firefox, Safari; gamepads in desktop browsers |
@@ -347,7 +347,7 @@ The full list, with the APIs we tried and rejected (and why): [DATA_SOURCES.md](
 
 ## 📐 Spec Sheet — the iDotMatrix panel
 
-What DotDeck measured on a real unit (Windows 11, 2026-09-24 → 2026-10-01). Vendor specs vary by seller; these are
+What DeskDot measured on a real unit (Windows 11, 2026-09-24 → 2026-10-01). Vendor specs vary by seller; these are
 the numbers that matter to software.
 
 | Property | Value |
@@ -361,10 +361,10 @@ the numbers that matter to software.
 | Native animation | GIFs stored on the panel and looped by its own firmware: smooth at **≤ 10 fps**, 240+ frames, **≤ 40 KB** |
 | GIF upload | ~16 KB/s; one ack per 4 KiB chunk |
 | Built-in modes | clock (8 styles), countdown, chronograph, scoreboard, effects, solid colour |
-| Quirks DotDeck handles | pairing screen on disconnect · DIY-mode blink · panel freezes if GIFs arrive too often · unpaced bursts silently dropped · photos need gamma + white-balance calibration |
+| Quirks DeskDot handles | pairing screen on disconnect · DIY-mode blink · panel freezes if GIFs arrive too often · unpaced bursts silently dropped · photos need gamma + white-balance calibration |
 
 <details>
-<summary><b>📋 How DotDeck keeps the link healthy</b></summary>
+<summary><b>📋 How DeskDot keeps the link healthy</b></summary>
 
 - **Paced packets.** An unpaced burst of writes is silently dropped, so there's an 18 ms gap between packets.
 - **One frame in flight.** Waiting for every ack gives ~2.6 fps, while pipelining one frame gives ~9 fps.
@@ -396,7 +396,7 @@ flowchart LR
 ```
 
 ```
-src/dotdeck/
+src/deskdot/
 ├── engine/        # runtime, scheduler, playlist, presets, hand-off, app base classes
 ├── device/        # the only code that touches Bluetooth: protocol bytes, BLE, Android bridge, simulator
 ├── apps/          # 90 apps — one file each (games in games_*.py on a shared GameApp framework)
@@ -429,7 +429,7 @@ local services only come in when you connect *your own* things:
 | Provider | Why | Get it |
 | --- | --- | --- |
 | GitHub token (optional) | higher rate limit for GitHub Graph / CI | [github.com/settings/tokens](https://github.com/settings/tokens) (read-only) |
-| Home Assistant | show entities, control DotDeck from automations | a long-lived token from your HA profile |
+| Home Assistant | show entities, control DeskDot from automations | a long-lived token from your HA profile |
 | OBS · AnkiConnect · OctoPrint/Moonraker · Jellyfin/Plex | on-air light, reviews, print progress, now watching | your local service |
 | Gemini (optional) | "Draw with AI" in the studio | [aistudio.google.com](https://aistudio.google.com/) |
 
@@ -440,7 +440,7 @@ Secrets are typed into the studio. They're stored only in `data/state.json` on y
 
 ## 📋 Responsible & Open
 
-- **Local-first.** DotDeck runs on your computer, Pi or phone. There's no account, no cloud and no telemetry.
+- **Local-first.** DeskDot runs on your computer, Pi or phone. There's no account, no cloud and no telemetry.
 - **LAN-closed by default.** Other devices on your Wi-Fi can only reach the game-controller pages; set
   `lan_studio = true` to open the full studio.
 - **No copied assets.** All pixel art, characters and fonts are original. Photos and sprites (museum art, Pokémon)
@@ -456,7 +456,7 @@ Secrets are typed into the studio. They're stored only in `data/state.json` on y
 
 <img src="docs/media/app-flybrain.gif" width="240" align="right" alt="Fly Brain on the panel: a fly hunting fruit and dodging a looming swatter"/>
 
-The headline goal: **wire DotDeck to the first complete map of an adult fruit-fly brain.**
+The headline goal: **wire DeskDot to the first complete map of an adult fruit-fly brain.**
 
 In October 2024 the FlyWire consortium, a Princeton-led team whose AI reconstruction and 3D viewer were built with
 Google Research, published the whole-brain *connectome* of *Drosophila melanogaster* in *Nature*: **139,255 neurons
@@ -491,7 +491,7 @@ loaded from FlyWire's synapse counts. That's the next step, explained in [docs/F
 ### Also on the roadmap
 - 📱 **Android app** out of beta: tested on real phones, with an APK on the Releases page.
 - 🍓 **Raspberry Pi image**: flash it, plug it in, done.
-- 🧩 **ESP32 bridge**: a Wi-Fi→BLE puck that plays baked loops from a DotDeck server.
+- 🧩 **ESP32 bridge**: a Wi-Fi→BLE puck that plays baked loops from a DeskDot server.
 - 🎙️ **Voice**: "show the weather", "start a 25-minute focus", from Alexa or Google via Home Assistant.
 - 🖥️ **Bigger panels**: layouts for 64×64 iDotMatrix units.
 
@@ -519,7 +519,7 @@ More: [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/IDEAS.md](docs/IDEAS.md).
 
 **Built by [Shiv Patel](https://github.com/shivpatel2468)** · [idotmatrix.com](https://idotmatrix.com) · [MIT License](LICENSE)
 
-If DotDeck made your desk a little more alive, a ⭐ helps other panel owners find it.
+If DeskDot made your desk a little more alive, a ⭐ helps other panel owners find it.
 
 _1,024 pixels. Zero subscriptions._
 

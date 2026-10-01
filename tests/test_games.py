@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.games import GAME_IDS
-from dotdeck.apps.games_core import THEME_LABELS, GameApp
-from dotdeck.engine import REGISTRY
-from dotdeck.gfx import Frame
+from deskdot.apps.games import GAME_IDS
+from deskdot.apps.games_core import THEME_LABELS, GameApp
+from deskdot.engine import REGISTRY
+from deskdot.gfx import Frame
 
 FPS = 12.0
 

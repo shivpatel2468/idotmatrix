@@ -10,9 +10,9 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from dotdeck.apps.stocks import Stocks, StocksSettings, short_label
-from dotdeck.gfx import Frame
-from dotdeck.providers.stocks import (
+from deskdot.apps.stocks import Stocks, StocksSettings, short_label
+from deskdot.gfx import Frame
+from deskdot.providers.stocks import (
     StocksProvider,
     aggregate_candles,
     downsample,

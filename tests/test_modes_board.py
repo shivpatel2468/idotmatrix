@@ -13,12 +13,12 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.games_board import TicTacToe, _vanish
-from dotdeck.apps.games_bonus import Mines, Starship
-from dotdeck.apps.games_connect import Board, FourUp, _bit, best_move_pop, pop_outcome, won
-from dotdeck.apps.games_core import GameApp
-from dotdeck.apps.games_party import LightCycles
-from dotdeck.gfx import Frame
+from deskdot.apps.games_board import TicTacToe, _vanish
+from deskdot.apps.games_bonus import Mines, Starship
+from deskdot.apps.games_connect import Board, FourUp, _bit, best_move_pop, pop_outcome, won
+from deskdot.apps.games_core import GameApp
+from deskdot.apps.games_party import LightCycles
+from deskdot.gfx import Frame
 
 GAMES: dict[str, type[GameApp]] = {
     "tictactoe": TicTacToe,
@@ -340,7 +340,7 @@ async def test_cycles_teams_and_wrap() -> None:
 
 
 def test_cycles_arenas_keep_the_starts_clear() -> None:
-    from dotdeck.apps.games_party import STARTS, WALLS
+    from deskdot.apps.games_party import STARTS, WALLS
 
     for walls in WALLS.values():
         for x, y, d in STARTS.values():

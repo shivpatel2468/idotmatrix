@@ -11,7 +11,7 @@
   - an "AI agent" setup prompt and a step-by-step guide;
   - an apps explorer covering every app and setting, generated from the code by `scripts/build_site_data.py`.
 - **Fix:** the calendar timeline hid a meeting in progress just after midnight.
-- 🪰 **Fruit-fly brain** (`dotdeck.fly`), a real-time model of the fly's visual circuit:
+- 🪰 **Fruit-fly brain** (`deskdot.fly`), a real-time model of the fly's visual circuit:
   - the pathway runs from T4/T5 motion detectors, through lobula-plate HS/VS cells and LPLC2 looming detectors to
     the giant fibre and the descending neurons;
   - it sees only the panel's pixels.
@@ -74,7 +74,7 @@
 - Raspberry Pi installer (`scripts/install-pi.sh`).
 
 **Privacy**
-- The panel's MAC moved out of the code into the local, git-ignored `dotdeck.toml`.
+- The panel's MAC moved out of the code into the local, git-ignored `deskdot.toml`.
 - Secrets are masked in every API response and snapshot.
 
 ## 3.1.0 — 2026-09-27

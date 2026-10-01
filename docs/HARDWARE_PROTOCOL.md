@@ -1,6 +1,6 @@
 # iDotMatrix hardware & BLE protocol
 
-Source of truth: `src/dotdeck/device/protocol.py`, pinned by `tests/test_protocol.py`. Every encoder was verified
+Source of truth: `src/deskdot/device/protocol.py`, pinned by `tests/test_protocol.py`. Every encoder was verified
 byte-for-byte against the reference `idotmatrix` 0.0.9 Python library (derived from the vendor's
 `BleProtocolN.java`) on 2026-09-24.
 
@@ -56,7 +56,7 @@ Written **without response, paced** (see below). The panel acks each image with 
 
 16-byte header per chunk: `uint16 LE chunk_len`, `01 00`, `00`/`02`, `uint32 LE len(gif)`, `uint32 LE crc32(gif)`,
 `05 00 0D`. The panel acks every 4 KiB chunk with `05 00 01 00 01` and the final chunk with `05 00 01 00 03`;
-DotDeck waits for each ack before sending the next chunk. The panel stores the GIF and loops it by itself.
+DeskDot waits for each ack before sending the next chunk. The panel stores the GIF and loops it by itself.
 
 ## Hard-won behaviour (keep these true)
 
@@ -64,7 +64,7 @@ DotDeck waits for each ack before sending the next chunk. The panel stores the G
    persistent connection; never disconnect between updates. (`BleDevice` reconnects with backoff 1→20 s.)
 2. **DIY mode blink.** `diy_mode(1)` blanks the panel. Send it only on entering DIY from another mode — the
    scheduler tracks `info.mode` (`unknown/diy/gif/native`).
-3. **Only one central.** The phone app and DotDeck can't both be connected. Close the vendor app.
+3. **Only one central.** The phone app and DeskDot can't both be connected. Close the vendor app.
 4. **GIF colour flicker.** Per-frame palettes make colours jump; `encode_gif` uses one palette for all frames.
 5. **Raw LEDs wash out sRGB photos.** Photos need gamma 2.2 + white balance (1.0, 0.88, 0.82) + black crush;
    see `gfx/color.py`. UI colours must **not** be calibrated.
@@ -76,7 +76,7 @@ DotDeck waits for each ack before sending the next chunk. The panel stores the G
 
 Each finding was confirmed by the user watching the physical panel during scripted tests.
 
-| # | Finding | Evidence | What DotDeck does |
+| # | Finding | Evidence | What DeskDot does |
 | --- | --- | --- | --- |
 | 1 | **Unpaced write-without-response bursts are silently dropped.** Anything larger than one packet (~514 B) never displayed — the "512-byte limit" reported in derkalle4/python3-idotmatrix-client#50. The panel even acks the image. | 1.4 KB plasma PNG streamed at 11 fps: acks received, panel unchanged. Same frames with a 30 ms gap between packets: smooth. | `Device.packet_gap` (config `packet_gap_ms`, default 30) between packets of one message. |
 | 2 | **PNG length field must be the true packet length** (payload + 9), not `len(png)+1`. | 822 B still image with the true length: displayed correctly. | `protocol.image_upload` (pinned in tests). |
@@ -84,16 +84,16 @@ Each finding was confirmed by the user watching the physical panel during script
 | 4 | **Waiting for each frame's ack serialises the link at ~2.6 fps**; keeping one frame in flight gives ~9 fps and stays reliable. | Snake: 2.6 fps serial → 9.1 fps pipelined, user-confirmed smooth. | One-deep frame pipeline in `Device._write_next`. |
 | 5 | **Big GIFs work when every 4 KiB chunk waits for its ack** — a 91 KB, 48-frame GIF uploaded in ~5 s and played — but the panel decodes large GIFs sluggishly ("a little laggy"). ~35–40 KB plays smoothly. | Plasma at 91 KB vs 39 KB. | `encode_gif_budget`: palette shrinks until ≤ 40 KB; `App.clip_colors`. |
 | 6 | Small GIFs (0.5–1.5 KB) upload in < 0.4 s. | Mascot GIF. | Clips for all deterministic loops. |
-| 7 | The panel can be left in "screen off" by other apps; DotDeck now sends screen-on (or off, per saved state) on every connect. | "Panel dark while studio says on" class of bug. | `Device._replay`. |
+| 7 | The panel can be left in "screen off" by other apps; DeskDot now sends screen-on (or off, per saved state) on every connect. | "Panel dark while studio says on" class of bug. | `Device._replay`. |
 
 ## Verified on hardware — 2026-09-27
 
-| # | Finding | Evidence | What DotDeck does |
+| # | Finding | Evidence | What DeskDot does |
 | --- | --- | --- | --- |
 | 8 | **Indexed-colour (palette) PNG frames render garbled.** The firmware decodes only truecolour PNGs correctly, even though palette PNGs are ~30 % smaller (would fit full-scene frames in one packet). | Pet World streamed as lossless palette PNGs: user saw a "glitching image"; switching back to RGB fixed it at once. | `Frame.to_png()` always emits RGB. Don't reintroduce palette frames. |
 | 9 | **Full-scene frames of ~500–620 B (two packets) stream at ~5–6 fps**, vs ~9 fps for one-packet frames. Scrolling a whole scene at that rate reads as judder, so full-scene motion should move characters over still scenery rather than scroll the camera. | Pet World: follow-camera judder vs fixed screens. | Pet World's default "rooms" camera; animations use pose-stepped clocks (`gfx.characters.step_anim_time`). |
 | 11 | **Native GIF playback is smooth and not limited by the link.** A 240-frame (30 s @ 8 fps, 38 KB) GIF plays correctly; 160 frames at 10 fps too. Uploading the next GIF causes a brief visible hiccup, so re-upload as rarely as the content allows. | Pet World as 16 s then 30 s baked chunks: "smooth, small hiccup" → "plays fine, rarer blip". | Pet World / Pet run as baked chunks (`kind() == "clip"`, chunked `clip_key`); stream only for live music sync. |
-| 12 | **Hand-off works:** the firmware clock (`05 00 06 01 …` after `set_time`) and a baked app loop both keep running after DotDeck stops sending. | Scripted `POST /api/handoff/now` with the user watching. | `Engine.handoff()`; automatic on exit and Windows sleep. |
+| 12 | **Hand-off works:** the firmware clock (`05 00 06 01 …` after `set_time`) and a baked app loop both keep running after DeskDot stops sending. | Scripted `POST /api/handoff/now` with the user watching. | `Engine.handoff()`; automatic on exit and Windows sleep. |
 | 13 | **Smooth motion needs small steps per frame at ~8 fps.** The pixel-cat loop was choppy at 12 fps, choppy at 8 fps with bigger steps, borderline at 8 fps × 48 frames, and clearly smooth at 8 fps × 96 frames (half-size steps). It's the per-frame displacement that reads as judder, not decode speed. | Five A/B runs of `loops` "cat" with the user watching. | `apps/loops.py` `LOOP_SPEC`: 8 fps, loops long enough for small steps (cat 12 s / 96 frames). Design full-screen motion as ≤ ~1 px/frame at ≤ 8 fps. |
 | 14 | A version-2 QR code (25×25 modules, 1 px each, dark on light) shown on the panel scans with a phone camera. | User scanned the `qr` app → opened https://claude.ai. | `apps/qr.py` defaults. |
 | 15 | **Never abandon a GIF mid-upload.** A GIF cut off part-way (superseded by a newer one right after connecting) left the panel blank and ignoring the next GIF; a fresh complete upload fixed it. | Blank panel after an engine restart + immediate re-activation; re-upload restored it. | `Device._write_next` always finishes an in-flight GIF, then sends the newest visual. Test `test_gif_upload_is_never_abandoned_midway`. |
@@ -108,4 +108,4 @@ Each finding was confirmed by the user watching the physical panel during script
 - Whether pixel packets are faster than PNG frames for small diffs (a delta path is designed in `Device.set_pixels`).
 - Text mode (`Text` module in the reference library) — we render text ourselves instead.
 
-Add findings here with the date and how you verified them (`uv run dotdeck doctor`, sniffed traffic, etc.).
+Add findings here with the date and how you verified them (`uv run deskdot doctor`, sniffed traffic, etc.).

@@ -11,7 +11,7 @@
 - **Errors:** providers and app renders never crash the loop — catch broadly there, log once, expose the error in
   state. Everywhere else, let exceptions propagate to the API layer, which maps `KeyError`→404,
   `ValidationError`→422, `ValueError`→400.
-- **Logging:** `logging.getLogger("dotdeck.<area>")`. `info` for lifecycle, `warning` for recoverable faults,
+- **Logging:** `logging.getLogger("deskdot.<area>")`. `info` for lifecycle, `warning` for recoverable faults,
   `exception` for bugs. No `print` outside the CLI.
 - **Naming:** modules `snake_case`, classes `PascalCase`, app ids short lowercase (`nowplaying`).
 - **Comments:** explain *why* (hardware quirks, trade-offs), not what. Every module starts with a docstring
@@ -44,7 +44,7 @@
 
 - Tests use the simulator (`SimDevice`) — never real hardware, never the network. Providers get fake values.
 - Bug fix = failing test first. New protocol command = pinned bytes. New endpoint = API test.
-- Hardware verification is manual: `uv run dotdeck doctor`, then the studio. Record findings in HARDWARE_PROTOCOL.md.
+- Hardware verification is manual: `uv run deskdot doctor`, then the studio. Record findings in HARDWARE_PROTOCOL.md.
 
 ## Git & reviews
 

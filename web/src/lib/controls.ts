@@ -4,7 +4,7 @@ import { appMeta, useStore } from "./store";
 
 /**
  * Who plays with what: keyboard bindings per player, gamepad → player assignments, on-screen touch controls,
- * dead zone and rumble. Persisted in localStorage (`dotdeck.controls`); a separate small zustand store so the
+ * dead zone and rumble. Persisted in localStorage (`deskdot.controls`); a separate small zustand store so the
  * Controls panel re-renders without touching the main store. Every update replaces only what changed, so
  * selectors that pick `s.players` / `s.pads` stay reference-stable (no React #185 loops).
  */
@@ -72,10 +72,10 @@ const DEFAULTS: Persisted = {
   touchStyle: {},
 };
 
-const KEY = "dotdeck.controls";
+const KEY = "deskdot.controls";
 function load(): Persisted {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) ?? "{}") as Partial<Persisted>;
+    const raw = JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem("dotdeck.controls") ?? "{}") as Partial<Persisted>;
     const players = DEFAULTS.players.map((d, i) => {
       const p = raw.players?.[i];
       if (!p) return d;

@@ -24,27 +24,27 @@ import httpx
 import numpy as np
 import pytest
 
-from dotdeck.apps import anki as anki_app
-from dotdeck.apps import ci as ci_app
-from dotdeck.apps import mediaserver as media_app
-from dotdeck.apps import obs as obs_app
-from dotdeck.apps import printer as printer_app
-from dotdeck.apps import uptime as uptime_app
-from dotdeck.apps._radiator import Alerts, fmt_age, fmt_eta
-from dotdeck.gfx import Frame
-from dotdeck.providers.anki import AnkiProvider, card_front, sum_stats
-from dotdeck.providers.ci import CIProvider, parse_repos, run_state, summarize
-from dotdeck.providers.mediaserver import (
+from deskdot.apps import anki as anki_app
+from deskdot.apps import ci as ci_app
+from deskdot.apps import mediaserver as media_app
+from deskdot.apps import obs as obs_app
+from deskdot.apps import printer as printer_app
+from deskdot.apps import uptime as uptime_app
+from deskdot.apps._radiator import Alerts, fmt_age, fmt_eta
+from deskdot.gfx import Frame
+from deskdot.providers.anki import AnkiProvider, card_front, sum_stats
+from deskdot.providers.ci import CIProvider, parse_repos, run_state, summarize
+from deskdot.providers.mediaserver import (
     MediaServerProvider,
     parse_jellyfin_latest,
     parse_jellyfin_sessions,
     parse_plex_recent,
     parse_plex_sessions,
 )
-from dotdeck.providers.obs import OBSProvider, auth_string
-from dotdeck.providers.printer import PrinterProvider, parse_moonraker, parse_octoprint
-from dotdeck.providers.radiator import base_url, redact, safe_error
-from dotdeck.providers.uptime import UptimeProvider, parse_targets
+from deskdot.providers.obs import OBSProvider, auth_string
+from deskdot.providers.printer import PrinterProvider, parse_moonraker, parse_octoprint
+from deskdot.providers.radiator import base_url, redact, safe_error
+from deskdot.providers.uptime import UptimeProvider, parse_targets
 
 FX = Path(__file__).parent / "fixtures" / "maker"
 SECRET = "s3cr3t-T0KEN-value"
@@ -653,11 +653,11 @@ async def test_media_bad_token() -> None:
 
 
 # =============================================================================== Anki
-def fake_anki(port_is_dotdeck: bool = False) -> Callable[[httpx.Request], httpx.Response]:
+def fake_anki(port_is_deskdot: bool = False) -> Callable[[httpx.Request], httpx.Response]:
     replies = fx("ankiconnect.json")
 
     def handler(req: httpx.Request) -> httpx.Response:
-        if port_is_dotdeck:  # the DotDeck engine answering on 8765: JSON, but not an AnkiConnect envelope
+        if port_is_deskdot:  # the DeskDot engine answering on 8765: JSON, but not an AnkiConnect envelope
             return httpx.Response(405, json={"detail": "Method Not Allowed"})
         body = json.loads(req.content)
         assert body["version"] == 6
@@ -699,7 +699,7 @@ async def test_anki_counts_word_and_key() -> None:
 
 
 async def test_anki_port_clash_and_closed() -> None:
-    hub = hub_with(fake_anki(port_is_dotdeck=True))
+    hub = hub_with(fake_anki(port_is_deskdot=True))
     p = AnkiProvider(hub)
     p.configure("127.0.0.1", 8765, "", "", word=False)
     assert (await p.fetch())["state"] == "conflict"

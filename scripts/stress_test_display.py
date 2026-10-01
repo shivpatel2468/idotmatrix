@@ -81,7 +81,7 @@ class CameraRecorder:
 
 
 def activate_app(app_id: str, settings: dict[str, Any] | None = None) -> bool:
-    """Call DotDeck API to activate an app."""
+    """Call DeskDot API to activate an app."""
     url = f"{API_BASE}/apps/{app_id}/activate"
     body = {"settings": settings} if settings else {}
     try:
@@ -307,7 +307,7 @@ def analyze_and_export(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="DotDeck Physical Display Stress Test")
+    parser = argparse.ArgumentParser(description="DeskDot Physical Display Stress Test")
     parser.add_argument("--camera", type=int, default=0, help="Webcam device index")
     parser.add_argument("--fps", type=float, default=12.0, help="Target recording framerate")
     args = parser.parse_args()
@@ -317,7 +317,7 @@ def main() -> None:
     report = analyze_and_export(test_data)
 
     print("\n" + "=" * 60)
-    print("DOTDECK PHYSICAL DISPLAY STRESS TEST RESULTS")
+    print("DESKDOT PHYSICAL DISPLAY STRESS TEST RESULTS")
     print("=" * 60)
     print(f"Status:            {'PASSED (STABLE)' if report['passed_stress_test'] else 'WARNINGS DETECTED'}")
     print(f"Total Duration:    {report['duration_seconds']} s")

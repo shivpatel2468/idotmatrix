@@ -5,8 +5,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from dotdeck.config import Config
-from dotdeck.server import create_app
+from deskdot.config import Config
+from deskdot.server import create_app
 
 
 def _client(tmp_path: Path) -> TestClient:

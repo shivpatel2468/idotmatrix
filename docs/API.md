@@ -70,7 +70,7 @@ Body — the AWTRIX 3 custom-app subset; unknown AWTRIX keys are ignored:
 | Key | Type | Meaning |
 | --- | --- | --- |
 | `text` | string ≤ 500 | the value / message. Fits in `small` type → centred; longer → smooth scroll (baked as a native loop) |
-| `icon` | string | a DotDeck icon name (`GET /api/meta` → `icons`: bell info warn ok error mail chat heart home bolt drop temp sun cloud bulb battery door lock person fire star music clock eye mic cam claude), drawn 2× |
+| `icon` | string | a DeskDot icon name (`GET /api/meta` → `icons`: bell info warn ok error mail chat heart home bolt drop temp sun cloud bulb battery door lock person fire star music clock eye mic cam claude), drawn 2× |
 | `rows` + `palette` | `["..##..", …]`, `{"#": "#ffd600"}` | pixel-art icon instead, up to 16×16 (≤ 8×8 is drawn 2×); `.` and space are off |
 | `color` | `"#rrggbb"` \| palette name \| `[r,g,b]` | text colour (and named-icon colour); default white |
 | `progress` | 0–100, `-1` = none | progress bar on the bottom rows |
@@ -107,7 +107,7 @@ Sections (stored in `data/state.json` under the same keys):
 
 - **onair** `{enabled, style: full|badge|glow, look: sign|outline, webcam, microphone, exclude: "obs64, voicemeeter"}` —
   Windows: reads `HKCU\…\CapabilityAccessManager\ConsentStore\{webcam,microphone}` (incl. `NonPackaged`) every 2 s;
-  an app whose `LastUsedTimeStop` is 0 is using the device now. DotDeck's own Python is ignored. `full` takes over the
+  an app whose `LastUsedTimeStop` is 0 is using the device now. DeskDot's own Python is ignored. `full` takes over the
   playlist with a native loop and hands it back when the call ends; `badge` / `glow` draw over every app.
 - **eyebreak** `{enabled, interval_min: 5–120, style: breathe|ring}` — after `interval_min` of continuous input
   (Windows `GetLastInputInfo`; 2 min idle resets the timer) a 24 s 20-20-20 takeover. Postponed while On Air (camera or
@@ -125,35 +125,35 @@ mask back keeps the stored token; `""` clears it. Tokens are never logged.
 
 ```powershell
 # phone → panel with ntfy (no account): subscribe, then post from anywhere
-curl -X PATCH localhost:8765/api/integrations/ntfy -H "content-type: application/json" -d '{"enabled":true,"topics":"dotdeck-7f3k2q"}'
-curl -H "Title: Laundry" -H "Tags: white_check_mark" -d "Dryer done" ntfy.sh/dotdeck-7f3k2q
-curl -H "Priority: 5" -H "Tags: rotating_light" -d "Water leak in the basement" ntfy.sh/dotdeck-7f3k2q
-curl -H "Tags: door,app-garage" -d "OPEN" ntfy.sh/dotdeck-7f3k2q         # → custom app "garage"
+curl -X PATCH localhost:8765/api/integrations/ntfy -H "content-type: application/json" -d '{"enabled":true,"topics":"deskdot-7f3k2q"}'
+curl -H "Title: Laundry" -H "Tags: white_check_mark" -d "Dryer done" ntfy.sh/deskdot-7f3k2q
+curl -H "Priority: 5" -H "Tags: rotating_light" -d "Water leak in the basement" ntfy.sh/deskdot-7f3k2q
+curl -H "Tags: door,app-garage" -d "OPEN" ntfy.sh/deskdot-7f3k2q         # → custom app "garage"
 ```
 
-## Home Assistant → DotDeck (inbound control)
+## Home Assistant → DeskDot (inbound control)
 
-Home Assistant drives the panel through the REST API with `rest_command` (DotDeck has no auth: keep it on your LAN
-and set `host = "0.0.0.0"` in `dotdeck.toml` only on a trusted network). In `configuration.yaml`:
+Home Assistant drives the panel through the REST API with `rest_command` (DeskDot has no auth: keep it on your LAN
+and set `host = "0.0.0.0"` in `deskdot.toml` only on a trusted network). In `configuration.yaml`:
 
 ```yaml
 rest_command:
-  dotdeck_notify:          # pop a notification
+  deskdot_notify:          # pop a notification
     url: "http://192.168.1.50:8765/api/notify"
     method: POST
     content_type: "application/json"
     payload: '{"title":"{{ title }}","message":"{{ message }}","icon":"{{ icon | default(''bell'') }}","color":"{{ color | default(''#00dcff'') }}","style":"{{ style | default(''banner'') }}"}'
-  dotdeck_show_app:        # switch app, optionally for a while
+  deskdot_show_app:        # switch app, optionally for a while
     url: "http://192.168.1.50:8765/api/apps/{{ app }}/activate"
     method: POST
     content_type: "application/json"
     payload: '{"revert_after": {{ seconds | default(60) }}}'
-  dotdeck_custom:          # a custom app in the rotation (AWTRIX-style)
+  deskdot_custom:          # a custom app in the rotation (AWTRIX-style)
     url: "http://192.168.1.50:8765/api/custom/{{ name }}"
     method: POST
     content_type: "application/json"
     payload: '{"text":"{{ text }}","icon":"{{ icon }}","color":"{{ color | default(''#ffffff'') }}","lifetime":{{ lifetime | default(900) }}}'
-  dotdeck_indicator:       # corner status square
+  deskdot_indicator:       # corner status square
     url: "http://192.168.1.50:8765/api/indicators/{{ slot }}"
     method: POST
     content_type: "application/json"
@@ -166,18 +166,18 @@ automation:
   - alias: "Panel: outside temperature"
     trigger: [{ platform: state, entity_id: sensor.outdoor_temperature }]
     action:
-      - service: rest_command.dotdeck_custom
+      - service: rest_command.deskdot_custom
         data: { name: outside, text: "{{ states('sensor.outdoor_temperature') }}°", icon: temp, color: "#ffaa00" }
   - alias: "Panel: garage open"
     trigger: [{ platform: state, entity_id: cover.garage, to: open, for: "00:05:00" }]
     action:
-      - service: rest_command.dotdeck_notify
+      - service: rest_command.deskdot_notify
         data: { title: GARAGE, message: "Open for 5 minutes", icon: warn, color: "#ffaa00", style: full }
-      - service: rest_command.dotdeck_indicator
+      - service: rest_command.deskdot_indicator
         data: { slot: 2, color: "#ffaa00", blink: 1000 }
 ```
 
-Outbound (DotDeck reading HA): set the URL and token in Settings → Integrations → Home Assistant, then add the
+Outbound (DeskDot reading HA): set the URL and token in Settings → Integrations → Home Assistant, then add the
 **Home Assistant** app (`hassentity`) with an entity id, e.g. `sensor.living_room_temperature`.
 
 ## Autopilot
@@ -213,7 +213,7 @@ Pong = 2, Light Cycles = 4).
 
 **LAN access.** The engine listens on all interfaces (`host = "0.0.0.0"`) so phones can join, but the `LanGate`
 middleware only lets other devices reach `/p/…` and `/ws/p/…` with a valid room code; the studio and every other
-endpoint answer 403 to non-local clients. Set `lan_studio = true` in dotdeck.toml to use the full studio from other
+endpoint answer 403 to non-local clients. Set `lan_studio = true` in deskdot.toml to use the full studio from other
 devices. Windows asks once to allow Python on private networks — allow it, or phones can't connect.
 
 **Latency.** Phone presses are sent on touch-down over the LAN (~5–20 ms, shown on the phone) and applied

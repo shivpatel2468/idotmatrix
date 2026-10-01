@@ -447,7 +447,7 @@ export function AiCreator() {
                 <button
                   onClick={() => loadFrameToCanvas(currentFrame)}
                   className="key flex items-center justify-center gap-1.5 py-1.5 text-[11.5px]"
-                  title="Edit in DotDeck canvas painter"
+                  title="Edit in DeskDot canvas painter"
                 >
                   <Brush size={12} /> Edit in Canvas
                 </button>

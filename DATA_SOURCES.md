@@ -29,5 +29,5 @@ The complete survey (1,890 public APIs reviewed, what was adopted, rate limits, 
 | GitHub | GitHub REST API | optional token | GitHub Graph, CI radiator |
 | Your services | Home Assistant, OBS, AnkiConnect, OctoPrint / Moonraker, Jellyfin / Plex, ntfy | yours | the matching apps |
 
-**Fair use:** every provider polls within its documented limits; those limits are enforced in `src/dotdeck/providers/`.
+**Fair use:** every provider polls within its documented limits; those limits are enforced in `src/deskdot/providers/`.
 Images and sprites are fetched at runtime and never bundled in this repository.

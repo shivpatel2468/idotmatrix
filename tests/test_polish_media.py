@@ -13,16 +13,16 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.apps import chess as chess_app
-from dotdeck.apps import live
-from dotdeck.apps import nowplaying as np_app
-from dotdeck.apps import photoframe as photo_app
-from dotdeck.apps import pokedex as dex_app
-from dotdeck.apps import trivia as trivia_app
-from dotdeck.apps.gallery import Gallery, GallerySettings
-from dotdeck.gfx import Frame
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif, encode_gif_budget
-from dotdeck.providers import photos
+from deskdot.apps import chess as chess_app
+from deskdot.apps import live
+from deskdot.apps import nowplaying as np_app
+from deskdot.apps import photoframe as photo_app
+from deskdot.apps import pokedex as dex_app
+from deskdot.apps import trivia as trivia_app
+from deskdot.apps.gallery import Gallery, GallerySettings
+from deskdot.gfx import Frame
+from deskdot.gfx.image import GIF_BUDGET, encode_gif, encode_gif_budget
+from deskdot.providers import photos
 from test_music import LYR, _Ctx, _FakeAudio, _FakeMedia, _png, _value
 from test_visuals import Ctx, FakeHub, _chess_app, _dex_provider, _photo
 

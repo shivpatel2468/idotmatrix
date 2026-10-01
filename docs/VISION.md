@@ -2,7 +2,7 @@
 
 ## One line
 
-**DotDeck makes a $30 32×32 LED panel the most glanceable screen on your desk** — alive with the things you
+**DeskDot makes a $30 32×32 LED panel the most glanceable screen on your desk** — alive with the things you
 care about, programmable by you and by your AI agents, and beautiful at 1,024 pixels.
 
 ## The problem with the product as shipped

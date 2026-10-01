@@ -90,7 +90,7 @@ A focused, full-window game view (`playMode` in the store) for every *playable* 
   controller's ←/→ and A already reach the game. During `outro` it shows the **result** with *Rematch* (key A) and
   *Menu* (key B). On those screens (home / teams / intro / outro) keys never auto-repeat: one press = one step.
 - **Display** (per browser, `lib/look.ts` → `useLook`): look (Glow / Pixel / LED) and **Sharpness** — the Glow
-  look's bloom amount (`bloom` 0..1, 0 = crisp, 0.5 = the classic glow), persisted in `dotdeck.panelBloom`.
+  look's bloom amount (`bloom` 0..1, 0 = crisp, 0.5 = the classic glow), persisted in `deskdot.panelBloom`.
 - **Panel:** `LedPanel crisp` — the canvas snaps to a multiple of 32 device pixels so every LED is a whole number
   of pixels, and bloom is blurred at 4 px/LED then upscaled (a big blur at full size costs milliseconds).
   Frames are drawn in the WebSocket `onmessage` callback — no queue, no rAF batching.
@@ -125,7 +125,7 @@ A focused, full-window game view (`playMode` in the store) for every *playable* 
     **Joystick** (floating thumbstick, dead zone, 4- or 8-way), **Swipe** (swipe to move, hold to repeat, tap = A) or
     **Tap zones** (hold left/right half + A/B). Style per game, defaulting to the game's first touch entry in `controls`.
   Input for player N goes out as `{"type":"input", app, key, player: N}` (N > 1 only); single-player games fold every
-  player onto seat 1, multiplayer games drop players beyond their seats. Everything persists in `dotdeck.controls`.
+  player onto seat 1, multiplayer games drop players beyond their seats. Everything persists in `deskdot.controls`.
   A "What works" note: keyboards and pads connect to this laptop (USB/Bluetooth); friends' phones join by QR; a
   controller paired to a friend's phone is limited by its browser on plain http — use on-screen controls or the laptop.
 - **Honesty note:** "The panel shows ~6–9 fps over Bluetooth; this view is smoother." plus measured view fps and

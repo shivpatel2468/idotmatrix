@@ -1,4 +1,4 @@
-// DotDeck for Android: the whole engine (Python, via Chaquopy) runs on the phone as a foreground service and
+// DeskDot for Android: the whole engine (Python, via Chaquopy) runs on the phone as a foreground service and
 // owns the panel's BLE link through BleBridge. See docs/adr/0011-android-host-app.md and android/README.md.
 
 import java.util.Properties
@@ -16,11 +16,11 @@ val localProps = Properties().apply {
 val studioOut = layout.buildDirectory.dir("studio")
 
 android {
-    namespace = "com.dotdeck.app"
+    namespace = "com.deskdot.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.dotdeck.app"
+        applicationId = "com.deskdot.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -50,7 +50,7 @@ chaquopy {
     defaultConfig {
         version = "3.13"
         // a Python 3.13 on the build machine (Chaquopy compiles the app's Python with it)
-        localProps.getProperty("dotdeck.buildPython")?.let { buildPython(it) }
+        localProps.getProperty("deskdot.buildPython")?.let { buildPython(it) }
         pip {
             // Rust extension with no official Android build: cross-compiled once, see android/README.md
             install("wheels/pydantic_core-2.46.5-cp313-cp313-android_24_arm64_v8a.whl")
@@ -70,7 +70,7 @@ chaquopy {
             install("tzdata==2026.4")
         }
         // StaticFiles needs the studio as real files on disk
-        extractPackages("dotdeck_web")
+        extractPackages("deskdot_web")
     }
     sourceSets {
         getByName("main") {
@@ -80,16 +80,16 @@ chaquopy {
     }
 }
 
-// The built studio (web/dist, from `npm run build`) packaged as the `dotdeck_web` Python package.
+// The built studio (web/dist, from `npm run build`) packaged as the `deskdot_web` Python package.
 val syncStudio by tasks.registering(Sync::class) {
     val dist = File(repoRoot, "web/dist")
     doFirst {
         check(File(dist, "index.html").isFile) { "web/dist is missing: run `cd web && npm run build` first" }
     }
-    from(dist) { into("dotdeck_web/dist") }
-    from(resources.text.fromString("\"\"\"The DotDeck studio (web/dist), bundled for the Android app.\"\"\"\n")) {
+    from(dist) { into("deskdot_web/dist") }
+    from(resources.text.fromString("\"\"\"The DeskDot studio (web/dist), bundled for the Android app.\"\"\"\n")) {
         rename { "__init__.py" }
-        into("dotdeck_web")
+        into("deskdot_web")
     }
     into(studioOut)
 }

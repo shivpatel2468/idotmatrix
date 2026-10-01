@@ -13,10 +13,10 @@ from typing import Any
 
 import pytest
 
-from dotdeck.config import Config
-from dotdeck.device import protocol as P
-from dotdeck.device.android import AndroidBleDevice
-from dotdeck.server import build_device
+from deskdot.config import Config
+from deskdot.device import protocol as P
+from deskdot.device.android import AndroidBleDevice
+from deskdot.server import build_device
 
 
 class FakeBridge:

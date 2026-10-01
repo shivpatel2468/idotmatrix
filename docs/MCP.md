@@ -1,26 +1,26 @@
 # MCP server — let agents see and drive the panel
 
-`dotdeck-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server. It lets Claude (Claude Code,
+`deskdot-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server. It lets Claude (Claude Code,
 Claude Desktop, or any MCP client) talk to the live panel. It is a thin client over the engine's HTTP API,
 because only the engine may own the Bluetooth link.
 
 ```
-Claude ──MCP (stdio)──▶ dotdeck-mcp ──HTTP──▶ DotDeck engine ──BLE──▶ panel
+Claude ──MCP (stdio)──▶ deskdot-mcp ──HTTP──▶ DeskDot engine ──BLE──▶ panel
 ```
 
 ## Setup
 
-1. Start the engine: `uv run dotdeck serve` (or `--sim`).
+1. Start the engine: `uv run deskdot serve` (or `--sim`).
 2. **Claude Code in this folder:** `.mcp.json` already registers the server. Approve it when prompted, or run `/mcp`.
 3. **Anywhere else:**
    ```powershell
-   claude mcp add dotdeck -- uv run --project C:\path\to\idotmatrix dotdeck-mcp
+   claude mcp add deskdot -- uv run --project C:\path\to\idotmatrix deskdot-mcp
    ```
    Claude Desktop (`claude_desktop_config.json`):
    ```json
-   { "mcpServers": { "dotdeck": { "command": "uv", "args": ["run", "--project", "C:\\path\\to\\idotmatrix", "dotdeck-mcp"] } } }
+   { "mcpServers": { "deskdot": { "command": "uv", "args": ["run", "--project", "C:\\path\\to\\idotmatrix", "deskdot-mcp"] } } }
    ```
-4. Engine on another machine: set `DOTDECK_URL=http://host:8765` in the server's `env` (and run the engine
+4. Engine on another machine: set `DESKDOT_URL=http://host:8765` in the server's `env` (and run the engine
    with `host = "0.0.0.0"`).
 
 ## Tools
@@ -47,7 +47,7 @@ Claude ──MCP (stdio)──▶ dotdeck-mcp ──HTTP──▶ DotDeck engine
 | `set_indicator(slot, color, blink_ms, fade_ms, lifetime_s, size, clear)` | AWTRIX-style status square on the right edge (1 top, 2 middle, 3 bottom), over every app |
 | `push_custom_app(name, text, icon?, color?, progress, duration, lifetime, rainbow, rows?, palette?, remove)` | push / replace / remove a named "icon + value" screen that joins the playlist rotation |
 
-Resource: `dotdeck://design-guide` — the condensed 32×32 design rules, so agents compose readable art.
+Resource: `deskdot://design-guide` — the condensed 32×32 design rules, so agents compose readable art.
 
 ## Example prompts
 
@@ -64,6 +64,6 @@ Merge `integrations/claude-code/hooks.json` into `.claude/settings.json`: prompt
 
 ## Adding a tool
 
-Tools live in `src/dotdeck/mcp_server.py`. Rules: call the HTTP API via `_call()` (never import engine
+Tools live in `src/deskdot/mcp_server.py`. Rules: call the HTTP API via `_call()` (never import engine
 internals), write the docstring for an agent (what, units, ranges, an example), return small JSON or an
 `Image`, and prefer returning a `panel_snapshot()` after visual changes so the agent can verify itself.

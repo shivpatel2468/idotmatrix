@@ -9,9 +9,9 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.radar import Radar, RadarSettings, alt_label, beam, scope_xy, to_pixel
-from dotdeck.gfx import Frame
-from dotdeck.providers.flights import (
+from deskdot.apps.radar import Radar, RadarSettings, alt_label, beam, scope_xy, to_pixel
+from deskdot.gfx import Frame
+from deskdot.providers.flights import (
     FlightsProvider,
     bearing_deg,
     distance_nm,

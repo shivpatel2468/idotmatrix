@@ -190,8 +190,8 @@ export function LobbyPanel({ lobby, compact = false }: { lobby: LobbyInfo; compa
       </div>
       {!lanReady && (
         <div className="rounded-[10px] border border-bad/40 bg-bad/10 p-3 text-[12px] leading-snug text-ink-1">
-          <b className="font-[620] text-bad">Phones can't reach this computer.</b> DotDeck only listens to this computer.
-          Set <code className="text-ink-1">host = "0.0.0.0"</code> in <code>dotdeck.toml</code> (the default in new installs) and restart DotDeck.
+          <b className="font-[620] text-bad">Phones can't reach this computer.</b> DeskDot only listens to this computer.
+          Set <code className="text-ink-1">host = "0.0.0.0"</code> in <code>deskdot.toml</code> (the default in new installs) and restart DeskDot.
         </div>
       )}
       <div className={clsx("flex gap-4", compact ? "flex-row items-center" : "flex-col items-center")}>
@@ -221,7 +221,7 @@ export function LobbyPanel({ lobby, compact = false }: { lobby: LobbyInfo; compa
       </div>
       <p className="flex gap-2 text-[11px] leading-snug text-ink-3">
         <Wifi size={13} className="mt-px shrink-0" />
-        <span>Friends must be on the same Wi-Fi. The first time, Windows may ask to allow DotDeck on the network — choose <b className="font-[600] text-ink-2">Allow</b> (private networks).</span>
+        <span>Friends must be on the same Wi-Fi. The first time, Windows may ask to allow DeskDot on the network — choose <b className="font-[600] text-ink-2">Allow</b> (private networks).</span>
       </p>
     </div>
   );

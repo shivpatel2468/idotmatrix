@@ -22,16 +22,16 @@ import httpx
 import numpy as np
 import pytest
 
-from dotdeck.apps import calendar as calendar_app
-from dotdeck.apps import daynight, fiveoclock, habits, loops, planets, progress, qr, tides, wear
-from dotdeck.gfx import Frame
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
-from dotdeck.providers import calendar as calendar_p
-from dotdeck.providers import planets as planets_p
-from dotdeck.providers import tides as tides_p
-from dotdeck.providers import tzlite
-from dotdeck.providers import wear as wear_p
-from dotdeck.providers.base import Hub
+from deskdot.apps import calendar as calendar_app
+from deskdot.apps import daynight, fiveoclock, habits, loops, planets, progress, qr, tides, wear
+from deskdot.gfx import Frame
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.providers import calendar as calendar_p
+from deskdot.providers import planets as planets_p
+from deskdot.providers import tides as tides_p
+from deskdot.providers import tzlite
+from deskdot.providers import wear as wear_p
+from deskdot.providers.base import Hub
 
 FIX = Path(__file__).parent / "fixtures" / "newapps"
 UTCd = UTC
@@ -281,9 +281,9 @@ def test_wifi_payload_escapes() -> None:
     "settings",
     [
         {},
-        {"mode": "wifi", "ssid": "DotDeck", "password": "hunter2hunter2"},
+        {"mode": "wifi", "ssid": "DeskDot", "password": "hunter2hunter2"},
         {"mode": "text", "text": "hi", "ecc": "L"},
-        {"mode": "text", "text": "Hello, DotDeck! 0123456789 abcdefghijklmnopqrstuvw", "ecc": "L"},
+        {"mode": "text", "text": "Hello, DeskDot! 0123456789 abcdefghijklmnopqrstuvw", "ecc": "L"},
     ],
 )
 def test_qr_panel_decodes_with_opencv(settings: dict[str, Any]) -> None:
@@ -296,6 +296,9 @@ def test_qr_panel_decodes_with_opencv(settings: dict[str, Any]) -> None:
     img[8:40, 8:40] = gray
     img = cv2.resize(img, None, fx=10, fy=10, interpolation=cv2.INTER_NEAREST)
     text, _pts, _ = cv2.QRCodeDetector().detectAndDecode(img)
+    if text != app.payload() and hasattr(cv2, "QRCodeDetectorAruco"):
+        # the classic detector misses some valid codes; a phone camera reads them, and so does this one
+        text, _pts, _ = cv2.QRCodeDetectorAruco().detectAndDecode(img)
     assert text == app.payload()
 
 

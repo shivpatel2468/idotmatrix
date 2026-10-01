@@ -21,16 +21,16 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from dotdeck.apps.airquality import US_BANDS, AirQuality, band, band_frac
-from dotdeck.apps.holidays import Holidays, auto_icon, clean_name
-from dotdeck.apps.quakes import Quakes, ago, fmt_km
-from dotdeck.apps.rainradar import RainRadar
-from dotdeck.gfx import Frame, measure
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
-from dotdeck.providers import airquality as aq
-from dotdeck.providers import holidays as hol
-from dotdeck.providers import quakes as qk
-from dotdeck.providers import rainradar as rr
+from deskdot.apps.airquality import US_BANDS, AirQuality, band, band_frac
+from deskdot.apps.holidays import Holidays, auto_icon, clean_name
+from deskdot.apps.quakes import Quakes, ago, fmt_km
+from deskdot.apps.rainradar import RainRadar
+from deskdot.gfx import Frame, measure
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.providers import airquality as aq
+from deskdot.providers import holidays as hol
+from deskdot.providers import quakes as qk
+from deskdot.providers import rainradar as rr
 
 FIX = Path(__file__).parent / "fixtures" / "planet"
 HOME = {"city": "Mumbai", "lat": 19.0760, "lon": 72.8777, "country": "IN"}

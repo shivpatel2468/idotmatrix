@@ -13,11 +13,11 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.apps.nowplaying import NowPlaying, NowPlayingSettings, clean, layout_line
-from dotdeck.gfx import Frame
-from dotdeck.providers import lyrics as lyr_mod
-from dotdeck.providers import media_mac
-from dotdeck.providers.lyrics import (
+from deskdot.apps.nowplaying import NowPlaying, NowPlayingSettings, clean, layout_line
+from deskdot.gfx import Frame
+from deskdot.providers import lyrics as lyr_mod
+from deskdot.providers import media_mac
+from deskdot.providers.lyrics import (
     Lyrics,
     LyricsProvider,
     clean_lines,
@@ -27,8 +27,8 @@ from dotdeck.providers.lyrics import (
     pick_best,
     plain_lines,
 )
-from dotdeck.providers.media import MediaProvider, Snapshot, classify_source, decode_art, extract_palette
-from dotdeck.providers.media_mac import (
+from deskdot.providers.media import MediaProvider, Snapshot, classify_source, decode_art, extract_palette
+from deskdot.providers.media_mac import (
     SEP,
     MacBackend,
     parse_applescript_data,

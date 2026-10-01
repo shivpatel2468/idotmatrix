@@ -1,7 +1,7 @@
-# Public APIs — what DotDeck uses and why
+# Public APIs — what DeskDot uses and why
 
 Survey of [public-apis/public-apis](https://github.com/public-apis/public-apis) done on 2026-09-24:
-1,890 entries across 52 categories, of which **836 are keyless and HTTPS**. DotDeck only adopts APIs that are:
+1,890 entries across 52 categories, of which **836 are keyless and HTTPS**. DeskDot only adopts APIs that are:
 
 1. **Keyless** (or have a working anonymous tier). A panel app that needs a sign-up is an app nobody turns on.
 2. **Alive**. Every adopted endpoint was probed live; many list entries (especially `*.herokuapp.com`) are dead.

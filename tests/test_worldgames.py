@@ -11,10 +11,10 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps import games_city, games_connect, games_platform, games_world
-from dotdeck.apps.games import GAME_IDS
-from dotdeck.apps.games_core import GameApp
-from dotdeck.gfx import Frame
+from deskdot.apps import games_city, games_connect, games_platform, games_world
+from deskdot.apps.games import GAME_IDS
+from deskdot.apps.games_core import GameApp
+from deskdot.gfx import Frame
 
 NEW = ("digworld", "neonheat", "streetsurge", "leafleap", "fourup")
 

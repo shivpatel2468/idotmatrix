@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 
-from dotdeck.device import protocol as P
-from dotdeck.engine import Notice, Playlist, PlaylistItem
-from dotdeck.gfx import Frame
+from deskdot.device import protocol as P
+from deskdot.engine import Notice, Playlist, PlaylistItem
+from deskdot.gfx import Frame
 
 
 async def _run(engine, seconds: float) -> None:  # type: ignore[no-untyped-def]
@@ -35,7 +35,7 @@ async def test_clip_app_uploads_gif_once(engine) -> None:  # type: ignore[no-unt
 
 
 async def test_latest_frame_wins() -> None:
-    from dotdeck.device import SimDevice
+    from deskdot.device import SimDevice
 
     dev = SimDevice(bytes_per_second=2000, min_frame_interval=0.0)
     await dev.start()
@@ -51,7 +51,7 @@ async def test_latest_frame_wins() -> None:
 
 def test_frame_supersedes_queued_gif() -> None:
     """A calibration pattern (or any newer frame) must not be overwritten by an older queued GIF."""
-    from dotdeck.device import SimDevice
+    from deskdot.device import SimDevice
 
     dev = SimDevice()
     dev.show_gif(b"GIF89a...")
@@ -61,7 +61,7 @@ def test_frame_supersedes_queued_gif() -> None:
 
 
 async def test_commands_jump_the_frame_queue() -> None:
-    from dotdeck.device import SimDevice
+    from deskdot.device import SimDevice
 
     dev = SimDevice(bytes_per_second=5000, min_frame_interval=0.0)
     await dev.start()
@@ -166,7 +166,7 @@ async def test_handoff_on_exit(engine) -> None:  # type: ignore[no-untyped-def]
 
 async def test_gif_upload_is_never_abandoned_midway() -> None:
     """A half-sent GIF leaves the real firmware ignoring the next one: finish it, then send the newer one."""
-    from dotdeck.device import SimDevice
+    from deskdot.device import SimDevice
 
     dev = SimDevice(bytes_per_second=20000, min_frame_interval=0.0)
     await dev.start()
@@ -187,7 +187,7 @@ async def test_a_hung_connect_is_abandoned_and_retried() -> None:
     """After Windows sleeps, a Bluetooth connect can hang forever; the supervisor must give up and try again."""
     import asyncio
 
-    from dotdeck.device import SimDevice
+    from deskdot.device import SimDevice
 
     class Hangs(SimDevice):
         attempts = 0

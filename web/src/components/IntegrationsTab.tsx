@@ -71,7 +71,7 @@ function OnAirSection({ st, cfg }: { st: St; cfg: Integrations["onair"] }) {
         <span className="flex items-center gap-2 text-[12px] text-ink-2">Camera <Toggle on={cfg.webcam} onChange={(v) => save({ webcam: v })} label="Camera" /></span>
         <span className="flex items-center gap-2 text-[12px] text-ink-2">Microphone <Toggle on={cfg.microphone} onChange={(v) => save({ microphone: v })} label="Microphone" /></span>
       </Row>
-      <Row label="Ignore these apps" hint="Comma-separated names or path parts, e.g. obs64, voicemeeter. DotDeck itself is always ignored.">
+      <Row label="Ignore these apps" hint="Comma-separated names or path parts, e.g. obs64, voicemeeter. DeskDot itself is always ignored.">
         <input className="field !h-8 !w-56" defaultValue={cfg.exclude} onBlur={(e) => e.target.value !== cfg.exclude && save({ exclude: e.target.value })} />
       </Row>
       <div className="flex gap-2 pt-2.5">
@@ -161,7 +161,7 @@ function NtfySection({ st, cfg }: { st: St; cfg: Integrations["ntfy"] }) {
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="ntfy" />
       </Row>
       <Row label="Topics" hint="Comma-separated. Anyone who knows a topic name can post to it — make it long and random.">
-        <input className="field !h-8 !w-56" placeholder="e.g. dotdeck-7f3k2q" defaultValue={cfg.topics} onBlur={(e) => e.target.value !== cfg.topics && save({ topics: e.target.value })} />
+        <input className="field !h-8 !w-56" placeholder="e.g. deskdot-7f3k2q" defaultValue={cfg.topics} onBlur={(e) => e.target.value !== cfg.topics && save({ topics: e.target.value })} />
       </Row>
       <Row label="Server" hint="ntfy.sh, or your self-hosted server.">
         <input className="field !h-8 !w-56" defaultValue={cfg.server} onBlur={(e) => e.target.value !== cfg.server && save({ server: e.target.value })} />

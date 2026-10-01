@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from typing import Any, ClassVar
 
-from dotdeck.apps.games_core import THEMES, GameApp, Mode, Theme
-from dotdeck.gfx import Frame
+from deskdot.apps.games_core import THEMES, GameApp, Mode, Theme
+from deskdot.gfx import Frame
 
 
 class Ctx:

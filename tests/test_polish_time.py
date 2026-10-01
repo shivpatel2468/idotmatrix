@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.apps import (
+from deskdot.apps import (
     activeapp,
     agent,
     anki,
@@ -34,8 +34,8 @@ from dotdeck.apps import (
     sky,
     timer,
 )
-from dotdeck.gfx import Frame, measure
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif, encode_gif_budget
+from deskdot.gfx import Frame, measure
+from deskdot.gfx.image import GIF_BUDGET, encode_gif, encode_gif_budget
 
 VISIBLE = 45  # the brightest channel a meaningful dark tone needs through the panel's gamma-1.5 calibration
 
@@ -201,7 +201,7 @@ def test_daynight_clip_fits_and_night_land_is_visible(layout: str) -> None:
     clip = app.clip_frames()
     assert len(set(clip.durations_ms)) == 1 and 1000 / clip.durations_ms[0] <= 10
     assert_gif_keeps_every_frame(clip.frames, clip.durations_ms, app.clip_colors)
-    from dotdeck.gfx import to_rgb
+    from deskdot.gfx import to_rgb
 
     assert max(to_rgb(daynight.DayNightSettings().night_land)) >= VISIBLE
 
@@ -293,7 +293,7 @@ def test_custom_scroll_clip_is_ten_fps_one_px_per_frame() -> None:
 def test_streamed_marquees_step_one_px_per_frame(module: str) -> None:
     import importlib
 
-    mod = importlib.import_module(f"dotdeck.apps.{module}")
+    mod = importlib.import_module(f"deskdot.apps.{module}")
     cls = next(
         v
         for v in vars(mod).values()
@@ -328,7 +328,7 @@ def test_calendar_timeline_shows_todays_events() -> None:
 
 
 def test_sky_sun_is_visible_on_the_horizon(monkeypatch: pytest.MonkeyPatch) -> None:
-    from dotdeck.providers.sky import local_date, sun_events
+    from deskdot.providers.sky import local_date, sun_events
 
     tz = 19800.0
     d0 = local_date(time.time(), tz)

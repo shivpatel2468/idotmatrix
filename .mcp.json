@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "dotdeck": {
+    "deskdot": {
       "type": "stdio",
       "command": "uv",
-      "args": ["run", "--project", ".", "dotdeck-mcp"],
-      "env": { "DOTDECK_URL": "http://127.0.0.1:8765" }
+      "args": ["run", "--project", ".", "deskdot-mcp"],
+      "env": { "DESKDOT_URL": "http://127.0.0.1:8765" }
     }
   }
 }

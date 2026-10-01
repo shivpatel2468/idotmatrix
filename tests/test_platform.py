@@ -15,9 +15,9 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from dotdeck.config import Config
-from dotdeck.engine import PlaylistItem
-from dotdeck.engine.persistent import (
+from deskdot.config import Config
+from deskdot.engine import PlaylistItem
+from deskdot.engine.persistent import (
     ActiveIndicator,
     Indicator,
     draw_indicators,
@@ -25,13 +25,13 @@ from dotdeck.engine.persistent import (
     draw_onair_glow,
     indicator_origin,
 )
-from dotdeck.gfx import Frame
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
-from dotdeck.providers import homeassistant as ha
-from dotdeck.providers.custom import CustomApp
-from dotdeck.providers.ntfy import parse_line, stream_url, topics_of
-from dotdeck.providers.onair import CONSENT, filter_apps, friendly, scan_consent
-from dotdeck.server import create_app
+from deskdot.gfx import Frame
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.providers import homeassistant as ha
+from deskdot.providers.custom import CustomApp
+from deskdot.providers.ntfy import parse_line, stream_url, topics_of
+from deskdot.providers.onair import CONSENT, filter_apps, friendly, scan_consent
+from deskdot.server import create_app
 
 
 def _client(tmp_path: Path) -> TestClient:
@@ -197,7 +197,7 @@ def test_custom_app_expiry(engine) -> None:  # type: ignore[no-untyped-def]
 
 
 def test_custom_apps_join_playlist_while_fresh(engine) -> None:  # type: ignore[no-untyped-def]
-    from dotdeck.engine import Playlist
+    from deskdot.engine import Playlist
 
     engine.set_playlist(Playlist(enabled=True, items=[PlaylistItem(app="clock", duration=10)]))
     engine.push_custom("door", CustomApp(text="OPEN", icon="door", duration=7))
@@ -212,8 +212,8 @@ def test_custom_apps_join_playlist_while_fresh(engine) -> None:  # type: ignore[
 
 
 def test_custom_apps_survive_restart(tmp_path: Path) -> None:
-    from dotdeck.config import Store
-    from dotdeck.providers import build_hub
+    from deskdot.config import Store
+    from deskdot.providers import build_hub
 
     store = Store(tmp_path / "state.json")
     build_hub(store, lambda _n: None).get("custom").push("x", CustomApp(text="KEEP"))  # type: ignore[attr-defined]
@@ -275,7 +275,7 @@ def _consent_tree() -> dict[str, Any]:
             "NonPackaged": {
                 "keys": {
                     "C:#Program Files#Zoom#bin#Zoom.exe": app(1, 0),
-                    "C:#Python#python.exe": app(1, 0),  # DotDeck itself (ignored)
+                    "C:#Python#python.exe": app(1, 0),  # DeskDot itself (ignored)
                 }
             },
         }

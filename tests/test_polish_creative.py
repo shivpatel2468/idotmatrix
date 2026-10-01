@@ -17,10 +17,10 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.engine import REGISTRY
-from dotdeck.gfx import Frame
-from dotdeck.gfx.calib import PanelCalibration, apply
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.engine import REGISTRY
+from deskdot.gfx import Frame
+from deskdot.gfx.calib import PanelCalibration, apply
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
 
 USER_PANEL = PanelCalibration(gamma=1.5)  # the user's calibration (docs/HARDWARE_PROTOCOL.md #10)
 
@@ -154,7 +154,7 @@ def test_gif_fits_budget_without_dropping_frames(app_id: str, settings: dict[str
 
 # ------------------------------------------------------------------ clarity
 def test_pixabots_body_survives_the_panel_gamma() -> None:
-    from dotdeck.apps.pixabots import PALETTES
+    from deskdot.apps.pixabots import PALETTES
 
     for name, pal in PALETTES.items():
         assert max(pal["metal"]) >= 80, f"{name}: the robot body vanishes"
@@ -162,14 +162,14 @@ def test_pixabots_body_survives_the_panel_gamma() -> None:
 
 
 def test_focuspet_furniture_is_visible() -> None:
-    from dotdeck.apps.focuspet import THEMES
+    from deskdot.apps.focuspet import THEMES
 
     for name, th in THEMES.items():
         assert max(th["wood"]) >= 70 and max(th["wood_dark"]) >= 50, name
 
 
 def test_raycaster_floor_and_walls_are_lit() -> None:
-    from dotdeck.apps.raycaster import THEME_COLORS
+    from deskdot.apps.raycaster import THEME_COLORS
 
     for name, th in THEME_COLORS.items():
         assert max(th["floor"]) >= 45, name
@@ -177,7 +177,7 @@ def test_raycaster_floor_and_walls_are_lit() -> None:
 
 
 def test_wireframe_fills_the_panel_without_leaving_it() -> None:
-    from dotdeck.apps.wireframe import MODELS, SCALE, _project
+    from deskdot.apps.wireframe import MODELS, SCALE, _project
 
     for name in MODELS:
         reach = []
@@ -188,7 +188,7 @@ def test_wireframe_fills_the_panel_without_leaving_it() -> None:
 
 
 def test_hourglass_keeps_its_sand_inside_the_glass() -> None:
-    from dotdeck.apps.sand import PALETTES, SAND
+    from deskdot.apps.sand import PALETTES, SAND
 
     app = make("sand")
     clip = app.clip_frames()

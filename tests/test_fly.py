@@ -1,4 +1,4 @@
-"""The fruit-fly brain (dotdeck.fly) and where it drives things: the Fly Brain app and the games' fly pilot.
+"""The fruit-fly brain (deskdot.fly) and where it drives things: the Fly Brain app and the games' fly pilot.
 
 The brain is checked against the classic fly-vision experiments it models: direction selectivity of the
 lobula-plate cells, looming -> giant-fibre escape, and phototaxis."""
@@ -14,12 +14,12 @@ import numpy as np
 import pytest
 from PIL import Image
 
-import dotdeck.apps  # noqa: F401 — registers apps
-import dotdeck.apps.flybrain as fb
-from dotdeck.engine.app import REGISTRY
-from dotdeck.fly import FlyBrain
-from dotdeck.gfx import Frame
-from dotdeck.gfx.image import encode_gif_budget
+import deskdot.apps  # noqa: F401 — registers apps
+import deskdot.apps.flybrain as fb
+from deskdot.engine.app import REGISTRY
+from deskdot.fly import FlyBrain
+from deskdot.gfx import Frame
+from deskdot.gfx.image import encode_gif_budget
 
 
 def blank() -> np.ndarray:

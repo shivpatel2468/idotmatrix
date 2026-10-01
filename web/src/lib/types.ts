@@ -1,4 +1,4 @@
-// Mirrors the engine's JSON (src/dotdeck/server.py + engine/runtime.py snapshot()).
+// Mirrors the engine's JSON (src/deskdot/server.py + engine/runtime.py snapshot()).
 
 export type JsonSchemaProp = {
   type?: string;

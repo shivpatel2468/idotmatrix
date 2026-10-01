@@ -4,7 +4,7 @@ Ordered by value ÷ effort. Each item names where it lands in the architecture.
 
 ## Headline goal: a fruit-fly brain that plays the apps
 
-Wire DotDeck to the **FlyWire whole-brain connectome** of the adult fruit fly. FlyWire is a Princeton-led
+Wire DeskDot to the **FlyWire whole-brain connectome** of the adult fruit fly. FlyWire is a Princeton-led
 consortium; its AI reconstruction and 3D viewer were built with Google Research. It was published in *Nature* on
 2 Oct 2024: 139,255 neurons and about 54.5 million synapses.
 

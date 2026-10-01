@@ -41,7 +41,7 @@ export const INSPECTOR_MAX = 560;
 export const DOCK_MAX_SHARE = 0.62;
 function loadPrefs(): Prefs {
   try {
-    const p: Prefs = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem("dotdeck.prefs") ?? "{}") };
+    const p: Prefs = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem("deskdot.prefs") ?? localStorage.getItem("dotdeck.prefs") ?? "{}") };
     // the panel preview is the hero: never let a stored rail width crush it
     p.libraryWidth = Math.max(240, Math.min(LIBRARY_MAX, p.libraryWidth));
     p.inspectorWidth = Math.max(300, Math.min(INSPECTOR_MAX, p.inspectorWidth));
@@ -118,7 +118,7 @@ export const useStore = create<Store>((set, get) => ({
       lastGame: s.lastGame, dockHeight: s.dockHeight,
     };
     try {
-      localStorage.setItem("dotdeck.prefs", JSON.stringify(keep));
+      localStorage.setItem("deskdot.prefs", JSON.stringify(keep));
     } catch {
       /* private mode: preferences just won't persist */
     }

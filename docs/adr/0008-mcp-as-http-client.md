@@ -9,10 +9,10 @@ Agents should see and control the panel live. BLE allows one central, and the en
 
 ## Decision
 
-`dotdeck-mcp` (stdio) calls the engine's REST API. It exposes intent-level tools (show app, pixel art,
+`deskdot-mcp` (stdio) calls the engine's REST API. It exposes intent-level tools (show app, pixel art,
 notify, agent state) plus `panel_snapshot`, which returns the current frame as an image so agents can verify results.
 
 ## Consequences
 
-+ No second BLE owner, no duplicated logic; works against a remote engine via `DOTDECK_URL`.
++ No second BLE owner, no duplicated logic; works against a remote engine via `DESKDOT_URL`.
 − The engine must be running; tools fail with a clear message if it isn't.

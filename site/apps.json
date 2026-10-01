@@ -62,7 +62,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/ambient.py",
+   "source": "src/deskdot/apps/ambient.py",
    "actions": [],
    "settings": [
     {
@@ -190,7 +190,7 @@
     "clip"
    ],
    "gif": "media/app-loops.gif",
-   "source": "src/dotdeck/apps/loops.py",
+   "source": "src/deskdot/apps/loops.py",
    "actions": [],
    "settings": [
     {
@@ -262,7 +262,7 @@
     "clip"
    ],
    "gif": "media/app-wireframe.gif",
-   "source": "src/dotdeck/apps/wireframe.py",
+   "source": "src/deskdot/apps/wireframe.py",
    "actions": [],
    "settings": [
     {
@@ -346,7 +346,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/canvas.py",
+   "source": "src/deskdot/apps/canvas.py",
    "actions": [
     {
      "id": "clear",
@@ -366,7 +366,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/emotes.py",
+   "source": "src/deskdot/apps/emotes.py",
    "actions": [],
    "settings": [
     {
@@ -533,7 +533,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/sand.py",
+   "source": "src/deskdot/apps/sand.py",
    "actions": [],
    "settings": [
     {
@@ -617,7 +617,7 @@
     "clip"
    ],
    "gif": "media/app-boids.gif",
-   "source": "src/dotdeck/apps/boids.py",
+   "source": "src/deskdot/apps/boids.py",
    "actions": [],
    "settings": [
     {
@@ -689,7 +689,7 @@
     "clip"
    ],
    "gif": "media/app-flybrain.gif",
-   "source": "src/dotdeck/apps/flybrain.py",
+   "source": "src/deskdot/apps/flybrain.py",
    "actions": [],
    "settings": [
     {
@@ -743,7 +743,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/fontlab.py",
+   "source": "src/deskdot/apps/fontlab.py",
    "actions": [],
    "settings": [
     {
@@ -982,7 +982,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/brain.py",
+   "source": "src/deskdot/apps/brain.py",
    "actions": [],
    "settings": [
     {
@@ -1062,7 +1062,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/pixabots.py",
+   "source": "src/deskdot/apps/pixabots.py",
    "actions": [],
    "settings": [
     {
@@ -1180,7 +1180,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/avatar.py",
+   "source": "src/deskdot/apps/avatar.py",
    "actions": [],
    "settings": [
     {
@@ -1188,7 +1188,7 @@
      "title": "Names",
      "type": "text",
      "description": "Comma-separated. Prefix gh: for a GitHub identicon, db: for a DiceBear character, mc: for a Minecraft face; unprefixed names use the default source",
-     "default": "Notch, jeb_, gh:torvalds, db:dotdeck",
+     "default": "Notch, jeb_, gh:torvalds, db:deskdot",
      "max_length": 400
     },
     {
@@ -1312,14 +1312,14 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/cards.py",
+   "source": "src/deskdot/apps/cards.py",
    "actions": [],
    "settings": [
     {
      "key": "name",
      "title": "Name",
      "type": "text",
-     "default": "DOTDECK",
+     "default": "DESKDOT",
      "max_length": 14
     },
     {
@@ -1584,7 +1584,7 @@
     "clip"
    ],
    "gif": "media/app-synthwave.gif",
-   "source": "src/dotdeck/apps/synthwave.py",
+   "source": "src/deskdot/apps/synthwave.py",
    "actions": [],
    "settings": [
     {
@@ -1661,7 +1661,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/text.py",
+   "source": "src/deskdot/apps/text.py",
    "actions": [],
    "settings": [
     {
@@ -1792,7 +1792,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/composer.py",
+   "source": "src/deskdot/apps/composer.py",
    "actions": [],
    "settings": [
     {
@@ -1853,7 +1853,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/airquality.py",
+   "source": "src/deskdot/apps/airquality.py",
    "actions": [],
    "settings": [
     {
@@ -1965,7 +1965,7 @@
     "stream"
    ],
    "gif": "media/app-markets.gif",
-   "source": "src/dotdeck/apps/markets.py",
+   "source": "src/deskdot/apps/markets.py",
    "actions": [],
    "settings": [
     {
@@ -2003,7 +2003,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/currency.py",
+   "source": "src/deskdot/apps/currency.py",
    "actions": [],
    "settings": [
     {
@@ -2176,7 +2176,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/quakes.py",
+   "source": "src/deskdot/apps/quakes.py",
    "actions": [],
    "settings": [
     {
@@ -2393,7 +2393,7 @@
     "stream"
    ],
    "gif": "media/app-radar.gif",
-   "source": "src/dotdeck/apps/radar.py",
+   "source": "src/deskdot/apps/radar.py",
    "actions": [
     {
      "id": "next",
@@ -2542,7 +2542,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/extras.py",
+   "source": "src/deskdot/apps/extras.py",
    "actions": [],
    "settings": [
     {
@@ -2601,7 +2601,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/headlines.py",
+   "source": "src/deskdot/apps/headlines.py",
    "actions": [
     {
      "id": "next",
@@ -2784,7 +2784,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/hassentity.py",
+   "source": "src/deskdot/apps/hassentity.py",
    "actions": [],
    "settings": [
     {
@@ -2946,7 +2946,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/scores.py",
+   "source": "src/deskdot/apps/scores.py",
    "actions": [],
    "settings": [
     {
@@ -3271,7 +3271,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/planets.py",
+   "source": "src/deskdot/apps/planets.py",
    "actions": [],
    "settings": [
     {
@@ -3346,7 +3346,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/rainradar.py",
+   "source": "src/deskdot/apps/rainradar.py",
    "actions": [],
    "settings": [
     {
@@ -3535,7 +3535,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/space.py",
+   "source": "src/deskdot/apps/space.py",
    "actions": [
     {
      "id": "next",
@@ -3733,7 +3733,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/stocks.py",
+   "source": "src/deskdot/apps/stocks.py",
    "actions": [],
    "settings": [
     {
@@ -4015,7 +4015,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/sysmon.py",
+   "source": "src/deskdot/apps/sysmon.py",
    "actions": [],
    "settings": [
     {
@@ -4065,7 +4065,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/tides.py",
+   "source": "src/deskdot/apps/tides.py",
    "actions": [],
    "settings": [
     {
@@ -4150,7 +4150,7 @@
     "stream"
    ],
    "gif": "media/app-weather.gif",
-   "source": "src/dotdeck/apps/weather.py",
+   "source": "src/deskdot/apps/weather.py",
    "actions": [],
    "settings": [
     {
@@ -4188,7 +4188,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/wear.py",
+   "source": "src/deskdot/apps/wear.py",
    "actions": [],
    "settings": [
     {
@@ -4286,7 +4286,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/printer.py",
+   "source": "src/deskdot/apps/printer.py",
    "actions": [],
    "settings": [
     {
@@ -4388,7 +4388,7 @@
     "native"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/native.py",
+   "source": "src/deskdot/apps/native.py",
    "actions": [],
    "settings": [
     {
@@ -4502,7 +4502,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_puzzle.py",
+   "source": "src/deskdot/apps/games_puzzle.py",
    "actions": [
     {
      "id": "restart",
@@ -4797,7 +4797,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/raycaster.py",
+   "source": "src/deskdot/apps/raycaster.py",
    "actions": [],
    "settings": [
     {
@@ -4885,7 +4885,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_action.py",
+   "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
      "id": "restart",
@@ -5195,7 +5195,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_classic.py",
+   "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
      "id": "restart",
@@ -5494,7 +5494,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/chess.py",
+   "source": "src/deskdot/apps/chess.py",
    "actions": [
     {
      "id": "next",
@@ -5645,7 +5645,7 @@
     "stream"
    ],
    "gif": "media/app-digworld.gif",
-   "source": "src/dotdeck/apps/games_world.py",
+   "source": "src/deskdot/apps/games_world.py",
    "actions": [
     {
      "id": "restart",
@@ -5952,7 +5952,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_classic.py",
+   "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
      "id": "restart",
@@ -6227,7 +6227,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_classic.py",
+   "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
      "id": "restart",
@@ -6503,7 +6503,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_connect.py",
+   "source": "src/deskdot/apps/games_connect.py",
    "actions": [
     {
      "id": "restart",
@@ -6766,7 +6766,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/gamedeals.py",
+   "source": "src/deskdot/apps/gamedeals.py",
    "actions": [
     {
      "id": "next",
@@ -6981,7 +6981,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_action.py",
+   "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
      "id": "restart",
@@ -7278,7 +7278,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_action.py",
+   "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
      "id": "restart",
@@ -7587,7 +7587,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_platform.py",
+   "source": "src/deskdot/apps/games_platform.py",
    "actions": [
     {
      "id": "restart",
@@ -7884,7 +7884,7 @@
     "stream"
    ],
    "gif": "media/app-cycles.gif",
-   "source": "src/dotdeck/apps/games_party.py",
+   "source": "src/deskdot/apps/games_party.py",
    "actions": [
     {
      "id": "restart",
@@ -8175,7 +8175,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_action.py",
+   "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
      "id": "restart",
@@ -8476,7 +8476,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_bonus.py",
+   "source": "src/deskdot/apps/games_bonus.py",
    "actions": [
     {
      "id": "restart",
@@ -8758,7 +8758,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_city.py",
+   "source": "src/deskdot/apps/games_city.py",
    "actions": [
     {
      "id": "restart",
@@ -9060,7 +9060,7 @@
     "stream"
    ],
    "gif": "media/app-pong.gif",
-   "source": "src/dotdeck/apps/games_classic.py",
+   "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
      "id": "restart",
@@ -9348,7 +9348,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_classic.py",
+   "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
      "id": "restart",
@@ -9618,7 +9618,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/arcade.py",
+   "source": "src/deskdot/apps/arcade.py",
    "actions": [
     {
      "id": "restart",
@@ -9957,7 +9957,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_bonus.py",
+   "source": "src/deskdot/apps/games_bonus.py",
    "actions": [
     {
      "id": "restart",
@@ -10231,7 +10231,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_road.py",
+   "source": "src/deskdot/apps/games_road.py",
    "actions": [
     {
      "id": "restart",
@@ -10529,7 +10529,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_puzzle.py",
+   "source": "src/deskdot/apps/games_puzzle.py",
    "actions": [
     {
      "id": "restart",
@@ -10833,7 +10833,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/trivia.py",
+   "source": "src/deskdot/apps/trivia.py",
    "actions": [
     {
      "id": "next",
@@ -11107,7 +11107,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/games_board.py",
+   "source": "src/deskdot/apps/games_board.py",
    "actions": [
     {
      "id": "restart",
@@ -11360,7 +11360,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/live.py",
+   "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
     {
@@ -11671,7 +11671,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/gallery.py",
+   "source": "src/deskdot/apps/gallery.py",
    "actions": [],
    "settings": [
     {
@@ -11745,7 +11745,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/mediaserver.py",
+   "source": "src/deskdot/apps/mediaserver.py",
    "actions": [],
    "settings": [
     {
@@ -11853,7 +11853,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/nowplaying.py",
+   "source": "src/deskdot/apps/nowplaying.py",
    "actions": [
     {
      "id": "prev",
@@ -12123,7 +12123,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/photoframe.py",
+   "source": "src/deskdot/apps/photoframe.py",
    "actions": [
     {
      "id": "next",
@@ -12303,7 +12303,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/live.py",
+   "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
     {
@@ -12563,7 +12563,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/live.py",
+   "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
     {
@@ -12651,7 +12651,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/pets.py",
+   "source": "src/deskdot/apps/pets.py",
    "actions": [],
    "settings": [
     {
@@ -13147,7 +13147,7 @@
     "clip"
    ],
    "gif": "media/app-petworld.gif",
-   "source": "src/dotdeck/apps/petworld.py",
+   "source": "src/deskdot/apps/petworld.py",
    "actions": [],
    "settings": [
     {
@@ -13819,7 +13819,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/pokedex.py",
+   "source": "src/deskdot/apps/pokedex.py",
    "actions": [
     {
      "id": "next",
@@ -14017,7 +14017,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/activeapp.py",
+   "source": "src/deskdot/apps/activeapp.py",
    "actions": [],
    "settings": [
     {
@@ -14068,7 +14068,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/anki.py",
+   "source": "src/deskdot/apps/anki.py",
    "actions": [],
    "settings": [
     {
@@ -14083,7 +14083,7 @@
      "key": "port",
      "title": "Port",
      "type": "integer",
-     "description": "AnkiConnect defaults to 8765, which DotDeck already uses. Set \"webBindPort\": 8766 in Anki → Tools → Add-ons → AnkiConnect → Config and restart Anki.",
+     "description": "AnkiConnect defaults to 8765, which DeskDot already uses. Set \"webBindPort\": 8766 in Anki → Tools → Add-ons → AnkiConnect → Config and restart Anki.",
      "default": 8766,
      "min": 1,
      "max": 65535,
@@ -14137,7 +14137,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/calendar.py",
+   "source": "src/deskdot/apps/calendar.py",
    "actions": [],
    "settings": [
     {
@@ -14213,7 +14213,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/ci.py",
+   "source": "src/deskdot/apps/ci.py",
    "actions": [],
    "settings": [
     {
@@ -14355,7 +14355,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/agent.py",
+   "source": "src/deskdot/apps/agent.py",
    "actions": [],
    "settings": [
     {
@@ -14419,7 +14419,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/custom.py",
+   "source": "src/deskdot/apps/custom.py",
    "actions": [],
    "settings": [
     {
@@ -14443,7 +14443,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/daily.py",
+   "source": "src/deskdot/apps/daily.py",
    "actions": [
     {
      "id": "next",
@@ -14692,7 +14692,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/focuspet.py",
+   "source": "src/deskdot/apps/focuspet.py",
    "actions": [],
    "settings": [
     {
@@ -14836,7 +14836,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/timer.py",
+   "source": "src/deskdot/apps/timer.py",
    "actions": [
     {
      "id": "toggle",
@@ -14937,7 +14937,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/habits.py",
+   "source": "src/deskdot/apps/habits.py",
    "actions": [
     {
      "id": "tick1",
@@ -15040,7 +15040,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/obs.py",
+   "source": "src/deskdot/apps/obs.py",
    "actions": [],
    "settings": [
     {
@@ -15114,7 +15114,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/qr.py",
+   "source": "src/deskdot/apps/qr.py",
    "actions": [],
    "settings": [
     {
@@ -15234,7 +15234,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/uptime.py",
+   "source": "src/deskdot/apps/uptime.py",
    "actions": [],
    "settings": [
     {
@@ -15369,7 +15369,7 @@
     "stream"
    ],
    "gif": "media/app-clock.gif",
-   "source": "src/dotdeck/apps/clock.py",
+   "source": "src/deskdot/apps/clock.py",
    "actions": [],
    "settings": [
     {
@@ -15481,7 +15481,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/extras.py",
+   "source": "src/deskdot/apps/extras.py",
    "actions": [],
    "settings": [
     {
@@ -15532,7 +15532,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/daynight.py",
+   "source": "src/deskdot/apps/daynight.py",
    "actions": [],
    "settings": [
     {
@@ -15649,7 +15649,7 @@
     "clip"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/fiveoclock.py",
+   "source": "src/deskdot/apps/fiveoclock.py",
    "actions": [],
    "settings": [
     {
@@ -15710,7 +15710,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/holidays.py",
+   "source": "src/deskdot/apps/holidays.py",
    "actions": [],
    "settings": [
     {
@@ -15827,7 +15827,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/progress.py",
+   "source": "src/deskdot/apps/progress.py",
    "actions": [],
    "settings": [
     {
@@ -16052,7 +16052,7 @@
     "stream"
    ],
    "gif": null,
-   "source": "src/dotdeck/apps/sky.py",
+   "source": "src/deskdot/apps/sky.py",
    "actions": [],
    "settings": [
     {

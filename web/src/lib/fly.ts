@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "./api";
 import { appMeta, toast, useStore } from "./store";
 
-/** One reading of the fruit-fly brain (GET /api/fly; src/dotdeck/fly/brain.py `snapshot`). Studio only:
+/** One reading of the fruit-fly brain (GET /api/fly; src/deskdot/fly/brain.py `snapshot`). Studio only:
  *  the panel shows just the game the fly is playing. */
 export type FlySnap = {
   active: boolean;
@@ -109,7 +109,7 @@ export const THEMES: Record<ThemeId, Theme> = {
 
 function loadGfx(): FlyGfx {
   try {
-    return { ...DEFAULT_GFX, ...JSON.parse(localStorage.getItem("dotdeck.fly") ?? "{}") };
+    return { ...DEFAULT_GFX, ...JSON.parse(localStorage.getItem("deskdot.fly") ?? localStorage.getItem("dotdeck.fly") ?? "{}") };
   } catch {
     return { ...DEFAULT_GFX };
   }
@@ -149,7 +149,7 @@ export const useFly = create<FlyStore>((set, get) => ({
     const gfx = { ...get().gfx, ...p };
     set({ gfx });
     try {
-      localStorage.setItem("dotdeck.fly", JSON.stringify(gfx));
+      localStorage.setItem("deskdot.fly", JSON.stringify(gfx));
     } catch {
       /* private mode: settings just won't persist */
     }

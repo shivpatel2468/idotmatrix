@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.arcade import WALLS, Arcade
-from dotdeck.apps.games_core import GameApp
-from dotdeck.apps.games_puzzle import G2048, STONE, Tetris
-from dotdeck.gfx import Frame
+from deskdot.apps.arcade import WALLS, Arcade
+from deskdot.apps.games_core import GameApp
+from deskdot.apps.games_puzzle import G2048, STONE, Tetris
+from deskdot.gfx import Frame
 
 WH_LAST = 15
 GAMES: tuple[type[GameApp], ...] = (Arcade, Tetris, G2048)
@@ -144,7 +144,7 @@ def test_snake_keeps_id_and_old_settings() -> None:
 
 
 def test_snake_maps_leave_the_starts_clear() -> None:
-    from dotdeck.apps.arcade import STARTS, Snake
+    from deskdot.apps.arcade import STARTS, Snake
 
     for mid, walls in WALLS.items():
         for seat, (head, d) in STARTS.items():

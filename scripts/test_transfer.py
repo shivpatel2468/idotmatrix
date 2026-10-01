@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive CLI Transfer & Motion Calibration Test for DotDeck.
+"""Interactive CLI Transfer & Motion Calibration Test for DeskDot.
 
 Tests the live hardware link against horizontal tearing, scanline slicing,
 and multi-packet BLE buffer drops, and saves optimal transfer timings.
@@ -17,15 +17,15 @@ API_BASE = "http://127.0.0.1:8765"
 
 def main() -> None:
     print("\n" + "=" * 60)
-    print("  DotDeck 32×32 Hardware Transfer & Motion Calibration Test")
+    print("  DeskDot 32×32 Hardware Transfer & Motion Calibration Test")
     print("=" * 60)
 
     try:
         r = httpx.get(f"{API_BASE}/api/state", timeout=3.0)
         state = r.json()
     except Exception as e:
-        print(f"\n[ERROR] Cannot connect to DotDeck server at {API_BASE}: {e}")
-        print("Make sure DotDeck is running: 'uv run dotdeck serve'\n")
+        print(f"\n[ERROR] Cannot connect to DeskDot server at {API_BASE}: {e}")
+        print("Make sure DeskDot is running: 'uv run deskdot serve'\n")
         sys.exit(1)
 
     dev = state.get("device", {})

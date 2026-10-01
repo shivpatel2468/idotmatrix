@@ -481,7 +481,7 @@ function NotificationsTab({ st }: { st: St }) {
         <button className="key" onClick={() => api.notify({ title: "TEST", message: "Notifications reach the panel", color: "#00dcff", icon: "bell", duration: 5, style: n.style as "banner" | "full" })}>
           <Icon name="send" size={13} /> Send a test
         </button>
-        {mac && <p className="mt-2 text-[11.5px] text-ink-3">macOS: give your terminal (or Python) Full Disk Access in System Settings → Privacy & Security so DotDeck can read the notification centre.</p>}
+        {mac && <p className="mt-2 text-[11.5px] text-ink-3">macOS: give your terminal (or Python) Full Disk Access in System Settings → Privacy & Security so DeskDot can read the notification centre.</p>}
       </div>
     </div>
   );
@@ -570,7 +570,7 @@ function HandoffSection({ st }: { st: St }) {
             <Toggle on={h.hour24} label="24-hour clock" onChange={(v) => save({ hour24: v })} />
           </Row>
         )}
-        <Row label="When DotDeck closes"><Toggle on={h.on_exit} label="Hand over when DotDeck closes" onChange={(v) => save({ on_exit: v })} /></Row>
+        <Row label="When DeskDot closes"><Toggle on={h.on_exit} label="Hand over when DeskDot closes" onChange={(v) => save({ on_exit: v })} /></Row>
         <Row label="When the computer goes to sleep" hint="Windows only. Always uses the panel's clock (there's only a moment before sleep).">
           <Toggle on={h.on_sleep} label="Hand over on sleep" onChange={(v) => save({ on_sleep: v })} />
         </Row>
@@ -660,7 +660,7 @@ function ConnectionBlock({ st }: { st: St }) {
       {found && (
         <div className="mt-3 space-y-1 font-mono text-[11px] text-ink-2">
           {found.length ? found.map((f) => <div key={f.address}>{f.address} · {f.name} · {f.rssi} dBm</div>) : <div>No panels found nearby.</div>}
-          <div className="text-ink-4">To always use one panel, set its address in dotdeck.toml (or --address).</div>
+          <div className="text-ink-4">To always use one panel, set its address in deskdot.toml (or --address).</div>
         </div>
       )}
     </>
@@ -733,7 +733,7 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
           <AutopilotEditor />
         </Block>
         <Block id="handoff" title="Keep showing when my computer is off" icon="laptop-minimal"
-          hint="The panel can keep going on its own: its built-in clock keeps time, or it loops the last animation it was given. DotDeck hands over automatically.">
+          hint="The panel can keep going on its own: its built-in clock keeps time, or it loops the last animation it was given. DeskDot hands over automatically.">
           <HandoffSection st={st} />
         </Block>
       </div>

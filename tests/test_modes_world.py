@@ -12,11 +12,11 @@ from typing import Any
 
 import pytest
 
-import dotdeck.apps  # noqa: F401 — registers the games
-from dotdeck.apps import games_city, games_road
-from dotdeck.apps.games_core import GameApp, Theme
-from dotdeck.engine import REGISTRY
-from dotdeck.gfx import Frame
+import deskdot.apps  # noqa: F401 — registers the games
+from deskdot.apps import games_city, games_road
+from deskdot.apps.games_core import GameApp, Theme
+from deskdot.engine import REGISTRY
+from deskdot.gfx import Frame
 
 GAMES = ("digworld", "neonheat", "streetsurge", "leafleap")
 
@@ -136,7 +136,7 @@ async def test_every_theme_and_map_renders(gid: str) -> None:
 
 
 def test_digworld_default_look_keeps_the_bright_world() -> None:
-    from dotdeck.apps import games_world as w
+    from deskdot.apps import games_world as w
 
     pal = w._palette("overworld")
     assert pal[w.DIRT][0] == (140, 78, 32) and pal[w.STONE][0] == (92, 92, 108)

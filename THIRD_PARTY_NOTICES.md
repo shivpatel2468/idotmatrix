@@ -1,10 +1,10 @@
 # Third-party notices
 
-DotDeck's own code, pixel art, characters and bitmap fonts are original and released under the [MIT License](LICENSE).
+DeskDot's own code, pixel art, characters and bitmap fonts are original and released under the [MIT License](LICENSE).
 
 ## Trademarks
 
-- **iDotMatrix** is a product name of its respective owner. DotDeck is an independent project, not affiliated with or
+- **iDotMatrix** is a product name of its respective owner. DeskDot is an independent project, not affiliated with or
   endorsed by them; the name is used only to identify compatible hardware.
 - **Claude** and **Anthropic** are trademarks of Anthropic. The "Agent" mascot is an original pixel drawing inspired by
   Claude Code's mascot; it's used to show your own agent's activity.

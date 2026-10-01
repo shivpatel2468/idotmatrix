@@ -11,7 +11,7 @@ permissions:
 jobs:
   engine:
     name: Engine — tests & lint
-    runs-on: windows-latest   # the platform DotDeck is verified on (WinRT Bluetooth)
+    runs-on: windows-latest   # the platform DeskDot is verified on (WinRT Bluetooth)
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4

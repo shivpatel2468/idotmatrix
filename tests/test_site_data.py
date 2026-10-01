@@ -6,8 +6,8 @@ import importlib.util
 import json
 from pathlib import Path
 
-import dotdeck.apps  # noqa: F401 — registers built-in apps
-from dotdeck.engine import REGISTRY
+import deskdot.apps  # noqa: F401 — registers built-in apps
+from deskdot.engine import REGISTRY
 
 ROOT = Path(__file__).resolve().parents[1]
 

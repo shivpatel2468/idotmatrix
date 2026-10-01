@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DotDeck</string>
-    <string name="starting">Starting DotDeck…</string>
-    <string name="need_bluetooth">DotDeck needs the Nearby devices (Bluetooth) permission to reach your panel.\n\nTap to open settings.</string>
-    <string name="channel_engine">DotDeck engine</string>
+    <string name="app_name">DeskDot</string>
+    <string name="starting">Starting DeskDot…</string>
+    <string name="need_bluetooth">DeskDot needs the Nearby devices (Bluetooth) permission to reach your panel.\n\nTap to open settings.</string>
+    <string name="channel_engine">DeskDot engine</string>
     <string name="channel_engine_desc">Keeps your LED panel connected and playing</string>
     <string name="note_starting">Starting…</string>
     <string name="note_running">Running — keeping your panel connected</string>

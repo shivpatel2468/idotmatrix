@@ -1,6 +1,6 @@
-# DotDeck — rules for working on this codebase
+# DeskDot — rules for working on this codebase
 
-DotDeck turns an **iDotMatrix 32×32 RGB LED panel** (BLE; its MAC lives in the local `dotdeck.toml`) into a live desktop
+DeskDot turns an **iDotMatrix 32×32 RGB LED panel** (BLE; its MAC lives in the local `deskdot.toml`) into a live desktop
 companion: an async Python engine, a React studio, and an MCP server so AI agents can see and drive the panel.
 
 Read before changing anything:
@@ -13,10 +13,10 @@ Decisions and their reasons: [docs/adr/](docs/adr/).
 
 ```powershell
 uv sync --extra mcp                 # install / update Python deps (Python 3.13 via uv)
-uv run dotdeck serve --sim          # engine + studio with the simulated panel  → http://127.0.0.1:8765
-uv run dotdeck serve                # real panel over Bluetooth
-uv run dotdeck doctor               # connect and draw a test pattern on the real panel
-uv run dotdeck preview clock --settings '{"style":"analog"}' --out clock.png
+uv run deskdot serve --sim          # engine + studio with the simulated panel  → http://127.0.0.1:8765
+uv run deskdot serve                # real panel over Bluetooth
+uv run deskdot doctor               # connect and draw a test pattern on the real panel
+uv run deskdot preview clock --settings '{"style":"analog"}' --out clock.png
 uv run pytest -q                    # all tests (must pass before you say "done")
 uv run ruff check src tests && uv run ruff format src tests
 cd web; npm install; npm run dev    # studio with hot reload on :5173 (proxies to :8765)
@@ -32,7 +32,7 @@ cd web; npm run build               # typecheck + production build → web/dist 
 3. **Never block the event loop.** No `time.sleep`, no sync HTTP, no `psutil.cpu_percent(interval>0)`.
    Blocking library calls go through `asyncio.to_thread`.
 4. **The BLE link is owned by exactly one process: the engine.** Everything else (studio, MCP, scripts,
-   Claude Code hooks) goes through the HTTP API. Never import `bleak` outside `dotdeck/device/`.
+   Claude Code hooks) goes through the HTTP API. Never import `bleak` outside `deskdot/device/`.
 5. **Never disconnect the panel voluntarily** (it shows a pairing screen). The device layer reconnects itself.
 6. **Latest frame wins.** Never queue frames FIFO toward the device. Use `Device.show_frame/show_gif/command`.
 7. **Protocol bytes are pinned.** Any change to `device/protocol.py` needs a test in `tests/test_protocol.py`
@@ -57,18 +57,18 @@ cd web; npm run build               # typecheck + production build → web/dist 
 
 | You want to…                          | Put it in                                         |
 | ------------------------------------- | ------------------------------------------------- |
-| show something new on the panel       | `src/dotdeck/apps/<name>.py` (+ import in `apps/__init__.py`) or `plugins/<name>.py` |
-| fetch external/live data              | `src/dotdeck/providers/<name>.py`, register in `providers/__init__.py` |
-| a drawing primitive / glyph           | `src/dotdeck/gfx/`                                 |
-| a panel command                       | `src/dotdeck/device/protocol.py` + test           |
-| an HTTP endpoint                      | `src/dotdeck/server.py` (+ docs/API.md, + MCP tool if agents need it) |
-| an agent capability                   | `src/dotdeck/mcp_server.py` (thin wrapper over HTTP) |
+| show something new on the panel       | `src/deskdot/apps/<name>.py` (+ import in `apps/__init__.py`) or `plugins/<name>.py` |
+| fetch external/live data              | `src/deskdot/providers/<name>.py`, register in `providers/__init__.py` |
+| a drawing primitive / glyph           | `src/deskdot/gfx/`                                 |
+| a panel command                       | `src/deskdot/device/protocol.py` + test           |
+| an HTTP endpoint                      | `src/deskdot/server.py` (+ docs/API.md, + MCP tool if agents need it) |
+| an agent capability                   | `src/deskdot/mcp_server.py` (thin wrapper over HTTP) |
 | studio UI                             | `web/src/components/` — follow docs/STUDIO_UI.md  |
 | a decision with trade-offs            | `docs/adr/NNNN-title.md`                          |
 
 ## Definition of done
 
 - `uv run pytest -q` and `uv run ruff check src tests` pass; `cd web && npm run build` passes if the studio changed.
-- New app: renders in `dotdeck preview`, looks right in the studio preview (and on the panel if available),
+- New app: renders in `deskdot preview`, looks right in the studio preview (and on the panel if available),
   follows DISPLAY_DESIGN.md (margins, type scale, palette, one hero element).
 - Docs updated when behaviour, API or rules change. `legacy/` is reference only — never import from it.

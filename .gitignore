@@ -3,6 +3,7 @@
 .env
 .env.*
 !.env.example
+deskdot.toml
 dotdeck.toml
 *.local.toml
 android/local.properties

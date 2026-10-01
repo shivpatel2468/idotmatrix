@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from dotdeck.gfx import FONTS, Frame, Sprite, measure, to_rgb, wrap
-from dotdeck.gfx.color import calibrate
-from dotdeck.gfx.font import fit, marquee_x
-from dotdeck.gfx.image import encode_gif, fit_image, import_media
+from deskdot.gfx import FONTS, Frame, Sprite, measure, to_rgb, wrap
+from deskdot.gfx.color import calibrate
+from deskdot.gfx.font import fit, marquee_x
+from deskdot.gfx.image import encode_gif, fit_image, import_media
 
 
 def test_primitives_clip_to_panel() -> None:
@@ -89,7 +89,7 @@ def test_fit_image_and_gif_roundtrip() -> None:
 
 
 def test_worldmap_masks_and_projection() -> None:
-    from dotdeck.gfx.worldmap import SIZES, draw_world, land, project
+    from deskdot.gfx.worldmap import SIZES, draw_world, land, project
 
     for w, h in SIZES:
         m = land(w, h)
@@ -104,7 +104,7 @@ def test_worldmap_masks_and_projection() -> None:
 
 
 def test_gif_budget_is_a_hard_limit() -> None:
-    from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
+    from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
 
     rng = np.random.default_rng(7)
     frames = []

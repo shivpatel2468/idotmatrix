@@ -3,7 +3,7 @@
     uv run python scripts/build_site_data.py            # writes site/apps.json
     uv run python scripts/build_site_data.py --out x.json
 
-The shape mirrors what the studio gets from /api/meta (src/dotdeck/server.py), flattened into a list of settings
+The shape mirrors what the studio gets from /api/meta (src/deskdot/server.py), flattened into a list of settings
 per app so a static page can render it without a JSON-schema walker. Apps are instantiated once with default
 settings (against a simulated panel, no network) only to ask them which output kind they use.
 """
@@ -94,7 +94,7 @@ def settings_from_schema(schema: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _kinds(engine: Any, cls: type, settings: list[dict[str, Any]]) -> tuple[str, list[str]]:
     """The output kind with default settings, plus every kind any single Choice option switches it to."""
-    from dotdeck.engine.runtime import AppContext
+    from deskdot.engine.runtime import AppContext
 
     def kind_with(patch: dict[str, Any]) -> str | None:
         try:
@@ -124,13 +124,13 @@ def _source(cls: type) -> str | None:
 
 
 async def build() -> dict[str, Any]:
-    import dotdeck
-    import dotdeck.apps  # registers every built-in app
-    from dotdeck.config import Config, Store
-    from dotdeck.device import SimDevice
-    from dotdeck.engine import Engine
-    from dotdeck.engine.app import REGISTRY
-    from dotdeck.providers import build_hub
+    import deskdot
+    import deskdot.apps  # registers every built-in app
+    from deskdot.config import Config, Store
+    from deskdot.device import SimDevice
+    from deskdot.engine import Engine
+    from deskdot.engine.app import REGISTRY
+    from deskdot.providers import build_hub
 
     with tempfile.TemporaryDirectory() as tmp:
         cfg = Config(device="sim", data_dir=Path(tmp))
@@ -183,7 +183,7 @@ async def build() -> dict[str, Any]:
 
     cats = sorted({a["category"] for a in apps}, key=list(CATEGORY_LABELS).index)
     return {
-        "version": dotdeck.__version__,
+        "version": deskdot.__version__,
         "count": len(apps),
         "games": sum(1 for a in apps if a["category"] == "games"),
         "multiplayer": sum(1 for a in apps if a.get("game", {}).get("max_players", 1) > 1),

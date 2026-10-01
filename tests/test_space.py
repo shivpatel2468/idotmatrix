@@ -14,8 +14,8 @@ import httpx
 import numpy as np
 import pytest
 
-from dotdeck.apps.sky import Sky, SkySettings, dur_text, moon_disc, sky_colors
-from dotdeck.apps.space import (
+from deskdot.apps.sky import Sky, SkySettings, dur_text, moon_disc, sky_colors
+from deskdot.apps.space import (
     Space,
     SpaceSettings,
     countdown_text,
@@ -23,10 +23,10 @@ from dotdeck.apps.space import (
     page_len,
     pick_page,
 )
-from dotdeck.config import Store
-from dotdeck.gfx import Frame, measure
-from dotdeck.providers.base import Hub
-from dotdeck.providers.sky import (
+from deskdot.config import Store
+from deskdot.gfx import Frame, measure
+from deskdot.providers.base import Hub
+from deskdot.providers.sky import (
     SkyProvider,
     moon_phase,
     moon_phase_time,
@@ -38,7 +38,7 @@ from dotdeck.providers.sky import (
     sun_events,
     sun_position,
 )
-from dotdeck.providers.space import (
+from deskdot.providers.space import (
     IssProvider,
     Orbit,
     SpaceProvider,
@@ -441,7 +441,7 @@ def test_sky_layouts_through_the_day(layout: str, hour: float, monkeypatch: pyte
         "sources": ["local"],
     }
     at = datetime(2026, 9, 24, tzinfo=UTC).timestamp() - 19800 + hour * 3600
-    import dotdeck.apps.sky as sky_mod
+    import deskdot.apps.sky as sky_mod
 
     monkeypatch.setattr(sky_mod.time, "time", lambda: at)
     app = Sky(Ctx({"sky": FakeProvider("sky", value)}), SkySettings(layout=layout, hour24=hour < 12))

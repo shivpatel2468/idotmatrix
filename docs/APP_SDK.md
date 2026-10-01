@@ -6,10 +6,10 @@ playlist and the tests all discover it automatically. There is no frontend work.
 ## Hello, panel
 
 ```python
-# plugins/hello.py   (or src/dotdeck/apps/hello.py + import it in apps/__init__.py)
+# plugins/hello.py   (or src/deskdot/apps/hello.py + import it in apps/__init__.py)
 from pydantic import Field
-from dotdeck.engine import App, AppSettings, Choice, Color, register
-from dotdeck.gfx import Frame, scale
+from deskdot.engine import App, AppSettings, Choice, Color, register
+from deskdot.gfx import Frame, scale
 
 class HelloSettings(AppSettings):
     name: str = Field("WORLD", max_length=8, title="Name")
@@ -32,8 +32,8 @@ class Hello(App):
         f.text_center(17, s.name, s.color, font=s.size)
 ```
 
-Restart the engine (`uv run dotdeck serve --sim`) — **Hello** appears in the Library with a working form.
-Preview without a panel: `uv run dotdeck preview hello --settings '{"name":"ADA"}' --out hello.png`.
+Restart the engine (`uv run deskdot serve --sim`) — **Hello** appears in the Library with a working form.
+Preview without a panel: `uv run deskdot preview hello --settings '{"name":"ADA"}' --out hello.png`.
 A complete example lives in `plugins/_example_countdown.py`.
 
 ## The class, field by field
@@ -70,7 +70,7 @@ More UI hints:
 | `Field(..., json_schema_extra={"group": "Exposure"})` / `Choice(..., group="Framing")` | collapsible section (first group open) |
 | `datetime` / `date` fields | native date-time / date pickers |
 | `list[...]` with `json_schema_extra={"format": "layers"}` | hidden in the form (edited on the preview, like Text Studio) |
-| subclass `dotdeck.gfx.adjust.ImageControls` | the full exposure / colour / framing panel for camera-like apps |
+| subclass `deskdot.gfx.adjust.ImageControls` | the full exposure / colour / framing panel for camera-like apps |
 
 ## Lifecycle
 
@@ -100,7 +100,7 @@ Override `clip_key()` if the loop depends on more than settings (e.g. provider d
 d = self.ctx.provider("weather").value          # None until the first fetch
 err = self.ctx.provider("weather").error        # last failure message or None
 if d is None:
-    return (offline if err else loading)(f, ...)  # from dotdeck.apps._kit
+    return (offline if err else loading)(f, ...)  # from deskdot.apps._kit
 ```
 
 Built-in providers: `system`, `weather`, `markets` (`.want(*symbols)`), `stocks` (`.want(symbols, range_)`, Yahoo),
@@ -120,7 +120,7 @@ filter with `providers.onair.filter_apps`), `idle` (Windows `idle_s` since the l
 (the validated registry of pushed custom apps; `.value[name]` is the AWTRIX-style body). Location-aware providers call `await self.hub.location()`; web text headed for the
 panel goes through `providers.daily.clean_text` (fonts are ASCII-only); tiny world maps come from `gfx.worldmap`.
 
-Characters for pets and games live in `dotdeck.gfx.characters`: `draw_character(f, char_id, anim, t, x, y, *,
+Characters for pets and games live in `deskdot.gfx.characters`: `draw_character(f, char_id, anim, t, x, y, *,
 colors=, flip=, scale=1|2, beat=, accessory=)` draws one of 53 original 16×16 rigs (see `CHARACTERS`, `GROUPS`,
 `ANIMS`, `ACCESSORIES`). Self-playing games subclass `apps.games_core.GameApp` (fixed-step sim, AI/human hand-over,
 best score, themes).
@@ -158,12 +158,12 @@ Also available: `window` (foreground app, `.icon(exe)` → 32×32 RGBA), `screen
 | `wants_focus() -> bool` | `True` = take over the playlist now (music started, favourite team live) |
 | `status() -> dict` | small JSON shown next to the preview and to agents (`panel_status`) |
 
-## Drawing toolbox (`dotdeck.gfx`)
+## Drawing toolbox (`deskdot.gfx`)
 
 `Frame`: `clear, set, get, rect, hline, vline, line, polyline, circle, gradient_v, blend, dim, blit, sprite,
 text, text_center, text_right, bar, sparkline`. Fonts: `measure, wrap, fit, draw_marquee`.
 Colour: `PALETTE, to_rgb, hsv, mix, scale, calibrate`. Sprites: `Sprite.parse(rows, palette)`.
-Kit (`dotdeck.apps._kit`): `ring` (edge progress), `loading`, `offline`, `compact_number`, `bytes_rate`.
+Kit (`deskdot.apps._kit`): `ring` (edge progress), `loading`, `offline`, `compact_number`, `bytes_rate`.
 
 ## Games (`apps.games_core.GameApp`)
 
@@ -202,7 +202,7 @@ class Pong(GameApp):
 
 ## Shipping a built-in app
 
-1. `src/dotdeck/apps/<id>.py`, import it in `apps/__init__.py` (`BUILTIN`).
+1. `src/deskdot/apps/<id>.py`, import it in `apps/__init__.py` (`BUILTIN`).
 2. `uv run pytest -q` — the parametrised app tests pick it up.
 3. Add it to the gallery render (`docs/assets/apps.png`) and the app list in `docs/VISION.md`.
 4. If agents should drive it specially, add an MCP tool (usually `show_app` is enough).

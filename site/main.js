@@ -1,4 +1,4 @@
-/* DotDeck — idotmatrix.com. Plain JS, no dependencies.
+/* DeskDot — idotmatrix.com. Plain JS, no dependencies.
  * 1. the neon LED logo (canvas)   2. page chrome (menu, reveal, LED hovers, tabs, copy)   3. the Apps explorer */
 (() => {
   "use strict";
@@ -623,7 +623,7 @@
     const choice = a.settings.find((s) => s.options && s.options.length > 1);
     const example = choice ? ` --settings '${JSON.stringify({ [choice.key]: choice.options.find((o) => o.value !== choice.default)?.value ?? choice.default })}'` : "";
     html += `<h3>Try it</h3>
-      ${codeBlock("render a frame to PNG (no panel needed)", `uv run dotdeck preview ${a.id}${example} --out ${a.id}.png`)}
+      ${codeBlock("render a frame to PNG (no panel needed)", `uv run deskdot preview ${a.id}${example} --out ${a.id}.png`)}
       <p class="range" style="margin-top:10px">Or ask your agent: “Show ${esc(a.name)} on my panel”. It calls <code>show_app</code> with <code>"${esc(a.id)}"</code>.</p>`;
 
     $("#dlg-body").innerHTML = html;

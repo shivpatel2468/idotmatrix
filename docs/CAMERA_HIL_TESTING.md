@@ -1,8 +1,8 @@
 # Hardware-in-the-Loop (HIL) Optical Benchmarking & Camera Calibration
 
-This guide details the **Hardware-in-the-Loop (HIL) Optical Testing & Calibration System** for DotDeck and the physical **iDotMatrix 32×32 RGB LED panel**.
+This guide details the **Hardware-in-the-Loop (HIL) Optical Testing & Calibration System** for DeskDot and the physical **iDotMatrix 32×32 RGB LED panel**.
 
-By pointing the laptop webcam directly at the physical matrix, DotDeck gains closed-loop optical feedback. This enables empirical performance benchmarks, anti-bloom calibration, gamma curve extraction, and automated visual QA that cannot be simulated in software.
+By pointing the laptop webcam directly at the physical matrix, DeskDot gains closed-loop optical feedback. This enables empirical performance benchmarks, anti-bloom calibration, gamma curve extraction, and automated visual QA that cannot be simulated in software.
 
 ---
 
@@ -10,7 +10,7 @@ By pointing the laptop webcam directly at the physical matrix, DotDeck gains clo
 
 ```
 ┌──────────────────────┐                     ┌──────────────────────┐
-│  DotDeck Engine (PC) │                     │   Laptop Webcam      │
+│  DeskDot Engine (PC) │                     │   Laptop Webcam      │
 │  - App Renderers     │                     │   - OpenCV 4.x       │
 │  - BLE GATT Driver   │                     │   - Auto-Exposure Fix│
 │  - REST / WS API     │                     │   - BGR -> HSV / Lab │
@@ -78,7 +78,7 @@ Direct LED emitters behind smoked acrylic bleed photons into adjacent diode well
   3. Fit the power law:
      $$L = a \cdot V_{\text{in}}^\gamma + c$$
   4. Standard RGB panels measure $\gamma \approx 1.85 \text{ to } 2.1$.
-* **Application**: Applied in [`dotdeck/gfx/calib.py`](../src/dotdeck/gfx/calib.py) for photographic and weather gradient rendering.
+* **Application**: Applied in [`deskdot/gfx/calib.py`](../src/deskdot/gfx/calib.py) for photographic and weather gradient rendering.
 
 ### 3.3 Neutral White Balance (6500K)
 * **Objective**: Correct cold blue/green color cast from high-efficiency blue diodes.
@@ -114,13 +114,13 @@ uv run python scripts/camera_calibrate.py --out data/display_tests/snapshot.jpg
 ```
 
 ### 5.2 Standalone Apps Verified via Hardware Camera
-* [`sand`](../src/dotdeck/apps/sand.py): Granular falling sand, volcanic lava, and fluid waterfall. Verified under `data/display_tests/sand.jpg` and `sand_volcano.jpg`.
-* [`raycaster`](../src/dotdeck/apps/raycaster.py): 3D Wolfenstein corridor perspective and minimap radar. Verified under `data/display_tests/raycaster_live.jpg`.
-* [`brain`](../src/dotdeck/apps/brain.py): 1,024-neuron biological spiking cortex with rotating spiral waves. Verified under `data/display_tests/brain_spiral.jpg`.
-* [`focuspet`](../src/dotdeck/apps/focuspet.py): Study bunny with laptop, mug, plant, and progress bar. Verified under `data/display_tests/focuspet.jpg`.
-* [`boids`](../src/dotdeck/apps/boids.py): Bioluminescent schooling flock with trails. Verified under `data/display_tests/boids.jpg`.
-* [`synthwave`](../src/dotdeck/apps/synthwave.py): Neon perspective road, segmented sun, and cruiser car. Verified under `data/display_tests/synthwave.jpg`.
-* [`wireframe`](../src/dotdeck/apps/wireframe.py): 4D Tesseract hypercube rotating in 3D perspective. Verified under `data/display_tests/wireframe.jpg`.
+* [`sand`](../src/deskdot/apps/sand.py): Granular falling sand, volcanic lava, and fluid waterfall. Verified under `data/display_tests/sand.jpg` and `sand_volcano.jpg`.
+* [`raycaster`](../src/deskdot/apps/raycaster.py): 3D Wolfenstein corridor perspective and minimap radar. Verified under `data/display_tests/raycaster_live.jpg`.
+* [`brain`](../src/deskdot/apps/brain.py): 1,024-neuron biological spiking cortex with rotating spiral waves. Verified under `data/display_tests/brain_spiral.jpg`.
+* [`focuspet`](../src/deskdot/apps/focuspet.py): Study bunny with laptop, mug, plant, and progress bar. Verified under `data/display_tests/focuspet.jpg`.
+* [`boids`](../src/deskdot/apps/boids.py): Bioluminescent schooling flock with trails. Verified under `data/display_tests/boids.jpg`.
+* [`synthwave`](../src/deskdot/apps/synthwave.py): Neon perspective road, segmented sun, and cruiser car. Verified under `data/display_tests/synthwave.jpg`.
+* [`wireframe`](../src/deskdot/apps/wireframe.py): 4D Tesseract hypercube rotating in 3D perspective. Verified under `data/display_tests/wireframe.jpg`.
 
 ### 5.3 Hardware Stress Test & Video Optical Profiler (`scripts/stress_test_display.py`)
 ```powershell
@@ -147,7 +147,7 @@ uv run python scripts/stress_test_display.py
 ## 6. Future Work: Automated Visual CI/CD
 A planned automated test suite will run during CI/CD:
 ```powershell
-uv run dotdeck test-hardware-display
+uv run deskdot test-hardware-display
 ```
 This will activate each app, wait for BLE latching, capture a webcam frame, and verify against structural perceptual embeddings to flag visual defects automatically.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-compile pydantic-core for the DotDeck Android app (Chaquopy, cp313, android_24_arm64_v8a).
+# Cross-compile pydantic-core for the DeskDot Android app (Chaquopy, cp313, android_24_arm64_v8a).
 # See android/README.md and docs/adr/0011. Runs on Windows (Git Bash), Linux or macOS.
 #
 #   PYDANTIC_CORE=2.46.5 NDK=/path/to/ndk/27.x PYTARGET=/path/to/chaquopy-target-3.13 ./build-pydantic-core.sh

@@ -24,8 +24,8 @@
 
 ```powershell
 uv sync --extra mcp            # after pulling
-uv run dotdeck serve --sim     # develop without the panel
-uv run dotdeck serve           # with the panel
+uv run deskdot serve --sim     # develop without the panel
+uv run deskdot serve           # with the panel
 cd web; npm run dev            # studio hot reload at http://127.0.0.1:5173 (engine must be running)
 uv run pytest -q               # tests
 uv run ruff check src tests; uv run ruff format src tests
@@ -35,28 +35,28 @@ cd web; npm run build          # studio production build served by the engine at
 ## Hardware tools
 
 ```powershell
-uv run dotdeck scan            # list IDM-* panels and RSSI
-uv run dotdeck doctor          # connect, draw test pattern, print link stats
+uv run deskdot scan            # list IDM-* panels and RSSI
+uv run deskdot doctor          # connect, draw test pattern, print link stats
 ```
 
 Close the vendor phone app first — the panel accepts one connection.
 
 ## Designing screens
 
-- `uv run dotdeck preview <app> --settings '{...}' --t 1.5 --scale 12 --out x.png` — render without hardware.
+- `uv run deskdot preview <app> --settings '{...}' --t 1.5 --scale 12 --out x.png` — render without hardware.
 - The studio preview is LED-accurate (bloom, off-LEDs); design there, confirm on the panel at 40 % brightness.
 - `docs/assets/apps.png` is the gallery of every app; regenerate it when you change visuals.
 
 ## AI tooling
 
 - **CLAUDE.md** is the rulebook for AI assistants working on this repo.
-- **MCP**: `.mcp.json` registers the `dotdeck` server for Claude Code in this folder (engine must be running).
+- **MCP**: `.mcp.json` registers the `deskdot` server for Claude Code in this folder (engine must be running).
   See [MCP.md](MCP.md).
 - **Claude Code hooks**: `integrations/claude-code/hooks.json` drives the Claude mascot from your sessions.
 
 ## Configuration
 
-`dotdeck.toml` (copy `dotdeck.example.toml`) or `DOTDECK_*` env vars: `host`, `port`, `device` (`ble`/`sim`),
+`deskdot.toml` (copy `deskdot.example.toml`) or `DESKDOT_*` env vars: `host`, `port`, `device` (`ble`/`sim`),
 `address`, `max_fps`, `data_dir`, `plugins_dir`, `log_level`. CLI flags override both.
 
 ## Running at login (Windows)
@@ -64,7 +64,7 @@ Close the vendor phone app first — the panel accepts one connection.
 Create a shortcut in `shell:startup` to:
 
 ```
-powershell -WindowStyle Hidden -Command "cd C:\path\to\idotmatrix; uv run dotdeck serve"
+powershell -WindowStyle Hidden -Command "cd C:\path\to\idotmatrix; uv run deskdot serve"
 ```
 
 (or register a Task Scheduler task "At log on" with the same command).

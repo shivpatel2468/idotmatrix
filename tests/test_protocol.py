@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from dotdeck.device import protocol as P
+from deskdot.device import protocol as P
 
 
 @pytest.mark.parametrize(

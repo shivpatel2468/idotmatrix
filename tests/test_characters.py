@@ -9,8 +9,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-from dotdeck.gfx import Frame
-from dotdeck.gfx.characters import (
+from deskdot.gfx import Frame
+from deskdot.gfx.characters import (
     ACCESSORIES,
     ANIMS,
     CHARACTERS,
@@ -173,14 +173,14 @@ class _Ctx:
 
 
 def _app(value: Any = None, **settings: Any):  # type: ignore[no-untyped-def]
-    from dotdeck.apps.pets import Pet, PetSettings
+    from deskdot.apps.pets import Pet, PetSettings
 
     return Pet(_Ctx(value), PetSettings(**settings))  # type: ignore[arg-type]
 
 
 def test_pet_app_registers() -> None:
-    from dotdeck.apps.pets import Pet
-    from dotdeck.engine import REGISTRY
+    from deskdot.apps.pets import Pet
+    from deskdot.engine import REGISTRY
 
     assert REGISTRY["pet"] is Pet
     assert Pet.uses == ("audio",)
@@ -202,7 +202,7 @@ def test_pet_scenes_and_alive(scene: str) -> None:
 
 
 def test_pet_every_choice_renders() -> None:
-    from dotdeck.apps.pets import PetSettings
+    from deskdot.apps.pets import PetSettings
 
     for name, field in PetSettings.model_fields.items():
         extra = field.json_schema_extra
@@ -249,8 +249,8 @@ def test_pet_custom_colours() -> None:
 
 
 def test_step_anim_time_never_skips_a_pose() -> None:
-    from dotdeck.gfx.characters import step_anim_time
-    from dotdeck.gfx.characters.build import RIGS
+    from deskdot.gfx.characters import step_anim_time
+    from deskdot.gfx.characters.build import RIGS
 
     an = RIGS["clawd"].anims["walk"]
     starts = [fr[0] for fr in an._norm]

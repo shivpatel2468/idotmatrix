@@ -18,14 +18,14 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from dotdeck.apps import avatar as avatar_app
-from dotdeck.apps import chess as chess_app
-from dotdeck.apps import gamedeals as deals_app
-from dotdeck.apps import photoframe as photo_app
-from dotdeck.apps import pokedex as dex_app
-from dotdeck.gfx import Frame
-from dotdeck.gfx.image import GIF_BUDGET, encode_gif_budget
-from dotdeck.providers import avatars, chess, gamedeals, photos, pokedex
+from deskdot.apps import avatar as avatar_app
+from deskdot.apps import chess as chess_app
+from deskdot.apps import gamedeals as deals_app
+from deskdot.apps import photoframe as photo_app
+from deskdot.apps import pokedex as dex_app
+from deskdot.gfx import Frame
+from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
+from deskdot.providers import avatars, chess, gamedeals, photos, pokedex
 
 FIX = Path(__file__).parent / "fixtures" / "visuals"
 APPS = {
@@ -595,7 +595,7 @@ def _loaded(app_id: str) -> dict[str, Any]:
         mc = avatars.decode_minecraft(raw("mc_notch.png"))
         ic = avatars.decode_identicon(raw("identicon_torvalds.png"))
         db = avatars.decode_dicebear(raw("dicebear_ada.png"))
-        p.value = {("minecraft", "Notch"): mc, ("github", "torvalds"): ic, ("dicebear", "dotdeck"): db}
+        p.value = {("minecraft", "Notch"): mc, ("github", "torvalds"): ic, ("dicebear", "deskdot"): db}
         return {"avatars": p}
     if app_id == "chess":
         p = chess.ChessProvider(FakeHub(lambda r: httpx.Response(500)))  # type: ignore[arg-type]
@@ -619,7 +619,7 @@ def test_every_variant_renders_fast(app_id: str, settings: dict[str, Any], loade
     if app_id == "pokedex" and loaded:
         settings = {"mode": "specific", "pokemon": "pikachu", **settings}
     if app_id == "avatar" and loaded:
-        settings = {"names": "Notch, gh:torvalds, db:dotdeck", **settings}
+        settings = {"names": "Notch, gh:torvalds, db:deskdot", **settings}
     if loaded:
         providers = _loaded(app_id)
     else:

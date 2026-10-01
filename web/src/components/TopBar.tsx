@@ -9,7 +9,7 @@ import { SafetySwitch } from "./SafetySwitch";
 function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
-    <div className="flex shrink-0 justify-center" title="idotmatrix · DotDeck studio">
+    <div className="flex shrink-0 justify-center" title="idotmatrix · DeskDot studio">
       <NeonMark pitch={phone ? 2.6 : 3.8} />
     </div>
   );
@@ -26,7 +26,7 @@ function StatusPill() {
   let retry = false;
   if (link !== "open") {
     label = link === "connecting" ? "Starting up…" : "Studio offline";
-    detail = link === "closed" ? "The DotDeck engine isn't running — start it with `uv run dotdeck serve`" : "";
+    detail = link === "closed" ? "The DeskDot engine isn't running — start it with `uv run deskdot serve`" : "";
   } else if (dev) {
     if (!dev.link_enabled) { tone = undefined; label = "Panel link off"; detail = "Bluetooth link is switched off — open Device settings to connect"; }
     else if (released) { tone = "ok"; label = "Panel on its own"; detail = "The panel runs by itself; show any app to take it back"; }

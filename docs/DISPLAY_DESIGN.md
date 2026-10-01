@@ -143,7 +143,7 @@ Use these instead of hand-placing text; they encode every rule above.
 | `label(f, y, text, color, t=None, font="tiny", x=1, w=30)` | Centred text that always fits the box: `small` → `tiny` → marquee (with `t`) or ellipsis |
 | `hero(f, y, text, color, t=None)` | The primary value in the biggest font that fits: `big` (digits) → `small` → `tiny` |
 | `header(f, text, color, right="", right_color=MUTE, rule=None)` | Tiny title row at y 1, status on the right, optional divider at y 7 |
-| `icon_value(f, icon, value, color, caption="")` | "Icon + one number": 2× DotDeck icon on top, hero value, caption — the most glanceable screen |
+| `icon_value(f, icon, value, color, caption="")` | "Icon + one number": 2× DeskDot icon on top, hero value, caption — the most glanceable screen |
 | `loading` / `offline` / `setup` / `empty` | The four state screens (§6) |
 | `ring(f, progress, color, track, head, gap=(y0, y1))` | Perimeter progress; `gap` keeps the side columns dark beside full-width hero text |
 | `compact_number`, `bytes_rate` | Number formatting that fits the grid (`84.2K`, `3.1M`) |
@@ -152,7 +152,7 @@ Use these instead of hand-placing text; they encode every rule above.
 
 ## 10. Checklist before shipping a screen
 
-- [ ] Rendered with `dotdeck preview` at several `t`, and every `Choice` option (the tests do this too).
+- [ ] Rendered with `deskdot preview` at several `t`, and every `Choice` option (the tests do this too).
 - [ ] State screens come from `_kit` (loading / offline / setup / empty); labels fit via `label()`.
 - [ ] 1 px text margins; nothing clipped unintentionally; digits don't shift.
 - [ ] One hero element; ≤ 3 hues + white; readable at 2 m on the real panel at 40 % brightness.

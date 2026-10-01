@@ -1,6 +1,6 @@
 # 🪰 The fruit-fly brain
 
-DotDeck has a fruit-fly brain that watches the panel and plays. It's a **model of the fly's visual circuit**:
+DeskDot has a fruit-fly brain that watches the panel and plays. It's a **model of the fly's visual circuit**:
 the pathway that the **FlyWire** whole-brain connectome maps neuron by neuron.
 
 > In October 2024 the FlyWire consortium, a Princeton-led team whose AI reconstruction and 3D viewer were built

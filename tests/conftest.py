@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 
-import dotdeck.apps  # noqa: F401 — registers built-in apps
-from dotdeck.config import Config, Store
-from dotdeck.device import SimDevice
-from dotdeck.engine import Engine
-from dotdeck.providers import build_hub
+import deskdot.apps  # noqa: F401 — registers built-in apps
+from deskdot.config import Config, Store
+from deskdot.device import SimDevice
+from deskdot.engine import Engine
+from deskdot.providers import build_hub
 
 
 @pytest.fixture

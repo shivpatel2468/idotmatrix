@@ -7,9 +7,9 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps.games_action import Asteroids, Infinity, Invaders, Maze, invader_shields
-from dotdeck.apps.games_core import GameApp
-from dotdeck.gfx import Frame
+from deskdot.apps.games_action import Asteroids, Infinity, Invaders, Maze, invader_shields
+from deskdot.apps.games_core import GameApp
+from deskdot.gfx import Frame
 
 GAMES: dict[str, type[GameApp]] = {
     "invaders": Invaders,

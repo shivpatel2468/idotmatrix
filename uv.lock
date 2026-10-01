@@ -307,7 +307,7 @@ wheels = [
 ]
 
 [[package]]
-name = "dotdeck"
+name = "deskdot"
 version = "3.2.0"
 source = { editable = "." }
 dependencies = [

@@ -1,6 +1,6 @@
-# DotDeck Inspiration, Technical Specifications & Reference Guide
+# DeskDot Inspiration, Technical Specifications & Reference Guide
 
-This document is the **central knowledge repository** of reference links, technical specifications, and architectural insights for DotDeck and the **iDotMatrix 32×32 RGB LED panel**.
+This document is the **central knowledge repository** of reference links, technical specifications, and architectural insights for DeskDot and the **iDotMatrix 32×32 RGB LED panel**.
 
 Every agent developing new features, apps, tools, or graphical effects must consult this document to maintain consistency with the hardware physics, design standards, and proven community solutions.
 
@@ -17,7 +17,7 @@ Every agent developing new features, apps, tools, or graphical effects must cons
   - **4-Layer Modular Compositor**: Character parts are split into `body`, `heads`, `eyes`, and `top` (hats/antennas), producing **10,752 unique combinations**.
   - **Deterministic Base36 ID System**: 4-character ID (e.g. `a3f9`) uniquely and reversibly generates a distinct character.
   - **16-Tick Super-Loop Animation**: 8-frame bounce schedule at ~72–125 ms per frame with sub-pixel and integer layer Y-offsets, plus synchronized blink schedules.
-- **Application to DotDeck**: Used as the foundation for the `pixabots` desktop companion app, asset layers for Canvas, and few-shot exemplars for the Gemini AI Studio.
+- **Application to DeskDot**: Used as the foundation for the `pixabots` desktop companion app, asset layers for Canvas, and few-shot exemplars for the Gemini AI Studio.
 
 ### 1.2 Kully's Pixel Paint
 - **Repository**: [`Kully/pixel-paint`](https://github.com/Kully/pixel-paint)
@@ -28,7 +28,7 @@ Every agent developing new features, apps, tools, or graphical effects must cons
   - **Ergonomic Keyboard Shortcuts**: `P` (Pencil), `B` (Bucket / Flood fill), `E` (Eraser), `V` (Eyedropper / Color picker), `G` (Grid toggle), `Z` (Undo), `X` (Redo), `C` (Color swap), `S` (Selection).
   - **Selection & Transform Tool**: Rectangular selection, delete area, move/nudge, and copy area (Alt+drag).
   - **Retro Palette Sets**: NES, PICO-8, GameBoy, and Commodore 64 color ramps.
-- **Application to DotDeck**: Directly informs the keyboard ergonomics, undo/redo history stack, and selection/nudge features of the DotDeck web Canvas painter.
+- **Application to DeskDot**: Directly informs the keyboard ergonomics, undo/redo history stack, and selection/nudge features of the DeskDot web Canvas painter.
 
 ### 1.3 Adafruit 32×32 Square Pixel Art Display
 - **Guide**: [Adafruit Learning System: 32x32 Square Pixel Art Animation Display](https://learn.adafruit.com/32x32-square-pixel-display/overview)
@@ -38,17 +38,17 @@ Every agent developing new features, apps, tools, or graphical effects must cons
   - **3D Printed Baffle Grid (`grid.stl`)**: A physical honeycomb spacer between the LED PCB and the acrylic that encloses each 5050/3528 LED in its own chamber, preventing light bleed into adjacent pixels.
   - **3D CAD Enclosure Files**: Open-source STL, STEP, and Fusion 360 models for 32×32 matrix desk stands and frames.
   - **Vertical Sprite Sheet Bitmaps**: Vertical 32×(32×N) sprite sheets (e.g. `parrot-vertical.bmp`, `nyancat-vertical.bmp`).
-- **Application to DotDeck**: Provides classic 32×32 meme animations (Party Parrot, Nyan Cat), physical enclosure references, and the gold-standard optical diffusion technique.
+- **Application to DeskDot**: Provides classic 32×32 meme animations (Party Parrot, Nyan Cat), physical enclosure references, and the gold-standard optical diffusion technique.
 
 ### 1.4 Henner Zeller's HUB75 LED Driver
 - **Repository**: [`hzeller/rpi-rgb-led-matrix`](https://github.com/hzeller/rpi-rgb-led-matrix)
 - **Key Concepts & Value**:
   - **1-Bit Bitmap BDF Font Library**: Handcrafted low-resolution bitmap fonts in `fonts/` (`4x6.bdf`, `5x7.bdf`, `6x10.bdf`, `tom-thumb`, etc.) designed for legibility at low pixel densities.
   - **Perceptual Color Science**: CIE 1931 luminance curve ($L^* \to Y$) and non-linear gamma curves for human eye perception on direct LED emitters.
-  - **Architectural Reference**: Hardware driver model for raw HUB75 panels if DotDeck is ever ported to run directly on Raspberry Pi GPIO.
+  - **Architectural Reference**: Hardware driver model for raw HUB75 panels if DeskDot is ever ported to run directly on Raspberry Pi GPIO.
 
 ### 1.5 Note on Non-Display Repositories (Disambiguation)
-- **`BMsemi/Neuromorphic_X1_32x32`**: A 32×32 analog 1T1R ReRAM in-memory compute (CIM) silicon macro for AI chip fabrication on silicon wafers. While non-display hardware, its concept of a 32×32 array of living synapses directly inspired DotDeck's `brain` app: a 1,024-neuron biological spiking neural network simulation running on the 32×32 LED grid.
+- **`BMsemi/Neuromorphic_X1_32x32`**: A 32×32 analog 1T1R ReRAM in-memory compute (CIM) silicon macro for AI chip fabrication on silicon wafers. While non-display hardware, its concept of a 32×32 array of living synapses directly inspired DeskDot's `brain` app: a 1,024-neuron biological spiking neural network simulation running on the 32×32 LED grid.
 
 ### 1.6 Tidbyt Community & Pixlet Architecture
 - **Repositories**: [`tidbyt/community`](https://github.com/tidbyt/community) and [`tidbyt/pixlet`](https://github.com/tidbyt/pixlet)
@@ -56,32 +56,32 @@ Every agent developing new features, apps, tools, or graphical effects must cons
   - **Starlark Declarative Framework**: Deterministic app rendering without state accumulation between frames.
   - **Information Density & Micro-Layouts**: Maximizing legibility on 64×32 and 32×32 displays using minimalist 5px typography, high-contrast icons, and tight spacing.
   - **Community Integrations**: Public transit trackers, weather radar, sports ticker feeds, retro stock charts, and desk productivity timers.
-- **Application to DotDeck**: Informing compact micro-HUD layouts, deterministic looping paradigms, and autonomous desktop utility apps.
+- **Application to DeskDot**: Informing compact micro-HUD layouts, deterministic looping paradigms, and autonomous desktop utility apps.
 
 ### 1.7 SmartMatrix & Aurora Procedural Visuals
 - **Repository**: [`pixelmatix/aurora`](https://github.com/pixelmatix/aurora) & [`pixelmatix/SmartMatrix`](https://github.com/pixelmatix/SmartMatrix)
 - **Key Concepts & Value**:
   - **Gold-Standard 32×32 Generative Art**: Smooth trigonometric plasma waves, fluid dynamics, flow fields, and rotating 3D vector polyhedra.
   - **Palette Modulation**: Sine-based and color-ramp interpolation that creates rich, organic gradients without discrete banding.
-- **Application to DotDeck**: Directly inspired the `wireframe` 3D vector engine, `synthwave` 3D horizon, and `ambient` light shows.
+- **Application to DeskDot**: Directly inspired the `wireframe` 3D vector engine, `synthwave` 3D horizon, and `ambient` light shows.
 
 ### 1.8 Granular Physics & Cellular Automata (Powder Toy / Sand)
 - **Key Concepts & Value**:
   - **Multi-Element Interaction Rules**: Sand (density settling and 45° angle of repose), Water (horizontal leveling and fluid dispersion), Fire/Smoke (buoyant vertical rise and combustible ignition), Acid (caustic erosion and bubbling dissipation), and Lava (viscous flow and stone quenching).
   - **Sub-Millisecond 32×32 CA Simulation**: Deterministic limit cycles precomputed and cached into native hardware GIFs.
-- **Application to DotDeck**: Powers the `sand` app with five distinct interactive scenarios (Hourglass, Volcano, Oasis, Acid Lab, Elemental Crucible).
+- **Application to DeskDot**: Powers the `sand` app with five distinct interactive scenarios (Hourglass, Volcano, Oasis, Acid Lab, Elemental Crucible).
 
 ### 1.9 3D DDA Raycasting on LED Matrices
 - **Key Concepts & Value**:
   - **1:1 Column Ray Mapping**: Exactly 32 vertical ray columns cast across a 60° field of view directly map to the 32 physical pixel columns of the matrix.
   - **Distance Attenuation & Directional Shading**: Classic Wolfenstein 3D lighting (darkening distant surfaces and shading X vs Y wall normals) creates striking stereoscopic depth on an LED panel.
-- **Application to DotDeck**: Built into the `raycaster` app with autonomous AI waypoint exploration, torch flicker, and minimap radar HUD.
+- **Application to DeskDot**: Built into the `raycaster` app with autonomous AI waypoint exploration, torch flicker, and minimap radar HUD.
 
 ### 1.10 Craig Reynolds Boids Flocking & Bioluminescent Particle Swarms
 - **Key Concepts & Value**:
   - **Emergent Biological Movement**: Separation, Alignment, and Cohesion forces calculated across 20–30 agents with toroidal wrapping.
   - **Predator Evasion**: Apex predator pursuit inducing dramatic flock scattering and evasive ripples.
-- **Application to DotDeck**: Built into the `boids` app with bioluminescent trails for deep sea schools, starling murmurations, and summer fireflies.
+- **Application to DeskDot**: Built into the `boids` app with bioluminescent trails for deep sea schools, starling murmurations, and summer fireflies.
 
 ---
 
@@ -106,16 +106,16 @@ Every agent developing new features, apps, tools, or graphical effects must cons
 
 ---
 
-## 3. DotDeck Software Architecture & Standards
+## 3. DeskDot Software Architecture & Standards
 
-### 3.1 App Engine (`src/dotdeck/engine/`)
+### 3.1 App Engine (`src/deskdot/engine/`)
 - **`render(f: Frame, t: float)`**: Pure, synchronous, and lightning-fast ($< 2$ ms). Never do I/O, network requests, or sleeps inside `render()`.
 - **`kind()`**:
   - `"clip"`: Deterministic looping animations. Pre-baked to an optimized GIF via `encode_gif_budget()`, uploaded once over BLE, and played natively by the panel's internal microcontroller. **Link stays 100% idle.**
   - `"stream"`: Live data (clocks, audio visualizers, live scores). Frames streamed as compressed PNGs at throttled intervals ($\le 8$ FPS).
   - `"native"`: Firmware-level built-in clock/scoreboard modes.
 
-### 3.2 Graphics Pipeline (`src/dotdeck/gfx/`)
+### 3.2 Graphics Pipeline (`src/deskdot/gfx/`)
 - **Typography**: 1-bit bitmap fonts only (`tiny` 5 px, `small` 7 px, `big` 10 px digits). Never use antialiased or TrueType text on a 32×32 matrix.
 - **Color Calibration**: UI designs and pixel art use raw vibrant LED values. Photos/album art pass through `color.calibrate()` (gamma 1.5, white balance, black crush) to prevent washed-out diode glare.
 

@@ -14,12 +14,12 @@ from typing import Any
 
 import pytest
 
-from dotdeck.apps import scores as scores_app
-from dotdeck.apps import sports_draw as sd
-from dotdeck.apps.scores import Scores, ScoresSettings, parse_leagues
-from dotdeck.gfx import Frame
-from dotdeck.providers import sports
-from dotdeck.providers.sports import (
+from deskdot.apps import scores as scores_app
+from deskdot.apps import sports_draw as sd
+from deskdot.apps.scores import Scores, ScoresSettings, parse_leagues
+from deskdot.gfx import Frame
+from deskdot.providers import sports
+from deskdot.providers.sports import (
     LEAGUE_SPORT,
     LEAGUES,
     SportsProvider,

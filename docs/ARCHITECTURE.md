@@ -4,10 +4,10 @@
 flowchart LR
   subgraph Clients
     UI[Studio<br/>React · Vite]
-    MCP[MCP server<br/>dotdeck-mcp]
+    MCP[MCP server<br/>deskdot-mcp]
     SCR[Scripts · CI · Claude Code hooks]
   end
-  subgraph Engine["Engine process (uv run dotdeck serve)"]
+  subgraph Engine["Engine process (uv run deskdot serve)"]
     API[FastAPI<br/>REST + /ws]
     ENG[Engine runtime<br/>scheduler · playlist · overlay · transitions]
     APPS[Apps<br/>render(Frame, t)]
@@ -40,13 +40,13 @@ flowchart LR
 
 | Layer | Module | Contract |
 | --- | --- | --- |
-| **gfx** | `dotdeck/gfx` | Pure. `Frame` = numpy `(32, 32, 3) uint8`; every primitive clips. Bitmap fonts, palette, photo calibration, GIF encode with one shared palette. |
-| **device** | `dotdeck/device` | `protocol.py` = pure byte encoders (pinned by tests). `base.Device` = the only writer to the link: work slots, reconnect supervisor, replay after reconnect. Backends implement `_connect/_disconnect/_write`. |
-| **providers** | `dotdeck/providers` | Background fetch loops, **ref-counted**: they poll only while an app (or the studio) holds them, linger 30 s, then stop. `value` is last-good; `error` is the last failure. |
-| **engine** | `dotdeck/engine` | `App` SDK, `Engine` runtime, overlays/transitions. Owns *what* is on screen. |
-| **apps** | `dotdeck/apps`, `plugins/` | `render(f, t)` pure and fast. Declare `Settings`, `uses`, `kind()`. |
-| **server** | `dotdeck/server.py` | HTTP + WebSocket. Stateless over the engine. Serves `web/dist`. |
-| **mcp** | `dotdeck/mcp_server.py` | Thin HTTP client exposing tools to agents. Never touches BLE. |
+| **gfx** | `deskdot/gfx` | Pure. `Frame` = numpy `(32, 32, 3) uint8`; every primitive clips. Bitmap fonts, palette, photo calibration, GIF encode with one shared palette. |
+| **device** | `deskdot/device` | `protocol.py` = pure byte encoders (pinned by tests). `base.Device` = the only writer to the link: work slots, reconnect supervisor, replay after reconnect. Backends implement `_connect/_disconnect/_write`. |
+| **providers** | `deskdot/providers` | Background fetch loops, **ref-counted**: they poll only while an app (or the studio) holds them, linger 30 s, then stop. `value` is last-good; `error` is the last failure. |
+| **engine** | `deskdot/engine` | `App` SDK, `Engine` runtime, overlays/transitions. Owns *what* is on screen. |
+| **apps** | `deskdot/apps`, `plugins/` | `render(f, t)` pure and fast. Declare `Settings`, `uses`, `kind()`. |
+| **server** | `deskdot/server.py` | HTTP + WebSocket. Stateless over the engine. Serves `web/dist`. |
+| **mcp** | `deskdot/mcp_server.py` | Thin HTTP client exposing tools to agents. Never touches BLE. |
 | **studio** | `web/` | Renders state; frames bypass React and paint straight to a canvas. |
 
 ## The tick
