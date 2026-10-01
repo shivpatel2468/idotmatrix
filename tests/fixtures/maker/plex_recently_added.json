@@ -1,0 +1,11 @@
+{
+  "MediaContainer": {
+    "size": 3, "allowSync": false, "identifier": "com.plexapp.plugins.library", "mediaTagPrefix": "/system/bundle/media/flags/", "mediaTagVersion": 1718826209,
+    "mixedParents": true,
+    "Metadata": [
+      {"allowSync": true, "librarySectionID": 2, "librarySectionTitle": "TV Shows", "ratingKey": "48213", "key": "/library/metadata/48213", "parentRatingKey": "48190", "grandparentRatingKey": "48171", "type": "episode", "title": "The Long Night", "grandparentTitle": "Severance", "parentTitle": "Season 2", "contentRating": "TV-MA", "summary": "", "index": 5, "parentIndex": 2, "year": 2025, "thumb": "/library/metadata/48213/thumb/1739000000", "art": "/library/metadata/48171/art/1739000000", "parentThumb": "/library/metadata/48190/thumb/1739000000", "grandparentThumb": "/library/metadata/48171/thumb/1739000000", "grandparentArt": "/library/metadata/48171/art/1739000000", "duration": 3120000, "addedAt": 1739012345, "updatedAt": 1739012399},
+      {"allowSync": true, "librarySectionID": 1, "librarySectionTitle": "Movies", "ratingKey": "48102", "key": "/library/metadata/48102", "type": "movie", "title": "Dune: Part Two", "contentRating": "PG-13", "summary": "", "year": 2024, "thumb": "/library/metadata/48102/thumb/1738000000", "art": "/library/metadata/48102/art/1738000000", "duration": 9960000, "addedAt": 1738900000, "updatedAt": 1738900100},
+      {"allowSync": true, "librarySectionID": 3, "librarySectionTitle": "Music", "ratingKey": "47001", "key": "/library/metadata/47001/children", "parentRatingKey": "46990", "type": "album", "title": "Blue Lines", "parentTitle": "Massive Attack", "year": 1991, "thumb": "/library/metadata/47001/thumb/1737000000", "addedAt": 1737000000, "updatedAt": 1737000000}
+    ]
+  }
+}

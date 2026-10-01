@@ -1,0 +1,137 @@
+import { RefreshCw, Search, Settings2, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { api } from "../lib/api";
+import { openSettings, useStore } from "../lib/store";
+import { SafetySwitch } from "./SafetySwitch";
+
+function Wordmark() {
+  // the logo is itself a 3x3 LED glyph
+  const on = [1, 1, 0, 1, 0, 1, 0, 1, 1];
+  return (
+    <div className="flex shrink-0 items-center gap-3">
+      <div className="grid grid-cols-3 gap-[2px] rounded-[5px] bg-chassis-0 p-[4px] shadow-[inset_0_1px_3px_#000]" aria-hidden>
+        {on.map((v, i) => (
+          <span key={i} className="h-[5px] w-[5px] rounded-[1.5px]"
+            style={{ background: v ? "var(--color-ember)" : "#26262d", boxShadow: v ? "0 0 6px var(--color-ember)" : "none" }} />
+        ))}
+      </div>
+      <div className="hidden leading-none sm:block">
+        <div className="font-display text-[19px] font-[680] tracking-[-0.02em]">DotDeck</div>
+        <div className="engrave mt-1 !text-[8px]">Studio · 32×32</div>
+      </div>
+    </div>
+  );
+}
+
+/** One pill that answers "is my panel OK?" — click for Device settings. */
+function StatusPill() {
+  const dev = useStore((s) => s.state?.device);
+  const link = useStore((s) => s.link);
+  const released = useStore((s) => s.state?.engine.released ?? false);
+  let tone: "ok" | "warn" | "bad" | undefined = "warn";
+  let label = "Connecting…";
+  let detail = "";
+  let retry = false;
+  if (link !== "open") {
+    label = link === "connecting" ? "Starting up…" : "Studio offline";
+    detail = link === "closed" ? "The DotDeck engine isn't running — start it with `uv run dotdeck serve`" : "";
+  } else if (dev) {
+    if (!dev.link_enabled) { tone = undefined; label = "Panel link off"; detail = "Bluetooth link is switched off — open Device settings to connect"; }
+    else if (released) { tone = "ok"; label = "Panel on its own"; detail = "The panel runs by itself; show any app to take it back"; }
+    else if (dev.status === "connected") { tone = "ok"; label = dev.name ?? "Panel connected"; detail = `Connected · ${dev.link_fps.toFixed(1)} frames/s · ${dev.address ?? ""}`; }
+    else if (dev.status === "error") { tone = "bad"; label = "Can't reach panel"; detail = dev.last_error ?? ""; retry = true; }
+    else { label = dev.status === "scanning" ? "Looking for panel…" : dev.status === "connecting" ? "Pairing…" : "Not connected"; retry = dev.status === "disconnected"; }
+  }
+  return (
+    <div className="flex min-w-0 items-center">
+      <button onClick={() => openSettings("device")} title={detail || "Device settings"}
+        className="flex min-w-0 items-center gap-2.5 rounded-full border border-line bg-chassis-1 py-1.5 pl-3 pr-3 transition hover:border-line-2">
+        <span className="led shrink-0" data-on={tone} />
+        <span className="max-w-[40vw] truncate text-[12.5px] font-medium sm:max-w-[180px]">{label}</span>
+        {dev?.kind === "sim" && <span className="engrave rounded bg-chassis-3 px-1.5 py-0.5 !text-[8px] !text-info" title="Simulated panel">Sim</span>}
+      </button>
+      {retry && (
+        <button className="key key-ghost key-icon ml-1" title="Try to reconnect" aria-label="Reconnect" onClick={() => api.reconnect()}>
+          <RefreshCw size={13} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function useBrightness() {
+  const level = useStore((s) => s.state?.settings.brightness ?? 60);
+  const [v, setV] = useState(level);
+  const t = useRef<number>(0);
+  const dragging = useRef(false);
+  useEffect(() => {
+    if (!dragging.current) setV(level);
+  }, [level]);
+  const input = (cls: string) => (
+    <input type="range" min={5} max={100} value={v} aria-label="Panel brightness" className={`fader ${cls}`}
+      style={{ ["--fill" as string]: `${((v - 5) / 95) * 100}%` }}
+      onPointerDown={() => (dragging.current = true)}
+      onPointerUp={() => (dragging.current = false)}
+      onChange={(e) => {
+        const n = +e.target.value;
+        setV(n);
+        clearTimeout(t.current);
+        t.current = window.setTimeout(() => api.settings({ brightness: n }), 90);
+      }} />
+  );
+  return { v, input };
+}
+
+/** Inline fader on wide screens; a sun key with a pop-over fader on phones. */
+function Brightness() {
+  const { v, input } = useBrightness();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <label className="hidden items-center gap-2.5 md:flex" title="Panel brightness">
+        <Sun size={14} className="text-ink-3" />
+        {input("w-24 lg:w-28")}
+        <span className="w-7 text-right font-mono text-[11px] tabular-nums text-ink-2">{v}</span>
+      </label>
+      <div className="relative md:hidden">
+        <button className="key key-icon" aria-expanded={open} aria-label={`Brightness ${v}%`} title="Brightness" onClick={() => setOpen((o) => !o)}>
+          <Sun size={15} />
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <div className="surface absolute right-0 top-11 z-50 flex w-[min(300px,80vw)] items-center gap-3 p-4 animate-rise">
+              <Sun size={15} className="shrink-0 text-ink-3" />
+              {input("flex-1")}
+              <span className="w-8 text-right font-mono text-[12px] tabular-nums text-ink-1">{v}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+export function TopBar() {
+  const set = useStore((s) => s.set);
+  return (
+    <header className="flex h-16 shrink-0 items-center gap-2 px-3 sm:gap-3 md:px-5">
+      <Wordmark />
+      <div className="mx-1 hidden h-6 w-px bg-line md:block" />
+      <StatusPill />
+      <div className="flex-1" />
+      <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">
+        <Search size={13} /> <span className="normal-case tracking-normal">Find anything</span>
+        <kbd className="ml-1 rounded bg-chassis-0 px-1.5 py-0.5 text-[9px] text-ink-3">Ctrl K</kbd>
+      </button>
+      <button onClick={() => set({ palette: true })} className="key key-icon lg:hidden" title="Find an app or action" aria-label="Search">
+        <Search size={15} />
+      </button>
+      <Brightness />
+      <button className="key key-icon" title="Settings" aria-label="Settings" onClick={() => openSettings("display")}>
+        <Settings2 size={15} />
+      </button>
+      <SafetySwitch />
+    </header>
+  );
+}

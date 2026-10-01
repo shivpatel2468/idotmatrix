@@ -1,0 +1,17 @@
+{
+  "_comment": "Merge the `hooks` block into .claude/settings.json (project) or ~/.claude/settings.json (global). Requires the DotDeck engine running on :8765. Commands run in Claude Code's bash (Git Bash on Windows); curl ships with Windows 10+.",
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "curl -s -m 2 -X POST http://127.0.0.1:8765/api/agent/thinking > /dev/null 2>&1 || true" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Edit|Write|MultiEdit|Bash", "hooks": [{ "type": "command", "command": "curl -s -m 2 -X POST http://127.0.0.1:8765/api/agent/working > /dev/null 2>&1 || true" }] }
+    ],
+    "Notification": [
+      { "hooks": [{ "type": "command", "command": "curl -s -m 2 -X POST http://127.0.0.1:8765/api/agent/waiting > /dev/null 2>&1 || true" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "curl -s -m 2 -X POST \"http://127.0.0.1:8765/api/agent/done?hold=8\" > /dev/null 2>&1 || true" }] }
+    ]
+  }
+}

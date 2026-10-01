@@ -1,0 +1,53 @@
+{
+ "response_code": 0,
+ "results": [
+  {
+   "type": "multiple",
+   "difficulty": "hard",
+   "category": "General%20Knowledge",
+   "question": "%22Nephelococcygia%22%20is%20the%20practice%20of%20doing%20what%3F%20",
+   "correct_answer": "Finding%20shapes%20in%20clouds",
+   "incorrect_answers": [
+    "Sleeping%20with%20your%20eyes%20open",
+    "Breaking%20glass%20with%20your%20voice",
+    "Swimming%20in%20freezing%20water"
+   ]
+  },
+  {
+   "type": "multiple",
+   "difficulty": "medium",
+   "category": "Entertainment%3A%20Japanese%20Anime%20%26%20Manga",
+   "question": "The%20main%20antagonist%20of%20the%20second%20part%20of%20JoJo%27s%20Bizarre%20Adventure%20is%20which%20of%20the%20following%3F",
+   "correct_answer": "Kars",
+   "incorrect_answers": [
+    "Erina%20Joestar",
+    "Santana",
+    "Wired%20Beck"
+   ]
+  },
+  {
+   "type": "multiple",
+   "difficulty": "hard",
+   "category": "Vehicles",
+   "question": "Which%20car%20is%20the%20first%20mass-produced%20hybrid%20vehicle%3F",
+   "correct_answer": "Toyota%20Prius",
+   "incorrect_answers": [
+    "Chevrolet%20Volt",
+    "Honda%20Fit",
+    "Peugeot%20308%20R%20HYbrid"
+   ]
+  },
+  {
+   "type": "multiple",
+   "difficulty": "easy",
+   "category": "Entertainment%3A%20Video%20Games",
+   "question": "In%20%22Civilization%205%22%2C%20which%20civilization%20can%20only%20settle%20one%20city%3F",
+   "correct_answer": "Venice",
+   "incorrect_answers": [
+    "India",
+    "Liechtenstein",
+    "Portugal"
+   ]
+  }
+ ]
+}

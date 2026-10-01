@@ -1,0 +1,128 @@
+[
+ {
+  "date": "2026-10-03",
+  "localName": "Tag der Deutschen Einheit",
+  "name": "German Unity Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": true,
+  "counties": null,
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2026-10-31",
+  "localName": "Reformationstag",
+  "name": "Reformation Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": false,
+  "counties": [
+   "DE-BB",
+   "DE-MV",
+   "DE-SN",
+   "DE-ST",
+   "DE-TH",
+   "DE-HB",
+   "DE-HH",
+   "DE-NI",
+   "DE-SH"
+  ],
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2026-11-01",
+  "localName": "Allerheiligen",
+  "name": "All Saints' Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": false,
+  "counties": [
+   "DE-BW",
+   "DE-BY",
+   "DE-NW",
+   "DE-RP",
+   "DE-SL"
+  ],
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2026-11-18",
+  "localName": "Bu\u00df- und Bettag",
+  "name": "Repentance and Prayer Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": false,
+  "counties": [
+   "DE-SN"
+  ],
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2026-12-25",
+  "localName": "Erster Weihnachtstag",
+  "name": "Christmas Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": true,
+  "counties": null,
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2026-12-26",
+  "localName": "Zweiter Weihnachtstag",
+  "name": "St. Stephen's Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": true,
+  "counties": null,
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2027-01-01",
+  "localName": "Neujahr",
+  "name": "New Year's Day",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": true,
+  "counties": null,
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ },
+ {
+  "date": "2027-01-06",
+  "localName": "Heilige Drei K\u00f6nige",
+  "name": "Epiphany",
+  "countryCode": "DE",
+  "fixed": false,
+  "global": false,
+  "counties": [
+   "DE-BW",
+   "DE-BY",
+   "DE-ST"
+  ],
+  "launchYear": null,
+  "types": [
+   "Public"
+  ]
+ }
+]

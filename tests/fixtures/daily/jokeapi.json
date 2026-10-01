@@ -1,0 +1,89 @@
+{
+ "error": false,
+ "amount": 5,
+ "jokes": [
+  {
+   "category": "Programming",
+   "type": "single",
+   "joke": "Knock knock.\nWho's there?\nRecursion.\nRecursion who?\nKnock knock.",
+   "flags": {
+    "nsfw": false,
+    "religious": false,
+    "political": false,
+    "racist": false,
+    "sexist": false,
+    "explicit": false
+   },
+   "id": 179,
+   "safe": true,
+   "lang": "en"
+  },
+  {
+   "category": "Programming",
+   "type": "single",
+   "joke": "There are only 10 kinds of people in this world: those who know binary and those who don't.",
+   "flags": {
+    "nsfw": false,
+    "religious": false,
+    "political": false,
+    "racist": false,
+    "sexist": false,
+    "explicit": false
+   },
+   "id": 35,
+   "safe": true,
+   "lang": "en"
+  },
+  {
+   "category": "Pun",
+   "type": "twopart",
+   "setup": "I just saw my wife trip over and drop a basket full of ironed clothes.",
+   "delivery": "I watched it all unfold.",
+   "flags": {
+    "nsfw": false,
+    "religious": false,
+    "political": false,
+    "racist": false,
+    "sexist": false,
+    "explicit": false
+   },
+   "safe": true,
+   "id": 280,
+   "lang": "en"
+  },
+  {
+   "category": "Programming",
+   "type": "twopart",
+   "setup": "What is the best prefix for global variables?",
+   "delivery": "//",
+   "flags": {
+    "nsfw": false,
+    "religious": false,
+    "political": false,
+    "racist": false,
+    "sexist": false,
+    "explicit": false
+   },
+   "id": 32,
+   "safe": true,
+   "lang": "en"
+  },
+  {
+   "category": "Programming",
+   "type": "twopart",
+   "setup": "Why are Assembly programmers always soaking wet?",
+   "delivery": "They work below C-level.",
+   "flags": {
+    "nsfw": false,
+    "religious": false,
+    "political": false,
+    "racist": false,
+    "sexist": false,
+    "explicit": false
+   },
+   "safe": true,
+   "id": 263,
+   "lang": "en"
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+{
+  "job": {
+    "file": {"name": "benchy_0.2mm_PLA.gcode", "origin": "local", "size": 1468987, "date": 1378847754, "display": "benchy_0.2mm_PLA.gcode", "path": "benchy_0.2mm_PLA.gcode"},
+    "estimatedPrintTime": 8811, "averagePrintTime": 8790.2, "lastPrintTime": 8790.2,
+    "filament": {"tool0": {"length": 810, "volume": 5.36}}, "user": "pi"
+  },
+  "progress": {"completion": 100.0, "filepos": 1468987, "printTime": 8790, "printTimeLeft": 0, "printTimeLeftOrigin": null},
+  "state": "Operational"
+}

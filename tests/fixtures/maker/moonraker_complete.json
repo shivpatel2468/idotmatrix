@@ -1,0 +1,12 @@
+{
+  "result": {
+    "eventtime": 584012.1,
+    "status": {
+      "print_stats": {"filename": "voron_cube_ABS.gcode", "total_duration": 6512.9, "print_duration": 6410.0, "filament_used": 9790.3, "state": "complete", "message": "", "info": {"total_layer": 120, "current_layer": 120}},
+      "display_status": {"progress": 1.0, "message": null},
+      "extruder": {"temperature": 180.3, "target": 0.0, "power": 0.0},
+      "heater_bed": {"temperature": 88.1, "target": 0.0, "power": 0.0},
+      "virtual_sdcard": {"file_path": null, "progress": 0.0, "is_active": false, "file_position": 0, "file_size": 0}
+    }
+  }
+}

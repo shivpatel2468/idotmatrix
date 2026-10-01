@@ -1,0 +1,11 @@
+{
+ "categories": [
+  "dev"
+ ],
+ "created_at": "2020-01-05 13:42:19.324003",
+ "icon_url": "https://api.chucknorris.io/img/avatar/chuck-norris.png",
+ "id": "rhvv9w42qka07narzt47da",
+ "updated_at": "2020-01-05 13:42:19.324003",
+ "url": "https://api.chucknorris.io/jokes/rhvv9w42qka07narzt47da",
+ "value": "Chuck Norris' Internet connection is faster upstream than downstream because even data has more incentive to run from him than to him."
+}

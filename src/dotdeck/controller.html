@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#09090c"><meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>DotDeck controller</title>
+<style>
+/* DotDeck phone controller — one self-contained file (phones on the LAN may have no internet). */
+:root{
+  --c:#00c8ff;--ca10:rgba(0,200,255,.1);--ca20:rgba(0,200,255,.2);--ca35:rgba(0,200,255,.35);--ca55:rgba(0,200,255,.55);
+  --bg:#09090c;--s1:#121217;--s2:#1a1a21;--s3:#23232b;--pad:#202028;--line:#2e2e38;--ink:#f3f2ee;--dim:#a9a8b1;--mute:#76757f;
+  --u:56px;
+  --st:env(safe-area-inset-top,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font:500 15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus{outline:none}
+button:focus-visible{outline:3px solid var(--c);outline-offset:3px}
+svg{display:block}
+
+.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(130% 60% at 50% -12%,var(--ca20),transparent 62%),
+             radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1.4px) 0 0/14px 14px,var(--bg)}
+
+/* ---------- header ---------- */
+.top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who gear" "st st";gap:8px 12px;align-items:center;
+  padding:calc(var(--st) + 10px) calc(var(--sr) + 12px) 6px calc(var(--sl) + 14px);position:relative;z-index:2}
+.land .top{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"who st gear";padding-top:calc(var(--st) + 8px)}
+.who{grid-area:who;display:flex;align-items:center;gap:12px;min-width:0}
+.orb{flex:none;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--c);color:#050507;
+  font:800 20px/1 system-ui,sans-serif;box-shadow:0 0 0 3px var(--ca20),0 0 26px var(--ca55)}
+.names{min-width:0}
+.game{font-weight:750;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seatl{display:flex;gap:8px;align-items:center;font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--c)}
+.lat{color:var(--dim);letter-spacing:.02em;text-transform:none;font-weight:600}
+.lat::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--q,#50ff78);margin-right:5px;vertical-align:1px}
+.conn{color:#ffc800}
+.status{grid-area:st;min-height:30px;display:flex;align-items:center;gap:8px;color:var(--dim);font-size:15px;min-width:0}
+.status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status .pill{padding:5px 12px;border-radius:999px;background:var(--c);color:#050507;font-weight:800;box-shadow:0 0 22px var(--ca55);flex:none}
+.land .status{justify-content:center}
+.gear{grid-area:gear;display:flex;align-items:center;gap:8px;min-height:56px;min-width:56px;padding:0 16px 0 14px;border-radius:18px;
+  border:1px solid var(--line);background:var(--s2);color:var(--ink);font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.gear:active{background:var(--s3)}
+.gear svg{width:22px;height:22px}
+@media (max-width:359px){.gear span{display:none}.gear{padding:0;justify-content:center}}
+
+/* ---------- stage ---------- */
+.stage{flex:1;position:relative;min-height:0}
+.mode{position:absolute;inset:0}
+.split{display:grid;grid-template:"i i" minmax(0,1fr) "l r" auto / 1fr 1fr;align-items:end;
+  padding:0 calc(var(--sr) + 10px) calc(var(--sb) + 16px) calc(var(--sl) + 10px);column-gap:6px}
+.land .split{grid-template:"l i r" minmax(0,1fr) / auto minmax(0,1fr) auto;align-items:center;padding-bottom:calc(var(--sb) + 10px)}
+.cl{grid-area:l;justify-self:start}.cr{grid-area:r;justify-self:end}.ci{grid-area:i;min-width:0;min-height:0;height:100%;overflow:hidden}
+.lefty .cl{grid-area:r;justify-self:end}.lefty .cr{grid-area:l;justify-self:start}
+.full{display:flex;flex-direction:column;gap:10px;padding:6px calc(var(--sr) + 12px) calc(var(--sb) + 12px) calc(var(--sl) + 12px)}
+
+/* info card (seat badge + table) */
+.info{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:10px 4px}
+.big{width:min(32vmin,150px);aspect-ratio:1;border-radius:28%;display:grid;place-items:center;color:var(--c);border:2px solid var(--c);
+  font:850 calc(min(32vmin,150px) * .42)/1 system-ui,sans-serif;text-shadow:0 0 18px var(--ca55);
+  background:radial-gradient(circle,var(--ca20) 1.3px,transparent 1.8px) 0 0/10px 10px,radial-gradient(circle at 50% 40%,var(--ca20),transparent 70%),#0e0e13;
+  box-shadow:0 0 44px var(--ca35),inset 0 0 30px var(--ca20)}
+.land .big{width:min(24vh,110px);font-size:calc(min(24vh,110px) * .42)}
+.lineup{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--s1);border:1px solid var(--line);font:700 12px/1.3 ui-monospace,monospace;color:var(--dim)}
+.chip i{width:9px;height:9px;border-radius:3px;background:var(--cc)}
+.chip.me{color:var(--ink);border-color:var(--cc)}
+.mhint{color:var(--mute);font-size:13px;max-width:30ch}
+@media (max-height:420px){.land .lineup,.land .mhint{display:none}}
+
+/* ---------- keys ---------- */
+.k{appearance:none;border:1px solid #373742;background:linear-gradient(180deg,#2c2c35,#1b1b21);color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 5px 0 #040406,0 10px 18px rgba(0,0,0,.5);
+  transition:transform .14s cubic-bezier(.2,.8,.2,1),box-shadow .14s,background-color .14s,color .14s}
+.k.on{transition:none;transform:translateY(4px);background:var(--c);color:#050507;border-color:transparent;
+  box-shadow:0 1px 0 #040406,0 0 28px var(--ca55),inset 0 2px 8px rgba(0,0,0,.25)}
+
+/* d-pad: one touch surface; slide between directions */
+.dpad{width:calc(var(--u) * 3.6);height:calc(var(--u) * 3.6);display:grid;place-items:center;margin:0 calc(var(--u) * -.2)}
+.cross{width:calc(var(--u) * 3);height:calc(var(--u) * 3);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);
+  filter:drop-shadow(0 5px 0 #040406) drop-shadow(0 12px 16px rgba(0,0,0,.55));transition:transform .12s ease-out}
+.arm,.hub{background:var(--pad);border:0;padding:0;display:grid;place-items:center;color:#7a7984}
+.arm svg{width:40%;height:40%;fill:currentColor}
+.arm.up{grid-area:1/2;border-radius:16px 16px 0 0}.arm.down{grid-area:3/2;border-radius:0 0 16px 16px}
+.arm.left{grid-area:2/1;border-radius:16px 0 0 16px}.arm.right{grid-area:2/3;border-radius:0 16px 16px 0}
+.arm.down svg{transform:rotate(180deg)}.arm.left svg{transform:rotate(-90deg)}.arm.right svg{transform:rotate(90deg)}
+.hub{grid-area:2/2;background:radial-gradient(circle,#18181e 0 38%,var(--pad) 40%)}
+.arm.on{background:var(--c);color:#050507;box-shadow:0 0 26px var(--ca55)}
+.cross[data-d=up]{transform:perspective(520px) rotateX(10deg)}.cross[data-d=down]{transform:perspective(520px) rotateX(-10deg)}
+.cross[data-d=left]{transform:perspective(520px) rotateY(-10deg)}.cross[data-d=right]{transform:perspective(520px) rotateY(10deg)}
+
+/* A/B face buttons */
+.ab{--b:calc(var(--u) * 1.3);position:relative;width:calc(var(--u) * 2.8);height:calc(var(--u) * 2.6)}
+.fb{position:absolute;width:var(--b);height:var(--b);border-radius:50%;display:grid;place-items:center;padding:0;
+  font:850 calc(var(--u) * .5)/1 system-ui,sans-serif}
+.fb small{display:none}
+.fb.a{right:0;top:0;border-color:var(--ca55)}.fb.b{left:0;bottom:0}
+
+/* analog stick */
+.stick-zone{grid-area:l;justify-self:stretch;align-self:stretch;position:relative;border-radius:28px;margin:4px 0;
+  border:1.5px dashed rgba(255,255,255,.08);background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.025),transparent 70%)}
+.lefty .stick-zone{grid-area:r}
+.split[data-m=joystick]{grid-template-rows:minmax(0,.8fr) minmax(calc(var(--u) * 4.2),1.2fr);grid-template-columns:minmax(0,1fr) auto}
+.lefty .split[data-m=joystick]{grid-template-columns:auto minmax(0,1fr)}
+.land .split[data-m=joystick]{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(calc(var(--u) * 3.8),1.25fr) minmax(0,.8fr) auto}
+.lefty.land .split[data-m=joystick]{grid-template-columns:auto minmax(0,.8fr) minmax(calc(var(--u) * 3.8),1.25fr);grid-template-areas:"r i l"}
+.split[data-m=joystick] .cr{align-self:end;margin-bottom:calc(var(--u) * .5)}
+.land .split[data-m=joystick] .cr{align-self:center;margin:0}
+.stick-hint{position:absolute;inset:auto 0 14px;text-align:center;color:var(--mute);font-size:13px;pointer-events:none}
+.stick-zone.fixed .stick-hint,.stick-zone.active .stick-hint{opacity:0}
+.stick-base{position:absolute;left:0;top:0;width:calc(var(--u) * 3);height:calc(var(--u) * 3);margin:calc(var(--u) * -1.5) 0 0 calc(var(--u) * -1.5);
+  border-radius:50%;opacity:0;transition:opacity .16s;pointer-events:none;
+  background:radial-gradient(circle,#1c1c23 0 56%,#141419 57%);border:2px solid #34343f;box-shadow:inset 0 6px 20px rgba(0,0,0,.65),0 0 0 7px rgba(255,255,255,.02)}
+.stick-zone.fixed .stick-base{opacity:.8}.stick-zone.active .stick-base{opacity:1;transition:none}
+.stick-dir{position:absolute;inset:-2px;border-radius:50%;opacity:0;
+  background:conic-gradient(from calc(var(--a,0deg) + 90deg - var(--w,90deg) / 2),var(--c) 0 var(--w,90deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 60%,#000 61%);mask:radial-gradient(circle,transparent 60%,#000 61%)}
+.stick-zone.go .stick-dir{opacity:.9}
+.stick-knob{position:absolute;left:50%;top:50%;width:calc(var(--u) * 1.35);height:calc(var(--u) * 1.35);margin:calc(var(--u) * -.675);border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,#55555f,#26262e 68%);border:1px solid #44444f;box-shadow:0 8px 16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18)}
+.stick-zone.go .stick-knob{background:radial-gradient(circle at 36% 30%,#ffffffcc,var(--c) 62%);box-shadow:0 0 28px var(--ca55),0 8px 16px rgba(0,0,0,.5)}
+
+/* tilt */
+.tiltv{display:flex;flex-direction:column;align-items:center;gap:10px;width:calc(var(--u) * 3.1)}
+.land .tiltv{width:calc(var(--u) * 3.8)}
+.wheel{width:calc(var(--u) * 2.6);height:calc(var(--u) * 2.6);color:#6f6e79;transition:transform .08s linear}
+.wheel.go{color:var(--c);filter:drop-shadow(0 0 12px var(--ca55))}
+.tbar{position:relative;width:100%;height:10px;border-radius:5px;background:var(--s2);border:1px solid var(--line)}
+.tbar i{position:absolute;top:-5px;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--ca55)}
+.pillb{min-height:56px;padding:0 22px;border-radius:18px;border:1px solid var(--line);background:var(--s2);font-weight:750}
+.pillb.hot{background:var(--c);color:#050507;border-color:transparent;box-shadow:0 0 22px var(--ca35)}
+.tmsg{margin:0;color:var(--dim);font-size:13px;text-align:center;min-height:2.6em}
+
+/* swipe */
+.swipe{flex:1;position:relative;border-radius:28px;border:1.5px solid var(--line);overflow:hidden;
+  background:radial-gradient(circle,rgba(255,255,255,.07) 1.2px,transparent 1.8px) 0 0/22px 22px,radial-gradient(circle at 50% 45%,var(--ca10),transparent 65%),var(--s1)}
+.sw-glyph{position:absolute;left:50%;top:44%;width:34vmin;height:34vmin;max-width:180px;max-height:180px;transform:translate(-50%,-50%);color:var(--c);opacity:.14;pointer-events:none}
+.sw-glyph svg{width:100%;height:100%}
+.sw-legend{position:absolute;left:0;right:0;bottom:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;color:var(--dim);font-size:13px;pointer-events:none;padding:0 12px}
+.sw-legend b{color:var(--ink)}
+.fx{position:absolute;left:0;top:0;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:3px solid var(--c);pointer-events:none;
+  display:grid;place-items:center;color:var(--c);font:850 22px/1 system-ui,sans-serif}
+.trail{position:absolute;left:0;top:0;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:var(--ca35);box-shadow:0 0 24px var(--ca55);pointer-events:none}
+
+/* tap zones */
+.tapv{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+.tz{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0}
+.tzh{border-radius:28px;border:1.5px solid var(--line);background:var(--s1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  color:var(--dim);font:750 14px/1 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;transition:background-color .14s,border-color .14s,box-shadow .14s}
+.tzh svg{width:min(22vmin,96px);height:min(22vmin,96px);fill:currentColor}
+.tzh.on{transition:none;background:linear-gradient(180deg,var(--ca35),var(--ca10));border-color:var(--c);color:var(--ink);box-shadow:inset 0 0 40px var(--ca20),0 0 24px var(--ca20)}
+.tzh.on svg{color:var(--c);filter:drop-shadow(0 0 12px var(--ca55))}
+.strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:max(64px,calc(var(--u) * 1.15))}
+.lefty .strip .b{order:2}
+.sb{border-radius:20px;font:850 26px/1 system-ui,sans-serif}
+
+/* keyboard & gamepad cards */
+.card{margin:auto;width:min(100%,560px);max-height:100%;overflow:hidden;background:var(--s1);border:1px solid var(--line);border-radius:24px;padding:18px;
+  display:flex;flex-direction:column;gap:12px}
+.card h3{margin:0;font-size:18px}.card p{margin:0;color:var(--dim);font-size:14px}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kr{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:14px}
+.cap{min-width:74px;min-height:40px;padding:0 10px;display:grid;place-items:center;border-radius:10px;background:var(--s3);border:1px solid #3a3a45;
+  box-shadow:0 3px 0 #040406;color:var(--ink);font:700 14px/1 ui-monospace,monospace}
+.cap.on{background:var(--c);color:#050507;transform:translateY(2px);box-shadow:0 1px 0 #040406,0 0 18px var(--ca55)}
+.last{color:var(--c)!important;font-weight:700}
+.land .card{flex-direction:row;flex-wrap:wrap;align-items:flex-start}
+.land .card>*{flex:1 1 240px}
+.gpd{position:relative;height:110px;border-radius:55px;background:var(--s2);border:1px solid var(--line);max-width:300px;width:100%;align-self:center}
+.gpd .g{position:absolute;background:var(--s3);border:1px solid #3a3a45}
+.gpd .g.on{background:var(--c);border-color:transparent;box-shadow:0 0 14px var(--ca55)}
+.gpd [data-g=up]{left:48px;top:22px;width:20px;height:24px;border-radius:5px 5px 0 0}
+.gpd [data-g=down]{left:48px;top:64px;width:20px;height:24px;border-radius:0 0 5px 5px}
+.gpd [data-g=left]{left:26px;top:45px;width:24px;height:20px;border-radius:5px 0 0 5px}
+.gpd [data-g=right]{left:66px;top:45px;width:24px;height:20px;border-radius:0 5px 5px 0}
+.gpd [data-g=stick]{left:calc(50% - 22px);top:52px;width:44px;height:44px;border-radius:50%}
+.gpd [data-g=a]{right:48px;top:62px;width:30px;height:30px;border-radius:50%}
+.gpd [data-g=b]{right:18px;top:36px;width:30px;height:30px;border-radius:50%}
+.gpd [data-g=a]::after,.gpd [data-g=b]::after{content:attr(data-g);position:absolute;inset:0;display:grid;place-items:center;font:800 12px system-ui;text-transform:uppercase;color:var(--dim)}
+.map{margin:0;padding:0;list-style:none;display:grid;gap:6px;color:var(--dim);font-size:14px}.map b{color:var(--ink)}
+
+/* ---------- toast / end ---------- */
+.toast{position:fixed;left:50%;top:calc(var(--st) + 76px);transform:translateX(-50%);z-index:19;width:max-content;max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;
+  background:#1f1f27;border:1px solid var(--c);box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 18px var(--ca20);font-weight:650;text-align:center;pointer-events:none}
+.end{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:24px;background:rgba(5,5,8,.86);backdrop-filter:blur(6px)}
+.endcard{max-width:420px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.endcard h2{margin:0;font-size:24px}.endcard p{margin:0;color:var(--dim)}
+.endcard *{touch-action:manipulation}
+
+/* ---------- settings sheet ---------- */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);touch-action:manipulation}
+.sheet{position:fixed;z-index:21;left:0;right:0;bottom:0;max-height:88%;display:flex;flex-direction:column;background:#111116;
+  border-top:1px solid #2c2c36;border-radius:24px 24px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.65);padding:0 var(--sr) var(--sb) var(--sl);animation:sh-up .22s cubic-bezier(.2,.8,.2,1)}
+.land .sheet{left:auto;top:0;width:min(460px,80vw);max-height:none;border-radius:24px 0 0 24px;border-top:0;border-left:1px solid #2c2c36;padding:var(--st) var(--sr) var(--sb) 0;animation-name:sh-in}
+@keyframes sh-up{from{transform:translateY(40px);opacity:0}}@keyframes sh-in{from{transform:translateX(40px);opacity:0}}
+.sheet *{touch-action:manipulation}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 8px}
+.sh-head h2{margin:0;font-size:20px}
+.done{min-height:48px;min-width:88px;padding:0 18px;border-radius:14px;border:0;background:var(--c);color:#050507;font-weight:800}
+.sh-body{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 22px}
+.sh-body,.sh-body *{touch-action:pan-y}
+.sec{margin:18px 0 8px;font:750 12px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.modes{display:grid;gap:8px}
+.mcard{display:grid;grid-template-columns:44px minmax(0,1fr) 24px;gap:12px;align-items:center;width:100%;min-height:64px;padding:12px;text-align:left;
+  border-radius:16px;background:var(--s2);border:1.5px solid var(--line)}
+.mcard.sel{border-color:var(--c);background:linear-gradient(90deg,var(--ca10),transparent 80%),var(--s2);box-shadow:0 0 18px var(--ca10)}
+.mi{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--s3);color:var(--ink)}
+.mcard.sel .mi{background:var(--c);color:#050507}
+.mi svg{width:26px;height:26px}
+.mt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mn{font-weight:750;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.md{color:var(--dim);font-size:13px}
+.why{display:flex;gap:6px;margin-top:4px;padding:8px 10px;border-radius:10px;background:#1d1a12;border:1px solid #4a3f1c;color:#f1dfa6;font-size:13px}
+.why svg{flex:none;width:16px;height:16px;margin-top:1px}
+.mcard[aria-disabled=true]{background:var(--s1)}
+.mcard[aria-disabled=true] .mi,.mcard[aria-disabled=true] .mn{opacity:.5}
+.mc svg{width:24px;height:24px;color:var(--c)}
+.badge{padding:2px 8px;border-radius:999px;font:750 11px/1.4 system-ui,sans-serif;background:var(--s3);color:var(--dim)}
+.badge.rec{background:var(--c);color:#050507}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;min-height:56px;padding:8px 0;border-bottom:1px solid #1e1e26;width:100%;
+  background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.rt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 140px}
+.rn{font-weight:650}.rd{color:var(--dim);font-size:13px}
+.seg{display:flex;flex:1 1 210px;gap:4px;padding:4px;border-radius:14px;background:#0b0b0f;border:1px solid var(--line)}
+.seg button{flex:1;min-height:46px;padding:0 6px;border-radius:10px;border:0;background:none;color:var(--dim);font-weight:700;font-size:14px}
+.seg button[aria-checked=true]{background:var(--s3);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--c)}
+.sw{flex:none;width:58px;height:34px;border-radius:17px;background:#2a2a33;position:relative;transition:background .15s}
+.sw i{position:absolute;left:4px;top:4px;width:26px;height:26px;border-radius:50%;background:#d8d7d2;transition:transform .15s}
+[aria-checked=true]>.sw{background:var(--c)}[aria-checked=true]>.sw i{transform:translateX(24px);background:#050507}
+.row[aria-disabled=true] .rn,.row[aria-disabled=true] .sw{opacity:.45}
+.act{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--s2);font-weight:700}
+@media (prefers-reduced-motion:reduce){.cross,.wheel,.sheet{transition:none!important;animation:none!important;transform:none!important}}
+</style></head>
+<body>
+<div class="app" id="app">
+<header class="top">
+  <div class="who">
+    <span class="orb" id="orb" aria-hidden="true">·</span>
+    <div class="names">
+      <div class="game" id="game">DotDeck</div>
+      <div class="seatl"><span id="seat">Connecting…</span><span class="lat" id="lat" hidden></span></div>
+    </div>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite"><span>Joining the game…</span></div>
+  <button class="gear" id="gear" aria-label="Controls and settings" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="7.6" stroke-width="3.6" stroke-dasharray="3 2.97"/><circle cx="12" cy="12" r="5.6" stroke-width="2"/><circle cx="12" cy="12" r="2" stroke-width="2"/></svg>
+    <span>Controls</span></button>
+</header>
+
+<main class="stage" id="stage">
+  <section class="mode split" data-m="dpad" hidden>
+    <div class="cl dpad" id="dpad" data-surface role="group" aria-label="Direction pad. Touch and slide between directions.">
+      <div class="cross">
+        <button class="arm up" aria-label="Up"><svg viewBox="0 0 24 24"><path d="M12 5l8 11H4z"/></svg></button>
+        <button class="arm left" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M12 5l8 11H4z"/></svg></button>
+        <div class="hub"></div>
+        <button class="arm right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M12 5l8 11H4z"/></svg></button>
+        <button class="arm down" aria-label="Down"><svg viewBox="0 0 24 24"><path d="M12 5l8 11H4z"/></svg></button>
+      </div>
+    </div>
+    <div class="ci slot-info"></div><div class="cr slot-ab"></div>
+  </section>
+
+  <section class="mode split" data-m="joystick" hidden>
+    <div class="stick-zone" id="stick" data-surface role="application" aria-label="Analog stick. Touch and drag; push further to move faster.">
+      <div class="stick-hint">Touch anywhere here and drag</div>
+      <div class="stick-base" id="sbase"><div class="stick-dir" id="sdir"></div><div class="stick-knob" id="sknob"></div></div>
+    </div>
+    <div class="ci slot-info"></div><div class="cr slot-ab"></div>
+  </section>
+
+  <section class="mode split" data-m="tilt" hidden>
+    <div class="cl tiltv">
+      <svg class="wheel" id="wheel" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="50" cy="50" r="42" stroke-width="9"/><circle cx="50" cy="50" r="9" stroke-width="7"/><path d="M8 50h33M59 50h33M50 59v33" stroke-width="8"/><path d="M50 8v8" stroke-width="6" stroke="#fff"/></svg>
+      <div class="tbar" aria-hidden="true"><i id="tknob"></i></div>
+      <button class="pillb hot" id="tstart" data-click>Start tilt</button>
+      <p class="tmsg" id="tmsg" role="status">Tap Start, hold the phone comfortably — that's centre — then tilt to steer.</p>
+    </div>
+    <div class="ci slot-info"></div><div class="cr slot-ab"></div>
+  </section>
+
+  <section class="mode full" data-m="swipe" hidden>
+    <div class="swipe" id="swipe" data-surface role="application" aria-label="Swipe pad. Swipe to steer, tap for A, long-press or two-finger tap for B.">
+      <div class="sw-glyph" id="swglyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l8 9h-5v9H9v-9H4z"/></svg></div>
+      <div class="sw-legend"><span><b>Swipe</b> steer</span><span><b>Tap</b> A</span><span><b>Hold</b> or <b>two fingers</b> B</span></div>
+    </div>
+  </section>
+
+  <section class="mode full" data-m="tap" hidden>
+    <div class="tapv">
+      <div class="tz" id="tz" data-surface role="group" aria-label="Tap zones: hold left half for left, right half for right">
+        <div class="tzh" data-side="left"><svg viewBox="0 0 24 24"><path d="M15 4L6 12l9 8z"/></svg><span>Left</span></div>
+        <div class="tzh" data-side="right"><svg viewBox="0 0 24 24"><path d="M9 4l9 8-9 8z"/></svg><span>Right</span></div>
+      </div>
+      <div class="strip" id="strip" data-surface role="group" aria-label="Action buttons">
+        <button class="k sb b" data-k="b" aria-label="B button">B</button><button class="k sb a" data-k="a" aria-label="A button">A</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="mode full" data-m="keyboard" hidden>
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3>Bluetooth keyboard</h3>
+        <p>Pair a keyboard with this phone in its Bluetooth settings, then press any key. Keys work in every controller mode.</p>
+        <p class="last" id="kblast" aria-live="polite">Waiting for a key…</p>
+      </div>
+      <div class="keys">
+        <div class="kr"><span class="cap" data-kc="ArrowUp KeyW">↑ / W</span>Up</div>
+        <div class="kr"><span class="cap" data-kc="ArrowDown KeyS">↓ / S</span>Down</div>
+        <div class="kr"><span class="cap" data-kc="ArrowLeft KeyA">← / A</span>Left</div>
+        <div class="kr"><span class="cap" data-kc="ArrowRight KeyD">→ / D</span>Right</div>
+        <div class="kr"><span class="cap" data-kc="Space Enter NumpadEnter KeyZ KeyJ">Space ⏎</span>A button</div>
+        <div class="kr"><span class="cap" data-kc="ShiftLeft ShiftRight KeyX KeyK">Shift / X</span>B button</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mode full" data-m="gamepad" hidden>
+    <div class="card">
+      <div class="gpd" aria-hidden="true"><i class="g" data-g="up"></i><i class="g" data-g="down"></i><i class="g" data-g="left"></i><i class="g" data-g="right"></i>
+        <i class="g" data-g="stick"></i><i class="g" data-g="a"></i><i class="g" data-g="b"></i></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3 id="gpname" aria-live="polite">No controller yet</h3>
+        <p id="gphelp">Turn it on, pair it with this phone over Bluetooth, then press any button on it.</p>
+        <ul class="map">
+          <li><b>D-pad</b> or <b>left stick</b> — move</li>
+          <li><b>A / ✕</b> (bottom button), <b>RB</b>, <b>Start</b> — A</li>
+          <li><b>B / ○</b> (right button), <b>X / □</b>, <b>LB</b>, <b>Select</b> — B</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t" hidden>
+  <div class="sh-head"><h2 id="sheet-t">Controls</h2><button class="done" id="done">Done</button></div>
+  <div class="sh-body" id="shbody"></div>
+</aside>
+<div class="end" id="end" hidden><div class="endcard"><h2 id="end-t"></h2><p id="end-p"></p><button class="pillb hot" id="end-b" data-click>Try again</button></div></div>
+</div>
+
+<template id="tpl-ab"><div class="ab" data-surface role="group" aria-label="Action buttons">
+  <button class="k fb b" data-k="b" aria-label="B button">B</button><button class="k fb a" data-k="a" aria-label="A button">A</button></div></template>
+<template id="tpl-info"><div class="info"><div class="big" aria-hidden="true"><span class="bn">·</span></div><div class="lineup"></div><div class="mhint"></div></div></template>
+
+<script>
+"use strict";
+/* ============================== basics ============================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const app = $("#app");
+const code = location.pathname.split("/").filter(Boolean).pop() || "";
+const SECURE = window.isSecureContext === true;
+const SEATS = { 1: "#00c8ff", 2: "#ff3c5a", 3: "#50ff78", 4: "#ffc800" };
+const DIRS = ["up", "down", "left", "right"];
+const now = () => performance.now();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function cap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (_) { /* synthetic / already gone */ } }
+
+/* ============================== modes & settings ============================== */
+const ICON = {
+  dpad: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 2.5h6v6.5h6.5v6H15v6.5H9V15H2.5V9H9z"/></svg>',
+  joystick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="14.5" cy="9.5" r="3.6" fill="currentColor"/></svg>',
+  swipe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h15M13 6l6 6-6 6"/><circle cx="4" cy="12" r="1.4" fill="currentColor"/></svg>',
+  tap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="8.5" height="16" rx="2.5"/><rect x="13" y="4" width="8.5" height="16" rx="2.5" fill="currentColor"/></svg>',
+  keyboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10" stroke-linecap="round"/></svg>',
+  gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10a5 5 0 0 1 4.8 6.4l-1 3.4a2.5 2.5 0 0 1-4.3 1L15 16H9l-1.5 1.8a2.5 2.5 0 0 1-4.3-1l-1-3.4A5 5 0 0 1 7 7z"/><path d="M8 10v4M6 12h4" stroke-linecap="round"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>',
+  tilt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2.5" transform="rotate(22 12 12)"/><path d="M3 20a9 9 0 0 1 0-6" stroke-linecap="round"/></svg>',
+};
+const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const MODES = {
+  dpad: { name: "D-pad + A/B", desc: "Classic cross pad. Slide your thumb between directions without lifting.", hint: "Slide between directions without lifting" },
+  joystick: { name: "Analog stick", desc: "A thumbstick that appears where your thumb lands. Push further to move faster.", hint: "Push further to move faster" },
+  swipe: { name: "Swipe", desc: "Swipe to turn and keep sliding to chain turns. Tap for A; hold or two-finger tap for B.", hint: "" },
+  tap: { name: "Tap zones", desc: "Hold the left or right half of the screen. Great one-thumb racing.", hint: "" },
+  keyboard: { name: "Keyboard", desc: "A Bluetooth keyboard paired with this phone: arrows or WASD, Space = A, Shift = B.", hint: "" },
+  gamepad: { name: "Game controller", desc: "Xbox, PlayStation, Switch Pro or 8BitDo paired with this phone.", hint: "" },
+  tilt: { name: "Tilt to steer", desc: "Tilt the phone left and right like a steering wheel.", hint: "Tilt like a steering wheel" },
+};
+const MODE_IDS = Object.keys(MODES);
+// Gamepad API and DeviceOrientation are secure-context only; this page is plain http on the LAN.
+const AVAIL = {
+  gamepad: !SECURE ? "insecure" : typeof navigator.getGamepads === "function" ? "" : "unsupported",
+  tilt: !SECURE ? "insecure" : "DeviceOrientationEvent" in window ? "" : "unsupported",
+};
+const WHY = {
+  gamepad: {
+    insecure: "Your browser only allows controllers on secure pages — use the on-screen joystick, or connect the controller to the laptop instead: the studio supports gamepads.",
+    unsupported: "This browser can't read game controllers — use the on-screen joystick, or connect the controller to the laptop instead: the studio supports gamepads.",
+  },
+  tilt: {
+    insecure: "Your browser only shares the tilt sensor with secure pages, and this game link is a plain local address — use the joystick or tap zones instead.",
+    unsupported: "This browser can't read the tilt sensor — use the joystick or tap zones instead.",
+  },
+};
+const why = (m) => (AVAIL[m] ? WHY[m][AVAIL[m]] : "");
+const usable = (m) => !!MODES[m] && !AVAIL[m];
+
+const OPTS = [
+  { k: "stick", t: "Stick position", seg: [["float", "Where I touch"], ["fixed", "Fixed"]], modes: ["joystick"] },
+  { k: "ways", t: "Directions", d: "8-way sends both keys on diagonals", seg: [[4, "4-way"], [8, "8-way"]], modes: ["joystick", "gamepad"] },
+  { k: "dead", t: "Dead zone", d: "How far to push before it moves", seg: [[0.08, "Tiny"], [0.15, "Small"], [0.25, "Medium"], [0.35, "Large"]], modes: ["joystick", "gamepad"] },
+  { k: "swipe", t: "Swipe sensitivity", seg: [["low", "Low"], ["medium", "Medium"], ["high", "High"]], modes: ["swipe"] },
+  { k: "strip", t: "A/B buttons", d: "A strip along the bottom", sw: 1, modes: ["tap"] },
+  { k: "tilt", t: "Tilt sensitivity", seg: [["low", "Low"], ["medium", "Medium"], ["high", "High"]], modes: ["tilt"] },
+  { k: "size", t: "Button size", seg: [["S", "S"], ["M", "M"], ["L", "L"]] },
+  { k: "lefty", t: "Left-handed", d: "Mirror the layout", sw: 1 },
+  { k: "repeat", t: "Repeat speed", d: "While you hold a direction", seg: [["slow", "Slow"], ["normal", "Normal"], ["fast", "Fast"]] },
+  { k: "haptics", t: "Vibration", sw: 1, na: typeof navigator.vibrate !== "function" ? "This phone's browser can't vibrate" : "" },
+  { k: "latency", t: "Show latency", d: "Round trip to the laptop, in the corner", sw: 1 },
+  { k: "awake", t: "Keep screen on", sw: 1, na: "wakeLock" in navigator ? "" : SECURE ? "Not supported by this browser" : "This browser only allows it on secure pages" },
+];
+const OPT = Object.fromEntries(OPTS.map((o) => [o.k, o]));
+const DEF = { mode: "", size: "M", lefty: false, haptics: true, repeat: "normal", dead: 0.15, ways: 4, stick: "float", swipe: "medium", strip: true, tilt: "medium", latency: false, awake: true };
+const COMFORT = ["size", "lefty", "haptics", "repeat", "latency", "awake"]; // carried over to games you haven't set up yet
+let cfg = { ...DEF, mode: "dpad" };
+let gameName = "", controls = ["dpad"], seat = 0;
+
+function validOpt(k, v) {
+  if (k === "mode") return usable(v);
+  const o = OPT[k];
+  if (!o) return false;
+  return o.sw ? typeof v === "boolean" : o.seg.some(([val]) => String(val) === String(v));
+}
+function loadCfg() {
+  let g = {}, s = {};
+  try { g = JSON.parse(localStorage.getItem("dotdeck.pad") || "{}") || {}; s = JSON.parse(localStorage.getItem("dotdeck.pad:" + gameName) || "{}") || {}; } catch (_) {}
+  const next = { ...DEF };
+  for (const k of COMFORT) if (validOpt(k, g[k])) next[k] = g[k];
+  for (const k of Object.keys(DEF)) if (validOpt(k, s[k])) next[k] = typeof DEF[k] === "number" ? Number(s[k]) : s[k];
+  if (!usable(next.mode)) next.mode = controls.find(usable) || "dpad";
+  cfg = next;
+}
+function saveCfg() {
+  if (!gameName) return;
+  try {
+    localStorage.setItem("dotdeck.pad:" + gameName, JSON.stringify(cfg));
+    localStorage.setItem("dotdeck.pad", JSON.stringify(Object.fromEntries(COMFORT.map((k) => [k, cfg[k]]))));
+  } catch (_) {}
+}
+
+/* ============================== input core ============================== */
+// Every discrete press goes out immediately; holds repeat on their own timers. Nothing is coalesced or queued.
+let ws = null;
+function send(k) { if (ws && ws.readyState === 1) ws.send('{"k":"' + k + '"}'); }
+function buzz(ms) { if (cfg.haptics && typeof navigator.vibrate === "function") { try { navigator.vibrate(ms); } catch (_) {} } }
+function press(k) { send(k); buzz(12); }
+
+const REP = { slow: [320, 140], normal: [210, 85], fast: [150, 55] }; // [first repeat, then every] ms
+const discrete = (first) => REP[cfg.repeat][first ? 0 : 1];
+function analog(getT) { // t = 0 just past the dead zone … 1 fully pushed: the repeat rate follows deflection
+  return (first) => {
+    const [d, i] = REP[cfg.repeat], t = clamp(getT(), 0, 1), iv = i * 3.2 - (i * 3.2 - i * 0.7) * t;
+    return first ? Math.max(iv, d * 0.8) : iv;
+  };
+}
+const holds = new Map(); // source -> {sig, keys, i, rate, first, last, due, timer}
+function arm(src, h, ms) {
+  h.due = now() + ms;
+  h.timer = setTimeout(() => {
+    if (holds.get(src) !== h) return;
+    send(h.keys[h.i++ % h.keys.length]); h.last = now(); h.first = false;
+    arm(src, h, h.rate(false));
+  }, ms);
+}
+function hold(src, keys, rate) {
+  const sig = keys.join(), h = holds.get(src);
+  if (h && h.sig === sig) { // same direction: adopt the new rate; pull the next repeat in if it got faster
+    h.rate = rate;
+    const ms = rate(h.first), t = now();
+    if (h.due - t > ms * 1.2 + 8) { clearTimeout(h.timer); arm(src, h, Math.max(0, h.last + ms - t)); }
+    return;
+  }
+  const prev = h ? h.keys : [];
+  if (h) clearTimeout(h.timer);
+  const fresh = keys.filter((k) => !prev.includes(k));
+  for (const k of fresh) send(k); // send first, then everything else
+  const nh = { sig, keys, i: fresh.length ? (keys.indexOf(fresh[fresh.length - 1]) + 1) % keys.length : 0, rate, first: true, last: now(), due: 0, timer: 0 };
+  holds.set(src, nh);
+  arm(src, nh, rate(true));
+  if (fresh.length) buzz(7);
+}
+function unhold(src) { const h = holds.get(src); if (h) { clearTimeout(h.timer); holds.delete(src); } }
+const resets = [];
+function releaseAll() { for (const h of holds.values()) clearTimeout(h.timer); holds.clear(); for (const r of resets) r(); }
+
+function dir4(dx, dy, cur) { // hysteresis: keep the current axis until the other clearly dominates (no diagonal flicker)
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  let horiz = ax > ay;
+  if (cur === "left" || cur === "right") horiz = ax * 1.3 >= ay;
+  else if (cur === "up" || cur === "down") horiz = ax > ay * 1.3;
+  return horiz ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+}
+const OCT = [["right"], ["down", "right"], ["down"], ["down", "left"], ["left"], ["up", "left"], ["up"], ["up", "right"]];
+function oct(dx, dy) { return ((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8; }
+const ANG = { right: 0, down: 90, left: 180, up: 270 };
+
+/* ---------- A/B clusters (slide between buttons, multi-touch) ---------- */
+function bindButtons(group) {
+  const btns = $$("[data-k]", group), ptr = new Map();
+  const hit = (e) => {
+    let best = null, bd = 1e9;
+    for (const b of btns) {
+      const r = b.getBoundingClientRect();
+      if (e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) return b;
+      const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      if (d < bd && d < Math.max(r.width, r.height) * 0.85) { bd = d; best = b; }
+    }
+    return best;
+  };
+  const paint = () => { const on = new Set(ptr.values()); for (const b of btns) b.classList.toggle("on", on.has(b)); };
+  group.addEventListener("pointerdown", (e) => {
+    e.preventDefault(); cap(group, e);
+    const b = hit(e); ptr.set(e.pointerId, b);
+    if (b) press(b.dataset.k);
+    paint();
+  });
+  group.addEventListener("pointermove", (e) => {
+    if (!ptr.has(e.pointerId)) return;
+    const b = hit(e);
+    if (b === ptr.get(e.pointerId)) return;
+    if (b) press(b.dataset.k); // rolled onto the other button
+    ptr.set(e.pointerId, b); paint();
+  });
+  const end = (e) => { if (ptr.delete(e.pointerId)) paint(); };
+  for (const t of ["pointerup", "pointercancel", "lostpointercapture"]) group.addEventListener(t, end);
+  for (const b of btns) b.addEventListener("click", (e) => { if (e.detail === 0) { press(b.dataset.k); flash(b); } }); // keyboard / screen reader
+  resets.push(() => { ptr.clear(); paint(); });
+}
+function flash(el) { el.classList.add("on"); setTimeout(() => el.classList.remove("on"), 120); }
+
+for (const slot of $$(".slot-ab")) slot.appendChild($("#tpl-ab").content.cloneNode(true));
+for (const slot of $$(".slot-info")) slot.appendChild($("#tpl-info").content.cloneNode(true));
+for (const g of $$(".ab")) bindButtons(g);
+bindButtons($("#strip"));
+
+/* ---------- D-pad ---------- */
+(() => {
+  const zone = $("#dpad"), cross = $(".cross", zone), arms = Object.fromEntries(DIRS.map((d) => [d, $(".arm." + d, zone)]));
+  const ptr = new Map();
+  const paint = () => {
+    const on = new Set(ptr.values());
+    for (const d of DIRS) arms[d].classList.toggle("on", on.has(d));
+    const last = [...ptr.values()].filter(Boolean).pop();
+    if (last) cross.dataset.d = last; else delete cross.dataset.d;
+  };
+  const upd = (e) => {
+    const r = cross.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const cur = ptr.get(e.pointerId);
+    if (Math.hypot(dx, dy) < r.width * 0.1) { // resting on the hub: nothing pressed
+      if (cur) { unhold("dp" + e.pointerId); ptr.set(e.pointerId, null); paint(); }
+      return;
+    }
+    const d = dir4(dx, dy, cur);
+    if (d !== cur) { hold("dp" + e.pointerId, [d], discrete); ptr.set(e.pointerId, d); paint(); }
+  };
+  zone.addEventListener("pointerdown", (e) => { e.preventDefault(); cap(zone, e); ptr.set(e.pointerId, null); upd(e); });
+  zone.addEventListener("pointermove", (e) => { if (ptr.has(e.pointerId)) upd(e); });
+  const end = (e) => { if (!ptr.has(e.pointerId)) return; ptr.delete(e.pointerId); unhold("dp" + e.pointerId); paint(); };
+  for (const t of ["pointerup", "pointercancel", "lostpointercapture"]) zone.addEventListener(t, end);
+  for (const d of DIRS) arms[d].addEventListener("click", (e) => { if (e.detail === 0) { press(d); flash(arms[d]); } });
+  resets.push(() => { ptr.clear(); paint(); });
+})();
+
+/* ---------- analog stick ---------- */
+const stick = (() => {
+  const zone = $("#stick"), base = $("#sbase"), knob = $("#sknob"), wedge = $("#sdir");
+  let id = null, cx = 0, cy = 0, t = 0, cur = null;
+  const rate = analog(() => t);
+  const place = () => { base.style.transform = `translate(${cx}px,${cy}px)`; };
+  const home = () => { const r = zone.getBoundingClientRect(); cx = r.width / 2; cy = r.height * (app.classList.contains("land") ? 0.5 : 0.56); place(); };
+  function move(e) {
+    const r = zone.getBoundingClientRect(), R = base.offsetWidth * 0.4;
+    let dx = e.clientX - r.left - cx, dy = e.clientY - r.top - cy, d = Math.hypot(dx, dy);
+    if (d > R && cfg.stick === "float") { const k = (d - R) / d; cx += dx * k; cy += dy * k; dx -= dx * k; dy -= dy * k; d = R; place(); } // the stick follows the thumb
+    const m = Math.min(d, R) / R;
+    let keys = null;
+    if (m >= cfg.dead) {
+      t = (m - cfg.dead) / (1 - cfg.dead);
+      keys = cfg.ways === 8 ? OCT[oct(dx, dy)] : [dir4(dx, dy, cur && cur.length === 1 ? cur[0] : null)];
+      hold("js", keys, rate); // input first …
+    } else if (cur) { t = 0; unhold("js"); }
+    // … then visuals
+    const kd = Math.min(d, R), ux = d ? dx / d : 0, uy = d ? dy / d : 0;
+    knob.style.transform = `translate(${ux * kd}px,${uy * kd}px)`;
+    if ((keys && keys.join()) !== (cur && cur.join())) {
+      cur = keys;
+      zone.classList.toggle("go", !!keys);
+      if (keys) {
+        const w = cfg.ways === 8 ? 45 : 90, a = cfg.ways === 8 ? oct(dx, dy) * 45 : ANG[keys[0]];
+        wedge.style.setProperty("--a", a + "deg"); wedge.style.setProperty("--w", w + "deg");
+      }
+    }
+  }
+  zone.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    if (id !== null) return;
+    id = e.pointerId; cap(zone, e);
+    if (cfg.stick === "float") {
+      const r = zone.getBoundingClientRect(), h = base.offsetWidth / 2;
+      cx = clamp(e.clientX - r.left, Math.min(h * 0.7, r.width / 2), Math.max(r.width - h * 0.7, r.width / 2));
+      cy = clamp(e.clientY - r.top, Math.min(h * 0.7, r.height / 2), Math.max(r.height - h * 0.7, r.height / 2));
+      place();
+    } else home();
+    zone.classList.add("active"); move(e);
+  });
+  zone.addEventListener("pointermove", (e) => { if (e.pointerId === id) move(e); });
+  const end = (e) => { if (e && e.pointerId !== id) return; id = null; t = 0; cur = null; unhold("js"); knob.style.transform = ""; zone.classList.remove("active", "go"); if (cfg.stick === "fixed") home(); };
+  for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) zone.addEventListener(ev, end);
+  resets.push(() => end());
+  return { apply() { zone.classList.toggle("fixed", cfg.stick === "fixed"); if (cfg.stick === "fixed" && id === null) home(); } };
+})();
+
+/* ---------- swipe ---------- */
+(() => {
+  const el = $("#swipe"), glyph = $("#swglyph"), P = new Map();
+  const TH = { low: 44, medium: 28, high: 16 };
+  const local = (x, y) => { const r = el.getBoundingClientRect(); return [x - r.left, y - r.top]; };
+  function show(dir) {
+    const rot = { up: 0, right: 90, down: 180, left: 270 }[dir];
+    if (glyph.animate) glyph.animate([{ opacity: 0.95, transform: `translate(-50%,-50%) rotate(${rot}deg) scale(1.12)` }, { opacity: 0.14, transform: `translate(-50%,-50%) rotate(${rot}deg) scale(1)` }], { duration: 420, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+  }
+  function ring(x, y, label) {
+    const [lx, ly] = local(x, y), d = document.createElement("div");
+    d.className = "fx"; d.textContent = label; d.style.transform = `translate(${lx}px,${ly}px)`;
+    el.appendChild(d);
+    const a = d.animate ? d.animate([{ opacity: 1, transform: `translate(${lx}px,${ly}px) scale(.6)` }, { opacity: 0, transform: `translate(${lx}px,${ly}px) scale(1.5)` }], { duration: 420, easing: "ease-out" }) : null;
+    if (a) a.onfinish = () => d.remove(); else setTimeout(() => d.remove(), 400);
+  }
+  function trail(s, x, y) { const [lx, ly] = local(x, y); s.dot.style.transform = `translate(${lx}px,${ly}px)`; }
+  el.addEventListener("pointerdown", (e) => {
+    e.preventDefault(); cap(el, e);
+    const t = now(), dot = document.createElement("div");
+    dot.className = "trail"; el.appendChild(dot);
+    const s = { x0: e.clientX, y0: e.clientY, ax: e.clientX, ay: e.clientY, t0: t, dir: null, run: 0, used: false, lp: 0, dot };
+    // a second finger landing while another rests (no swipe yet) = two-finger tap = B
+    for (const o of P.values()) if (!o.dir && !o.used && t - o.t0 < 500) { o.used = s.used = true; clearTimeout(o.lp); press("b"); ring(e.clientX, e.clientY, "B"); break; }
+    if (!s.used) s.lp = setTimeout(() => { if (!s.dir && !s.used) { s.used = true; send("b"); buzz(25); ring(s.x0, s.y0, "B"); } }, 480);
+    P.set(e.pointerId, s); trail(s, e.clientX, e.clientY);
+  });
+  el.addEventListener("pointermove", (e) => {
+    const s = P.get(e.pointerId);
+    if (!s) return;
+    const th = TH[cfg.swipe];
+    if (Math.hypot(e.clientX - s.x0, e.clientY - s.y0) > th * 0.5) clearTimeout(s.lp);
+    const dx = e.clientX - s.ax, dy = e.clientY - s.ay, d = Math.hypot(dx, dy);
+    if (d >= th) {
+      const dir = dir4(dx, dy, null);
+      if (dir !== s.dir) { send(dir); buzz(8); s.dir = dir; s.run = 0; show(dir); } // chain: turn without lifting
+      else if ((s.run += d) >= th * 2.5) { send(dir); s.run = 0; show(dir); } // keep sliding the same way: step again
+      s.ax = e.clientX; s.ay = e.clientY;
+    }
+    trail(s, e.clientX, e.clientY);
+  });
+  const end = (e, cancel) => {
+    const s = P.get(e.pointerId);
+    if (!s) return;
+    P.delete(e.pointerId); clearTimeout(s.lp); s.dot.remove();
+    if (cancel || s.dir || s.used) return;
+    const th = TH[cfg.swipe], dx = e.clientX - s.x0, dy = e.clientY - s.y0;
+    if (Math.hypot(dx, dy) < th) { press("a"); ring(e.clientX, e.clientY, "A"); } // a tap (necessarily judged on release)
+    else { const dir = dir4(dx, dy, null); send(dir); buzz(8); show(dir); } // a flick too fast for move events
+  };
+  el.addEventListener("pointerup", (e) => end(e, false));
+  el.addEventListener("pointercancel", (e) => end(e, true));
+  resets.push(() => { for (const s of P.values()) { clearTimeout(s.lp); s.dot.remove(); } P.clear(); });
+})();
+
+/* ---------- tap zones ---------- */
+(() => {
+  const el = $("#tz"), halves = Object.fromEntries($$(".tzh", el).map((h) => [h.dataset.side, h])), P = new Map();
+  const side = (e) => { const r = el.getBoundingClientRect(); return e.clientX < r.left + r.width / 2 ? "left" : "right"; };
+  const paint = () => { const on = new Set(P.values()); for (const s in halves) halves[s].classList.toggle("on", on.has(s)); };
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); cap(el, e); const s = side(e); hold("tz" + e.pointerId, [s], discrete); P.set(e.pointerId, s); paint(); });
+  el.addEventListener("pointermove", (e) => {
+    if (!P.has(e.pointerId)) return;
+    const s = side(e);
+    if (s !== P.get(e.pointerId)) { hold("tz" + e.pointerId, [s], discrete); P.set(e.pointerId, s); paint(); }
+  });
+  const end = (e) => { if (!P.delete(e.pointerId)) return; unhold("tz" + e.pointerId); paint(); };
+  for (const t of ["pointerup", "pointercancel", "lostpointercapture"]) el.addEventListener(t, end);
+  resets.push(() => { P.clear(); paint(); });
+})();
+
+/* ---------- physical keyboard (works in every mode) ---------- */
+const KB = { ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right",
+  Space: "a", Enter: "a", NumpadEnter: "a", KeyZ: "a", KeyJ: "a", ShiftLeft: "b", ShiftRight: "b", KeyX: "b", KeyK: "b" };
+let kbSeen = false;
+function kbLight(c, on) { for (const el of $$(".cap")) if (el.dataset.kc.split(" ").includes(c)) el.classList.toggle("on", on); }
+addEventListener("keydown", (e) => {
+  if (!$("#sheet").hidden) { if (e.key === "Escape") closeSheet(); return; }
+  const c = KB[e.code] ? e.code : KB[e.key] ? e.key : "";
+  if (!c) return;
+  e.preventDefault();
+  if (e.repeat) return; // we run our own repeat
+  const k = KB[c];
+  if (DIRS.includes(k)) hold("kb" + c, [k], discrete); else press(k);
+  kbLight(c, true);
+  $("#kblast").textContent = `${e.key === " " ? "Space" : e.key} → ${k.toUpperCase()}`;
+  if (!kbSeen) { kbSeen = true; if (cfg.mode !== "keyboard") toast("Keyboard connected — its keys work in every mode"); }
+});
+addEventListener("keyup", (e) => { const c = KB[e.code] ? e.code : KB[e.key] ? e.key : ""; if (c) { unhold("kb" + c); kbLight(c, false); } });
+
+/* ---------- physical gamepad (standard mapping, rAF polling) ---------- */
+const GP = { raf: 0, count: 0, prev: new Map(), mag: {}, rates: {}, dir: {}, sig: "" };
+const GBTN = [[0, "a"], [1, "b"], [2, "b"], [3, "a"], [4, "b"], [5, "a"], [8, "b"], [9, "a"]];
+const padWanted = () => !AVAIL.gamepad && (cfg.mode === "gamepad" || GP.count > 0);
+function padStart() { if (!GP.raf && padWanted()) GP.raf = requestAnimationFrame(padPoll); }
+function padPoll() {
+  GP.raf = 0;
+  if (!padWanted()) return;
+  let pads = [];
+  try { pads = navigator.getGamepads() || []; } catch (_) {}
+  let vis = null;
+  for (const p of pads) {
+    if (!p || !p.connected) continue;
+    const b = (i) => !!(p.buttons[i] && p.buttons[i].pressed), src = "gp" + p.index;
+    const dp = [b(12) && "up", b(13) && "down", b(14) && "left", b(15) && "right"].filter(Boolean).slice(0, 2);
+    let keys = dp, rate = discrete;
+    if (!dp.length) {
+      const x = p.axes[0] || 0, y = p.axes[1] || 0, d = Math.min(1, Math.hypot(x, y));
+      if (d > cfg.dead) {
+        GP.mag[p.index] = (d - cfg.dead) / (1 - cfg.dead);
+        rate = GP.rates[p.index] || (GP.rates[p.index] = analog(() => GP.mag[p.index] || 0));
+        keys = cfg.ways === 8 ? OCT[oct(x, y)] : [dir4(x, y, GP.dir[p.index])];
+      }
+    }
+    if (keys.length) { hold(src, keys, rate); GP.dir[p.index] = keys.length === 1 ? keys[0] : null; } else { unhold(src); GP.dir[p.index] = null; }
+    const prev = GP.prev.get(p.index) || {}, cur = {};
+    for (const [i, k] of GBTN) { cur[i] = b(i); if (cur[i] && !prev[i]) press(k); }
+    GP.prev.set(p.index, cur);
+    if (!vis) vis = { p, keys, a: cur[0] || cur[3] || cur[5] || cur[9], bb: cur[1] || cur[2] || cur[4] || cur[8], stick: !dp.length && keys.length > 0 };
+  }
+  if (vis && cfg.mode === "gamepad") { // paint only on change, after input
+    const sig = [vis.p.id, vis.keys.join(), vis.a, vis.bb, vis.stick].join("|");
+    if (sig !== GP.sig) {
+      GP.sig = sig;
+      for (const el of $$(".gpd .g")) { const g = el.dataset.g; el.classList.toggle("on", vis.keys.includes(g) || (g === "a" && vis.a) || (g === "b" && vis.bb) || (g === "stick" && vis.stick)); }
+      $("#gpname").textContent = "Connected: " + (vis.p.id.replace(/\s*\(.*$/, "") || "controller");
+      $("#gphelp").hidden = true;
+    }
+  }
+  GP.raf = requestAnimationFrame(padPoll);
+}
+if (!AVAIL.gamepad) {
+  addEventListener("gamepadconnected", (e) => {
+    GP.count++;
+    if (cfg.mode !== "gamepad") { setMode("gamepad"); toast("Controller connected — switched to Game controller"); } else padStart();
+    $("#gpname").textContent = "Connected: " + (e.gamepad.id.replace(/\s*\(.*$/, "") || "controller");
+  });
+  addEventListener("gamepaddisconnected", (e) => {
+    GP.count = Math.max(0, GP.count - 1); unhold("gp" + e.gamepad.index); GP.prev.delete(e.gamepad.index);
+    toast("Controller disconnected"); if (!GP.count) { $("#gpname").textContent = "No controller yet"; $("#gphelp").hidden = false; }
+  });
+}
+
+/* ---------- tilt ---------- */
+const TL = { on: false, zero: null, a: 0, t: 0, got: false, raf: 0, dir: null };
+const tiltRate = analog(() => TL.t);
+function tmsg(s) { $("#tmsg").textContent = s; }
+async function tiltStart() {
+  if (AVAIL.tilt) { tmsg(why("tilt")); return; }
+  try {
+    if (typeof DeviceOrientationEvent.requestPermission === "function") { // iOS asks the player once
+      const r = await DeviceOrientationEvent.requestPermission();
+      if (r !== "granted") { tmsg("Motion access was declined. Allow Motion & Orientation for this site in Safari settings, or pick another controller."); return; }
+    }
+  } catch (err) { tmsg("Couldn't start the tilt sensor: " + (err && err.message ? err.message : err)); return; }
+  if (!TL.on) { addEventListener("deviceorientation", onTilt); TL.on = true; }
+  TL.zero = null; TL.got = false;
+  $("#tstart").textContent = "Re-centre"; $("#tstart").classList.remove("hot");
+  tmsg("Centre set. Tilt left or right to steer.");
+  setTimeout(() => { if (!TL.got) tmsg("No readings from a tilt sensor — this device may not have one."); }, 1500);
+}
+function steerAngle(e) {
+  const ang = screen.orientation && typeof screen.orientation.angle === "number" ? screen.orientation.angle : Number(window.orientation) || 0;
+  const b = e.beta || 0, g = e.gamma || 0;
+  switch (((ang % 360) + 360) % 360) { case 90: return b; case 270: return -b; case 180: return -g; default: return g; }
+}
+function onTilt(e) {
+  if (e.gamma == null && e.beta == null) return;
+  TL.got = true;
+  if (cfg.mode !== "tilt") return;
+  const raw = steerAngle(e);
+  if (TL.zero === null) TL.zero = raw;
+  let a = raw - TL.zero;
+  if (a > 180) a -= 360; if (a < -180) a += 360;
+  const max = { low: 34, medium: 24, high: 15 }[cfg.tilt], v = clamp(a / max, -1, 1), m = Math.abs(v), dz = 0.22;
+  if (m < dz) { TL.t = 0; if (TL.dir) { unhold("tilt"); TL.dir = null; } }
+  else { TL.t = (m - dz) / (1 - dz); TL.dir = v < 0 ? "left" : "right"; hold("tilt", [TL.dir], tiltRate); }
+  TL.a = v;
+  if (!TL.raf) TL.raf = requestAnimationFrame(() => { // paint at most once per frame, never in the input path
+    TL.raf = 0;
+    $("#wheel").style.transform = `rotate(${TL.a * 60}deg)`; $("#wheel").classList.toggle("go", !!TL.dir);
+    $("#tknob").style.left = `${50 + TL.a * 46}%`;
+  });
+}
+$("#tstart").addEventListener("click", tiltStart);
+resets.push(() => { if (TL.dir) { TL.dir = null; TL.t = 0; } });
+
+/* ============================== screen & layout ============================== */
+function setColor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return;
+  const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255, s = app.style;
+  s.setProperty("--c", "#" + m[1]);
+  for (const [k, a] of [["10", 0.1], ["20", 0.2], ["35", 0.35], ["55", 0.55]]) s.setProperty("--ca" + k, `rgba(${r},${g},${b},${a})`);
+  $('meta[name="theme-color"]').content = "#" + m[1];
+}
+function layout() {
+  const w = innerWidth, h = innerHeight, land = w > h * 1.05;
+  app.classList.toggle("land", land);
+  const sc = { S: 0.84, M: 1, L: 1.2 }[cfg.size] || 1;
+  const head = land ? 72 : 124;
+  const fit = land ? Math.min((h - head - 20) / 3.6, (w - 60) / 8.4) : Math.min((w - 26) / (cfg.size === "L" ? 5.8 : 6.2), (h - head - 190) / 3.8);
+  const u = Math.round(clamp(Math.min(fit, 66 * sc), 42, 110));
+  app.style.setProperty("--u", u + "px");
+  stick.apply();
+}
+addEventListener("resize", layout);
+addEventListener("orientationchange", () => setTimeout(layout, 60));
+
+let wl = null;
+async function wakeOn() {
+  if (!cfg.awake || wl || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+  try { wl = await navigator.wakeLock.request("screen"); wl.addEventListener("release", () => { wl = null; }); } catch (_) {}
+}
+function wakeOff() { if (wl) { wl.release().catch(() => {}); wl = null; } }
+document.addEventListener("pointerdown", wakeOn, { capture: true, passive: true });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wakeOn(); else releaseAll(); });
+addEventListener("blur", releaseAll);
+
+let toastT = 0;
+function toast(s) { const t = $("#toast"); t.textContent = s; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
+
+function applyCfg() {
+  for (const sec of $$(".mode")) sec.hidden = sec.dataset.m !== cfg.mode;
+  app.dataset.mode = cfg.mode;
+  app.classList.toggle("lefty", cfg.lefty);
+  $("#strip").hidden = !cfg.strip;
+  $("#lat").hidden = !cfg.latency || !LAT.length;
+  for (const el of $$(".mhint")) el.textContent = MODES[cfg.mode].hint;
+  layout();
+  if (cfg.awake) wakeOn(); else wakeOff();
+  padStart();
+}
+function setMode(m) { if (!usable(m) || m === cfg.mode) return; releaseAll(); cfg.mode = m; saveCfg(); applyCfg(); }
+
+/* ============================== settings sheet ============================== */
+function renderSheet() {
+  const order = [...controls.filter((m) => MODES[m]), ...MODE_IDS.filter((m) => !controls.includes(m))].sort((x, y) => usable(y) - usable(x)); // unavailable last
+  const modes = order.map((m) => {
+    const M = MODES[m], dis = !usable(m), sel = cfg.mode === m;
+    const badge = controls[0] === m ? '<span class="badge rec">Recommended</span>' : controls.includes(m) ? '<span class="badge">Suits this game</span>' : "";
+    return `<button class="mcard${sel ? " sel" : ""}" role="radio" aria-checked="${sel}"${dis ? ' aria-disabled="true"' : ""} data-mode="${m}">
+      <span class="mi" aria-hidden="true">${ICON[m]}</span>
+      <span class="mt"><span class="mn">${M.name}${badge}</span><span class="md">${M.desc}</span>${dis ? `<span class="why">${LOCK}<span>${why(m)}</span></span>` : ""}</span>
+      <span class="mc" aria-hidden="true">${sel ? CHECK : ""}</span></button>`;
+  }).join("");
+  const opt = (o) => {
+    const v = cfg[o.k], na = o.na || "";
+    if (o.sw) return `<button class="row" role="switch" aria-checked="${!!v && !na}" data-opt="${o.k}"${na ? ' aria-disabled="true"' : ""}>
+      <span class="rt"><span class="rn">${o.t}</span>${na || o.d ? `<span class="rd">${na || o.d}</span>` : ""}</span><span class="sw" aria-hidden="true"><i></i></span></button>`;
+    return `<div class="row"><span class="rt"><span class="rn" id="l-${o.k}">${o.t}</span>${o.d ? `<span class="rd">${o.d}</span>` : ""}</span>
+      <div class="seg" role="radiogroup" aria-labelledby="l-${o.k}">${o.seg.map(([val, lab]) => `<button role="radio" aria-checked="${String(v) === String(val)}" data-opt="${o.k}" data-val="${val}">${lab}</button>`).join("")}</div></div>`;
+  };
+  const spec = OPTS.filter((o) => o.modes && o.modes.includes(cfg.mode)).map(opt).join("");
+  const recentre = cfg.mode === "tilt" && TL.on ? `<div class="row"><span class="rt"><span class="rn">Centre</span><span class="rd">Use how you're holding the phone now</span></span><button class="act" data-act="recentre">Re-centre</button></div>` : "";
+  $("#shbody").innerHTML = `<div class="sec">Controller</div><div class="modes" role="radiogroup" aria-label="Controller type">${modes}</div>
+    ${spec || recentre ? `<div class="sec">${MODES[cfg.mode].name}</div>${spec}${recentre}` : ""}
+    <div class="sec">Comfort</div>${OPTS.filter((o) => !o.modes).map(opt).join("")}`;
+}
+$("#shbody").addEventListener("click", (e) => {
+  const mb = e.target.closest(".mcard");
+  if (mb) { if (mb.getAttribute("aria-disabled") !== "true") { setMode(mb.dataset.mode); renderSheet(); } return; }
+  if (e.target.closest('[data-act="recentre"]')) { TL.zero = null; toast("Centre set"); return; }
+  const ob = e.target.closest("[data-opt]");
+  if (!ob || ob.getAttribute("aria-disabled") === "true") return;
+  const k = ob.dataset.opt;
+  if (OPT[k].sw) cfg[k] = !cfg[k]; else cfg[k] = typeof DEF[k] === "number" ? Number(ob.dataset.val) : ob.dataset.val;
+  if (k === "haptics" && cfg.haptics) buzz(20);
+  saveCfg(); applyCfg(); renderSheet();
+});
+function openSheet() { releaseAll(); renderSheet(); $("#scrim").hidden = false; $("#sheet").hidden = false; $("#done").focus(); }
+function closeSheet() { $("#scrim").hidden = true; $("#sheet").hidden = true; $("#gear").focus(); }
+$("#gear").addEventListener("click", openSheet);
+$("#done").addEventListener("click", closeSheet);
+$("#scrim").addEventListener("click", closeSheet);
+
+/* ============================== page hygiene ============================== */
+// no zoom, no scroll/bounce, no long-press menus; control surfaces never generate click/mouse emulation
+document.addEventListener("touchstart", (e) => { if (e.target.closest("[data-surface]") && !e.target.closest("[data-click]")) e.preventDefault(); }, { passive: false });
+document.addEventListener("touchmove", (e) => { if (!e.target.closest(".sh-body")) e.preventDefault(); }, { passive: false });
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+document.addEventListener("dblclick", (e) => e.preventDefault());
+document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+/* ============================== network ============================== */
+let ended = false, backoff = 400, lastTurnMine = false;
+const LAT = [];
+function setStatus(parts, mine) {
+  const st = $("#status");
+  st.innerHTML = "";
+  parts.forEach((p, i) => { const s = document.createElement("span"); s.textContent = p; if (mine && i === 0) s.className = "pill"; st.appendChild(s); });
+}
+function onState(s) {
+  const parts = [];
+  let mine = false;
+  if (s.lobby) parts.push("Waiting for players to join…");
+  if (typeof s.turn === "number" && s.turn > 0) {
+    mine = s.turn === seat;
+    parts.push(mine ? "Your turn" : `Player ${s.turn}'s turn`);
+  } else if (typeof s.score === "number") parts.push(`Score ${s.score}`);
+  if (mine && !lastTurnMine) buzz(40);
+  lastTurnMine = mine;
+  if (parts.length) setStatus(mine ? ["Your turn", ...parts.filter((p) => p !== "Your turn")] : parts, mine);
+  if (Array.isArray(s.seats)) {
+    const html = s.seats.map((x) => {
+      const me = x.seat === seat;
+      return `<span class="chip${me ? " me" : ""}" style="--cc:${SEATS[x.seat] || "#888"}"><i></i>P${x.seat} · ${me ? "you" : x.human ? "player" : "AI"}</span>`;
+    }).join("");
+    for (const el of $$(".lineup")) if (el.innerHTML !== html) el.innerHTML = html;
+  }
+}
+function onPong(t) {
+  const ms = now() - Number(t);
+  if (!(ms >= 0 && ms < 10000)) return;
+  LAT.push(ms); if (LAT.length > 9) LAT.shift();
+  const s = [...LAT].sort((a, b) => a - b), med = Math.round(s[s.length >> 1]), el = $("#lat");
+  el.textContent = `${med} ms`;
+  el.style.setProperty("--q", med < 60 ? "#50ff78" : med < 120 ? "#ffc800" : "#ff3c5a");
+  el.title = "Round-trip latency (median of the last pings)";
+  el.hidden = !cfg.latency;
+}
+function end(title, text, label) {
+  ended = true; releaseAll();
+  $("#end-t").textContent = title; $("#end-p").textContent = text; $("#end-b").textContent = label; $("#end").hidden = false;
+  $("#seat").textContent = "Game over";
+}
+$("#end-b").addEventListener("click", () => location.reload());
+function ping() { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "ping", t: now() })); }
+function connect() {
+  try { ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/p/${code}`); }
+  catch (_) { setTimeout(connect, backoff); return; }
+  ws.onopen = () => { backoff = 400; ping(); };
+  ws.onmessage = (ev) => {
+    let m;
+    try { m = JSON.parse(ev.data); } catch (_) { return; }
+    if (m.type === "hello") {
+      seat = m.seat;
+      setColor(m.color || SEATS[seat]);
+      const first = gameName !== (m.game || "DotDeck");
+      gameName = m.game || "DotDeck";
+      controls = (Array.isArray(m.controls) ? m.controls : []).filter((c) => MODES[c]);
+      if (!controls.length) controls = ["dpad"];
+      $("#game").textContent = gameName; document.title = `${gameName} · DotDeck controller`;
+      $("#orb").textContent = seat; for (const el of $$(".bn")) el.textContent = "P" + seat;
+      $("#seat").textContent = `Player ${seat}`;
+      if (first) { loadCfg(); applyCfg(); }
+      setStatus(["You're in! Watch the panel."], false);
+    } else if (m.type === "state") onState(m.status || {});
+    else if (m.type === "pong") onPong(m.t);
+    else if (m.type === "full") { end("This game is full", "All the seats are taken. Ask the host to open a new game, then scan the QR code on the panel again.", "Try again"); ws.close(); }
+    else if (m.type === "closed") { end("Game over", "The host closed this game. Scan the QR code on the panel to join the next one.", "Rejoin"); ws.close(); }
+  };
+  ws.onclose = () => {
+    if (ended) return;
+    $("#seat").textContent = "Reconnecting…"; $("#seat").classList.add("conn");
+    setTimeout(connect, backoff); backoff = Math.min(backoff * 2, 4000);
+  };
+  ws.addEventListener("message", () => $("#seat").classList.remove("conn"), { once: true });
+}
+setInterval(ping, 1500);
+
+/* ============================== boot ============================== */
+try { const g = JSON.parse(localStorage.getItem("dotdeck.pad") || "{}") || {}; for (const k of COMFORT) if (validOpt(k, g[k])) cfg[k] = g[k]; } catch (_) {}
+applyCfg();
+connect();
+</script>
+</body></html>

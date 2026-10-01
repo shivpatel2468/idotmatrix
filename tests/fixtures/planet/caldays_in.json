@@ -1,0 +1,103 @@
+{
+  "code": "in",
+  "country": "India",
+  "countryLocal": "भारत",
+  "locale": "en-IN",
+  "year": 2026,
+  "license": "CC BY 4.0",
+  "count": 23,
+  "holidays": [
+    {
+      "date": "2026-01-14",
+      "name": "Pongal / Makar Sankranti"
+    },
+    {
+      "date": "2026-01-15",
+      "name": "Thiruvalluvar Day"
+    },
+    {
+      "date": "2026-01-26",
+      "name": "Republic Day"
+    },
+    {
+      "date": "2026-03-03",
+      "name": "Holi"
+    },
+    {
+      "date": "2026-03-19",
+      "name": "Gudi Padwa"
+    },
+    {
+      "date": "2026-03-19",
+      "name": "Ugadi"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Tamil New Year / Vishu"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Pohela Boishakh"
+    },
+    {
+      "date": "2026-04-15",
+      "name": "Bohag Bihu"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "May Day"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Maharashtra Day"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Gujarat Day"
+    },
+    {
+      "date": "2026-08-15",
+      "name": "Independence Day"
+    },
+    {
+      "date": "2026-08-26",
+      "name": "Onam (Thiruvonam)"
+    },
+    {
+      "date": "2026-10-02",
+      "name": "Gandhi Jayanti"
+    },
+    {
+      "date": "2026-10-17",
+      "name": "Durga Puja (Maha Saptami)"
+    },
+    {
+      "date": "2026-11-01",
+      "name": "Karnataka Rajyotsava"
+    },
+    {
+      "date": "2026-11-01",
+      "name": "Kerala Day"
+    },
+    {
+      "date": "2026-11-01",
+      "name": "Haryana Day"
+    },
+    {
+      "date": "2026-11-08",
+      "name": "Diwali"
+    },
+    {
+      "date": "2026-11-25",
+      "name": "Guru Nanak Jayanti"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas Day"
+    }
+  ]
+}

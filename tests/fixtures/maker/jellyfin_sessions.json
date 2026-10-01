@@ -1,0 +1,7 @@
+[
+  {"PlayState": {"PositionTicks": 12480000000, "CanSeek": true, "IsPaused": false, "IsMuted": false, "PlayMethod": "DirectPlay", "RepeatMode": "RepeatNone"},
+   "Id": "sess1", "UserId": "8c4b0e3c1a2d4b5e9f6a7b8c9d0e1f2a", "UserName": "alex", "Client": "Jellyfin Web", "LastActivityDate": "2025-02-09T20:00:00.0000000Z", "DeviceName": "Firefox", "DeviceId": "d1", "ApplicationVersion": "10.10.3",
+   "NowPlayingItem": {"Name": "Hyperion", "Id": "a1f0c2b3d4e5f60718293a4b5c6d7e8f", "RunTimeTicks": 31200000000, "Type": "Episode", "SeriesName": "Severance", "IndexNumber": 5, "ParentIndexNumber": 2}},
+  {"PlayState": {"CanSeek": false, "IsPaused": false, "IsMuted": false, "RepeatMode": "RepeatNone"},
+   "Id": "sess2", "UserName": "kids", "Client": "Android TV", "DeviceName": "Shield", "DeviceId": "d2", "ApplicationVersion": "0.17.0"}
+]

@@ -1,0 +1,27 @@
+name: Bug report
+description: Something on the panel or in the studio isn't working
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see (on the panel and/or in the studio)?
+    validations: { required: true }
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open … 2. Pick app … 3. …"
+  - type: input
+    attributes:
+      label: Host
+      placeholder: "Windows 11 laptop / Raspberry Pi 4 / Android 14 (beta app) / --sim"
+    validations: { required: true }
+  - type: input
+    attributes:
+      label: Panel
+      placeholder: "iDotMatrix 32×32 (IDM-xxxxxx)"
+  - type: textarea
+    attributes:
+      label: Engine log
+      description: The last lines of the engine output. **Remove any tokens or addresses first.**
+      render: text

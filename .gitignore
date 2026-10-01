@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------- secrets & machine-local config
+# Never commit these: API keys, tokens, passwords and your panel's address live here.
+.env
+.env.*
+!.env.example
+dotdeck.toml
+*.local.toml
+android/local.properties
+*.keystore
+*.jks
+*.pem
+*.p12
+
+# app state: state.json holds every app's settings (incl. tokens), uploads, calibration
+data/
+
+# ---------------------------------------------------------------- python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+
+# ---------------------------------------------------------------- web
+web/node_modules/
+web/dist/
+
+# ---------------------------------------------------------------- android
+android/.gradle/
+android/build/
+android/app/build/
+*.apk
+*.aab
+
+# ---------------------------------------------------------------- tooling & scratch
+.playwright-mcp/
+tmp/
+*.log
+
+# ---------------------------------------------------------------- not part of the project
+# the v2 code (reference only, never imported) and third-party assets we can't relicense
+legacy/
+assets/
+minecraft/
+*.zip
+*.pdf
+*.winmd
+/*.gif
+/*.png
+/*.json
+!/package.json
+!/.mcp.json
+.DS_Store
+Thumbs.db
+desktop.ini

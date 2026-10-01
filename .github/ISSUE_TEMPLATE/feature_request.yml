@@ -1,0 +1,13 @@
+name: App or feature idea
+description: A new app, game, data source or studio feature
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: The idea
+      description: What would it show or do on a 32×32 panel? A sketch or reference helps.
+    validations: { required: true }
+  - type: input
+    attributes:
+      label: Data source (if any)
+      description: Ideally a free API with no key — see DATA_SOURCES.md.

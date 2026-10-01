@@ -1,0 +1,27 @@
+{
+ "current_page": 1,
+ "data": [
+  {
+   "fact": "Cats have 3 eyelids.",
+   "length": 20
+  },
+  {
+   "fact": "Cats walk on their toes.",
+   "length": 24
+  },
+  {
+   "fact": "Most cats adore sardines.",
+   "length": 25
+  },
+  {
+   "fact": "Cats dislike citrus scent.",
+   "length": 26
+  },
+  {
+   "fact": "Cats have supersonic hearing",
+   "length": 28
+  }
+ ],
+ "last_page": 11,
+ "total": 215
+}

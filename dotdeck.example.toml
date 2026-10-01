@@ -1,0 +1,11 @@
+# Copy to dotdeck.toml and edit. Every key can also be set with an env var: DOTDECK_<KEY>.
+
+host = "0.0.0.0"        # listen on the LAN so friends' phones can join games (only the controller is exposed)
+lan_studio = false      # true = also allow the full studio/API from other devices on the LAN (no login!)
+port = 8765
+device = "ble"          # "ble" = real panel, "sim" = simulator (no hardware)
+address = ""              # your panel's MAC (uv run dotdeck scan); empty = connect to the first IDM-* panel found
+max_fps = 8             # cap on frames pushed over Bluetooth (latest frame always wins)
+data_dir = "data"       # state.json + uploaded media
+plugins_dir = "plugins" # drop-in *.py apps
+log_level = "INFO"

@@ -1,0 +1,240 @@
+"""Shooters: tactical-shooter archetypes (original chibi designs)."""
+
+from __future__ import annotations
+
+from .build import biped
+from .parts import RIFLE, SNIPER
+from .rig import Part, v
+
+SKIN = (255, 190, 140)
+FPS = ("shoot", "reload", "crouch")
+GUN = {"G": "#6e6e82", "g": "#3c3c4b"}
+
+biped(
+    "br_soldier",
+    "BR Soldier",
+    "fps",
+    "A battle-royale survivor: level-3 helmet, stuffed tactical vest and a trusty frying pan on the back.",
+    slots={
+        "helmet": (110, 120, 80),
+        "vest": (200, 170, 100),
+        "shirt": (70, 90, 60),
+        "skin": SKIN,
+        "pants": (60, 60, 75),
+    },
+    key={
+        "h": "helmet",
+        "H": "helmet*0.6",
+        "s": "skin",
+        "S": "skin*0.8",
+        "v": "vest",
+        "V": "vest*0.65",
+        "u": "#50413a",
+        "c": "shirt",
+        "n": "skin",
+        "p": "pants",
+        "f": "#463c32",
+        "P": "#8c8ca0",
+        "Q": "#50505f",
+        **GUN,
+    },
+    head=(
+        "..hhhhhh..",
+        ".hhhhhhhh.",
+        "hhhhhhhhhh",
+        "HHHHHHHHHH",
+        "hhssssssss",
+        ".sssssssss",
+        ".sssssssS.",
+        "..ssssss..",
+    ),
+    torso=("VvvvvvvV", "VVvvvVVv", "VvvvvvvV", "uuuuuuuu", "pppppppp"),
+    eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 2},
+    item=RIFLE,
+    parts={
+        "pan": Part(
+            0,
+            5,
+            {"default": v(".QQQ.", "QPPPQ", "QPPPQ", "QPPPQ", ".QQQ.", "..u..", "..u..")},
+            parent="body",
+            z=-3,
+        )
+    },
+    opts={"food": "drumstick", "gun": True, "gun_len": 1},
+    extras=FPS,
+)
+
+biped(
+    "ct_operator",
+    "CT Operator",
+    "fps",
+    "A counter-terrorist operator in navy fatigues, goggles up on the helmet, rifle at low ready.",
+    slots={
+        "helmet": (40, 70, 170),
+        "uniform": (50, 90, 200),
+        "vest": (30, 45, 110),
+        "skin": SKIN,
+        "goggles": (0, 220, 255),
+    },
+    key={
+        "b": "helmet",
+        "B": "helmet*0.6",
+        "o": "goggles",
+        "s": "skin",
+        "S": "skin*0.8",
+        "v": "vest",
+        "V": "vest*0.7",
+        "u": "#28283a",
+        "c": "uniform",
+        "n": "#3c3c4b",
+        "p": "uniform*0.7",
+        "f": "#28283a",
+        **GUN,
+    },
+    head=(
+        "..bbbbbb..",
+        ".bbbbbbbb.",
+        "bbbbbooobb",
+        "BBBBBBBBBB",
+        "bbssssssss",
+        ".sssssssss",
+        ".sssssssS.",
+        "..ssssss..",
+    ),
+    torso=("cvvvvvvc", "cvVvvVvc", "cvvvvvvc", "uuuuuuuu", "pppppppp"),
+    eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 2},
+    item=RIFLE,
+    opts={"food": "drumstick", "gun": True},
+    extras=FPS,
+)
+
+biped(
+    "terrorist",
+    "Terrorist",
+    "fps",
+    "A masked insurgent: dark balaclava with an eye slit, tan jacket and a wood-stocked rifle.",
+    slots={
+        "mask": (80, 80, 95),
+        "jacket": (205, 170, 110),
+        "skin": SKIN,
+        "pants": (100, 110, 70),
+        "wood": (150, 80, 30),
+    },
+    key={
+        "k": "mask",
+        "K": "mask*0.6",
+        "s": "skin",
+        "t": "jacket",
+        "T": "jacket*0.65",
+        "u": "#3c3228",
+        "c": "jacket",
+        "n": "skin",
+        "p": "pants",
+        "f": "#3c3228",
+        "G": "#5a5a6e",
+        "g": "wood",
+    },
+    head=(
+        "..kkkkkk..",
+        ".kkkkkkkk.",
+        "kkkkkkkkkk",
+        "kkkkkkkkkk",
+        "kkssssssss",
+        "kkkkkkkkkk",
+        ".kkkkkkkK.",
+        "..kkkkkk..",
+    ),
+    torso=("tttttttt", "tTttTttt", "tttttttt", "uuuuuuuu", "pppppppp"),
+    eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 1},
+    item={
+        "hold": v("..G....", "GGGGggg", "..g.g..", grip=(4, 1)),
+        "aim": v("..G....", "GGGGggg", "..g.g..", grip=(6, 1)),
+    },
+    opts={"food": "drumstick", "gun": True},
+    extras=FPS,
+)
+
+biped(
+    "agent",
+    "Agent Duelist",
+    "fps",
+    "A flashy tactical duelist: spiky hair, cropped black jacket with neon trim and a sleek rifle.",
+    slots={
+        "hair": (60, 40, 110),
+        "jacket": (40, 40, 60),
+        "accent": (0, 235, 255),
+        "skin": SKIN,
+        "pants": (70, 70, 95),
+    },
+    key={
+        "h": "hair",
+        "H": "hair*0.6",
+        "s": "skin",
+        "S": "skin*0.8",
+        "j": "jacket",
+        "a": "accent",
+        "c": "jacket",
+        "C": "accent",
+        "n": "skin",
+        "p": "pants",
+        "f": "accent*0.7",
+        **GUN,
+    },
+    head=(
+        "h.h.h.h...",
+        ".hhhhhhh..",
+        "hhhhhhhhh.",
+        "hhhhhhhhhh",
+        "hhhsssssss",
+        "hhssssssss",
+        ".hsssssss.",
+        "..ssssss..",
+    ),
+    torso=("jajjjjaj", "jjajjajj", "jjjaajjj", "jjjjjjjj", "pppppppp"),
+    eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 2},
+    item={
+        "hold": v("..a....", "GGGGGGG", "G.gg...", grip=(2, 1)),
+        "aim": v("..a....", "GGGGGGG", "G.gg...", grip=(6, 1)),
+    },
+    opts={"food": "apple", "gun": True},
+    extras=FPS,
+)
+
+biped(
+    "sniper",
+    "Sniper",
+    "fps",
+    "A patient sniper wrapped in a shaggy ghillie hood, face paint on, long rifle in hand.",
+    slots={"ghillie": (70, 150, 50), "moss": (120, 110, 40), "skin": SKIN, "paint": (40, 80, 30)},
+    key={
+        "g": "ghillie",
+        "G": "moss",
+        "s": "skin",
+        "S": "skin*0.8",
+        "d": "paint",
+        "c": "ghillie",
+        "C": "moss",
+        "n": "skin",
+        "p": "moss",
+        "f": "#3c3228",
+        "k": "#5a5a6e",
+        "K": "#3c3c4b",
+    },
+    head=(
+        ".g.G.g.g..",
+        "gGgGgGgGg.",
+        "GgGgGgGgGg",
+        "gGsdsssdss",
+        "Gsssssssss",
+        "gssssssss.",
+        "gGsddddsS.",
+        ".gGssss...",
+    ),
+    torso=("gGgGgGgG", "GgGgGgGg", "gGgGgGgG", "GgGgGgGg", "gGgGgGgG"),
+    eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 1},
+    item={
+        k: v(*(r.replace("G", "k").replace("g", "K") for r in x.rows), grip=x.grip) for k, x in SNIPER.items()
+    },
+    opts={"food": "apple", "gun": True},
+    extras=FPS,
+)

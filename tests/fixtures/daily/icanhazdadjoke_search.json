@@ -1,0 +1,36 @@
+{
+ "current_page": 3,
+ "limit": 30,
+ "next_page": 4,
+ "previous_page": 2,
+ "results": [
+  {
+   "id": "41LeN7EImjb",
+   "joke": "What is the difference between ignorance and apathy?\r\n\r\nI don't know and I don't care."
+  },
+  {
+   "id": "49xPmW82g",
+   "joke": "I went to a Foo Fighters Concert once... It was Everlong..."
+  },
+  {
+   "id": "4EBXnjiVKBd",
+   "joke": "Why did the sentence fail the driving test? It never came to a full stop."
+  },
+  {
+   "id": "4EBsPZvP7h",
+   "joke": "Some people eat light bulbs. They say it's a nice light snack."
+  },
+  {
+   "id": "4Elysrzs4wc",
+   "joke": "What's the difference between a rooster and a crow? A rooster can crow but a crow cannot rooster."
+  },
+  {
+   "id": "4ElyszXDdxc",
+   "joke": "I went to the store to pick up eight cans of sprite... when I got home I realized I'd only picked seven up"
+  }
+ ],
+ "search_term": "",
+ "status": 200,
+ "total_jokes": 744,
+ "total_pages": 25
+}

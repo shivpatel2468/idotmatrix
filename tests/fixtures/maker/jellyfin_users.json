@@ -1,0 +1,2 @@
+[{"Name": "alex", "ServerId": "f3a9", "Id": "8c4b0e3c1a2d4b5e9f6a7b8c9d0e1f2a", "HasPassword": true, "HasConfiguredPassword": true, "EnableAutoLogin": false, "Policy": {"IsAdministrator": true}},
+ {"Name": "kids", "ServerId": "f3a9", "Id": "1b2c3d4e5f60718293a4b5c6d7e8f901", "HasPassword": false, "Policy": {"IsAdministrator": false}}]

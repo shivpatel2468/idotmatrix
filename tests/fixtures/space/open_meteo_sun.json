@@ -1,0 +1,33 @@
+{
+ "latitude": 19.226713,
+ "longitude": 72.99703,
+ "generationtime_ms": 0.011324882507324219,
+ "utc_offset_seconds": 19800,
+ "timezone": "Asia/Kolkata",
+ "timezone_abbreviation": "GMT+5:30",
+ "elevation": 14.0,
+ "daily_units": {
+  "time": "iso8601",
+  "sunrise": "iso8601",
+  "sunset": "iso8601",
+  "daylight_duration": "s"
+ },
+ "daily": {
+  "time": [
+   "2026-09-24",
+   "2026-09-25"
+  ],
+  "sunrise": [
+   "2026-09-24T06:27",
+   "2026-09-25T06:27"
+  ],
+  "sunset": [
+   "2026-09-24T18:32",
+   "2026-09-25T18:31"
+  ],
+  "daylight_duration": [
+   43542.82,
+   43477.38
+  ]
+ }
+}

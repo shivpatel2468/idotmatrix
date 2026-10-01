@@ -1,0 +1,40 @@
+{
+ "data": [
+  {
+   "id": 94979,
+   "title": "Nathaniel Hurd",
+   "creators": [
+    {
+     "description": "John Singleton Copley (American, born The Thirteen Colonies, 1738–1815)"
+    }
+   ],
+   "images": {
+    "web": {
+     "url": "https://openaccess-cdn.clevelandart.org/1915.534/1915.534_web.jpg",
+     "width": "748",
+     "height": "893",
+     "filesize": "402404",
+     "filename": "1915.534_web.jpg"
+    }
+   }
+  },
+  {
+   "id": 151904,
+   "title": "The Biglin Brothers Turning the Stake",
+   "creators": [
+    {
+     "description": "Thomas Eakins (American, 1844–1916)"
+    }
+   ],
+   "images": {
+    "web": {
+     "url": "https://openaccess-cdn.clevelandart.org/1927.1984/1927.1984_web.jpg",
+     "width": "1263",
+     "height": "835",
+     "filesize": "780656",
+     "filename": "1927.1984_web.jpg"
+    }
+   }
+  }
+ ]
+}

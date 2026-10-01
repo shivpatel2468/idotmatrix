@@ -1,0 +1,93 @@
+{
+ "count": 36185,
+ "next": "https://api.spaceflightnewsapi.net/v4/articles/?limit=10&offset=10",
+ "previous": null,
+ "results": [
+  {
+   "id": 40072,
+   "title": "ESA Awards RFA €2.7 Million in New Funding for SaxaVord Operations",
+   "authors": [
+    {
+     "name": "European Spaceflight",
+     "socials": null
+    }
+   ],
+   "url": "https://europeanspaceflight.com/esa-awards-rfa-e2-7-million-in-new-funding-for-saxavord-operations/",
+   "news_site": "European Spaceflight",
+   "summary": "The European Space Agency (ESA) has awarded Rocket Factory Augsburg (RFA) a cont",
+   "published_at": "2026-09-24T06:00:15Z",
+   "updated_at": "2026-09-24T06:49:13.641073Z",
+   "featured": false,
+   "launches": [
+    {
+     "launch_id": "91b13c6c-4525-496d-997b-3521bb6a4cd8",
+     "provider": "Launch Library 2"
+    }
+   ],
+   "events": []
+  },
+  {
+   "id": 40070,
+   "title": "APOD: 2026 September 24 – The Ghosts of Five Supernovas",
+   "authors": [
+    {
+     "name": "NASA",
+     "socials": null
+    }
+   ],
+   "url": "https://science.nasa.gov/image-article/apod-2026-september-24-the-ghosts-of-five-supernovas/",
+   "news_site": "NASA",
+   "summary": "APOD Science APOD APOD: 2026 September 24 –… Today’s APOD Archive Submissions In",
+   "published_at": "2026-09-24T04:05:00Z",
+   "updated_at": "2026-09-24T04:40:12.473370Z",
+   "featured": false,
+   "launches": [],
+   "events": []
+  },
+  {
+   "id": 40071,
+   "title": "Cloudy Cloak Over the Northwest",
+   "authors": [
+    {
+     "name": "NASA",
+     "socials": null
+    }
+   ],
+   "url": "https://science.nasa.gov/earth/earth-observatory/cloudy-cloak-over-the-northwest/",
+   "news_site": "NASA",
+   "summary": "A low-lying cloud layer brought autumn ambience to western Washington and Oregon",
+   "published_at": "2026-09-24T04:01:00Z",
+   "updated_at": "2026-09-24T04:50:13.492954Z",
+   "featured": false,
+   "launches": [],
+   "events": []
+  },
+  {
+   "id": 40069,
+   "title": "Swift Rescue Mission May Not Have Succeeded, But No Regrets",
+   "authors": [
+    {
+     "name": "Marcia Smith",
+     "socials": null
+    }
+   ],
+   "url": "https://spacepolicyonline.com/news/swift-rescue-mission-may-not-have-succeeded-but-no-regrets/",
+   "news_site": "SpacePolicyOnline.com",
+   "summary": "The bold mission to extend the lifetime of NASA’s Swift observatory is coming to",
+   "published_at": "2026-09-24T02:01:59Z",
+   "updated_at": "2026-09-24T06:49:20.933302Z",
+   "featured": false,
+   "launches": [
+    {
+     "launch_id": "db02116f-17ba-429a-b6c1-8e7f13b5e787",
+     "provider": "Launch Library 2"
+    },
+    {
+     "launch_id": "f596ad48-881e-47d6-806d-113c6dd97427",
+     "provider": "Launch Library 2"
+    }
+   ],
+   "events": []
+  }
+ ]
+}

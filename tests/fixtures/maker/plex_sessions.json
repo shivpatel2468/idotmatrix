@@ -1,0 +1,11 @@
+{
+  "MediaContainer": {
+    "size": 1,
+    "Metadata": [
+      {"ratingKey": "48213", "type": "episode", "title": "The Long Night", "grandparentTitle": "Severance", "index": 5, "parentIndex": 2, "duration": 3120000, "viewOffset": 1404000,
+       "User": {"id": "1", "thumb": "https://plex.tv/users/abc/avatar", "title": "alex"},
+       "Player": {"address": "192.168.1.31", "device": "Chromecast", "machineIdentifier": "x", "platform": "Chromecast", "product": "Plex for Chromecast", "state": "playing", "title": "Living Room"},
+       "Session": {"id": "s1", "bandwidth": 12000, "location": "lan"}}
+    ]
+  }
+}
