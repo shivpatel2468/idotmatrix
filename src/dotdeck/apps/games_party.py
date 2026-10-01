@@ -131,6 +131,11 @@ class LightCycles(GameApp):
     game_themes: ClassVar[dict[str, Theme]] = CYCLE_THEMES
     game_theme_labels: ClassVar[dict[str, str]] = {"grid": "Grid", "sunset": "Sunset"}
 
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's bike."""
+        b = self.bikes.get(1)
+        return None if not b or not b["alive"] else (b["x"], b["y"])
+
     def new_game(self) -> None:
         self.wins = dict.fromkeys(range(1, 5), 0)
         self.team_wins = {0: 0, 1: 0}

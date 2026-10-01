@@ -175,6 +175,15 @@ class GameSettings(AppSettings):
         description="The AI plays while nobody does (great in a playlist)",
         json_schema_extra={"group": "Game flow"},
     )
+    pilot: str = Choice(
+        "ai",
+        {
+            "ai": "Built-in AI",
+            "fly": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)",
+        },
+        title="Plays itself with",
+        group="Game flow",
+    )
 
 
 def clamp(v: float, lo: float, hi: float) -> float:
@@ -530,9 +539,49 @@ class GameApp(App):
         self.draw(f, now)
         if self.fx_on_top:
             self.fx.draw(f)
+        self._fly_pilot(f, now)
         self._damage_overlay(f, now)
         if self.flow != "play" and self.over_at is not None and now - self.over_at > 0.45:
             self.draw_card(f, now)
+
+    # ---------------------------------------------------------------- the fruit-fly pilot
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """Where seat 1's character is on the panel (x, y), so the fly's eye is centred on its own body.
+        Games override this; None = the fly looks at the whole panel."""
+        return None
+
+    def _fly_driving(self, now: float) -> bool:
+        return (
+            getattr(self.settings, "pilot", "ai") == "fly"
+            and self.flow == "attract"
+            and self.over_at is None
+            and now - getattr(self, "_real_human_at", -1e9) > HUMAN_IDLE
+        )
+
+    def _player_label(self) -> str:
+        now = self._clock()
+        fly_recent = now - getattr(self, "_fly_at", -1e9) < HUMAN_IDLE
+        real_recent = now - getattr(self, "_real_human_at", -1e9) < HUMAN_IDLE
+        if fly_recent and not real_recent:
+            return "fly"
+        return "you" if self.human else "ai"
+
+    def _fly_pilot(self, f: Frame, now: float) -> None:
+        """When the fly is the pilot it sees the frame just drawn (pixels only, like a player) and its descending
+        neurons press seat 1's keys; a real key press hands control straight back to the person."""
+        if not self._fly_driving(now):
+            return
+        if getattr(self, "_fly", None) is None:
+            from ..fly import FlyBrain
+
+            self._fly = FlyBrain(seed=self.rng.randrange(1 << 30))
+        try:
+            anchor = self.pilot_anchor()
+        except Exception:
+            anchor = None
+        for k in self._fly.step(f.px, anchor):
+            self.human_at = self._fly_at = now  # the game's own AI stands down while the fly flies
+            self.key_p(k, 1)
 
     def _damage_overlay(self, f: Frame, now: float) -> None:
         if self.hurt_t > 0:
@@ -592,6 +641,8 @@ class GameApp(App):
             if k in KEYS and 1 <= player <= max(1, self.max_players):
                 now = self._clock()
                 self._prev_human_at = self.human_at
+                if player == 1:
+                    self._real_human_at = now  # a person, not the fly
                 if player == 1:
                     self.human_at = now
                     if self.lobby_waiting() and k == "a":
@@ -930,7 +981,7 @@ class GameApp(App):
         st: dict[str, Any] = {
             "score": int(self.score),
             "best": int(self.best),
-            "player": "you" if self.human else "ai",
+            "player": self._player_label(),
         }
         st["flow"] = self.flow
         st["mode"] = self.play_mode.id

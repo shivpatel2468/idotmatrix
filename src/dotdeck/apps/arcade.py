@@ -193,6 +193,11 @@ class Arcade(GameApp):
         "desert": "Desert",
     }
 
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's snake head (grid cells are 2 px)."""
+        snake = next((s for s in self.snakes if s.seat == 1 and s.alive and s.body), None)
+        return None if snake is None else (snake.body[0][0] * 2 + 1, snake.body[0][1] * 2 + 1)
+
     @property
     def mul(self) -> float:
         return 1.0  # `speed` is moves per second here, not a multiplier

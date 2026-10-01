@@ -111,6 +111,14 @@ class Pong(GameApp):
     game_theme_labels: ClassVar[dict[str, str]] = {"arcade": "Arcade", "court": "Court", "ice": "Ice"}
 
     # ------------------------------------------------------------ setup
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's paddle."""
+        pad = next((p for p in self.pads if p["seat"] == 1), None)
+        if pad is None:
+            return None
+        mid = pad["pos"] + self.settings.paddle / 2
+        return (pad["plane"], mid) if pad["side"] in ("L", "R") else (mid, pad["plane"])
+
     def new_game(self) -> None:
         self.mode = self.play_mode.id if self.roster else "classic"
         self.ls = self.rs = 0
@@ -862,6 +870,11 @@ class Flappy(GameApp):
     maps: ClassVar[dict[str, str]] = {"pipes": "Pipes", "moving": "Moving", "cave": "Cave"}
     game_themes: ClassVar[dict[str, Theme]] = FLAPPY_THEMES
     game_theme_labels: ClassVar[dict[str, str]] = {"meadow": "Meadow", "dusk": "Dusk", "abyss": "Abyss"}
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's bird."""
+        bird = next((b for b in self.birds if b["seat"] == 1), None)
+        return None if bird is None else (bird["x"], bird["y"])
 
     def new_game(self) -> None:
         self.race = bool(self.roster) and self.play_mode.id == "race"

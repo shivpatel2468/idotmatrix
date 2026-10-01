@@ -57,3 +57,4 @@ minecraft/
 .DS_Store
 Thumbs.db
 desktop.ini
+web/tsconfig.tsbuildinfo

@@ -77,11 +77,14 @@ that anyone, including an AI agent, can make a new app in one Python file.
     Almost every data source needs no key at all ([details](#-api-keys--costs)).
 *   **🔌 Hand-off:** when the computer sleeps or exits, the panel switches to its own built-in clock or a baked loop,
     so it never freezes on a stale frame.
+*   **🪰 A fruit-fly brain that plays:** a model of the fly's real visual circuit (the one FlyWire's
+    connectome maps) sees the panel's pixels and plays any game, or lives in its own app.
+    [How it works](docs/FLY_BRAIN.md).
 *   **📱 Runs anywhere with Bluetooth:** a laptop, a Raspberry Pi, or a spare Android phone (🧪 beta app).
 
 | What you get | Count | Details |
 | --- | --- | --- |
-| Apps | **91** | time, live data, media, pets, games, creative, focus & agents, ambient |
+| Apps | **92** | time, live data, media, pets, games, creative, focus & agents, ambient |
 | Games | **22** | every one with an AI that plays itself; most with 2–4 player modes, maps and themes |
 | Live data sources | **45+** | Open-Meteo, USGS, adsb.lol, Launch Library 2, ESPN, Binance, Yahoo Finance and more |
 | Phone controller layouts | **7** | d-pad, analog stick, swipe, tap zones, keyboard, gamepad, tilt |
@@ -101,7 +104,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
 | 🎵 | **Media** | Now Playing (album art, vinyl, karaoke lyrics), Visualizer, Photo Frame, Gallery, Media Server, Screen & Camera Mirror |
 | 🐾 | **Pets & characters** | Pet World (rooms, park, football), Pet, Pokédex, Pixel Avatar |
 | 🎮 | **Games** | Pong, Breakout, Flappy, Dino, Racer, Snake, Tetris, 2048, Invaders, Maze Chase, Asteroids, Infinity, X and 0, Four Up, Mines, Starship, Light Cycles, Dig World, Neon Heat, Street Surge, Leaf Leap, Chess Puzzle, Trivia |
-| 🎨 | **Creative** | Synthwave Horizon, 3D Wireframe, Flocking Boids, Falling Sand, Neuromorphic Cortex, Raycaster, Emotes, Pixabots, Text, Font Lab, Canvas, Player Card, Composer |
+| 🎨 | **Creative** | Fly Brain 🪰, Synthwave Horizon, 3D Wireframe, Flocking Boids, Falling Sand, Neuromorphic Cortex, Raycaster, Emotes, Pixabots, Text, Font Lab, Canvas, Player Card, Composer |
 | 🎯 | **Focus & agents** | Agent (Claude mascot), Focus Timer, Focus Pet, Eye Break, On Air, Calendar, Habits, Anki, Active App, CI radiator, OBS, Uptime, 3D Printer |
 | 🌌 | **Ambient** | Ambient (rain, snow, plasma, fireworks…), Loops |
 
@@ -191,7 +194,7 @@ lan_studio = false              # true = open the full studio to other devices o
 2. **Tweak it** in the panel on the right. Every setting is live, and every app's form is generated from its schema.
    Drag the glowing edge to resize the panel; the form re-flows to fit.
 3. **Tap a preset** in the dock ("Desk dashboard", "Chill", "All games"…) to rotate apps on a timer, or build your
-   own playlist.
+   own playlist. Drag the dock's glowing top edge to make it taller, or press ⤢ for a full-screen now-playing view.
 4. **Press ▶ Play on any game.** The AI is playing; touch an arrow key and you take over instantly. Press
    **B** for the game's menu (modes, players, map, theme).
 5. **Play with friends.** Choose *Play with friends*, the panel shows a QR code, and your friends' phones become
@@ -449,7 +452,9 @@ Secrets are typed into the studio. They're stored only in `data/state.json` on y
 
 ## 🧭 What's Next
 
-### 🪰 A fruit-fly brain that plays the apps
+### 🪰 A fruit-fly brain that plays the apps — first version is in
+
+<img src="docs/media/app-flybrain.gif" width="240" align="right" alt="Fly Brain: a fly hunting fruit and dodging a looming swatter, its neurons firing below"/>
 
 The headline goal: **wire DotDeck to the first complete map of an adult fruit-fly brain.**
 
@@ -463,6 +468,14 @@ The plan is a simplified spiking simulation of that wiring:
 - **What you see:** the panel can switch to show the brain's own activity, with neurons lighting up as it plays.
 
 You could play *against a fly*, watch it learn which inputs matter, or let it interact with any app.
+
+**What's already here:**
+- **The Fly Brain app:** a fly hunts fruit and dodges a looming swatter, with its neurons firing on the panel.
+- **A "Fruit-fly brain" pilot for every game.**
+
+Both are driven by a real-time model of exactly this circuit: T4/T5 motion detectors, HS/VS cells, LPLC2 → giant
+fibre, and descending neurons. It sees nothing but the pixels. Its wiring is modelled on the circuit, not yet
+loaded from FlyWire's synapse counts. That's the next step, explained in [docs/FLY_BRAIN.md](docs/FLY_BRAIN.md).
 
 <sub>Sources: [FlyWire](https://flywire.ai/) · [Nature, 2 Oct 2024](https://www.nature.com/nature/volumes/634/issues/8032) · [NIH Research Matters](https://www.nih.gov/news-events/nih-research-matters/complete-wiring-map-adult-fruit-fly-brain)</sub>
 

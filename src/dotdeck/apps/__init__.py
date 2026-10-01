@@ -32,6 +32,7 @@ from . import (
     extras,
     eyebreak,
     fiveoclock,
+    flybrain,
     focuspet,
     fontlab,
     gallery,
@@ -151,6 +152,7 @@ BUILTIN = (
     boids,
     synthwave,
     wireframe,
+    flybrain,
 )
 
 

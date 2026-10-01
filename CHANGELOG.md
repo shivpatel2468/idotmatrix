@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- 🪰 **Fruit-fly brain** (`dotdeck.fly`), a real-time model of the fly's visual circuit:
+  - the pathway runs from T4/T5 motion detectors, through lobula-plate HS/VS cells and LPLC2 looming detectors to
+    the giant fibre and the descending neurons;
+  - it sees only the panel's pixels.
+  - New **Fly Brain** app.
+  - New **"Plays itself with: Fruit-fly brain"** option on every game.
+  - Tested against classic fly-vision experiments. See [docs/FLY_BRAIN.md](docs/FLY_BRAIN.md).
+- Studio:
+  - a full-screen now-playing view, like a music player's;
+  - a resizable playback dock that re-flows into grids when tall.
+- Device: a Bluetooth connect that hangs (seen after Windows sleep) is abandoned and retried, so the panel no
+  longer stays disconnected.
+
 ## 3.2.0 — 2026-10-01 (first public release)
 
 **Games & multiplayer**
