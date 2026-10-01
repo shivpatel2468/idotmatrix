@@ -454,7 +454,7 @@ Secrets are typed into the studio. They're stored only in `data/state.json` on y
 
 ### 🪰 A fruit-fly brain that plays the apps — first version is in
 
-<img src="docs/media/app-flybrain.gif" width="240" align="right" alt="Fly Brain: a fly hunting fruit and dodging a looming swatter, its neurons firing below"/>
+<img src="docs/media/app-flybrain.gif" width="240" align="right" alt="Fly Brain on the panel: a fly hunting fruit and dodging a looming swatter"/>
 
 The headline goal: **wire DotDeck to the first complete map of an adult fruit-fly brain.**
 
@@ -465,13 +465,22 @@ and about 54.5 million synapses**, every connection traced.
 The plan is a simplified spiking simulation of that wiring:
 - **What it sees:** the panel's 32×32 frame goes into the fly's visual system, like a compound eye.
 - **What it does:** its descending motor neurons steer Snake, Flappy or Racer.
-- **What you see:** the panel can switch to show the brain's own activity, with neurons lighting up as it plays.
+- **What you see:** the panel shows only the game; the studio shows the brain itself, in 3D, firing as it plays.
 
 You could play *against a fly*, watch it learn which inputs matter, or let it interact with any app.
 
 **What's already here:**
-- **The Fly Brain app:** a fly hunts fruit and dodges a looming swatter, with its neurons firing on the panel.
+- **The Fly Brain app:** a fly hunts fruit and dodges a looming swatter.
 - **A "Fruit-fly brain" pilot for every game.**
+- **The 3D Fly view in the studio:** when a fly starts playing, the side panels slide shut and two live 3D scenes
+  open beside the panel:
+  - **Left:** its visual circuit, layer by layer, with signals travelling the wiring and every spike flashing.
+  - **Right:** a 3D fruit fly on a mechanical keyboard, stomping each key its neurons press, plus a keystroke log.
+
+  Quality presets (Auto adapts to your GPU), bloom, particles, themes, cameras, fly looks and keyboard styles are all
+  in **Graphics**.
+
+[![The studio's Fly view: the fly's brain in 3D on the left, the game in the middle, the fly at the keyboard on the right](docs/media/studio-flyview.png)](docs/media/studio-flyview.png)
 
 Both are driven by a real-time model of exactly this circuit: T4/T5 motion detectors, HS/VS cells, LPLC2 → giant
 fibre, and descending neurons. It sees nothing but the pixels. Its wiring is modelled on the circuit, not yet

@@ -26,7 +26,9 @@ from __future__ import annotations
 
 import math
 import random
+from collections import deque
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -49,6 +51,24 @@ class FlyState:
     dn: dict[str, float] = field(default_factory=lambda: dict.fromkeys(DNS, 0.0))  # membrane potentials 0..1
     gf: float = 0.0  # giant fibre potential
     spikes: list[str] = field(default_factory=list)  # keys fired this step
+    # the layers' activity maps (16×16), for the studio's 3D view of the brain
+    on: np.ndarray = field(
+        default_factory=lambda: np.zeros((EYE, EYE), np.float32)
+    )  # lamina L1 (brightening)
+    off: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # lamina L2 (dimming)
+    motion_h: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # T4/T5, + = right
+    motion_v: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # T4/T5, + = down
+
+
+KEYLOG = 32  # recent key presses kept for the studio's keyboard view
+
+
+def _u8(a: np.ndarray, scale: float) -> list[int]:
+    return np.clip(a * scale, 0, 255).astype(np.uint8).ravel().tolist()
+
+
+def _s8(a: np.ndarray, scale: float) -> list[int]:
+    return np.clip(a * scale, -127, 127).astype(np.int8).ravel().tolist()
 
 
 class FlyBrain:
@@ -73,6 +93,9 @@ class FlyBrain:
         self._gf = 0.0
         self._refractory = dict.fromkeys((*DNS, "a"), 0)
         self.state = FlyState()
+        self.steps = 0
+        self.keylog: deque[tuple[int, str]] = deque(maxlen=KEYLOG)
+        self.anchor: tuple[float, float] | None = None
 
     # ------------------------------------------------------------------ eye
     @staticmethod
@@ -90,6 +113,8 @@ class FlyBrain:
     # ------------------------------------------------------------------ one step of the brain
     def step(self, px: np.ndarray, anchor: tuple[float, float] | None = None) -> list[str]:
         eye = self.see(px, anchor)
+        self.steps += 1
+        self.anchor = anchor
         prev = self._prev if self._prev is not None else eye
         self._prev = eye
         d = eye - prev  # lamina: temporal contrast
@@ -183,4 +208,29 @@ class FlyBrain:
         s.dn = {n: min(1.0, self._v[n] / self.THRESHOLD) for n in DNS}
         s.gf = min(1.0, self._gf / self.GF_THRESHOLD)
         s.spikes = spikes
+        s.on, s.off = on, off
+        s.motion_h = np.pad(h, ((0, 0), (0, 1)))
+        s.motion_v = np.pad(v, ((0, 1), (0, 0)))
+        self.keylog.extend((self.steps, k) for k in spikes)
         return spikes
+
+    def snapshot(self) -> dict[str, Any]:
+        """What the brain is doing right now, as JSON for the studio (GET /api/fly). Never drawn on the panel."""
+        s = self.state
+        r3 = lambda v: round(float(v), 3)  # noqa: E731
+        return {
+            "step": self.steps,
+            "eye": _u8(s.eye, 255),
+            "on": _u8(s.on, 1200),
+            "off": _u8(s.off, 1200),
+            "mh": _s8(s.motion_h, 900),
+            "mv": _s8(s.motion_v, 900),
+            "hs": {"left": r3(s.hs_left), "right": r3(s.hs_right), "up": r3(s.vs_up), "down": r3(s.vs_down)},
+            "looming": r3(s.looming),
+            "gf": r3(s.gf),
+            "dn": {k: r3(v) for k, v in s.dn.items()},
+            "light": [r3(s.light[0]), r3(s.light[1])],
+            "spikes": list(s.spikes),
+            "keys": [[n, k] for n, k in self.keylog],
+            "anchor": None if self.anchor is None else [r3(self.anchor[0]), r3(self.anchor[1])],
+        }

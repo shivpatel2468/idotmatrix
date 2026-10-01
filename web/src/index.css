@@ -405,3 +405,87 @@ summary::-webkit-details-marker { display: none; }
   background: linear-gradient(180deg, #ff8a5d, var(--color-ember));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 #050507, 0 0 28px -4px rgba(255, 72, 24, 0.9);
 }
+
+/* ---------------------------------------------------------------- Fly view (components/fly) */
+/* side drawers: slide shut when a fruit fly starts playing, so its brain can fill their space */
+.drawer {
+  overflow: hidden;
+  transition: width 0.62s cubic-bezier(0.7, 0, 0.2, 1), opacity 0.45s ease, transform 0.62s cubic-bezier(0.7, 0, 0.2, 1);
+}
+.drawer > * { transition: transform 0.62s cubic-bezier(0.7, 0, 0.2, 1), filter 0.5s ease; }
+.drawer-l > * { margin-left: auto; }
+.drawer[data-closed="true"] { opacity: 0; pointer-events: none; }
+.drawer-l[data-closed="true"] > * { transform: translateX(-40%) perspective(900px) rotateY(12deg); filter: blur(3px); }
+.drawer-r[data-closed="true"] > * { transform: translateX(40%) perspective(900px) rotateY(-12deg); filter: blur(3px); }
+
+.fly-wing {
+  align-self: stretch;
+  border-radius: var(--radius-chassis);
+  border: 1px solid var(--color-line);
+  background: #04050a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  animation: wing-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.32s; /* after the drawers have started closing */
+}
+.fly-wing-l { --from: -48px; --tilt: 14deg; transform-origin: right center; }
+.fly-wing-r { --from: 48px; --tilt: -14deg; transform-origin: left center; }
+@keyframes wing-in {
+  from { opacity: 0; transform: translateX(var(--from)) perspective(1000px) rotateY(var(--tilt)) scale(0.96); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.fly-wing::after { /* a faint glass edge */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35));
+}
+.fly-canvas, .fly-labels { position: absolute !important; inset: 0; display: block; }
+.fly-labels { z-index: 1; cursor: grab; touch-action: none; }
+.fly-labels:active { cursor: grabbing; }
+.fly-label {
+  pointer-events: none; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(239, 236, 228, 0.78); text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 0 2px #000;
+  transform-origin: center;
+}
+.fly-label-title { font-size: 10px; color: #fff; }
+.fly-label-side { color: rgba(239, 236, 228, 0.5); }
+.fly-keycap {
+  display: grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px;
+  font-size: 12px; letter-spacing: 0; color: var(--color-ink-1);
+  background: linear-gradient(180deg, #2a2a33, #18181e); border: 1px solid #3a3a46; box-shadow: 0 2px 0 #050507;
+}
+.fly-keycap.hit { animation: keycap-hit 0.45s ease-out; }
+@keyframes keycap-hit {
+  0% { transform: translateY(2px) scale(1.18); color: #000; background: #ffe14d; box-shadow: 0 0 22px #ffe14d, 0 0 0 #050507; }
+  100% { transform: none; }
+}
+.fly-glass {
+  border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(8, 9, 16, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.fly-ticker {
+  display: flex; justify-content: flex-end; gap: 5px; overflow: hidden; height: 30px; align-items: center;
+  mask-image: linear-gradient(to right, transparent, #000 30%);
+}
+.fly-chip {
+  display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 7px;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, #0a0b12); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+  box-shadow: 0 0 14px -4px var(--c);
+  animation: chip-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes chip-in { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.fly-streak { color: var(--color-warn); text-shadow: 0 0 10px var(--color-warn); }
+.fly-seg { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; border-radius: 9px; background: var(--color-chassis-0); border: 1px solid var(--color-line); }
+.fly-seg > button {
+  flex: 1 1 auto; height: 26px; padding: 0 9px; border-radius: 7px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-3);
+  transition: background 0.15s, color 0.15s;
+}
+.fly-seg > button:hover { color: var(--color-ink-1); }
+.fly-seg > button[data-on="true"] { background: var(--color-chassis-4); color: var(--color-ink-1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.fly-swatch { width: 26px; height: 26px; border-radius: 8px; border: 2px solid transparent; transition: transform 0.15s; }
+.fly-swatch:hover { transform: scale(1.1); }
+.fly-swatch[data-on="true"] { border-color: #fff; box-shadow: 0 0 12px rgba(255, 255, 255, 0.35); }
+@media (prefers-reduced-motion: reduce) {
+  .drawer, .drawer > *, .fly-wing { transition: none; animation: none; }
+}

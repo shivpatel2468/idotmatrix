@@ -142,3 +142,18 @@ def test_presets(tmp_path: Path) -> None:
         assert c.delete("/api/presets/cat-games").status_code == 404  # built-ins can't be deleted
         assert c.delete(f"/api/presets/{mine['id']}").json()["ok"]
         assert c.post("/api/presets/nope/play", json={}).status_code == 404
+
+
+def test_fly_telemetry_endpoint(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        c.post("/api/apps/clock/activate", json={})
+        assert c.get("/api/fly").json()["active"] is False
+        c.patch("/api/apps/pong/settings", json={"pilot": "fly"})
+        c.post("/api/apps/pong/activate", json={})
+        deadline = time.monotonic() + 8
+        snap = c.get("/api/fly").json()
+        while not snap["active"] and time.monotonic() < deadline:
+            time.sleep(0.2)
+            snap = c.get("/api/fly").json()
+        assert snap["active"] and snap["app"] == "pong"
+        assert len(snap["eye"]) == 256 and "dn" in snap and "keys" in snap

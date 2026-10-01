@@ -771,6 +771,20 @@ class Engine:
             except TimeoutError:
                 pass
 
+    def fly_telemetry(self) -> dict[str, Any]:
+        """The current app's fruit-fly brain activity (docs/FLY_BRAIN.md); {"active": False} when no fly plays."""
+        s = self.current
+        if s is None:
+            return {"active": False, "app": None}
+        try:
+            snap = s.app.fly_telemetry(time.monotonic() - s.started)
+        except Exception:
+            log.exception("%s.fly_telemetry failed", s.key)
+            snap = None
+        if snap is None:
+            return {"active": False, "app": s.app.id}
+        return {"active": True, "app": s.app.id, **snap}
+
     def _delay(self) -> float:
         if self._trans or self.overlay:
             return 1 / 20

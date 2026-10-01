@@ -583,6 +583,14 @@ class GameApp(App):
             self.human_at = self._fly_at = now  # the game's own AI stands down while the fly flies
             self.key_p(k, 1)
 
+    def fly_telemetry(self, t: float) -> dict[str, Any] | None:
+        fly = getattr(self, "_fly", None)
+        if fly is None or getattr(self.settings, "pilot", "ai") != "fly":
+            return None
+        snap = fly.snapshot()
+        snap["driving"] = self._fly_driving(self._clock())
+        return snap
+
     def _damage_overlay(self, f: Frame, now: float) -> None:
         if self.hurt_t > 0:
             k = min(1.0, self.hurt_t / 0.5)

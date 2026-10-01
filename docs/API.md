@@ -12,6 +12,7 @@ Errors: `400` bad request · `404` unknown app/media · `422` validation (`detai
 | GET | `/api/state` | full snapshot: `device`, `engine` (mode, current, playlist, overlay, render_ms, takeover, onair, eyebreak, indicators, custom), `settings` (incl. `integrations`, tokens masked), `apps` (settings per app), `providers` |
 | GET | `/api/frame.png?scale=1..32` | exactly what the panel shows |
 | GET | `/api/frame` | `{width, height, rgb: base64(3072 bytes)}` |
+| GET | `/api/fly` | the fruit-fly brain while a fly plays (the Fly Brain app, or a game with `pilot: "fly"`): `{active, app, driving, step, eye, on, off, mh, mv, hs, looming, gf, dn, light, spikes, keys: [[step, key]…], anchor, world?}`. The maps are 256 values (16×16). Otherwise `{active: false, app}`. Studio only; never drawn on the panel. |
 
 ## Apps
 

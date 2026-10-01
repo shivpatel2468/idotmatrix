@@ -468,6 +468,11 @@ def create_app(cfg: Config) -> FastAPI:
     async def state() -> dict[str, Any]:
         return engine.snapshot()
 
+    @app.get("/api/fly")
+    async def fly() -> dict[str, Any]:
+        """The fruit-fly brain's live activity (eye, layers, neurons, keys) when a fly is playing. Studio only."""
+        return engine.fly_telemetry()
+
     @app.get("/api/frame.png")
     async def frame_png(scale: int = Query(1, ge=1, le=32)) -> Response:
         return Response(

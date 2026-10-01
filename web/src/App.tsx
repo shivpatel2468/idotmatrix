@@ -16,6 +16,7 @@ import { api, loadPresets } from "./lib/api";
 import { INSPECTOR_MAX, LIBRARY_MAX, type MobileTab, appMeta, useStore } from "./lib/store";
 import { gameKeyDown, isPlayable } from "./lib/gameInput";
 import { connect } from "./lib/ws";
+import { startFlyPolling, useFlyView } from "./lib/fly";
 
 function useShortcuts() {
   useEffect(() => {
@@ -189,11 +190,13 @@ export default function App() {
     connect();
     api.meta().then((meta) => useStore.setState({ meta }));
     loadPresets();
+    startFlyPolling();
   }, []);
   const libraryWidth = useStore((s) => s.libraryWidth);
   const inspectorWidth = useStore((s) => s.inspectorWidth);
   const prefs = useStore((s) => s.prefs);
   const phone = usePhone();
+  const fly = useFlyView(); // a fruit fly is playing: the side drawers close and its brain fills their space
 
   return (
     <div className="noise flex h-full flex-col">
@@ -203,18 +206,18 @@ export default function App() {
       ) : (
         <>
           <div className="flex min-h-0 flex-1 px-3 pb-3 md:gap-1">
-            <div className="hidden min-h-0 shrink-0 md:flex md:flex-col" style={{ width: libraryWidth }}>
-              <Library />
+            <div className="drawer drawer-l hidden min-h-0 shrink-0 md:flex md:flex-col" data-closed={fly} style={{ width: fly ? 0 : libraryWidth }} aria-hidden={fly}>
+              <div className="flex min-h-0 flex-1 flex-col" style={{ width: libraryWidth }}><Library /></div>
             </div>
-            <Splitter title="Library width" onReset={() => prefs({ libraryWidth: 300 })}
-              onDrag={(dx) => prefs({ libraryWidth: clamp(useStore.getState().libraryWidth + dx, 220, LIBRARY_MAX) })} />
+            {!fly && <Splitter title="Library width" onReset={() => prefs({ libraryWidth: 300 })}
+              onDrag={(dx) => prefs({ libraryWidth: clamp(useStore.getState().libraryWidth + dx, 220, LIBRARY_MAX) })} />}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-              <Stage />
+              <Stage fly={fly} />
             </div>
-            <Splitter title="Settings panel width" className="hidden xl:block" onReset={() => prefs({ inspectorWidth: 340 })}
-              onDrag={(dx) => prefs({ inspectorWidth: clamp(useStore.getState().inspectorWidth - dx, 300, INSPECTOR_MAX) })} />
-            <div className="hidden min-h-0 shrink-0 xl:flex xl:flex-col" style={{ width: inspectorWidth }}>
-              <Inspector fill />
+            {!fly && <Splitter title="Settings panel width" className="hidden xl:block" onReset={() => prefs({ inspectorWidth: 340 })}
+              onDrag={(dx) => prefs({ inspectorWidth: clamp(useStore.getState().inspectorWidth - dx, 300, INSPECTOR_MAX) })} />}
+            <div className="drawer drawer-r hidden min-h-0 shrink-0 xl:flex xl:flex-col" data-closed={fly} style={{ width: fly ? 0 : inspectorWidth }} aria-hidden={fly}>
+              <div className="flex min-h-0 flex-1 flex-col" style={{ width: inspectorWidth }}><Inspector fill /></div>
             </div>
           </div>
           <div className="px-3 pb-3">

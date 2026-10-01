@@ -3,7 +3,8 @@
 A fly in a small arena looks for fruit (flies are drawn to light) and darts away when a swatter's shadow looms
 over it. Everything it does comes from `dotdeck.fly.FlyBrain`: its eye sees only the arena's pixels (centred on
 itself), T4/T5 motion detectors and LPLC2 looming detectors feed descending neurons and the giant fibre, and
-their spikes are its moves. The strip below shows those neurons firing; the inset shows what its eye sees.
+their spikes are its moves. The panel shows only the fly's world; its brain activity (eye, motion detectors,
+neurons firing, the keys it presses) is shown in the studio's 3D Fly view, from `fly_telemetry`.
 
 The circuit is the one the FlyWire whole-brain connectome maps (Princeton-led, AI reconstruction built with
 Google Research; Nature 2024). See docs/FLY_BRAIN.md. The simulation is seeded and baked into a seamless loop.
@@ -13,6 +14,7 @@ from __future__ import annotations
 
 import math
 import random
+from typing import Any
 
 import numpy as np
 from pydantic import Field
@@ -25,7 +27,7 @@ from ._kit import loading
 N_FRAMES = 128  # 16 s at 8 fps
 FPS = 8.0
 SEAM = 12  # frames blended across the loop seam
-ARENA_H = 24  # arena rows; the brain strip is below
+ARENA_H = 32  # the whole panel is the fly's arena
 WARMUP = 24  # simulated frames before the loop starts (the brain settles)
 
 BG = (14, 16, 24)
@@ -35,17 +37,11 @@ FRUIT = (255, 120, 30)
 STEM = (80, 200, 90)
 SHADOW = (70, 44, 110)
 SHADOW_RIM = (190, 120, 255)
-BARS = (  # the descending neurons charging up (left, right, up, down), looming (LPLC2) and the giant fibre
-    ("DN<", (0, 200, 255)),
-    ("DN>", (0, 200, 255)),
-    ("DN^", (80, 255, 120)),
-    ("DNv", (80, 255, 120)),
-    ("LOOM", (255, 70, 200)),
-    ("GF", (255, 110, 40)),
-)
 DANGER = {"calm": 0.0, "normal": 1.0, "hectic": 2.2}
 
-_READY: dict[tuple[str, int, bool, bool, int], list[np.ndarray]] = {}
+Key = tuple[str, int, int]
+_READY: dict[Key, list[np.ndarray]] = {}
+_TELEMETRY: dict[Key, list[dict[str, Any]]] = {}  # the brain's activity for each frame of the loop
 
 
 class FlyBrainSettings(AppSettings):
@@ -55,28 +51,24 @@ class FlyBrainSettings(AppSettings):
         title="Swatter",
     )
     fruit: int = Field(2, ge=1, le=3, title="Fruit in the arena")
-    show_brain: bool = Field(True, title="Show the neurons firing")
-    show_eye: bool = Field(True, title="Show what the fly sees")
     seed: int = Field(7, ge=0, le=9999, title="Fly", description="Each number is a different fly and arena")
 
 
-def _spawn(rng: random.Random, show_eye: bool) -> tuple[float, float]:
-    """A fruit somewhere visible: never hidden behind the eye inset (top-right)."""
-    while True:
-        x, y = rng.uniform(3, 28), rng.uniform(3, ARENA_H - 3)
-        if not (show_eye and x > 20 and y < 11):
-            return x, y
+def _spawn(rng: random.Random) -> tuple[float, float]:
+    """A fruit somewhere in the arena, clear of the edges."""
+    return rng.uniform(3, 28), rng.uniform(4, ARENA_H - 3)
 
 
-def _simulate(danger: str, n_fruit: int, show_brain: bool, show_eye: bool, seed: int) -> list[np.ndarray]:
+def _simulate(danger: str, n_fruit: int, seed: int) -> tuple[list[np.ndarray], list[dict[str, Any]]]:
     rng = random.Random(seed)
     brain = FlyBrain(seed=seed * 31 + 1)
     x, y, vx, vy = 16.0, 12.0, 0.0, 0.0
-    fruit = [_spawn(rng, show_eye) for _ in range(n_fruit)]
+    fruit = [_spawn(rng) for _ in range(n_fruit)]
     shadow: dict[str, float] | None = None
     next_threat = rng.uniform(3.0, 6.0) / max(0.01, DANGER[danger]) if DANGER[danger] else math.inf
     sparks: list[list[float]] = []
     frames: list[np.ndarray] = []
+    tele: list[dict[str, Any]] = []
     for i in range(WARMUP + N_FRAMES + SEAM):
         t = i / FPS
         # ---------------------------------------------------------------- the world the fly sees
@@ -90,7 +82,6 @@ def _simulate(danger: str, n_fruit: int, show_brain: bool, show_eye: bool, seed:
             _disc(world, shadow["x"], shadow["y"], r, SHADOW, SHADOW_RIM)
         # ---------------------------------------------------------------- the brain decides
         spikes = brain.step(world, (x, y))
-        st = brain.state
         imp = 2.6
         for k in spikes:
             if k == "left":
@@ -118,11 +109,11 @@ def _simulate(danger: str, n_fruit: int, show_brain: bool, show_eye: bool, seed:
                 for _ in range(8):
                     a = rng.uniform(0, math.tau)
                     sparks.append([fx, fy, math.cos(a) * 6, math.sin(a) * 6, 0.6])
-                fruit[j] = _spawn(rng, show_eye)
+                fruit[j] = _spawn(rng)
         if shadow is None and t >= next_threat:
             shadow = {
                 "x": min(28.0, max(4.0, x + rng.uniform(-3, 3))),
-                "y": min(20.0, max(4.0, y + rng.uniform(-3, 3))),
+                "y": min(ARENA_H - 4.0, max(4.0, y + rng.uniform(-3, 3))),
                 "r": 1.0,
             }
         elif shadow is not None:
@@ -142,13 +133,14 @@ def _simulate(danger: str, n_fruit: int, show_brain: bool, show_eye: bool, seed:
         for sx, sy, _vx, _vy, life in sparks:
             _set(f, round(sx), round(sy), tuple(int(c * min(1.0, life / 0.4)) for c in (255, 220, 120)))
         _fly(f, x, y, i)
-        if show_eye:
-            _eye_inset(f, st.eye)
-        if show_brain:
-            _brain_strip(f, st, spikes)
-        else:
-            f[ARENA_H:] = BG
         frames.append(f)
+        snap = brain.snapshot()
+        snap["world"] = {
+            "fly": [round(x, 2), round(y, 2)],
+            "fruit": [[round(a, 2), round(b, 2)] for a, b in fruit],
+            "shadow": None if shadow is None else [round(shadow["x"], 2), round(shadow["y"], 2), shadow["r"]],
+        }
+        tele.append(snap)
     # blend the extra frames over the start, so the loop wraps without a jump
     loop = frames[:N_FRAMES]
     for k in range(SEAM):
@@ -156,7 +148,11 @@ def _simulate(danger: str, n_fruit: int, show_brain: bool, show_eye: bool, seed:
         loop[k] = (frames[N_FRAMES + k].astype(np.float32) * (1 - a) + loop[k].astype(np.float32) * a).astype(
             np.uint8
         )
-    return loop
+    # the studio gets the activity of the frame on show; seam frames keep their later (blended-in) activity
+    tele_loop = tele[:N_FRAMES]
+    for k in range(SEAM // 2):
+        tele_loop[k] = tele[N_FRAMES + k]
+    return loop, tele_loop
 
 
 def _set(f: np.ndarray, x: int, y: int, c: tuple[int, ...]) -> None:
@@ -192,48 +188,6 @@ def _fly(f: np.ndarray, x: float, y: float, i: int) -> None:
     _set(f, cx + 1, cy - 2, w)
 
 
-def _eye_inset(f: np.ndarray, eye: np.ndarray) -> None:
-    """Top-right: what the fly's compound eye sees (16×16 ommatidia shown at 8×8)."""
-    small = eye.reshape(8, 2, 8, 2).mean(axis=(1, 3))
-    x0, y0 = 23, 1
-    f[y0 - 1 : y0 + 9, x0 - 1 : x0 + 9] = (60, 60, 84)
-    tint = np.array([120, 230, 255], np.float32)
-    norm = np.clip(small / max(0.08, float(small.max())), 0, 1)  # the eye adapts to its brightest point
-    img = (norm[..., None] ** 0.8 * tint + 18).clip(0, 255).astype(np.uint8)
-    f[y0 : y0 + 8, x0 : x0 + 8] = img
-
-
-def _brain_strip(f: np.ndarray, st: object, spikes: list[str]) -> None:
-    """Bottom: the neurons — wide-field motion (HS / VS), looming (LPLC2) and the giant fibre."""
-    f[ARENA_H:] = (8, 8, 12)
-    f[ARENA_H, :] = (34, 34, 46)
-    dn = st.dn  # type: ignore[attr-defined]
-    vals = (
-        dn["left"],
-        dn["right"],
-        dn["up"],
-        dn["down"],
-        min(1.0, st.looming * 0.8),  # type: ignore[attr-defined]
-        st.gf,  # type: ignore[attr-defined]
-    )
-    fired = {
-        0: "left" in spikes,
-        1: "right" in spikes,
-        2: "up" in spikes,
-        3: "down" in spikes,
-        4: "a" in spikes,
-        5: "a" in spikes,
-    }
-    for b, ((_label, col), v) in enumerate(zip(BARS, vals, strict=True)):
-        x0 = 1 + b * 5
-        h = min(6, round(min(1.0, v) * 6))
-        f[ARENA_H + 1 : 32, x0 : x0 + 4] = (24, 24, 34)  # the empty bar is still visible
-        if h:
-            f[32 - h : 32, x0 : x0 + 4] = col
-        if fired[b]:
-            f[ARENA_H + 1, x0 : x0 + 4] = (255, 255, 255)  # a spike
-
-
 @register
 class FlyBrainApp(App):
     id = "flybrain"
@@ -242,7 +196,7 @@ class FlyBrainApp(App):
     icon = "bug"
     description = (
         "A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, "
-        "dodges a looming swatter, and you watch its neurons fire."
+        "dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view."
     )
     Settings = FlyBrainSettings
 
@@ -254,21 +208,34 @@ class FlyBrainApp(App):
     def kind(self) -> Kind:
         return "clip"
 
-    def _key(self) -> tuple[str, int, bool, bool, int]:
+    def _key(self) -> Key:
         s = self.settings
-        return (s.danger, s.fruit, s.show_brain, s.show_eye, s.seed)
+        return (s.danger, s.fruit, s.seed)
+
+    def _index(self, t: float) -> int:
+        return int(round(t * self.clip_fps, 6)) % N_FRAMES
 
     def render(self, f: Frame, t: float) -> None:
         frames = _READY.get(self._key())
         if frames is None:  # the simulation runs on the bake thread (clip_frames), never in render()
             loading(f, t, "FLY")
             return
-        f.px[:] = frames[int(round(t * self.clip_fps, 6)) % len(frames)]
+        f.px[:] = frames[self._index(t)]
+
+    def fly_telemetry(self, t: float) -> dict[str, Any] | None:
+        tele = _TELEMETRY.get(self._key())
+        if not tele:
+            return None
+        snap = dict(tele[self._index(t)])
+        snap["driving"] = True
+        return snap
 
     def clip_frames(self) -> Clip:
         key = self._key()
-        frames = _READY.get(key) or _simulate(*key)
-        _READY[key] = frames
+        frames = _READY.get(key)
+        if frames is None or key not in _TELEMETRY:
+            frames, _TELEMETRY[key] = _simulate(*key)
+            _READY[key] = frames
         out = []
         for img in frames:
             fr = Frame()

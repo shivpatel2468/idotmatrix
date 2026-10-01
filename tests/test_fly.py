@@ -112,6 +112,7 @@ class Ctx:
 @pytest.mark.parametrize("danger", ["calm", "normal", "hectic"])
 def test_fly_brain_app_bakes_a_seamless_loop(danger: str) -> None:
     fb._READY.clear()
+    fb._TELEMETRY.clear()
     app = fb.FlyBrainApp(Ctx(), fb.FlyBrainSettings(danger=danger))  # type: ignore[arg-type]
     clip = app.clip_frames()
     assert len(clip.frames) == fb.N_FRAMES
@@ -133,13 +134,42 @@ def test_fly_brain_app_bakes_a_seamless_loop(danger: str) -> None:
     assert time.perf_counter() - t0 < 0.002, "render only reads the baked loop"
 
 
-def test_fruit_never_hides_behind_the_eye_inset() -> None:
-    import random
+def test_the_panel_shows_only_the_fly_world() -> None:
+    """The brain's activity is for the studio's 3D view; the panel shows just the arena (no bars, no eye inset)."""
+    fb._READY.clear()
+    fb._TELEMETRY.clear()
+    app = fb.FlyBrainApp(Ctx(), fb.FlyBrainSettings(danger="calm"))  # type: ignore[arg-type]
+    clip = app.clip_frames()
+    for fr in clip.frames[::16]:
+        bottom = fr.px[26:32].reshape(-1, 3)
+        assert (bottom == fb.BG).all(axis=1).mean() > 0.6, "the bottom rows are arena, not a neuron strip"
 
-    rng = random.Random(1)
-    for _ in range(500):
-        x, y = fb._spawn(rng, show_eye=True)
-        assert not (x > 20 and y < 11)
+
+def test_fly_brain_app_reports_its_brain_to_the_studio() -> None:
+    fb._READY.clear()
+    fb._TELEMETRY.clear()
+    app = fb.FlyBrainApp(Ctx(), fb.FlyBrainSettings())  # type: ignore[arg-type]
+    assert app.fly_telemetry(0.0) is None, "nothing until the loop is baked"
+    app.clip_frames()
+    snap = app.fly_telemetry(2.0)
+    assert snap is not None
+    assert len(snap["eye"]) == len(snap["on"]) == len(snap["mh"]) == len(snap["mv"]) == 256
+    assert set(snap["dn"]) == {"left", "right", "up", "down"}
+    assert snap["world"]["fly"] and len(snap["world"]["fruit"]) == 2
+    keys = [k for i in range(fb.N_FRAMES) for _n, k in (app.fly_telemetry(i / fb.FPS) or {})["keys"]]
+    assert {"left", "right"} & set(keys), "the keyboard view has key presses to show"
+    import json
+
+    assert len(json.dumps(snap)) < 12_000, "small enough to poll ~10 times a second"
+
+
+def test_snapshot_logs_every_key_press() -> None:
+    brain = FlyBrain(1)
+    f = blank()
+    f[14:18, 27:30] = 255
+    fired = [k for _ in range(20) for k in brain.step(f)]
+    logged = [k for _n, k in brain.snapshot()["keys"]]
+    assert logged == fired[-len(logged) :] and logged
 
 
 @pytest.mark.parametrize("gid", ["pong", "flappy", "arcade", "cycles", "racer", "tetris"])
@@ -167,6 +197,16 @@ def test_the_fly_can_pilot_games(gid: str) -> None:
     assert pressed, "the fly's descending neurons pressed keys"
     assert app.status()["player"] in ("fly", "ai")
     assert worst < 0.05
+    snap = app.fly_telemetry(30.0)
+    assert snap is not None and snap["keys"], "the studio sees the keys the fly pressed"
+
+
+def test_games_report_no_fly_with_the_built_in_ai() -> None:
+    cls = REGISTRY["pong"]
+    app = cls(Ctx(), cls.Settings())  # type: ignore[arg-type,call-arg]
+    for i in range(20):
+        app.render(Frame(), i / 10)
+    assert app.fly_telemetry(2.0) is None
 
 
 async def test_a_person_takes_over_from_the_fly() -> None:

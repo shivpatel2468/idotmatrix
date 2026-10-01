@@ -195,6 +195,11 @@ class App:
         """True keeps the app's providers alive while in the playlist so wants_focus() can fire."""
         return False
 
+    def fly_telemetry(self, t: float) -> dict[str, Any] | None:
+        """The fruit-fly brain's activity when a fly is playing this app (docs/FLY_BRAIN.md), else None.
+        Shown in the studio only, never on the panel."""
+        return None
+
     def status(self) -> dict[str, Any]:
         """Small JSON blob shown by the studio next to the live preview."""
         return {}

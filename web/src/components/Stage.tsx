@@ -9,6 +9,8 @@ import { Icon } from "./Icon";
 import { ComposerOverlay, ComposerToolbar } from "./ComposerEditor";
 import { LedPanel } from "./LedPanel";
 import { IndicatorHotspots, PlatformStrip } from "./PlatformStrip";
+import { FlyBar, FlyWing } from "./fly/FlyView";
+import { openFlyView, useFly } from "../lib/fly";
 
 const KIND: Record<string, { label: string; hint: string }> = {
   stream: { label: "Live", hint: "Updates live: frames are sent over Bluetooth as they change" },
@@ -73,16 +75,16 @@ function CanvasTools() {
 }
 
 /** Largest square that fits the element (the bezel must stay square at every size). */
-function useSquare(max = 1400) {
+function useSquare(max = 1400, share = 1) {
   const box = useRef<HTMLDivElement>(null);
   const [side, setSide] = useState(0);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setSide(Math.max(200, Math.floor(Math.min(e.contentRect.width, e.contentRect.height, max)))));
+    const ro = new ResizeObserver(([e]) => setSide(Math.max(200, Math.floor(Math.min(e.contentRect.width * share, e.contentRect.height, max)))));
     ro.observe(el);
     return () => ro.disconnect();
-  }, [max]);
+  }, [max, share]);
   return { box, side };
 }
 
@@ -283,8 +285,9 @@ function MiniPlayback() {
   );
 }
 
-export function Stage() {
-  const { box, side } = useSquare();
+export function Stage({ fly = false }: { fly?: boolean }) {
+  const { box, side } = useSquare(1400, fly ? 0.4 : 1);
+  const flyLive = useFly((s) => s.snap.active);
   const cur = useStore((s) => s.state?.engine.current);
   const overlay = useStore((s) => s.state?.engine.overlay);
   const power = useStore((s) => s.state?.settings.power ?? true);
@@ -301,8 +304,10 @@ export function Stage() {
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 overflow-y-auto px-2 py-1">
-      <div ref={box} className="relative flex w-full flex-1 items-center justify-center" style={{ minHeight: 260 }}>
-        <div className="bezel animate-rise" style={{ width: side, height: side }}>
+      {fly && <FlyBar />}
+      <div ref={box} className={clsx("relative flex w-full flex-1 items-center justify-center", fly && "gap-3")} style={{ minHeight: 260 }}>
+        {fly && <FlyWing side="left" />}
+        <div className="bezel shrink-0 animate-rise" style={{ width: side, height: side }}>
           <span className="screw left-[7px] top-[7px]" />
           <span className="screw right-[7px] top-[7px]" />
           <span className="screw bottom-[7px] left-[7px]" />
@@ -318,6 +323,12 @@ export function Stage() {
             iDotMatrix · 32 × 32 RGB
           </span>
         </div>
+        {fly && <FlyWing side="right" />}
+        {!fly && flyLive && (
+          <button className="key key-ember absolute right-2 top-2 hidden md:inline-flex" onClick={openFlyView} title="Watch the fly's brain and the keys it presses, in 3D">
+            <Icon name="bug" size={14} /> Fly view
+          </button>
+        )}
       </div>
 
       <div className="flex w-full flex-col items-center gap-3" style={{ maxWidth: Math.max(640, side) }}>
@@ -337,7 +348,7 @@ export function Stage() {
         <div className="surface flex w-full flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 text-[12.5px] text-ink-2 animate-rise">
           <span className="led" data-on={cur?.status?.player === "you" ? "ok" : "ember"} />
           <span className="min-w-0 flex-1">
-            <b className="font-[600] text-ink-1">{cur?.status?.player === "you" ? "You're playing" : "Playing itself"}</b>
+            <b className="font-[600] text-ink-1">{cur?.status?.player === "you" ? "You're playing" : cur?.status?.player === "fly" ? "A fruit fly is playing" : "Playing itself"}</b>
             <span className="hidden md:inline"> · <kbd className="kbd">← ↑ → ↓</kbd> or <kbd className="kbd">WASD</kbd> to take over, <kbd className="kbd">Space</kbd> for action</span>
             <span className="md:hidden"> · open Play mode for the game pad</span>
           </span>

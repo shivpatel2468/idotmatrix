@@ -9,6 +9,14 @@
   - New **Fly Brain** app.
   - New **"Plays itself with: Fruit-fly brain"** option on every game.
   - Tested against classic fly-vision experiments. See [docs/FLY_BRAIN.md](docs/FLY_BRAIN.md).
+- 🪰 **3D Fly view** in the studio:
+  - when a fly plays, the side panels slide shut and two live three.js scenes open beside the panel: the fly's
+    visual circuit firing, and a 3D fly stomping the keys its neurons press, with a keystroke log;
+  - graphics settings: quality presets with Auto adapting to the GPU, fps cap, bloom, particles, shadows, themes,
+    cameras, fly and keyboard styles;
+  - three.js loads only when the view opens.
+  The panel now shows only the game: the Fly Brain app's neuron strip and eye inset moved to the studio. New
+  `GET /api/fly`.
 - Studio:
   - a full-screen now-playing view, like a music player's;
   - a resizable playback dock that re-flows into grids when tall.

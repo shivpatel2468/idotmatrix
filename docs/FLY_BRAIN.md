@@ -12,8 +12,13 @@ the pathway that the **FlyWire** whole-brain connectome maps neuron by neuron.
 
 | | |
 | --- | --- |
-| **Fly Brain** app | A fly lives in a small arena. It hunts fruit and darts away when a swatter's shadow looms. The bottom strip shows its neurons firing (descending neurons ← → ↑ ↓, LPLC2 looming, giant fibre), and the inset shows what its compound eye sees. |
+| **Fly Brain** app | A fly lives in an arena that fills the panel. It hunts fruit and darts away when a swatter's shadow looms. The panel shows only its world. |
 | **Every game** → *Plays itself with* → **Fruit-fly brain** | Instead of the built-in AI, the fly plays from pixels alone, through an eye centred on its own character. Press any key and you take over. |
+| **The studio's 3D Fly view** | Opens by itself whenever a fly is playing: the side panels slide shut and the brain fills their space. **Left:** the circuit below as a 3D tower (eye → lamina → T4/T5 → HS/VS → LPLC2 → giant fibre → descending neurons → keys), with signal pulses and spikes. **Right:** a 3D fly on a keyboard. It hops onto each key its neurons press, leaps on the giant-fibre escape (key A), grooms when idle, and its compound eyes show the live eye image. A keystroke log and counts sit underneath. **Graphics** has quality presets (Auto adapts to your GPU), a frame-rate cap, bloom, particles, shadows, themes, cameras, fly looks and keyboard styles. Nothing of the brain is drawn on the panel. |
+
+The studio reads the brain from `GET /api/fly` (≈12 times a second while a fly plays). It returns the 16×16 eye,
+lamina ON/OFF and T4/T5 motion maps, HS/VS, looming, giant fibre, the descending neurons' potentials and the last
+32 key presses.
 
 ## The circuit
 
