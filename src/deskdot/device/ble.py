@@ -73,7 +73,16 @@ class BleDevice(Device):
             await client.disconnect()
             raise ConnectionError("write characteristic fa02 missing — not an iDotMatrix panel?")
         self._client = client
-        self.packet_size = max(20, char.max_write_without_response_size)
+        size = char.max_write_without_response_size
+        if size <= 20 and sys.platform.startswith("linux"):
+            # BlueZ < 5.62 (and some adapters) report the 23-byte default until asked: without this a Pi would
+            # send ~25x more packets per frame. AcquireWrite reveals the negotiated MTU (bleak's own advice).
+            try:
+                await client._backend._acquire_mtu()  # type: ignore[attr-defined]
+                size = max(size, int(client.mtu_size) - 3)
+            except Exception as e:
+                log.info("BlueZ MTU unknown, using %d-byte packets: %s", size, e)
+        self.packet_size = max(20, size)
         try:
             await client.start_notify(P.UUID_NOTIFY, lambda _c, data: self._on_ack(bytes(data)))
         except Exception as e:  # acks are an optimisation; timeouts cover their absence

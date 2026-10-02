@@ -4,6 +4,7 @@ deskdot serve [--sim] [--address MAC] [--port N]   run engine + studio
 deskdot scan                                      list nearby panels
 deskdot doctor [--address MAC]                    connect and draw a test pattern
 deskdot preview APP [--out file.png]              render an app without hardware
+deskdot launcher [--show|--hide|--quit]           system-wide command bar (docs/LAUNCHERS.md)
 """
 
 from __future__ import annotations
@@ -126,6 +127,19 @@ def _preview(a: argparse.Namespace) -> None:
     print(f"wrote {a.out}")
 
 
+def _launcher(a: argparse.Namespace) -> None:
+    from .launcher import main as launcher_main
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S"
+    )
+    code = launcher_main(
+        a.config, show=a.show, hide=a.hide, quit_=a.quit, background=a.background, autostart=a.autostart
+    )
+    if code:
+        sys.exit(code)
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(
         prog="deskdot", description=f"DeskDot {__version__} — iDotMatrix 32x32 engine"
@@ -151,6 +165,16 @@ def main(argv: list[str] | None = None) -> None:
     pv.add_argument("--scale", type=int, default=10)
     pv.add_argument("--out", default="preview.png")
     pv.set_defaults(fn=_preview)
+    ln = sub.add_parser(
+        "launcher", help="system-wide command bar with a global hotkey (needs --extra launcher)"
+    )
+    ln.add_argument("--config", help="path to deskdot.toml (launcher_hotkey, launcher_autostart, port)")
+    ln.add_argument("--show", action="store_true", help="show the running launcher (bind this to a shortcut)")
+    ln.add_argument("--hide", action="store_true", help="hide the running launcher")
+    ln.add_argument("--quit", action="store_true", help="quit the running launcher")
+    ln.add_argument("--background", action="store_true", help="start hidden (used by start-with-login)")
+    ln.add_argument("--autostart", choices=["on", "off"], help="turn start-with-login on or off, then exit")
+    ln.set_defaults(fn=_launcher)
     a = p.parse_args(argv)
     if not getattr(a, "fn", None):
         a = p.parse_args(["serve", *(argv or sys.argv[1:])])

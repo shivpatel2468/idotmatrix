@@ -18,6 +18,7 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, Clip, Color, register
 from ..gfx import Frame, measure, mix, scale
 from ..gfx.characters import ACCESSORIES, ANIMS, CHARACTERS, draw_character, foot_gap, step_anim_time
+from ..platforms import only_on
 
 SCENES = {
     "none": "None",
@@ -47,7 +48,10 @@ class PetSettings(AppSettings):
     speed: float = Field(1.0, ge=0.25, le=3.0, title="Speed")
     flip: bool = Field(False, title="Face left")
     music_sync: bool = Field(
-        False, title="Dance to music", description="Dance on the beat when music is playing."
+        False,
+        title="Dance to music",
+        description="Dance on the beat when music is playing.",
+        json_schema_extra=only_on(feature="audio"),
     )
     name: str = Field("", max_length=10, title="Name tag")
     use_custom_colors: bool = Field(False, title="Custom colours", json_schema_extra={"group": "Colours"})

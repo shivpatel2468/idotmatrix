@@ -43,9 +43,45 @@ function persist(key: string, v: string) {
   }
 }
 
-export const useLook = create<{ look: PanelLook; bloom: number; setLook: (l: PanelLook) => void; setBloom: (b: number) => void }>((set) => ({
+/**
+ * Colour match: should the preview show the panel's colour calibration (what the LEDs are actually sent)?
+ *  - "led": only in the LED look (default — that look exists to judge the real panel)
+ *  - "all": in every look
+ *  - "off": never (the preview shows the app's design colours untouched)
+ */
+export type ColorMatch = "led" | "all" | "off";
+const MATCH_KEY = "deskdot.panelMatch";
+const MATCHES: ColorMatch[] = ["led", "all", "off"];
+function loadMatch(): ColorMatch {
+  try {
+    const v = localStorage.getItem(MATCH_KEY) as ColorMatch | null;
+    return v && MATCHES.includes(v) ? v : "led";
+  } catch {
+    return "led";
+  }
+}
+export const MATCH_LABEL: Record<ColorMatch, string> = { led: "LED look only", all: "Every look", off: "Off" };
+export const MATCH_HINT: Record<ColorMatch, string> = {
+  led: "The LED look shows your panel calibration; Glow and Pixel show the design colours",
+  all: "Every preview shows the colours exactly as the panel is sent them",
+  off: "Previews always show the untouched design colours",
+};
+export { MATCHES };
+
+/** Does `look` apply the panel calibration under the viewer's colour-match choice? */
+export const matchesPanel = (look: PanelLook, match: ColorMatch) => match === "all" || (match === "led" && look === "led");
+
+export const useLook = create<{
+  look: PanelLook; bloom: number; match: ColorMatch;
+  setLook: (l: PanelLook) => void; setBloom: (b: number) => void; setMatch: (m: ColorMatch) => void;
+}>((set) => ({
   look: load(),
   bloom: loadBloom(),
+  match: loadMatch(),
+  setMatch: (match) => {
+    set({ match });
+    persist(MATCH_KEY, match);
+  },
   setLook: (look) => {
     set({ look });
     persist(KEY, look);

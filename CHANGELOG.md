@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- **Renamed DotDeck → DeskDot** (`uv run deskdot serve`). `dotdeck.toml`, `DOTDECK_*` and old studio preferences
+  still work.
+- **System search bars:**
+  - `deskdot launcher`: a Spotlight-style window on Ctrl+Alt+Space with a tray icon (Windows; also macOS/Linux).
+  - DeskDot Bar: a native macOS menu-bar app with an ⌥Space command bar.
+  - A Raycast extension.
+  - See docs/LAUNCHERS.md.
+- **Fruit fly:**
+  - brain tuning (`/api/fly/config`, six personality presets);
+  - plays all 21 pilot games through per-game lures (smell cues);
+  - a one-click Let the fly play / Take back control on every page, in Play mode, in the command palette and on F;
+  - five 3D brain views (connectome cloud, tower, radial wheel, spike raster + scope, neural web);
+  - resizable sides;
+  - full screen with camera angles, a cinematic camera and a "both" layout.
+- **Colour calibration and motion lab:**
+  - guided A/B matching with test videos on the panel and screen;
+  - display-style presets, Claude presets and advanced options;
+  - motion tests with a guided "find my smoothest" and auto-tune.
+  - See docs/CALIBRATION.md.
+- **Intro/outro themes:** Sunset (default), Circuit, OG (the original LED fly-in) and Off, under Settings → Display.
+  The logo now uses warm neon colours.
+- **Compatibility:**
+  - settings and apps that can't work on the host OS are badged and disabled;
+  - Linux now-playing (MPRIS) and active app (X11);
+  - fixes for an Android crash, a macOS notifications DB issue and the BlueZ MTU;
+  - see docs/COMPATIBILITY.md.
+- **Website:** separate pages, a page and a real animated preview for every app, and Netlify config.
 - **idotmatrix branding:** a neon LED logo ("i" pink, "dot" amber, "matrix" cyan) that builds, strikes and loops in the
   header, plus sealed 50/50 intro/outro doors.
 - **Roaming fly:** a fly on every page; click it and it takes over the current game.

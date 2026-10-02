@@ -232,6 +232,26 @@ def playlist(op: Literal["get", "play", "stop", "next", "prev"] = "get") -> dict
 
 
 @mcp.tool()
+def fly_brain(
+    config: dict[str, Any] | None = None, preset: str = "", list_presets: bool = False
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """Tune the fruit-fly brain that can play every game (docs/FLY_BRAIN.md). No arguments: the current config
+    (phototaxis, looming, motion, leak, threshold, refractory, noise, escape, lure, preset). preset=<id> loads a
+    preset (default, calm, curious, twitchy, hunter, daredevil); config={...} changes some knobs (out-of-range
+    values are refused). list_presets=True lists the presets. To let the fly play a game: update_app_settings(game,
+    {"pilot": "fly"}) then app_action(game, "fly").
+    """
+    if list_presets:
+        return _call("GET", "/api/fly/presets")
+    patch = dict(config or {})
+    if preset:
+        patch["preset"] = preset
+    if patch:
+        return _call("PATCH", "/api/fly/config", json=patch)
+    return _call("GET", "/api/fly/config")
+
+
+@mcp.tool()
 def presets(
     action: Literal["list", "play", "save", "delete"] = "list",
     preset: str = "",

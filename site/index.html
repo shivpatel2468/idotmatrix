@@ -4,652 +4,281 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DeskDot: the all-in-one app for your iDotMatrix 32×32 panel</title>
-<meta name="description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90+ apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can see and drive it. Free, open source, local." />
+<meta name="description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
 <link rel="canonical" href="https://idotmatrix.com/" />
-<meta name="theme-color" content="#07070a" />
+<meta name="theme-color" content="#08070a" />
 <meta name="color-scheme" content="dark" />
 <meta name="author" content="Shiv Patel" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/" />
-<meta property="og:title" content="DeskDot: turn your iDotMatrix into a live desktop companion" />
-<meta property="og:description" content="90+ apps, multiplayer games, live data and AI agents on a 32×32 pixel panel. Free and open source, runs on your own machine." />
-<meta property="og:image" content="https://idotmatrix.com/media/apps-grid.png" />
-<meta property="og:image:width" content="1790" />
-<meta property="og:image:height" content="1254" />
-<meta property="og:image:alt" content="Forty DeskDot apps rendered on simulated 32×32 LED panels" />
+<meta property="og:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
+<meta property="og:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta property="og:image" content="https://idotmatrix.com/media/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="DeskDot: the all-in-one app for your iDotMatrix" />
-<meta name="twitter:description" content="90+ apps, multiplayer games, live data and AI agents on a 32×32 pixel panel." />
-<meta name="twitter:image" content="https://idotmatrix.com/media/apps-grid.png" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307070a'/%3E%3Cg fill='%23ff2d78'%3E%3Ccircle cx='8' cy='7' r='2.4'/%3E%3Ccircle cx='8' cy='15' r='2.4'/%3E%3Ccircle cx='8' cy='21' r='2.4'/%3E%3Ccircle cx='8' cy='27' r='2.4'/%3E%3C/g%3E%3Cg fill='%23ffb21a'%3E%3Ccircle cx='16' cy='15' r='2.4'/%3E%3Ccircle cx='16' cy='21' r='2.4'/%3E%3C/g%3E%3Cg fill='%231fe0ff'%3E%3Ccircle cx='24' cy='15' r='2.4'/%3E%3Ccircle cx='24' cy='21' r='2.4'/%3E%3Ccircle cx='24' cy='27' r='2.4'/%3E%3C/g%3E%3C/svg%3E" />
+<meta name="twitter:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
+<meta name="twitter:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
+<meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Martian+Mono:wght@400..700&display=swap" />
-<link rel="stylesheet" href="styles.css" />
-<link rel="preload" href="apps.json" as="fetch" crossorigin />
-<script>document.documentElement.classList.add("js");</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "DeskDot",
-  "url": "https://idotmatrix.com/",
-  "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Windows, Linux, macOS, Android (beta)",
-  "description": "An engine, studio and MCP server that turns an iDotMatrix 32×32 LED panel into a live desktop companion.",
-  "license": "https://opensource.org/licenses/MIT",
-  "author": { "@type": "Person", "name": "Shiv Patel", "url": "https://github.com/shivpatel2468" },
-  "codeRepository": "https://github.com/shivpatel2468/idotmatrix",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-}
-</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="stylesheet" href="/styles.css" />
+<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script src="/main.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeskDot","url":"https://idotmatrix.com/","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows, Linux, macOS, Android (beta)","description":"An engine, studio and MCP server that turns an iDotMatrix 32×32 LED panel into a live desktop companion.","license":"https://opensource.org/licenses/MIT","author":{"@type":"Person","name":"Shiv Patel","url":"https://github.com/shivpatel2468"},"codeRepository":"https://github.com/shivpatel2468/idotmatrix","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 </head>
-<body>
+<body class="page-index">
 <a class="skip" href="#main">Skip to content</a>
-
-<!-- svg sprite -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
   <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9L12 2.6Z"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
 </svg>
-
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="DeskDot, back to top"><canvas id="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
-    <nav id="nav" aria-label="Sections">
-      <a href="#agent">AI setup</a>
-      <a href="#guide">Run it</a>
-      <a href="#apps">Apps</a>
-      <a href="#features">Features</a>
-      <a href="#studio">Studio</a>
-      <a href="#specs">Specs</a>
-      <a href="#faq">FAQ</a>
+    <a class="brand" href="/" aria-current="page" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <nav id="nav" aria-label="Main">
+      <a href="/setup.html">AI setup</a>
+      <a href="/guide.html">Run it</a>
+      <a href="/apps.html">Apps</a>
+      <a href="/features.html">Features</a>
+      <a href="/studio.html">Studio</a>
+      <a href="/specs.html">Specs</a>
+      <a href="/faq.html">FAQ</a>
     </nav>
-    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
+    <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
   </div>
 </header>
 
-<main id="main">
-  <!-- ================================================================== hero -->
-  <div class="hero" id="top">
-    <div class="wrap hero-grid">
-      <div>
-        <span class="eyebrow"><i aria-hidden="true"></i>Free &amp; open source · unofficial · for iDotMatrix 32×32</span>
-        <div class="logo-wrap">
-          <canvas id="logo" role="img" aria-label="idotmatrix, written in glowing LED dots"></canvas>
-        </div>
-        <h1>Turn your iDotMatrix into a <span class="hl">live desktop companion</span>.</h1>
-        <p class="lede"><b>DeskDot is the all-in-one app for your iDotMatrix:</b> <span data-count="apps">90+</span> apps,
-          <span data-count="multiplayer">21</span> multiplayer games, live data from 45+ free sources, a studio for your
-          browser and phone, and an MCP server so AI agents can see the panel and drive it.</p>
-        <div class="cta">
-          <a class="btn primary" href="#agent">Set it up with your AI agent <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn" href="#guide">Run it yourself</a>
-          <a class="btn" href="https://github.com/shivpatel2468/idotmatrix"><svg aria-hidden="true"><use href="#i-star"/></svg>Star on GitHub<span class="count" data-stars></span></a>
-        </div>
-        <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>no cloud</span><span>zero subscriptions</span><span>MIT</span></div>
+<main id="main" tabindex="-1">
+<!-- page:start -->
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><i aria-hidden="true"></i>Free &amp; open source · unofficial · for iDotMatrix 32×32</span>
+      <div class="logo-wrap">
+        <canvas id="logo" role="img" aria-label="idotmatrix, written in glowing LED dots"></canvas>
       </div>
-      <div class="device" id="device">
-        <div class="device-frame">
-          <img src="media/hero.gif" width="384" height="384" fetchpriority="high" alt="DeskDot apps playing on a 32×32 LED panel: Synthwave, a live clock, London weather, the cat loop, Light Cycles, Pet World, a 3D wireframe and falling sand" />
-        </div>
-        <div class="device-label"><span>iDotMatrix · 32×32 RGB</span><span class="live">live over BLE</span></div>
+      <h1>Turn your iDotMatrix into a <span class="hl">live desktop companion</span>.</h1>
+      <p class="lede"><b>DeskDot is the all-in-one app for your iDotMatrix:</b> <span data-count="apps">90</span> apps,
+        <span data-count="multiplayer">21</span> multiplayer games, live data from 45+ free sources, a studio for your
+        browser and phone, and an MCP server so AI agents can see the panel and drive it.</p>
+      <div class="cta">
+        <a class="btn primary" href="/setup.html">Set it up with your AI agent <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn" href="/guide.html">Run it yourself</a>
+        <a class="btn" href="/apps.html">Browse the apps</a>
       </div>
+      <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>no cloud</span><span>zero subscriptions</span><span>MIT</span></div>
     </div>
-    <div class="wrap">
-      <div class="stats reveal" role="list" aria-label="DeskDot in numbers">
-        <div role="listitem"><b data-count="apps">90</b><span>apps</span></div>
-        <div role="listitem"><b data-count="games">25</b><span>games</span></div>
-        <div role="listitem"><b data-count="settings">990</b><span>settings, all documented</span></div>
-        <div role="listitem"><b>45+</b><span>free live sources</span></div>
-        <div role="listitem"><b>7</b><span>phone controllers</span></div>
-        <div role="listitem"><b>21</b><span>MCP tools</span></div>
+    <div class="device" id="device">
+      <div class="device-frame">
+        <div class="panel big"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/hero-reel.png" /><img src="/media/hero-reel.gif" width="32" height="32" fetchpriority="high" alt="DeskDot apps playing one after another on a 32×32 LED panel: Synthwave, a clock, Pet World, the weather, Light Cycles, Now Playing, a 3D wireframe, a flight radar and a flock of boids" /></picture></div>
       </div>
+      <div class="device-label"><span>iDotMatrix · 32×32 RGB</span><span class="live">real renders</span></div>
     </div>
   </div>
+  <div class="wrap">
+    <ul class="stats reveal" aria-label="DeskDot in numbers">
+      <li><b data-count="apps">90</b><span>apps</span></li>
+      <li><b data-count="games">25</b><span>games</span></li>
+      <li><b data-count="settings">905</b><span>settings, all documented</span></li>
+      <li><b>45+</b><span>free live sources</span></li>
+      <li><b>7</b><span>phone controllers</span></li>
+      <li><b>21</b><span>MCP tools</span></li>
+    </ul>
+  </div>
+</div>
 
-  <div class="divider pink wrap" aria-hidden="true"></div>
+<div class="divider pink wrap" aria-hidden="true"></div>
 
-  <!-- ================================================================== agent setup -->
-  <section id="agent" aria-labelledby="agent-h">
-    <div class="wrap">
-      <p class="kicker">Fastest way in</p>
-      <h2 id="agent-h" class="reveal">Run it with your AI agent</h2>
-      <p class="sub reveal">Paste one prompt into Claude Code, Gemini CLI, Codex, Cursor or any coding agent with a terminal.
-        It clones the repo, installs everything with uv, starts the simulator, and waits for you before it touches
-        the real panel. Then it connects itself to the panel through the MCP server.</p>
-
-      <div class="agent">
-        <div class="agent-steps reveal">
-          <div class="mini-step"><b>1</b><div><strong>Copy the prompt</strong><p>It follows the repo's own rules in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CLAUDE.md">CLAUDE.md</a>: only the engine talks Bluetooth, and nothing gets "fixed" by editing source.</p></div></div>
-          <div class="mini-step"><b>2</b><div><strong>Start your agent in an empty folder</strong><p>Pick your agent below for the exact command and where its MCP config lives.</p></div></div>
-          <div class="mini-step"><b>3</b><div><strong>Watch the simulator</strong><p>The studio opens at <code>http://127.0.0.1:8765</code> with a simulated panel. No hardware needed yet.</p></div></div>
-          <div class="mini-step"><b>4</b><div><strong>Say "the panel is on"</strong><p>Close the iDotMatrix phone app first; the panel takes one connection at a time. The agent scans, pairs and draws a test pattern.</p></div></div>
-          <div class="mini-step"><b>5</b><div><strong>Ask it to draw</strong><p>"Draw a pixel-art rocket, check the snapshot, fix anything that looks off." More in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md#example-prompts">docs/MCP.md</a>.</p></div></div>
-        </div>
-
-        <div class="reveal" style="--i:1">
-          <div class="console">
-            <div class="console-head">
-              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="title">setup-prompt.txt</span>
-              <button class="btn small primary" type="button" data-copy-target="setup-prompt"><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy prompt</button>
-            </div>
-<pre class="prompt-text" id="setup-prompt" tabindex="0" aria-label="Setup prompt for an AI agent">Set up DeskDot for me: an open-source engine, studio and MCP server for the
-iDotMatrix 32×32 LED panel. Repository: https://github.com/shivpatel2468/idotmatrix
-
-Work step by step and tell me what you are doing before each step.
-
-1. Check prerequisites: git, uv (https://docs.astral.sh/uv/, install it if missing;
-   it brings its own Python 3.13) and Node.js 20+ (only to build the studio once).
-   Tell me whether this machine has Bluetooth LE.
-2. Clone the repo into a folder called deskdot and work inside it:
-     git clone https://github.com/shivpatel2468/idotmatrix.git deskdot
-3. Read CLAUDE.md and README.md before doing anything else, and follow their rules.
-   Above all: only the DeskDot engine may talk to the panel over Bluetooth. Never
-   connect to it with any other tool, and never disconnect it on purpose.
-4. Install the Python dependencies:   uv sync --extra mcp
-5. Build the studio once (in web/):   npm ci, then npm run build
-6. Start the engine with the simulated panel, in the background:
-     uv run deskdot serve --sim
-   Wait until http://127.0.0.1:8765 answers, then tell me to open it.
-7. STOP and ask me before touching real hardware. When I confirm the panel is on
-   and the iDotMatrix phone app is closed:
-   - stop the simulator
-   - uv run deskdot scan      (finds the panel, named IDM-xxxxxx)
-   - copy deskdot.example.toml to deskdot.toml and set address = "&lt;the MAC found&gt;"
-   - uv run deskdot doctor    (draws a test pattern; ask me whether I can see it)
-   - uv run deskdot serve     (the real panel; leave it running)
-8. Connect yourself to the panel through DeskDot's MCP server (docs/MCP.md):
-   a stdio server started with
-     uv run --project &lt;absolute path to deskdot&gt; deskdot-mcp
-   with env DESKDOT_URL=http://127.0.0.1:8765. Then call panel_snapshot,
-   list_apps, and show_app with "clock" to prove it works.
-9. Finish with a short summary: what is running, the studio URL, how to stop and
-   restart it, and where my deskdot.toml is.
-
-If something fails, read the error and the docs (docs/DEPLOY.md, docs/MCP.md,
-docs/HARDWARE_PROTOCOL.md) and fix the setup. Do not edit DeskDot's source code to
-work around a problem; tell me instead.</pre>
-          </div>
-
-          <div class="tabs" data-tabs>
-            <div class="tablist" role="tablist" aria-label="Pick your agent">
-              <button role="tab" id="tab-claude" aria-controls="panel-claude" aria-selected="true" style="--c:var(--pink)"><i></i>Claude Code</button>
-              <button role="tab" id="tab-gemini" aria-controls="panel-gemini" aria-selected="false" tabindex="-1" style="--c:var(--amber)"><i></i>Gemini CLI</button>
-              <button role="tab" id="tab-codex" aria-controls="panel-codex" aria-selected="false" tabindex="-1" style="--c:var(--cyan)"><i></i>Codex</button>
-              <button role="tab" id="tab-cursor" aria-controls="panel-cursor" aria-selected="false" tabindex="-1" style="--c:var(--violet)"><i></i>Cursor</button>
-              <button role="tab" id="tab-other" aria-controls="panel-other" aria-selected="false" tabindex="-1" style="--c:var(--green)"><i></i>Any other</button>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" id="panel-claude" aria-labelledby="tab-claude" tabindex="0">
-              <ol>
-                <li>Install <a href="https://claude.com/claude-code">Claude Code</a>, open a terminal in the folder that should hold DeskDot, start it and paste the prompt.</li>
-                <li>Inside the repo, the MCP server is already registered by <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/.mcp.json"><code>.mcp.json</code></a>: approve it when asked, or run <code>/mcp</code>.</li>
-                <li>From any other folder, add it once with the command from <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">docs/MCP.md</a>.</li>
-              </ol>
-              <div class="code"><span class="label">start</span><pre><span class="p">$ </span>claude</pre></div>
-              <div class="code"><span class="label">register the MCP server from anywhere</span><pre><span class="p">$ </span>claude mcp add deskdot -- uv run --project /path/to/deskdot deskdot-mcp</pre></div>
-              <p class="note">Bonus: merge <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/integrations/claude-code/hooks.json"><code>integrations/claude-code/hooks.json</code></a> into <code>.claude/settings.json</code> and a mascot on the panel shows when Claude is thinking, working or waiting for you.</p>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" id="panel-gemini" aria-labelledby="tab-gemini" tabindex="0" hidden>
-              <ol>
-                <li>Install <a href="https://github.com/google-gemini/gemini-cli">Gemini CLI</a>, open a terminal in the folder that should hold DeskDot, start it and paste the prompt.</li>
-                <li>Register DeskDot's MCP server in Gemini CLI's <code>settings.json</code> (your user one, or <code>.gemini/settings.json</code> in the project), then restart Gemini CLI.</li>
-              </ol>
-              <div class="code"><span class="label">start</span><pre><span class="p">$ </span>gemini</pre></div>
-              <div class="code"><span class="label">settings.json</span><pre>{
-  "mcpServers": {
-    "deskdot": {
-      "command": "uv",
-      "args": ["run", "--project", "/path/to/deskdot", "deskdot-mcp"],
-      "env": { "DESKDOT_URL": "http://127.0.0.1:8765" }
-    }
-  }
-}</pre></div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" id="panel-codex" aria-labelledby="tab-codex" tabindex="0" hidden>
-              <ol>
-                <li>Install the <a href="https://github.com/openai/codex">Codex CLI</a>, open a terminal in the folder that should hold DeskDot, start it and paste the prompt.</li>
-                <li>Register DeskDot's MCP server in Codex's <code>config.toml</code> (usually <code>~/.codex/config.toml</code>), then restart Codex.</li>
-              </ol>
-              <div class="code"><span class="label">start</span><pre><span class="p">$ </span>codex</pre></div>
-              <div class="code"><span class="label">config.toml</span><pre>[mcp_servers.deskdot]
-command = "uv"
-args = ["run", "--project", "/path/to/deskdot", "deskdot-mcp"]
-env = { DESKDOT_URL = "http://127.0.0.1:8765" }</pre></div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" id="panel-cursor" aria-labelledby="tab-cursor" tabindex="0" hidden>
-              <ol>
-                <li>Open an empty folder in <a href="https://cursor.com">Cursor</a>, open the Agent chat and paste the prompt. Let it run terminal commands when it asks.</li>
-                <li>Register DeskDot's MCP server in <code>.cursor/mcp.json</code> in the project (or your user-level <code>mcp.json</code>), then enable it in Cursor's MCP settings.</li>
-              </ol>
-              <div class="code"><span class="label">.cursor/mcp.json</span><pre>{
-  "mcpServers": {
-    "deskdot": {
-      "command": "uv",
-      "args": ["run", "--project", "/path/to/deskdot", "deskdot-mcp"],
-      "env": { "DESKDOT_URL": "http://127.0.0.1:8765" }
-    }
-  }
-}</pre></div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" id="panel-other" aria-labelledby="tab-other" tabindex="0" hidden>
-              <ol>
-                <li>Any agent that can run terminal commands can follow the prompt: start it in an empty folder and paste.</li>
-                <li>Any MCP client can drive the panel. DeskDot's server speaks stdio; point your client at the command below. Claude Desktop uses this shape in <code>claude_desktop_config.json</code>.</li>
-                <li>Engine on another machine? Set <code>DESKDOT_URL=http://&lt;host&gt;:8765</code> in the server's env.</li>
-              </ol>
-              <div class="code"><span class="label">stdio MCP server</span><pre>{ "mcpServers": { "deskdot": { "command": "uv", "args": ["run", "--project", "/path/to/deskdot", "deskdot-mcp"] } } }</pre></div>
-              <p class="note">Config formats for third-party agents change over time; if a key is rejected, check that agent's MCP docs. The command itself (<code>uv run --project … deskdot-mcp</code>) is always the same.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+<section aria-labelledby="what-h">
+  <div class="wrap">
+    <p class="kicker">What it is</p>
+    <h2 id="what-h" class="reveal">One engine owns the panel. Everything else talks to it.</h2>
+    <p class="sub reveal">DeskDot runs on your computer (or a Raspberry Pi) and keeps the panel's Bluetooth link smooth.
+      You drive it from a studio in your browser, from your phone, from scripts, or by asking an AI agent.</p>
+    <div class="features three">
+      <article class="card reveal" style="--glow:var(--rose)">
+        <div class="ledico" data-led="#####|#...#|#.#.#|#...#|#####"></div>
+        <h3>The engine</h3>
+        <p>Renders every app at 32×32, bakes loops into GIFs the panel plays on its own, streams only what changes, and reconnects by itself.</p>
+      </article>
+      <article class="card reveal" style="--glow:var(--tangerine);--i:1">
+        <div class="ledico" data-led="##.##|##.##|.....|##.##|##.##"></div>
+        <h3>The studio</h3>
+        <p>Library, playlists, presets and live settings with an LED-accurate preview, on desktop and phone. <a href="/studio.html">See the studio</a>.</p>
+      </article>
+      <article class="card reveal" style="--glow:var(--gold);--i:2">
+        <div class="ledico" data-led=".###.|#.#.#|#####|.#.#.|#...#"></div>
+        <h3>The MCP server</h3>
+        <p>21 tools let Claude and other agents look at the panel, run any app, change settings, draw pixel art and notify you. <a href="/setup.html">Set it up</a>.</p>
+      </article>
     </div>
-  </section>
+  </div>
+</section>
 
-  <div class="divider amber wrap" aria-hidden="true"></div>
+<div class="divider amber wrap" aria-hidden="true"></div>
 
-  <!-- ================================================================== manual guide -->
-  <section id="guide" aria-labelledby="guide-h">
-    <div class="wrap">
-      <p class="kicker">Step by step</p>
-      <h2 id="guide-h" class="reveal">Run it yourself</h2>
-      <p class="sub reveal">About ten minutes from nothing to a live panel. Every command here is the one the README uses;
-        each step links to the file that explains it.</p>
-
-      <ol class="steps" aria-label="Setup steps">
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Get the prerequisites</h3>
-            <ul>
-              <li><b>uv</b>, the Python manager. It installs Python 3.13 for you; your system Python is untouched.</li>
-              <li><b>Git</b>, and <b>Node.js 20+</b> to build the studio once (and for studio development).</li>
-              <li>A computer with <b>Bluetooth LE</b> within a few metres of the panel. No panel yet? You can still do everything up to step 5.</li>
-              <li><b>Close the iDotMatrix phone app.</b> The panel accepts one Bluetooth connection at a time.</li>
-            </ul>
-            <div class="os-switch" role="group" aria-label="Your operating system">
-              <button type="button" data-os="win" aria-pressed="true">Windows</button>
-              <button type="button" data-os="unix" aria-pressed="false">macOS / Linux</button>
-            </div>
-            <div class="code" data-os-panel="win"><span class="label">install uv (PowerShell)</span><pre><span class="p">PS&gt; </span>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</pre></div>
-            <div class="code" data-os-panel="unix" hidden><span class="label">install uv</span><pre><span class="p">$ </span>curl -LsSf https://astral.sh/uv/install.sh | sh</pre></div>
-            <div class="refs"><a href="https://docs.astral.sh/uv/getting-started/installation/">uv install docs</a><a href="https://github.com/shivpatel2468/idotmatrix#-quick-start">README: Quick Start</a><a href="https://github.com/shivpatel2468/idotmatrix#-compatibility">README: Compatibility</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Clone the repo</h3>
-            <div class="code"><pre><span class="p">$ </span>git clone https://github.com/shivpatel2468/idotmatrix.git deskdot
-<span class="p">$ </span>cd deskdot</pre></div>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix">github.com/shivpatel2468/idotmatrix</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Install the engine and the MCP server</h3>
-            <p>One command installs Python 3.13 and every dependency into a local <code>.venv</code>.</p>
-            <div class="code"><pre><span class="p">$ </span>uv sync --extra mcp</pre></div>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/pyproject.toml">pyproject.toml</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/adr/0002-python-uv-fastapi.md">ADR 0002: Python, uv, FastAPI</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Build the studio once</h3>
-            <p>The engine serves the built studio from <code>web/dist</code>. You only need Node again if you work on the studio itself.</p>
-            <div class="code"><pre><span class="p">$ </span>cd web
-<span class="p">$ </span>npm ci
-<span class="p">$ </span>npm run build
-<span class="p">$ </span>cd ..</pre></div>
-            <p>Hacking on the UI? <code>npm run dev</code> in <code>web/</code> gives hot reload on <code>:5173</code>, proxied to the engine.</p>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/tree/main/web">web/</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/STUDIO_UI.md">docs/STUDIO_UI.md</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Try it on the simulator</h3>
-            <p>Everything runs against a simulated panel: every app, every game, the studio and the MCP server.</p>
-            <div class="code"><pre><span class="p">$ </span>uv run deskdot serve --sim</pre></div>
-            <p>Then open <a href="http://127.0.0.1:8765"><code>http://127.0.0.1:8765</code></a>. Pick an app, change a setting, press <kbd>▶</kbd> Play on a game.</p>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix#-the-first-five-minutes">README: The First Five Minutes</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/API.md">docs/API.md</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Find your panel and save its address</h3>
-            <p>Stop the simulator (<kbd>Ctrl</kbd>+<kbd>C</kbd>), switch the panel on, then scan. It shows up as <code>IDM-xxxxxx</code>.</p>
-            <div class="code"><pre><span class="p">$ </span>uv run deskdot scan</pre></div>
-            <p>Copy <code>deskdot.example.toml</code> to <code>deskdot.toml</code> and put the MAC in. The file is git-ignored, so it never leaves your machine. Leave <code>address</code> empty to use the first <code>IDM-*</code> panel found.</p>
-            <div class="code"><span class="label">deskdot.toml</span><pre>address = "AA:BB:CC:DD:EE:FF"   <span class="c"># from `deskdot scan`</span>
-device = "ble"                  <span class="c"># "sim" = simulator</span>
-lan_studio = false              <span class="c"># true = full studio for other devices on your Wi-Fi</span></pre></div>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/deskdot.example.toml">deskdot.example.toml</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/HARDWARE_PROTOCOL.md">docs/HARDWARE_PROTOCOL.md</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Check the link</h3>
-            <p>Connects and draws a test pattern on the real panel. If you see it, Bluetooth is good.</p>
-            <div class="code"><pre><span class="p">$ </span>uv run deskdot doctor</pre></div>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/cli.py">src/deskdot/cli.py</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/adr/0009-paced-writes-and-ack-flow-control.md">ADR 0009: paced writes</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Run it for real</h3>
-            <div class="code"><pre><span class="p">$ </span>uv run deskdot serve        <span class="c"># → http://127.0.0.1:8765</span></pre></div>
-            <p>Run the colour wizard once (Settings → Display &amp; colour) so photos and album art match your LEDs. Want an app as a PNG without hardware? <code>uv run deskdot preview clock --out clock.png</code>.</p>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix#-the-studio">README: The Studio</a><a href="https://github.com/shivpatel2468/idotmatrix#-games--multiplayer">README: Games &amp; Multiplayer</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Connect an AI agent (optional)</h3>
-            <p>With the engine running, register the MCP server and your agent can see the panel, run apps, draw pixel art and notify you.</p>
-            <div class="code"><pre><span class="p">$ </span>claude mcp add deskdot -- uv run --project /path/to/deskdot deskdot-mcp</pre></div>
-            <p>Other agents: see <a href="#agent">the agent tabs above</a>.</p>
-            <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">docs/MCP.md</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/mcp_server.py">src/deskdot/mcp_server.py</a></div>
-          </div>
-        </li>
-
-        <li class="step reveal">
-          <span class="num" aria-hidden="true"></span>
-          <div>
-            <h3>Keep it on 24/7 (optional)</h3>
-            <div class="two-up">
-              <div class="card">
-                <h3>Raspberry Pi</h3>
-                <p>Zero 2 W / 3 / 4 / 5: built-in BLE, 1–3 W. Build the studio on your computer, copy the folder over, run the installer (uv + a systemd service). Then open <code>http://raspberrypi.local:8765</code>.</p>
-                <div class="code"><pre><span class="p">$ </span>scp -r . pi@raspberrypi.local:~/deskdot
-<span class="p">pi$ </span>cd ~/deskdot &amp;&amp; bash scripts/install-pi.sh</pre></div>
-                <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/scripts/install-pi.sh">scripts/install-pi.sh</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DEPLOY.md">docs/DEPLOY.md</a></div>
-              </div>
-              <div class="card">
-                <h3>Android phone <span class="tag" style="color:var(--violet)">Beta</span></h3>
-                <p>The whole engine runs on a spare Android 8+ (64-bit) phone as a foreground service and restarts after a reboot. It builds and its Bluetooth bridge is unit-tested, but it hasn't been run on a real phone yet.</p>
-                <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/android/README.md">android/README.md</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/adr/0011-android-host-app.md">ADR 0011</a></div>
-              </div>
-            </div>
-            <p>Only one device can hold the panel's link: stop DeskDot on the laptop when the Pi or phone runs it.</p>
-          </div>
-        </li>
-      </ol>
+<section aria-labelledby="featured-h">
+  <div class="wrap">
+    <p class="kicker">Real renders, not mock-ups</p>
+    <h2 id="featured-h" class="reveal">Every app, exactly as the LEDs show it</h2>
+    <p class="sub reveal">Each preview on this site is rendered by DeskDot's own engine at 32×32, the same frames your panel gets.
+      Here are a few; the explorer has all <span data-count="apps">90</span>.</p>
+    <div class="app-grid">
+<!-- gen:featured -->
+<a class="card app-card" href="/apps/synthwave.html" style="--glow:#c39bff;--i:0">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/synthwave.png" /><img src="/media/apps/synthwave.gif" width="32" height="32" loading="lazy" decoding="async" alt="Synthwave Horizon running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
+  <div class="body">
+    <span class="tag" style="color:#c39bff">Creative</span>
+    <h3>Synthwave Horizon</h3>
+    <p>80s cyberpunk outrun horizon with 3D perspective grid, blazing sun, and sports car.</p>
+    <div class="foot"><span>4 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/petworld.html" style="--glow:#5cf2a0;--i:1">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/petworld.png" /><img src="/media/apps/petworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
+  <div class="body">
+    <span class="tag" style="color:#5cf2a0">Pets</span>
+    <h3>Pet World</h3>
+    <p>Lofi pets living in a scrolling little world — working, snacking, football, naps, dancing.</p>
+    <div class="foot"><span>14 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:2">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Light Cycles running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Light Cycles</h3>
+    <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/weather.html" style="--glow:#45d9ff;--i:3">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/weather.png" /><img src="/media/apps/weather.gif" width="32" height="32" loading="lazy" decoding="async" alt="Weather running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#45d9ff">Live data</span>
+    <h3>Weather</h3>
+    <p>Animated conditions, temperature, high/low and a 24-hour trend. Location in Settings.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/nowplaying.html" style="--glow:#ff3f78;--i:4">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/nowplaying.png" /><img src="/media/apps/nowplaying.gif" width="32" height="32" loading="lazy" decoding="async" alt="Now Playing running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff3f78">Media</span>
+    <h3>Now Playing</h3>
+    <p>Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, spectrum and more.</p>
+    <div class="foot"><span>19 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/radar.html" style="--glow:#45d9ff;--i:5">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/radar.png" /><img src="/media/apps/radar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flight Radar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
+  <div class="body">
+    <span class="tag" style="color:#45d9ff">Live data</span>
+    <h3>Flight Radar</h3>
+    <p>A phosphor radar scope of live aircraft around you (free ADS-B). Click a blip to inspect it.</p>
+    <div class="foot"><span>10 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/wireframe.html" style="--glow:#c39bff;--i:6">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/wireframe.png" /><img src="/media/apps/wireframe.gif" width="32" height="32" loading="lazy" decoding="async" alt="3D Wireframe Vector running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
+  <div class="body">
+    <span class="tag" style="color:#c39bff">Creative</span>
+    <h3>3D Wireframe Vector</h3>
+    <p>Retro 80s 3D vector graphics and 4D tesseract holo-display with depth cueing.</p>
+    <div class="foot"><span>4 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/flybrain.html" style="--glow:#c39bff;--i:7">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flybrain.png" /><img src="/media/apps/flybrain.gif" width="32" height="32" loading="lazy" decoding="async" alt="Fly Brain running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
+  <div class="body">
+    <span class="tag" style="color:#c39bff">Creative</span>
+    <h3>Fly Brain</h3>
+    <p>A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<!-- /gen:featured -->
     </div>
-  </section>
+    <p class="more-link"><a class="btn" href="/apps.html">See all <span data-count="apps">90</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+  </div>
+</section>
 
-  <div class="divider cyan wrap" aria-hidden="true"></div>
+<div class="divider cyan wrap" aria-hidden="true"></div>
 
-  <!-- ================================================================== apps explorer -->
-  <section id="apps" aria-labelledby="apps-h">
-    <div class="wrap">
-      <p class="kicker">The library</p>
-      <h2 id="apps-h" class="reveal">Every app, every setting</h2>
-      <p class="sub reveal">All <span data-count="apps">90</span> apps with the options the studio shows for each, generated
-        from the code itself. Open any app to see its settings, defaults, ranges and choices, and for games the modes,
-        maps, themes and controllers.</p>
-
-      <div class="explorer-tools">
-        <label class="search">
-          <span class="sr-only">Search apps and settings</span>
-          <svg aria-hidden="true"><use href="#i-search"/></svg>
-          <input id="app-search" type="search" placeholder="Search apps, settings, options…  e.g. weather, analog, 4 players" autocomplete="off" spellcheck="false" />
-          <kbd aria-hidden="true">/</kbd>
-        </label>
-        <div class="chips" id="cat-chips" role="group" aria-label="Filter by category"></div>
-      </div>
-      <p class="result-count" id="result-count" aria-live="polite"></p>
-      <div class="app-grid" id="app-grid">
-        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-      </div>
-      <noscript><p class="note">The explorer needs JavaScript. The raw data is in <a href="apps.json">apps.json</a>.</p></noscript>
-      <p class="result-count" style="margin-top:18px">Data: <a href="apps.json">apps.json</a>, built by
-        <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/scripts/build_site_data.py">scripts/build_site_data.py</a>
-        · Write your own app: <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">docs/APP_SDK.md</a></p>
+<section aria-labelledby="paths-h">
+  <div class="wrap">
+    <p class="kicker">Get going</p>
+    <h2 id="paths-h" class="reveal">Two ways in, about ten minutes each</h2>
+    <div class="paths">
+      <a class="card path reveal" href="/setup.html" style="--glow:var(--rose)">
+        <span class="path-n">01</span>
+        <h3>Let your AI agent do it</h3>
+        <p>Paste one prompt into Claude Code, Gemini CLI, Codex or Cursor. It installs everything, starts the simulator and waits for you before touching the panel.</p>
+        <span class="path-go">AI setup <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a class="card path reveal" href="/guide.html" style="--glow:var(--tangerine);--i:1">
+        <span class="path-n">02</span>
+        <h3>Do it yourself</h3>
+        <p>Ten short steps from installing uv to a live panel, each linked to the file that explains it. No panel yet? The simulator runs everything.</p>
+        <span class="path-go">Step-by-step guide <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
     </div>
-  </section>
-
-  <dialog class="app-dialog" id="app-dialog" aria-labelledby="dlg-title">
-    <div class="dlg-head">
-      <div class="thumb" id="dlg-thumb"></div>
-      <div>
-        <div class="badges" id="dlg-badges"></div>
-        <h2 id="dlg-title"></h2>
-        <p id="dlg-desc"></p>
-      </div>
-      <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+    <div class="quick-links reveal">
+      <a href="/features.html">Features</a><a href="/studio.html">The studio</a><a href="/specs.html">Compatibility</a><a href="/faq.html">FAQ</a><a href="https://github.com/shivpatel2468/idotmatrix">Source on GitHub</a>
     </div>
-    <div class="dlg-body" id="dlg-body"></div>
-  </dialog>
-
-  <div class="divider wrap" aria-hidden="true"></div>
-
-  <!-- ================================================================== features -->
-  <section id="features" aria-labelledby="features-h">
-    <div class="wrap">
-      <p class="kicker">Why DeskDot</p>
-      <h2 id="features-h" class="reveal">Everything your panel was missing</h2>
-      <p class="sub reveal">One engine owns the panel's Bluetooth link and keeps it smooth. Everything else (the studio,
-        your phone, scripts, AI agents) goes through its HTTP API.</p>
-
-      <div class="features">
-        <article class="card wide reveal" style="--glow:var(--ember)">
-          <div>
-            <div class="ledico" data-led=".#.#.|#####|#.#.#|#####|#...#"></div>
-            <h3>Games &amp; multiplayer</h3>
-            <p><span data-count="games">25</span> games, <span data-count="multiplayer">21</span> of them for 2–4 players on
-              your Wi-Fi. The panel shows a QR code and friends' phones become controllers: d-pad, stick, swipe, tap,
-              tilt or a real gamepad. Every game plays itself as a screensaver until you press a key; <kbd>B</kbd> opens
-              modes, maps and themes, then a FIFA-style side select.</p>
-          </div>
-          <img class="shot" src="media/studio-multiplayer.png" width="1600" height="900" loading="lazy" alt="The studio's Play with friends screen with a QR code for phones to join" />
-        </article>
-        <article class="card reveal" style="--glow:var(--cyan);--i:1">
-          <div class="ledico" data-led=".###.|#.#.#|#####|.#.#.|#...#"></div>
-          <h3>AI agents via MCP</h3>
-          <p>21 tools let Claude and other agents look at the panel (as an image), run any app, change any setting, draw pixel art, push notifications and drive the playlist.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--amber)">
-          <div class="ledico" data-led="#....|###..|#####|###..|#...."></div>
-          <h3>Smooth on the hardware</h3>
-          <p>Loops are baked once into a GIF the panel plays with its own firmware: perfectly smooth, zero Bluetooth traffic. Only live data streams.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--green);--i:1">
-          <div class="ledico" data-led="....#|...##|..###|.####|#####"></div>
-          <h3>Live, location-aware data</h3>
-          <p>Weather, flights overhead, quakes, launches, tides, markets, scores and air quality from 45+ free sources. Almost none need a key.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--pink);--i:2">
-          <div class="ledico" data-led=".###.|#...#|#####|##.##|#####"></div>
-          <h3>Private by design</h3>
-          <p>No account, no cloud, nothing sent to the panel's manufacturer. It runs on your machine; keys and your panel's address stay in a git-ignored file.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--violet)">
-          <div class="ledico" data-led="..#..|#.#.#|#...#|#...#|.###."></div>
-          <h3>Always on: Pi or Android</h3>
-          <p>Run it 24/7 on a Raspberry Pi with one installer, or on a spare Android phone (beta). When your computer sleeps the panel hands off to its own clock or a baked loop.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--amber);--i:1">
-          <div class="ledico" data-led="##.##|##.##|.....|##.##|##.##"></div>
-          <h3>A studio for every screen</h3>
-          <p>Library, playlists, presets and live settings, with an LED-accurate preview. Every form is generated from the app's schema, on desktop and phone.</p>
-        </article>
-        <article class="card reveal" style="--glow:var(--cyan);--i:2">
-          <div class="ledico" data-led="#...#|.#.#.|..#..|.#.#.|#...#"></div>
-          <h3>One file per app</h3>
-          <p>A pydantic settings model and a pure <code>render()</code>. Drop a file in <code>plugins/</code> and it appears in the studio with a form. <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a>.</p>
-        </article>
-      </div>
-
-      <!-- fly brain -->
-      <div class="fly reveal" style="margin-top:16px">
-        <div>
-          <p class="kicker" style="color:var(--cyan)">New · Fly Brain</p>
-          <h3 style="font-size:clamp(22px,2.6vw,30px)">A fruit-fly brain that plays the games</h3>
-          <p style="color:var(--ink-2)">In 2024 the FlyWire consortium mapped every connection in an adult fruit-fly brain. DeskDot
-            models its visual-to-motor circuit, feeds it the panel's 32×32 frame like a compound eye, and lets it play
-            any game from pixels alone. The studio shows its activity in 3D, live.</p>
-          <div class="facts">
-            <div class="fact"><span>Neurons mapped</span><b>139,255</b></div>
-            <div class="fact"><span>Synapses</span><b>~54.5 M</b></div>
-            <div class="fact"><span>Input</span><b>32×32 px</b><small>the same frame the LEDs show</small></div>
-          </div>
-          <div class="refs"><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/FLY_BRAIN.md">docs/FLY_BRAIN.md</a><a href="https://flywire.ai/">FlyWire</a><a href="#app/flybrain" data-open-app="flybrain">Fly Brain app</a></div>
-        </div>
-        <img src="media/studio-flyview.png" width="1600" height="900" loading="lazy" alt="The studio's 3D view of the fruit-fly brain's neurons firing while it plays a game" />
-      </div>
-    </div>
-  </section>
-
-  <div class="divider pink wrap" aria-hidden="true"></div>
-
-  <!-- ================================================================== studio + gallery -->
-  <section id="studio" aria-labelledby="studio-h">
-    <div class="wrap">
-      <p class="kicker">See it move</p>
-      <h2 id="studio-h" class="reveal">The studio and the arcade</h2>
-      <p class="sub reveal">Pick an app and it's on the panel in a second. Every setting is live, and it works the same on your phone.</p>
-      <div class="studio-row">
-        <figure class="shot reveal"><img src="media/studio-tour.gif" width="1120" height="630" loading="lazy" alt="A tour of the DeskDot studio: library, live preview and settings" /><figcaption>Studio tour</figcaption></figure>
-        <figure class="shot reveal" style="--i:1"><img src="media/studio-phone.png" width="390" height="844" loading="lazy" alt="The studio on a phone" /><figcaption>Studio on a phone</figcaption></figure>
-        <figure class="shot reveal" style="--i:2"><img src="media/phone-controller.png" width="390" height="844" loading="lazy" alt="The phone game controller with a d-pad and A/B buttons" /><figcaption>Phone controller</figcaption></figure>
-      </div>
-      <div class="reel" style="margin-top:14px">
-        <figure class="reveal"><img src="media/app-cycles.gif" width="276" height="276" loading="lazy" alt="Light Cycles: four glowing bikes leaving walls behind them" /><figcaption><span class="badge" style="--c:var(--ember)"><i></i>Light Cycles</span></figcaption></figure>
-        <figure class="reveal" style="--i:1"><img src="media/app-pong.gif" width="276" height="276" loading="lazy" alt="Four-way Pong" /><figcaption><span class="badge" style="--c:var(--ember)"><i></i>Pong · 4-way</span></figcaption></figure>
-        <figure class="reveal" style="--i:2"><img src="media/app-petworld.gif" width="276" height="276" loading="lazy" alt="Pet World: pixel pets in a little garden" /><figcaption><span class="badge" style="--c:var(--green)"><i></i>Pet World</span></figcaption></figure>
-        <figure class="reveal" style="--i:3"><img src="media/app-synthwave.gif" width="276" height="276" loading="lazy" alt="Synthwave Horizon: a neon sun over a scrolling grid" /><figcaption><span class="badge" style="--c:var(--violet)"><i></i>Synthwave</span></figcaption></figure>
-      </div>
-      <div class="shots">
-        <figure class="shot reveal"><img src="media/studio-play.png" width="1600" height="900" loading="lazy" alt="Play mode with the match setup: mode, players, map and theme" /><figcaption>Play mode: mode, players, map, theme</figcaption></figure>
-        <figure class="shot reveal" style="--i:1"><img src="media/studio-settings.png" width="1600" height="900" loading="lazy" alt="An app's settings form in the studio" /><figcaption>Settings generated from each app's schema</figcaption></figure>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider amber wrap" aria-hidden="true"></div>
-
-  <!-- ================================================================== specs -->
-  <section id="specs" aria-labelledby="specs-h">
-    <div class="wrap">
-      <p class="kicker">Compatibility</p>
-      <h2 id="specs-h" class="reveal">What it runs on, and the panel it drives</h2>
-      <p class="sub reveal">Measured on a real unit. These are the numbers DeskDot is built around; the byte-level details are in
-        <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/HARDWARE_PROTOCOL.md">docs/HARDWARE_PROTOCOL.md</a>.</p>
-      <div class="spec-grid">
-        <div class="table-scroll reveal">
-          <table class="data-table">
-            <caption>Hosts</caption>
-            <tbody>
-              <tr><th scope="row">Windows 10/11</th><td><span class="status ok">Verified</span> Bluetooth LE via WinRT; sleep/wake hand-off</td></tr>
-              <tr><th scope="row">Raspberry Pi OS / Debian / Ubuntu</th><td><span class="status part">Supported</span> BlueZ; <code>scripts/install-pi.sh</code> sets up a systemd service (installer not yet tried on a real Pi)</td></tr>
-              <tr><th scope="row">macOS</th><td><span class="status part">Untested</span> finds the panel by its <code>IDM-</code> name</td></tr>
-              <tr><th scope="row">Android 8+ (64-bit)</th><td><span class="status beta">Beta</span> the Android app runs the whole engine on the phone</td></tr>
-              <tr><th scope="row">iPhone / iPad</th><td><span class="status no">Not a host</span> iOS suspends background apps; use it as a studio or controller</td></tr>
-              <tr><th scope="row">Any browser</th><td><span class="status ok">Studio &amp; controller</span> Chrome, Edge, Firefox, Safari; gamepads on desktop</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-scroll reveal" style="--i:1">
-          <table class="data-table">
-            <caption>The iDotMatrix panel</caption>
-            <tbody>
-              <tr><th scope="row">Display</th><td>32 × 32 RGB LEDs, 1,024 pixels <span class="status ok">Verified</span></td></tr>
-              <tr><th scope="row">Other sizes</th><td>16×16, 64×64 <span class="status part">Untested</span> every app is designed for 32×32</td></tr>
-              <tr><th scope="row">Connection</th><td>Bluetooth LE, advertises as <code>IDM-xxxxxx</code>, one connection at a time</td></tr>
-              <tr><th scope="row">Live frames</th><td>~9 fps simple frames, ~5–6 fps full scenes</td></tr>
-              <tr><th scope="row">Native animation</th><td>GIFs looped by the firmware: smooth at ≤ 10 fps, up to 40 KB</td></tr>
-              <tr><th scope="row">Brightness &amp; modes</th><td>5–100 %, on/off, flip 180°, night mode; built-in clock, countdown, scoreboard</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider cyan wrap" aria-hidden="true"></div>
-
-  <!-- ================================================================== faq -->
-  <section id="faq" aria-labelledby="faq-h">
-    <div class="wrap">
-      <p class="kicker">Questions</p>
-      <h2 id="faq-h" class="reveal">FAQ</h2>
-      <div class="faq">
-        <details class="reveal"><summary>Is this the official iDotMatrix app?</summary><div class="a"><p>No. DeskDot is an independent, community-built project. It is not affiliated with, endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with. It talks to your own panel over Bluetooth and sends nothing to the manufacturer.</p></div></details>
-        <details class="reveal"><summary>Which panels does it work with?</summary><div class="a"><p>The iDotMatrix 32×32 RGB panel (it advertises as <code>IDM-xxxxxx</code>) is verified on hardware. Other sizes share the protocol but are untested, and every app is designed for 32×32.</p></div></details>
-        <details class="reveal"><summary>Do I need the iDotMatrix phone app?</summary><div class="a"><p>No, and you should close it while DeskDot runs: the panel accepts one Bluetooth connection at a time.</p></div></details>
-        <details class="reveal"><summary>Does it cost anything or need an account?</summary><div class="a"><p>No. It's MIT-licensed, runs locally and has no account. Almost every live data source is free and key-less; a few optional ones (GitHub token, Home Assistant, your own services) use your own credentials. See <a href="https://github.com/shivpatel2468/idotmatrix#-api-keys--costs">API keys &amp; costs</a>.</p></div></details>
-        <details class="reveal"><summary>Can I try it without a panel?</summary><div class="a"><p>Yes: <code>uv run deskdot serve --sim</code> runs the engine, studio and MCP server against a simulated panel that looks like the real LEDs.</p></div></details>
-        <details class="reveal"><summary>Why are some animations perfectly smooth and others not?</summary><div class="a"><p>Bluetooth carries about 5–9 live frames a second. So deterministic loops are baked once into a GIF that the panel plays with its own firmware, perfectly smooth. Only things that change with live data are streamed. The Apps explorer marks each app as a baked loop, live stream or firmware feature.</p></div></details>
-        <details class="reveal"><summary>What is MCP, and which agents work?</summary><div class="a"><p>The Model Context Protocol lets AI agents call tools. DeskDot's MCP server (<code>deskdot-mcp</code>) is a thin client over the engine's HTTP API, so any MCP client works: Claude Code and Claude Desktop are documented in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">docs/MCP.md</a>, and Gemini CLI, Codex and Cursor use the same stdio command.</p></div></details>
-        <details class="reveal"><summary>Can I write my own app?</summary><div class="a"><p>Yes. An app is one Python file: a pydantic settings model and a pure <code>render()</code> that draws with clipped primitives and bitmap fonts. Drop it in <code>plugins/</code> and the studio builds its form. Start with <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">docs/APP_SDK.md</a> and <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DISPLAY_DESIGN.md">docs/DISPLAY_DESIGN.md</a>.</p></div></details>
-        <details class="reveal"><summary>Does the Android app work?</summary><div class="a"><p>It's in beta: it builds and its Bluetooth bridge is unit-tested, but it hasn't been run on a real phone yet. Build steps are in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/android/README.md">android/README.md</a>.</p></div></details>
-        <details class="reveal"><summary>Something's wrong. Where do I report it?</summary><div class="a"><p>Open an issue on <a href="https://github.com/shivpatel2468/idotmatrix/issues">GitHub</a>. Security issues: see <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">SECURITY.md</a>. Contributions: <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p></div></details>
-      </div>
-
-      <p class="note reveal" style="margin-top:28px;max-width:880px"><b>Unofficial.</b> DeskDot is an independent, community-built project. It is not affiliated with,
-        endorsed by or supported by the makers of iDotMatrix; "iDotMatrix" is used only to identify compatible panels and all trademarks belong to their
-        owners. DeskDot runs locally and sends nothing to the manufacturer.</p>
-    </div>
-  </section>
+    <p class="note reveal"><b>Unofficial.</b> DeskDot is an independent, community-built project. It is not affiliated with,
+      endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with.
+      It runs locally and sends nothing to the manufacturer.</p>
+  </div>
+</section>
+<!-- page:end -->
 </main>
 
 <footer>
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas id="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
+        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
         <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
           <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
       </div>
       <div>
-        <h4>Get started</h4>
+        <h2>Get started</h2>
         <ul>
-          <li><a href="#agent">Set up with an AI agent</a></li>
-          <li><a href="#guide">Step-by-step guide</a></li>
-          <li><a href="#apps">Apps explorer</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DEPLOY.md">Raspberry Pi &amp; hosts</a></li>
+          <li><a href="/setup.html">Set up with an AI agent</a></li>
+          <li><a href="/guide.html">Step-by-step guide</a></li>
+          <li><a href="/apps.html">Apps explorer</a></li>
+          <li><a href="/specs.html">Compatibility</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
         </ul>
       </div>
       <div>
-        <h4>Docs</h4>
+        <h2>Docs</h2>
         <ul>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/README.md">README</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">MCP server</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/API.md">HTTP API</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/ARCHITECTURE.md">Architecture</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DEPLOY.md">Raspberry Pi &amp; hosts</a></li>
         </ul>
       </div>
       <div>
-        <h4>Project</h4>
+        <h2>Project</h2>
         <ul>
           <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
@@ -665,8 +294,6 @@ lan_studio = false              <span class="c"># true = full studio for other d
     </div>
   </div>
 </footer>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="main.js" defer></script>
 </body>
 </html>

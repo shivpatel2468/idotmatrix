@@ -3,7 +3,8 @@
 Everything here draws through `Frame` primitives (so it clips) and is pure: no I/O, cheap enough to call every
 frame. See docs/DISPLAY_DESIGN.md §9 for pictures and rules. In short:
 
-* **State screens** — `loading()`, `offline()`, `setup()` (not configured) and `empty()` share one layout:
+* **State screens** — `loading()`, `offline()`, `setup()` (not configured), `empty()` and `unsupported()`
+  (can't work on this OS) share one layout:
   optional glyph at the top, a label on row 10 (16 with a glyph), a grey hint underneath. Calm on purpose.
 * **Text that always fits** — `label()` centres tiny/small text inside the 1 px margins and falls back to a
   smaller font, then a marquee (when a time is given) or an ellipsis, instead of running off the edge.
@@ -248,6 +249,20 @@ def offline(f: Frame, label_text: str, detail: str = "", icon: str | None = None
         label(f, y + 8, detail, MUTE)
     if not has:
         f.hline(12, 25, 8, (60, 20, 0))
+
+
+def unsupported(f: Frame, label_text: str, platform: str | None = None) -> None:
+    """This feature can't work on the host OS (e.g. Active App on Android): amber label, "NOT ON", the OS.
+
+    Not an error and not "loading": it will never work here, so it says where it can't instead of blinking.
+    The studio shows which systems it needs (the app's / setting's `platforms` marker).
+    """
+    from ..platforms import SHORT, current
+
+    label(f, 6, label_text, WARN)
+    label(f, 14, "NOT ON", MUTE)
+    label(f, 21, SHORT.get(platform or current(), "THIS OS"), MUTE)
+    f.hline(12, 28, 8, (60, 20, 0))
 
 
 def setup(f: Frame, label_text: str, hint: str, color: ColorLike = INFO, icon: str | None = None) -> None:

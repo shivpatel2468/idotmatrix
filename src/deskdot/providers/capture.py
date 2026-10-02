@@ -82,6 +82,7 @@ class ScreenProvider(Provider[np.ndarray]):
     name = "screen"
     interval = 0.1
     retry = 2.0
+    feature = "screen"
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)
@@ -95,20 +96,24 @@ class ScreenProvider(Provider[np.ndarray]):
 
     def _grab(self) -> np.ndarray:
         from ..gfx.adjust import ImageControls, adjust, crop_box, geometry, to_panel
+        from ..platforms import supported
 
         c = self.controls or ImageControls()
         bbox = None
-        if self.mode == "cursor":
+        mode = self.mode
+        if mode in ("cursor", "window") and not supported("screen_window"):
+            mode = "full"  # no cursor position / window rect on this OS: mirror the whole screen instead
+        if mode == "cursor":
             x, y = _cursor()
             h = self.cursor_box // 2
             bbox = (x - h, y - h, x + h, y + h)
-        elif self.mode == "window":
+        elif mode == "window":
             bbox = _foreground_rect()
-        img = ImageGrab.grab(bbox=bbox, all_screens=self.mode == "cursor")
-        if self.mode == "ambilight":
+        img = ImageGrab.grab(bbox=bbox, all_screens=mode == "cursor")
+        if mode == "ambilight":
             small = img.resize((8, 8), Image.Resampling.BOX).resize((32, 32), Image.Resampling.BICUBIC)
             return adjust(geometry(small, c), c)
-        square = self.fit == "cover" or self.mode == "cursor"
+        square = self.fit == "cover" or mode == "cursor"
         img = img.crop(crop_box(img.width, img.height, c.zoom, c.pan_x, c.pan_y, square))
         img = geometry(img, c)
         s = 128 / max(img.size)  # working resolution for sharpening
@@ -142,6 +147,7 @@ class AudioProvider(Provider[dict[str, Any]]):
     name = "audio"
     interval = 0.04
     retry = 5.0
+    feature = "audio"
     BANDS = 32
 
     def __init__(self, hub: Any) -> None:
@@ -167,7 +173,7 @@ class AudioProvider(Provider[dict[str, Any]]):
     def restart(self) -> None:
         """Called after the audio source setting changes."""
         self._stop.set()
-        if self._refs:
+        if self._refs and self.supported:
             t = self._thread
             if t is not None:
                 t.join(timeout=1.5)
@@ -181,9 +187,10 @@ class AudioProvider(Provider[dict[str, Any]]):
         spk = sc.default_speaker()
         try:
             mic = sc.get_microphone(id=str(spk.name), include_loopback=True)
-        except Exception as e:  # macOS has no native loopback
+        except Exception as e:  # macOS has no native loopback; Linux needs PulseAudio / PipeWire-pulse
             raise RuntimeError(
-                "system-audio loopback unavailable here (on macOS install BlackHole, or choose 'Microphone')"
+                "system-audio loopback unavailable here (macOS: install BlackHole; Linux: needs PulseAudio or "
+                "PipeWire's pulse server) — or choose 'Microphone'"
             ) from e
         return mic.recorder(samplerate=sr, channels=1, blocksize=n)
 
@@ -250,7 +257,7 @@ class AudioProvider(Provider[dict[str, Any]]):
 
     def acquire(self) -> None:
         super().acquire()
-        if self._thread is None or not self._thread.is_alive():
+        if self.supported and (self._thread is None or not self._thread.is_alive()):
             self._start_thread()
 
     def release(self) -> None:

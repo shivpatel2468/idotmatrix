@@ -1,29 +1,50 @@
 import { useEffect, useRef, useState } from "react";
+import { type IntroTheme, getIntroTheme, onIntroTheme } from "../lib/intro";
 import { useStore } from "../lib/store";
 import { TIPS } from "../lib/tips";
-import { Doors } from "./boot/doors";
+import { CircuitDoors } from "./boot/circuit";
+import { OgIntro } from "./boot/og";
+import { type DoorPose, SunsetDoors } from "./boot/sunset";
 
-const MIN_INTRO_MS = 2600; // long enough for the logo to build and strike
+const MIN_INTRO_MS: Record<IntroTheme, number> = { sunset: 2600, circuit: 2600, og: 1700, off: 0 };
 const OFFLINE_MS = 2500; // the engine has been gone this long: close the doors (the outro)
+const FADE_MS = 650; // OG / Off themes fade instead of opening doors
+
+type DoorScene = {
+  readonly left: HTMLCanvasElement;
+  open: number;
+  readonly idle: boolean;
+  resize(): void;
+  slide(to: 0 | 1): void;
+  frame(dt: number): DoorPose;
+};
+
+const isDoors = (t: IntroTheme) => t === "sunset" || t === "circuit";
 
 /**
- * Intro / outro. Two doors with an LED-matrix face cover the studio while it connects; the idotmatrix logo builds
- * across their seam and strikes like neon. When the engine, the app catalogue and the first state are in, the
- * lock flares and the doors slide apart onto the studio. If the engine goes away later, they slide shut again.
+ * Intro / outro, in the theme picked in Settings → Display (lib/intro.ts):
+ * - Sunset / Circuit: a sealed scene covers the studio while it connects; the idotmatrix logo builds and strikes;
+ *   when the engine, the app catalogue and the first state are in, the scene splits and the halves glide apart 50/50.
+ * - OG: the original — LEDs fly in and settle into the wordmark — then a fade.
+ * - Off: just the progress, then a quick fade.
+ * If the engine goes away later, the intro comes back (the outro) and leaves again when it's back.
  */
 export function Boot() {
   const meta = useStore((s) => s.meta);
   const state = useStore((s) => s.state);
   const link = useStore((s) => s.link);
+  const [theme, setTheme] = useState<IntroTheme>(() => getIntroTheme());
   const cvL = useRef<HTMLCanvasElement>(null);
   const cvR = useRef<HTMLCanvasElement>(null);
+  const cvOg = useRef<HTMLCanvasElement>(null);
   const doorL = useRef<HTMLDivElement>(null);
   const doorR = useRef<HTMLDivElement>(null);
   const shine = useRef<HTMLDivElement>(null);
-  const doors = useRef<Doors | null>(null);
+  const doors = useRef<DoorScene | null>(null);
   const [phase, setPhase] = useState<"intro" | "opening" | "open" | "closing">("intro");
   const [tip, setTip] = useState(() => Math.floor(Math.random() * TIPS.length));
   const start = useRef(performance.now());
+  const replaying = useRef(false);
   const lastOpen = useRef(performance.now());
   if (link === "open") lastOpen.current = performance.now();
 
@@ -35,26 +56,39 @@ export function Boot() {
   const progress = steps.filter((s) => s.ok).length / steps.length;
   const shut = phase === "intro" || phase === "closing";
 
+  // the theme can change in Settings, and Settings can replay the intro as a preview
+  useEffect(() => onIntroTheme(() => setTheme(getIntroTheme())), []);
+  useEffect(() => {
+    const replay = () => {
+      replaying.current = true;
+      setPhase("closing");
+    };
+    window.addEventListener("deskdot:replay-intro", replay);
+    return () => window.removeEventListener("deskdot:replay-intro", replay);
+  }, []);
+
   useEffect(() => {
     if (!shut) return;
     const t = setInterval(() => setTip((i) => (i + 1) % TIPS.length), 2800);
     return () => clearInterval(t);
   }, [shut]);
 
-  // the canvas runs only while the doors are on screen
+  // door themes: the canvas runs only while the doors are on screen
   useEffect(() => {
-    if (phase === "open") return;
+    if (phase === "open" || !isDoors(theme)) return;
     const c = cvL.current;
     const c2 = cvR.current;
     if (!c || !c2) return;
     let d = doors.current;
     if (d?.left !== c) {
-      d = new Doors(c, c2, phase === "closing");
-      if (phase === "closing") d.slide(0); // the outro: in from the sides
+      const closing = phase === "closing";
+      d = theme === "circuit" ? new CircuitDoors(c, c2, closing) : new SunsetDoors(c, c2, closing);
+      if (closing) d.slide(0); // the outro: in from the sides
     }
     doors.current = d;
     d.resize();
-    const onResize = () => d.resize();
+    const scene = d;
+    const onResize = () => scene.resize();
     window.addEventListener("resize", onResize);
     let raf = 0;
     let last = performance.now();
@@ -62,7 +96,7 @@ export function Boot() {
       raf = requestAnimationFrame(loop);
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const pose = d.frame(dt);
+      const pose = scene.frame(dt);
       // the halves slide apart 50/50, tilting back a touch and dimming as they go
       const o = pose.open;
       const tilt = Math.sin(o * Math.PI) * 9;
@@ -77,27 +111,52 @@ export function Boot() {
         doorR.current.style.filter = `brightness(${1 - o * 0.45})`;
       }
       if (shine.current) shine.current.style.opacity = String(Math.min(1, pose.crack) * (1 - o) * 1.2);
-      if (d.open >= 1 && d.idle) setPhase((p) => (p === "opening" ? "open" : p));
+      if (scene.open >= 1 && scene.idle) setPhase((p) => (p === "opening" ? "open" : p));
     };
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
     };
-  }, [phase]);
+  }, [phase, theme]);
 
-  // intro → open, once everything is in and the logo has had its moment
+  // OG theme: the wordmark canvas
+  useEffect(() => {
+    if (phase === "open" || theme !== "og" || !cvOg.current) return;
+    const og = new OgIntro(cvOg.current);
+    const onResize = () => og.resize();
+    window.addEventListener("resize", onResize);
+    let raf = 0;
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      og.frame();
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [phase === "open", theme]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // intro → open, once everything is in and the intro has had its moment
   useEffect(() => {
     if (phase !== "intro" || progress < 1) return;
-    const wait = Math.max(0, MIN_INTRO_MS - (performance.now() - start.current));
+    const wait = Math.max(0, MIN_INTRO_MS[theme] - (performance.now() - start.current));
     const t = setTimeout(() => {
       setPhase("opening");
-      doors.current?.slide(1);
+      if (isDoors(theme)) doors.current?.slide(1);
     }, wait);
     return () => clearTimeout(t);
-  }, [phase, progress]);
+  }, [phase, progress, theme]);
 
-  // outro: the engine went away → shut the doors; it's back → open them again
+  // fade themes: opening is a fade, then gone
+  useEffect(() => {
+    if (phase !== "opening" || isDoors(theme)) return;
+    const t = setTimeout(() => setPhase("open"), FADE_MS);
+    return () => clearTimeout(t);
+  }, [phase, theme]);
+
+  // outro: the engine went away → bring the intro back; it's back → leave again
   useEffect(() => {
     if (phase === "open" && link !== "open") {
       // reconnect attempts flip between "connecting" and "closed"; time from when the link was last up
@@ -108,45 +167,66 @@ export function Boot() {
       return () => clearTimeout(t);
     }
     if (phase === "closing" && link === "open" && meta && state) {
-      start.current = performance.now() - MIN_INTRO_MS + 900;
+      // a replay from Settings plays the whole intro; a reconnect gets a shorter one
+      start.current = replaying.current ? performance.now() + 1200 : performance.now() - MIN_INTRO_MS[theme] + 900;
+      replaying.current = false;
       setPhase("intro");
     }
-  }, [phase, link, meta, state]);
+  }, [phase, link, meta, state, theme]);
 
-  // the studio behind the doors eases forward as they open
+  // the studio behind eases forward as the intro leaves
   useEffect(() => {
     document.body.dataset.boot = phase;
   }, [phase]);
 
   if (phase === "open") return null;
+  const offline = link !== "open" && (phase === "closing" || link === "closed") && (
+    <p className="text-center font-mono text-[11px] text-warn">
+      {phase === "closing" ? "The engine stopped." : "Engine not reachable."} Start it with <code>uv run deskdot serve</code>
+    </p>
+  );
+  const status = (
+    <>
+      <div className="w-full">
+        <div className="h-[3px] overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="boot-bar h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(8, progress * 100)}%` }} />
+        </div>
+        <div className="mt-3 flex justify-between gap-2">
+          {steps.map((s) => (
+            <span key={s.label} className="engrave flex items-center gap-1.5 !text-[8.5px]">
+              <span className="led" data-on={s.ok ? "ok" : "warn"} /> {s.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <p key={tip} className="min-h-[3em] max-w-md animate-rise text-center text-[13px] leading-relaxed text-ink-2">
+        <span className="engrave mr-2 !text-ember">Tip</span>
+        {TIPS[tip]}
+      </p>
+      {offline}
+    </>
+  );
+
+  if (!isDoors(theme)) {
+    // OG and Off: a dark screen that fades away
+    return (
+      <div className="boot boot-fade fixed inset-0 z-[100] grid place-items-center bg-chassis-0" data-phase={phase} aria-busy={shut} aria-label="Starting the DeskDot studio"
+        style={{ opacity: phase === "opening" ? 0 : 1, transition: `opacity ${FADE_MS}ms ease` }}>
+        <div className="flex w-[min(560px,90vw)] flex-col items-center gap-8">
+          {theme === "og" && <canvas ref={cvOg} className="max-w-full" />}
+          {status}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="boot fixed inset-0 z-[100]" data-phase={phase} aria-busy={shut} aria-label="Starting the idotmatrix studio">
+    <div className="boot fixed inset-0 z-[100]" data-phase={phase} aria-busy={shut} aria-label="Starting the DeskDot studio">
       <div ref={shine} className="boot-shine" />
       <div ref={doorL} className="boot-door boot-door-l"><canvas ref={cvL} /></div>
       <div ref={doorR} className="boot-door boot-door-r"><canvas ref={cvR} /></div>
-      <div className="boot-ui pointer-events-none absolute inset-x-0 top-[67%] boot-glass mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-6">
+      <div className={`boot-ui pointer-events-none absolute inset-x-0 mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-6 ${theme === "sunset" ? "top-[67%] boot-glass" : "top-[calc(42%+min(6.2vw,110px)+46px)]"}`}>
         <div className="engrave !text-[9px] !tracking-[0.42em] !text-ink-3">DeskDot studio · all in one for your iDotMatrix</div>
-        <div className="w-full">
-          <div className="h-[3px] overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="boot-bar h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(8, progress * 100)}%` }} />
-          </div>
-          <div className="mt-3 flex justify-between gap-2">
-            {steps.map((s) => (
-              <span key={s.label} className="engrave flex items-center gap-1.5 !text-[8.5px]">
-                <span className="led" data-on={s.ok ? "ok" : "warn"} /> {s.label}
-              </span>
-            ))}
-          </div>
-        </div>
-        <p key={tip} className="min-h-[3em] max-w-md animate-rise text-center text-[13px] leading-relaxed text-ink-2">
-          <span className="engrave mr-2 !text-ember">Tip</span>
-          {TIPS[tip]}
-        </p>
-        {link !== "open" && (phase === "closing" || link === "closed") && (
-          <p className="text-center font-mono text-[11px] text-warn">
-            {phase === "closing" ? "The engine stopped." : "Engine not reachable."} Start it with <code>uv run deskdot serve</code>
-          </p>
-        )}
+        {status}
       </div>
     </div>
   );

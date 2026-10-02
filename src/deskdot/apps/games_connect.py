@@ -380,6 +380,31 @@ class FourUp(GameApp):
         self.plays = 0
         self._plan: Move | None = None  # the AI's chosen move while its hover disc glides over
 
+    # ------------------------------------------------------------------ the fruit-fly pilot
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye sits on seat 1's hover disc above the board."""
+        return BX + 2 + self.cursor[0] * CELL, 6.0
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Seat 1's best column (a shallow negamax): beside the disc until it's over it, then straight down into
+        the slot ("down" drops) — or up, in Pop Out, when popping is best."""
+        if self.end_t > 0 or self.drop is not None or (self.you and self.turn != 0):
+            return []
+        key = (tuple(self.bd.pos), self.bd.mask, self.variant)
+        cached = getattr(self, "_fly_best", None)
+        if cached is None or cached[0] != key:
+            if not any(self.bd.can(c) for c in range(COLS)):
+                return []
+            mv: Move = ("drop", best_move(self.bd, 0, 3))
+            if self.variant == "popout":
+                mv = best_move_pop(self.bd, 0, 2)
+            cached = self._fly_best = (key, mv)
+        kind, c = cached[1]
+        x = BX + 2 + c * CELL
+        if self.cursor[0] != c:
+            return [(x, 6.0, 1.0)]
+        return [(x, -4.0 if kind == "pop" else 16.0, 1.0)]
+
     # ------------------------------------------------------------------ input
     def key(self, k: str) -> None:
         self.key_p(k, 1)

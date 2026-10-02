@@ -13,6 +13,7 @@ import { Icon } from "./Icon";
 import { ControlsPanel } from "./ControlsPanel";
 import { FriendsPill, LobbyPanel, ModeChoice, SEAT_COLORS, VersusBoard, closeFriends, useFriends, useLobbyPoll } from "./Multiplayer";
 import { TouchControl } from "./TouchControls";
+import { FlyToggle } from "./FlyToggle";
 import { LedPanel } from "./LedPanel";
 import { MatchSetup, Results, SideSelect, useGameStatus } from "./MatchSetup";
 
@@ -206,7 +207,7 @@ function Scoreboard({ horizontal }: { horizontal?: boolean }) {
     <div className={clsx("flex items-center gap-2.5", horizontal ? "" : "mt-1")}>
       <span className="led" data-on={you ? "ok" : "ember"} />
       <div>
-        <div className="font-display text-[17px] font-[640] leading-tight">{you ? "You" : "AI"}</div>
+        <div className="font-display text-[17px] font-[640] leading-tight">{you ? "You" : status?.player === "fly" ? "Fruit fly" : "AI"}</div>
         {!horizontal && <div className="text-[11px] leading-snug text-ink-3">{you ? "It's your game — the AI takes over after 10 s idle" : "Press any game key to take over"}</div>}
       </div>
     </div>
@@ -442,6 +443,7 @@ function PlayView() {
           <Bot size={14} /> Let AI play
         </button>
       )}
+      <FlyToggle className="[&>.key]:w-full" />
     </>
   );
 

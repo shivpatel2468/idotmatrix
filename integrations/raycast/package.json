@@ -1,0 +1,69 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "deskdot",
+  "title": "DeskDot",
+  "description": "Search and drive your iDotMatrix 32×32 LED panel through the DeskDot engine: apps with live previews, presets, games, the fruit-fly, brightness and notifications.",
+  "icon": "icon.png",
+  "author": "deskdot",
+  "license": "MIT",
+  "categories": ["Productivity", "Fun"],
+  "platforms": ["macOS", "Windows"],
+  "commands": [
+    {
+      "name": "search-apps",
+      "title": "Search DeskDot Apps",
+      "subtitle": "DeskDot",
+      "description": "Find an app or game, preview it and show it on the panel.",
+      "mode": "view"
+    },
+    {
+      "name": "controls",
+      "title": "DeskDot Controls",
+      "subtitle": "DeskDot",
+      "description": "Brightness, power, next / previous, playlist and the fly.",
+      "mode": "view"
+    },
+    {
+      "name": "presets",
+      "title": "DeskDot Presets",
+      "subtitle": "DeskDot",
+      "description": "Play a one-tap playlist (every game, chill, dashboard…).",
+      "mode": "view"
+    },
+    {
+      "name": "send-to-panel",
+      "title": "Send to Panel",
+      "subtitle": "DeskDot",
+      "description": "Pop a notification or scrolling text on the panel.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "engineUrl",
+      "title": "Engine URL",
+      "description": "Where `deskdot serve` listens.",
+      "type": "textfield",
+      "required": false,
+      "default": "http://127.0.0.1:8765"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.93.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.0.4",
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "typecheck": "tsc --noEmit",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}

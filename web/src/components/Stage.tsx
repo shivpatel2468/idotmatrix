@@ -11,6 +11,7 @@ import { LedPanel } from "./LedPanel";
 import { IndicatorHotspots, PlatformStrip } from "./PlatformStrip";
 import { FlyBar, FlyWing } from "./fly/FlyView";
 import { openFlyView, useFly } from "../lib/fly";
+import { FlyToggle } from "./FlyToggle";
 
 const KIND: Record<string, { label: string; hint: string }> = {
   stream: { label: "Live", hint: "Updates live: frames are sent over Bluetooth as they change" },
@@ -353,6 +354,7 @@ export function Stage({ fly = false }: { fly?: boolean }) {
             <span className="md:hidden"> · open Play mode for the game pad</span>
           </span>
           <span className="shrink-0 font-mono text-ink-1">{String(cur?.status?.score ?? 0)} <span className="text-ink-4">/ best {String(cur?.status?.best ?? 0)}</span></span>
+          <FlyToggle className="max-md:w-full [&>.key]:max-md:!h-12 [&>.key]:max-md:w-full" />
           {playable && (
             <button className="key key-ember max-md:!h-12 max-md:w-full" onClick={() => openPlay()} title="Full-window game view with big controls (P)">
               <Gamepad2 size={15} /> Play

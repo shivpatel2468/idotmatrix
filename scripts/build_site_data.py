@@ -3,6 +3,9 @@
     uv run python scripts/build_site_data.py            # writes site/apps.json
     uv run python scripts/build_site_data.py --out x.json
 
+The whole site, in order: build_site_media.py (app previews, slow) → build_site_data.py (this) →
+build_site_pages.py (every HTML page, sitemap, link check).
+
 The shape mirrors what the studio gets from /api/meta (src/deskdot/server.py), flattened into a list of settings
 per app so a static page can render it without a JSON-schema walker. Apps are instantiated once with default
 settings (against a simulated panel, no network) only to ask them which output kind they use.
@@ -20,8 +23,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-MEDIA = ROOT / "docs" / "media"
-DEFAULT_OUT = ROOT / "site" / "apps.json"
+SITE = ROOT / "site"
+PREVIEWS = SITE / "media" / "apps"  # rendered by scripts/build_site_media.py
+DEFAULT_OUT = SITE / "apps.json"
 
 CATEGORY_LABELS = {
     "time": "Time",
@@ -123,6 +127,11 @@ def _source(cls: type) -> str | None:
         return None
 
 
+def _media(name: str) -> str | None:
+    """A rendered preview's path relative to site/, if scripts/build_site_media.py has made it."""
+    return f"media/apps/{name}" if (PREVIEWS / name).exists() else None
+
+
 async def build() -> dict[str, Any]:
     import deskdot
     import deskdot.apps  # registers every built-in app
@@ -153,7 +162,10 @@ async def build() -> dict[str, Any]:
                     "description": m.description,
                     "kind": kind,
                     "kinds": kinds,
-                    "gif": f"media/app-{m.id}.gif" if (MEDIA / f"app-{m.id}.gif").exists() else None,
+                    "page": f"apps/{m.id}.html",
+                    "preview": _media(f"{m.id}.gif"),
+                    "poster": _media(f"{m.id}.png"),
+                    "og_image": _media(f"og/{m.id}.png"),
                     "source": _source(cls),
                     "actions": [{"id": a.id, "label": a.label} for a in m.actions],
                     "settings": settings,

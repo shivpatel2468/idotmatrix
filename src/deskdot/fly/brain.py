@@ -18,6 +18,12 @@ Google Research; Nature, 2 Oct 2024: 139,255 neurons, ~54.5 M synapses) maps in 
 * **LPLC2 → giant fibre**: radial expansion around the centre = something looming. Strong looming fires the giant
   fibre: the escape jump (key A), and a saccade away from the expanding side.
 * **Descending neurons**: leaky integrate-and-fire units (steer left/right/up/down); a spike = one key press.
+* **Smell (lure)**: a game may say where the fly's goal is (`lures`). It is a *sensory cue*, an odour source the
+  antennae pick up, added to the light map phototaxis chooses from; the brain still decides and presses the keys.
+* **Feeding reflex**: when a game allows it (`feed`), standing on the smell fires the proboscis-extension reflex
+  (taste receptors on the legs → PER), pressed as key A: "eat here" = place, drop, open.
+
+The knobs (phototaxis, looming, leak, threshold, ...) come from `deskdot.fly.config` (GET/PATCH /api/fly/config).
 
 Pure numpy, deterministic for a given seed, well under 1 ms per frame.
 """
@@ -31,6 +37,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
+
+from .config import FlyConfig, current
 
 EYE = 16  # ommatidia per side
 DNS = ("left", "right", "up", "down")
@@ -58,6 +66,7 @@ class FlyState:
     off: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # lamina L2 (dimming)
     motion_h: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # T4/T5, + = right
     motion_v: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # T4/T5, + = down
+    odour: np.ndarray = field(default_factory=lambda: np.zeros((EYE, EYE), np.float32))  # smelled lures
 
 
 KEYLOG = 32  # recent key presses kept for the studio's keyboard view
@@ -71,19 +80,27 @@ def _s8(a: np.ndarray, scale: float) -> list[int]:
     return np.clip(a * scale, -127, 127).astype(np.int8).ravel().tolist()
 
 
-class FlyBrain:
-    TAU_DELAY = 0.35  # low-pass "delay" arm of the motion detector (frames)
-    LEAK = 0.80  # descending-neuron leak per step
-    THRESHOLD = 1.0
-    GF_THRESHOLD = 1.0
-    REFRACTORY = 2  # steps after a spike
-    PHOTOTAXIS = (
-        0.3  # drive towards light per step (steady state 1.5 × threshold: about one turn every 3 steps)
-    )
+Lure = tuple[float, float, float]  # (x, y, strength 0..1) in panel pixels
 
-    def __init__(self, seed: int = 7) -> None:
+
+class FlyBrain:
+    """The tunable constants (leak, threshold, refractory period, phototaxis, noise, gains) live in `FlyConfig`;
+    its defaults are the original values: leak 0.80, threshold 1.0, refractory 2 steps, phototaxis 0.3 (steady
+    state 1.5 x threshold: about one turn every 3 steps), noise 0.06."""
+
+    TAU_DELAY = 0.35  # low-pass "delay" arm of the motion detector (frames)
+    GF_THRESHOLD = 1.0
+    ODOUR_WEIGHT = 1.5  # a lure of strength 1 outweighs a bright pixel next to the fly
+    ODOUR_PULL = 0.3  # extra drive while heading for a smell
+
+    def __init__(self, seed: int = 7, config: FlyConfig | None = None) -> None:
         self.rng = random.Random(seed)
+        self.config = config  # None = the shared config (deskdot.fly.config.current())
         self.reset()
+
+    @property
+    def cfg(self) -> FlyConfig:
+        return self.config or current()
 
     def reset(self) -> None:
         self._prev: np.ndarray | None = None
@@ -92,10 +109,13 @@ class FlyBrain:
         self._v = dict.fromkeys(DNS, 0.0)
         self._gf = 0.0
         self._refractory = dict.fromkeys((*DNS, "a"), 0)
+        self._per = 0.0  # proboscis-extension (feeding) reflex potential
+        self._per_rest = 0
         self.state = FlyState()
         self.steps = 0
         self.keylog: deque[tuple[int, str]] = deque(maxlen=KEYLOG)
         self.anchor: tuple[float, float] | None = None
+        self.lures: list[Lure] = []
 
     # ------------------------------------------------------------------ eye
     @staticmethod
@@ -110,11 +130,54 @@ class FlyBrain:
             lum = canvas[16:48, 16:48]
         return lum.reshape(EYE, 2, EYE, 2).mean(axis=(1, 3))
 
+    @staticmethod
+    def smell(lures: list[Lure], anchor: tuple[float, float] | None, gain: float) -> np.ndarray:
+        """Lures (panel x, y, strength) -> a 16x16 odour map in eye coordinates. A source beyond the eye's view is
+        smelled at the edge in its direction (the gradient still points the right way)."""
+        od = np.zeros((EYE, EYE), np.float32)
+        if not lures or gain <= 0:
+            return od
+        ax, ay = (16.0, 16.0) if anchor is None else (float(anchor[0]), float(anchor[1]))
+        half = EYE // 2
+
+        def cell(o: float) -> int:
+            # symmetric about the eye's centre (between cells 7 and 8): within one cell = the middle two cells,
+            # under the fly's body; beyond that, one more cell out per cell of distance
+            if abs(o) < 1:
+                return half if o >= 0 else half - 1
+            n = int(abs(o))
+            return min(EYE - 1, half + n) if o > 0 else max(0, half - 1 - n)
+
+        for x, y, strength in lures:
+            k = max(0.0, min(1.0, float(strength))) * gain
+            if k <= 0 or not (math.isfinite(x) and math.isfinite(y)):
+                continue
+            ox, oy = (x - ax) / 2, (y - ay) / 2  # eye cells from the centre
+            m = max(abs(ox), abs(oy)) / 7.4
+            if m > 1:
+                ox, oy = ox / m, oy / m
+            cx, cy = cell(ox), cell(oy)
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    xx, yy = cx + dx, cy + dy
+                    if 0 <= xx < EYE and 0 <= yy < EYE:
+                        v = k if dx == dy == 0 else k * 0.4
+                        od[yy, xx] = max(od[yy, xx], v)
+        return od
+
     # ------------------------------------------------------------------ one step of the brain
-    def step(self, px: np.ndarray, anchor: tuple[float, float] | None = None) -> list[str]:
+    def step(
+        self,
+        px: np.ndarray,
+        anchor: tuple[float, float] | None = None,
+        lures: list[Lure] | None = None,
+        feed: bool = False,
+    ) -> list[str]:
+        cfg = self.cfg
         eye = self.see(px, anchor)
         self.steps += 1
         self.anchor = anchor
+        self.lures = list(lures or [])
         prev = self._prev if self._prev is not None else eye
         self._prev = eye
         d = eye - prev  # lamina: temporal contrast
@@ -148,7 +211,7 @@ class FlyBrain:
         loom_d = float(np.maximum(v[c:, :], 0).mean())
         s.looming = (
             min(loom_l, loom_r, loom_u, loom_d) * gain * 4 + (loom_l + loom_r + loom_u + loom_d) * gain * 0.25
-        )
+        ) * cfg.looming
 
         # phototaxis: steer towards the strongest nearby light. A fly commits to one source; averaging two
         # lights would leave it hovering between them.
@@ -158,8 +221,19 @@ class FlyBrain:
         w = np.maximum(w - w.mean(), 0)
         dist = np.hypot(xs - c + 0.5, ys - c + 0.5)
         score = w / (1.0 + 0.35 * dist)
+        # smell: the game's goal cue is an odour source; it joins the light map (and fades less with distance)
+        od = self.smell(self.lures, anchor, cfg.lure)
+        taste = float(od[c - 1 : c + 1, c - 1 : c + 1].max()) / max(cfg.lure, 1e-6)  # under its feet
+        od[c - 1 : c + 1, c - 1 : c + 1] = 0  # already there
+        s.odour = od
+        smelled = float(od.max()) > 0
+        if smelled:
+            score = score + od * self.ODOUR_WEIGHT / (1.0 + 0.05 * dist)
+            w = w + od * self.ODOUR_WEIGHT
+        odour_at = 0.0
         if float(score.max()) > 0.02:
             py, pxi = np.unravel_index(int(np.argmax(score)), score.shape)
+            odour_at = float(od[py, pxi]) if smelled else 0.0
             near = (np.hypot(xs - pxi, ys - py) <= 1.5) * w  # the chosen light's own spot
             tot = float(near.sum()) or 1.0
             lx = float((near * (xs - c + 0.5)).sum() / tot) / c
@@ -169,29 +243,31 @@ class FlyBrain:
         s.light = (lx, ly)
 
         # descending neurons: light attraction + saccade away from the looming side + a little spontaneous noise
-        side_loom = (loom_r - loom_l) * gain * 3  # expansion on the right → turn left
-        vert_loom = (loom_d - loom_u) * gain * 3
+        side_loom = (loom_r - loom_l) * gain * 3 * cfg.looming  # expansion on the right → turn left
+        vert_loom = (loom_d - loom_u) * gain * 3 * cfg.looming
         # the pull follows the light's direction, not its distance (otherwise it would stall just short of it)
         n = math.hypot(lx, ly)
         ux, uy = (lx / n, ly / n) if n > 1e-3 else (0.0, 0.0)
-        pull = self.PHOTOTAXIS
+        pull = cfg.phototaxis + self.ODOUR_PULL * min(1.5, odour_at)
+        om = 0.15 * cfg.motion
         drive = {
-            "left": max(0.0, -ux) * pull + max(0.0, side_loom) + s.hs_left * 0.15,
-            "right": max(0.0, ux) * pull + max(0.0, -side_loom) + s.hs_right * 0.15,
-            "up": max(0.0, -uy) * pull + max(0.0, vert_loom) + s.vs_up * 0.15,
-            "down": max(0.0, uy) * pull + max(0.0, -vert_loom) + s.vs_down * 0.15,
+            "left": max(0.0, -ux) * pull + max(0.0, side_loom) + s.hs_left * om,
+            "right": max(0.0, ux) * pull + max(0.0, -side_loom) + s.hs_right * om,
+            "up": max(0.0, -uy) * pull + max(0.0, vert_loom) + s.vs_up * om,
+            "down": max(0.0, uy) * pull + max(0.0, -vert_loom) + s.vs_down * om,
         }
+        leak, threshold, noise = cfg.leak, cfg.threshold, cfg.noise
         spikes: list[str] = []
         for n in DNS:
             if self._refractory[n] > 0:
                 self._refractory[n] -= 1
-                self._v[n] *= self.LEAK
+                self._v[n] *= leak
                 continue
-            self._v[n] = self._v[n] * self.LEAK + drive[n] + self.rng.uniform(0, 0.06)
-            if self._v[n] >= self.THRESHOLD:
+            self._v[n] = self._v[n] * leak + drive[n] + self.rng.uniform(0, noise)
+            if self._v[n] >= threshold:
                 spikes.append(n)
                 self._v[n] = 0.0
-                self._refractory[n] = self.REFRACTORY
+                self._refractory[n] = cfg.refractory
         # opposite directions inhibit each other: keep the stronger one
         for a, b in (("left", "right"), ("up", "down")):
             if a in spikes and b in spikes:
@@ -200,12 +276,20 @@ class FlyBrain:
         # giant fibre: escape on strong looming
         if self._refractory["a"] > 0:
             self._refractory["a"] -= 1
-        self._gf = self._gf * 0.6 + s.looming * 0.9
+        self._gf = self._gf * 0.6 + s.looming * 0.9 * cfg.escape
         if self._gf >= self.GF_THRESHOLD and self._refractory["a"] == 0:
             spikes.append("a")
             self._gf = 0.0
             self._refractory["a"] = 4
-        s.dn = {n: min(1.0, self._v[n] / self.THRESHOLD) for n in DNS}
+        # proboscis extension: standing on the sugar for a moment → feed (key A)
+        if self._per_rest > 0:
+            self._per_rest -= 1
+        self._per = self._per * 0.5 + (taste if feed else 0.0)
+        if feed and self._per >= 0.9 and self._per_rest == 0 and "a" not in spikes:
+            spikes.append("a")
+            self._per = 0.0
+            self._per_rest = 3 + cfg.refractory
+        s.dn = {n: min(1.0, self._v[n] / threshold) for n in DNS}
         s.gf = min(1.0, self._gf / self.GF_THRESHOLD)
         s.spikes = spikes
         s.on, s.off = on, off
@@ -233,4 +317,7 @@ class FlyBrain:
             "spikes": list(s.spikes),
             "keys": [[n, k] for n, k in self.keylog],
             "anchor": None if self.anchor is None else [r3(self.anchor[0]), r3(self.anchor[1])],
+            "lures": [[r3(x), r3(y), r3(k)] for x, y, k in self.lures[:8]],
+            "odour": _u8(s.odour, 255 / 3),
+            "preset": self.cfg.preset,
         }

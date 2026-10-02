@@ -563,6 +563,46 @@ class Tetris(GameApp):
             p.drop_fast = True
         p.target = new
 
+    # ------------------------------------------------------------- the fruit-fly pilot
+    # "up" rotates and "a" hard-drops through the game's own keys; the feeding reflex (standing on the landing
+    # spot's smell) is that "a".
+    fly_feeds = True
+
+    def _fly_piece(self) -> tuple[Well, Pilot] | None:
+        for w in self.wells:
+            for p in w.pilots:
+                if p.seat == 1 and not p.waiting and w.alive and not w.clearing:
+                    return w, p
+        return None
+
+    def _piece_xy(self, w: Well, p: Pilot, rot: int, px: int, py: int) -> tuple[float, float]:
+        cells = self._cells(p.kind, rot, px, py)
+        return (
+            w.x0 + sum(x for x, _ in cells) * 2 / len(cells) + 1,
+            sum(y for _, y in cells) * 2 / len(cells) + 1,
+        )
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's falling piece."""
+        got = self._fly_piece()
+        return None if got is None else self._piece_xy(*got, got[1].rot, got[1].px, got[1].py)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The best landing for this piece (the game's holes/height/bumpiness plan): above the piece while it
+        needs turning ("up" rotates), beside it until it's over the right column, then on the piece itself so
+        the feeding reflex drops it ("a")."""
+        got = self._fly_piece()
+        if got is None:
+            return []
+        w, p = got
+        tr, tx = p.target
+        x, y = self._piece_xy(w, p, p.rot, p.px, p.py)
+        if p.rot % len(ROTS[p.kind]) != tr % len(ROTS[p.kind]):
+            return [(x, y - 10, 1.0)]
+        if p.px != tx:
+            return [(self._piece_xy(w, p, tr, tx, p.py)[0], y, 1.0)]
+        return [(x, y, 1.0)]
+
     # --------------------------------------------------------------- input
     def key_p(self, k: str, player: int) -> None:
         for w in self.wells:
@@ -1111,6 +1151,37 @@ class G2048(GameApp):
             if val > best_v:
                 best_d, best_v = d, val
         return best_d
+
+    # ---- the fruit-fly pilot
+    def _fly_board(self) -> Board | None:
+        if self.layout == "coop":
+            return self.boards[0] if self.turn == 1 else None
+        return next((b for b in self.boards if b.seat == 1 and b.alive), None)
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fly sits in the middle of seat 1's board (2048 has no character)."""
+        b = self._fly_board() or self.boards[0]
+        x, y, pitch = self._origin(b)
+        return x + 2 * pitch, y + 2 * pitch
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The best slide (one-ply: tidiness heuristic + merge points), smelled from that edge of the board."""
+        b = self._fly_board()
+        if b is None or b.pending or b.anim_t > 0:
+            return []
+        cached = getattr(self, "_fly_best", None)
+        if cached is None or cached[0] != b.board:
+            best: tuple[float, str] | None = None
+            for d in DIRS:
+                nb, gain, moved = _apply(b.board, d)
+                if moved and (best is None or _heur(nb) + gain > best[0]):
+                    best = (_heur(nb) + gain, d)
+            cached = self._fly_best = (b.board, None if best is None else best[1])
+        if cached[1] is None:
+            return []
+        x, y, pitch = self._origin(b)
+        dx, dy = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}[cached[1]]
+        return [(x + 2 * pitch + dx * 3 * pitch, y + 2 * pitch + dy * 3 * pitch, 1.0)]
 
     # ---- input
     def key_p(self, k: str, player: int) -> None:

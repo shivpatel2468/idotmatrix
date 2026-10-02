@@ -27,6 +27,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Literal
 
+import numpy as np
 from pydantic import BaseModel, Field, ValidationError
 
 from ..config import Config, Store
@@ -37,6 +38,7 @@ from ..gfx.calib import PanelCalibration
 from ..gfx.calib import apply as apply_calibration
 from ..gfx.calib import pattern as calibration_pattern
 from ..gfx.image import encode_gif_budget
+from ..gfx.testvideo import CalCard, MotionCard, StillCard
 from ..providers import Hub, Provider
 from ..providers.custom import NAME as CUSTOM_NAME
 from ..providers.custom import CustomApp
@@ -50,6 +52,8 @@ from .persistent import ActiveIndicator, Indicator, draw_indicators, draw_onair_
 log = logging.getLogger("deskdot.engine")
 
 TRANSITION_SECONDS = 0.4
+#: Minimum seconds between motion-test GIF uploads (frequent uploads stall the panel, HARDWARE_PROTOCOL #16).
+TEST_GIF_COOLDOWN = 20.0
 IDLE_RESET_S = (
     120.0  # this long without keyboard/mouse input counts as a natural break (eye-break timer resets)
 )
@@ -164,9 +168,13 @@ class Engine:
         self._revert: asyncio.Task[None] | None = None
         self._revert_to: tuple[Any, str, bool] | None = None
         self.auto_rule: int | None = None  # index of the autopilot rule currently in control
-        self.calibration = PanelCalibration.model_validate(store.get("calibration") or {})
+        self.calibration = PanelCalibration.load(store.get("calibration"))
         self.released = False  # True after a hand-off: the panel runs on its own until we take it back
-        self.pattern: tuple[str, Frame, float] | None = None  # calibration test pattern (name, frame, until)
+        # calibration / motion test card owning the panel: (card, started, until) - see show_test()
+        self.pattern: tuple[CalCard | MotionCard | StillCard, float, float] | None = None
+        self._test_gif_at = -1e9  # monotonic time of the last motion-test GIF upload (rate-limited)
+        self._test_gif_key: str | None = None
+        self._smooth_prev: np.ndarray | None = None  # temporal smoothing state for streamed frames
         self._night_active = False
         self._night_checked = 0.0
         self._bg: set[str] = set()  # providers held in the background (alerts, autopilot)
@@ -788,6 +796,8 @@ class Engine:
     def _delay(self) -> float:
         if self._trans or self.overlay:
             return 1 / 20
+        if self.pattern is not None and self.pattern[0].fps > 0:
+            return 1 / self.pattern[0].fps
         s = self.current
         if s is None:
             return 0.5
@@ -799,6 +809,23 @@ class Engine:
         if kind == "native":
             return 1.0 if self.frame_listeners else 2.0
         return 1 / max(0.2, min(30.0, s.app.fps))
+
+    def _smooth(self, frame: Frame, on: bool) -> Frame:
+        """Temporal smoothing for streamed frames (display.smoothing, 0 = off): an exponential moving average
+        that calms jittery live data. Snaps once within a few levels, so still screens settle exactly."""
+        k = float((self.store.get("display") or {}).get("smoothing", 0.0) or 0.0)
+        if not on or k <= 0:
+            self._smooth_prev = None
+            return frame
+        k = min(0.6, k)
+        cur = frame.px.astype(np.float32)
+        prev = self._smooth_prev
+        if prev is None or np.abs(cur - prev).max() <= 6:
+            self._smooth_prev = cur
+            return frame
+        out = prev * k + cur * (1 - k)
+        self._smooth_prev = out
+        return Frame(np.clip(np.round(out), 0, 255).astype(np.uint8))
 
     def _panel(self, frame: Frame) -> Frame:
         """The frame as sent to the LEDs: design colours through this panel's calibration."""
@@ -812,18 +839,21 @@ class Engine:
         self._platform(now)
         if self.released:  # handed off: the panel runs on its own until the user shows something again
             return
-        if self.pattern is not None:  # calibration wizard owns the panel
-            _name, pat, until = self.pattern
+        if self.pattern is not None:  # a calibration / motion test card owns the panel
+            card, started, until = self.pattern
             if now < until:
-                if self._device_frame is None or pat != self._device_frame:
+                ref, pat = card.frames(now - started)  # the panel frame carries its own corrections
+                native = isinstance(card, MotionCard) and self._test_gif_key == card.name + "|clip"
+                if not native and (self._device_frame is None or pat != self._device_frame):
                     self._device_frame = pat.copy()
-                    self.device.show_frame(pat.to_png())  # patterns carry their own corrections
-                if pat != self.frame:
-                    self.frame = pat
+                    self.device.show_frame(pat.to_png())
+                if ref != self.frame:  # the screen gets the reference: compare the panel against it
+                    self.frame = ref
                     for cb in list(self.frame_listeners):
-                        cb(pat)
+                        cb(ref)
                 return
             self.pattern = None
+            self._test_gif_key = None
             self._device_frame = None
             if self.current:
                 self.current.gif_sent = None
@@ -873,6 +903,7 @@ class Engine:
         drawn = self._draw_persistent(frame, now)
 
         streaming = kind == "stream" or self.overlay is not None or self._trans is not None or drawn
+        frame = self._smooth(frame, kind == "stream" and self.overlay is None and self._trans is None)
         if streaming:
             if kind == "clip":
                 s.gif_sent = None
@@ -949,6 +980,11 @@ class Engine:
         if settings:
             settings = strip_masked(REGISTRY[app_id], settings)
         self.take_back()
+        if self.pattern is not None and not revert_after:
+            # the person picked an app: a calibration / motion test card left running (e.g. the studio tab was
+            # closed mid-test) must not keep the panel
+            self.pattern = None
+            self._device_frame = None
         if self._revert and not self._revert.done():
             self._revert.cancel()
         if revert_after:
@@ -1161,6 +1197,7 @@ class Engine:
             "packet_gap_ms": self.config.packet_gap_ms,
             "night": {"enabled": False, "start": "23:00", "end": "07:00", "brightness": 10},
             "idle_dim": 0,
+            "smoothing": 0.0,
         }
         stored = self.store.get("display") or {}
         d.update({k: v for k, v in stored.items() if k != "night"})
@@ -1213,16 +1250,57 @@ class Engine:
         self.changed()
 
     def show_pattern(self, name: str, seconds: float = 600.0) -> None:
+        """A still first-generation test card (`calib.pattern`)."""
+        self.show_test(StillCard(name, calibration_pattern(name, self.calibration)), seconds)
+
+    def show_test(self, card: CalCard | MotionCard | StillCard, seconds: float = 600.0) -> dict[str, Any]:
+        """Hand the panel to a test card (calibration video or motion test) until cleared or `seconds` pass.
+
+        The same card keeps its clock when only its options change (A/B rounds don't restart the video). The
+        panel gets the card's corrected frame, the studio preview its reference frame (like-for-like).
+        """
         self.take_back()
-        self.pattern = (name, calibration_pattern(name, self.calibration), time.monotonic() + seconds)
+        now = time.monotonic()
+        started = now
+        if self.pattern is not None and self.pattern[0].name == card.name and self.pattern[2] > now:
+            started = self.pattern[1]
+        if isinstance(card, MotionCard):
+            card.panel = self.calibration
+        self.pattern = (card, started, now + seconds)
+        if self._test_gif_key and self._test_gif_key != card.name + "|clip":
+            self._test_gif_key = None
         self._device_frame = None
         self._wake.set()
         self.changed()
+        return {"ok": True, "pattern": card.name, "fps": card.fps, "mode": "stream"}
+
+    async def show_test_clip(self, card: MotionCard, seconds: float = 600.0) -> dict[str, Any]:
+        """Play a motion test as a baked GIF (native playback). Uploads are rate-limited: frequent GIF uploads
+        make the panel stop acking chunks (HARDWARE_PROTOCOL.md #16)."""
+        now = time.monotonic()
+        wait = TEST_GIF_COOLDOWN - (now - self._test_gif_at)
+        if wait > 0:
+            return {"ok": False, "wait": round(wait, 1)}
+        self._test_gif_at = now
+        card.panel = self.calibration
+        frames, durations = await asyncio.to_thread(card.clip)
+        gif = await asyncio.to_thread(encode_gif_budget, frames, durations)
+        self.show_test(card, seconds)
+        self._test_gif_key = card.name + "|clip"
+        self.device.show_gif(gif)
+        return {"ok": True, "pattern": card.name, "mode": "clip", "frames": len(frames), "bytes": len(gif)}
 
     def clear_pattern(self) -> None:
         if self.pattern:
             self.pattern = (self.pattern[0], self.pattern[1], 0.0)
         self._wake.set()
+
+    def pattern_info(self) -> dict[str, Any] | None:
+        if self.pattern is None:
+            return None
+        card = self.pattern[0]
+        native = self._test_gif_key == card.name + "|clip"
+        return {"name": card.name, "kind": card.kind, "fps": card.fps, "native": native}
 
     # device-level settings
     def set_brightness(self, level: int) -> None:
@@ -1277,7 +1355,8 @@ class Engine:
                     "remaining": remaining,
                 },
                 "overlay": self.overlay.n.model_dump() if self.overlay else None,
-                "pattern": self.pattern[0] if self.pattern else None,
+                "pattern": self.pattern[0].name if self.pattern else None,
+                "test": self.pattern_info(),
                 "released": self.released,
                 "active_preset": self.store.get("active_preset") if self.mode == "playlist" else None,
                 "preset": self._preset_info() if self.mode == "playlist" else None,

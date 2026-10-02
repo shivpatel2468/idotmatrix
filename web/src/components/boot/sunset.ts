@@ -113,7 +113,7 @@ const easeOut = (k: number) => 1 - (1 - k) ** 4;
 
 export type DoorPose = { open: number; crack: number; shine: number };
 
-export class Doors {
+export class SunsetDoors {
   private w = 0;
   private h = 0;
   private dpr = 1;

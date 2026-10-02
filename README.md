@@ -285,6 +285,10 @@ client can **see the panel and drive it**:
 The [Claude Code hook](integrations/claude-code) makes the mascot react to your coding session in real time.
 Details: [docs/MCP.md](docs/MCP.md). New apps are one file each: [docs/APP_SDK.md](docs/APP_SDK.md).
 
+**A search bar for the whole desk:** `uv run deskdot launcher` puts a Spotlight-style command bar on
+**Ctrl+Alt+Space** (apps with live previews, presets, games, brightness, "let the fly play"); on a Mac there's the
+native **DeskDot Bar** menu-bar app, and a **Raycast** extension for both. See [docs/LAUNCHERS.md](docs/LAUNCHERS.md).
+
 * * *
 
 ## 📡 What's on the Panel
@@ -337,6 +341,8 @@ The full list, with the APIs we tried and rejected (and why): [DATA_SOURCES.md](
 | **Android 8+ (64-bit)** | 🧪 Beta, not yet run on a phone | the [Android app](android/README.md) runs the whole engine on the phone |
 | **iPhone / iPad** | ❌ as a host | iOS suspends background apps; use it as a studio or controller instead |
 | **Any browser** | ✅ Studio & controller | Chrome, Edge, Firefox, Safari; gamepads in desktop browsers |
+
+What works where — every app, provider and setting per OS, plus studio and phone-controller browsers: **[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)**. The studio greys out what this host can't do.
 
 | Panel | Status |
 | --- | --- |
@@ -508,6 +514,7 @@ More: [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/IDEAS.md](docs/IDEAS.md).
 | Design for 32×32 | [docs/DISPLAY_DESIGN.md](docs/DISPLAY_DESIGN.md) |
 | HTTP & WebSocket API | [docs/API.md](docs/API.md) |
 | Connect an AI agent | [docs/MCP.md](docs/MCP.md) |
+| Search & control it from anywhere (hotkey launcher, macOS menu bar, Raycast) | [docs/LAUNCHERS.md](docs/LAUNCHERS.md) |
 | How the engine fits together | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/adr/](docs/adr/) |
 | The panel's Bluetooth protocol | [docs/HARDWARE_PROTOCOL.md](docs/HARDWARE_PROTOCOL.md) |
 | The studio's design system | [docs/STUDIO_UI.md](docs/STUDIO_UI.md) |

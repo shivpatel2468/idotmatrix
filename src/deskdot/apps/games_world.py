@@ -714,9 +714,9 @@ class DigWorld(GameApp):
                 best = (cc, rr)
         return best
 
-    def _plan_work(self) -> None:
+    def _pick_goal(self) -> None:
+        """Commit to one ore at a time (re-choosing every step makes the miner dither)."""
         seen, g = self.seen, self.g
-        # commit to one ore at a time (re-choosing every step makes the miner dither)
         if self.goal is not None:
             gc, gr = self.goal
             if g[gr][gc] not in ORES:
@@ -733,6 +733,9 @@ class DigWorld(GameApp):
                         if sc > best_s:
                             best, best_s = (cc, rr), sc
             self.goal = best
+
+    def _plan_work(self) -> None:
+        self._pick_goal()
         if self.goal is not None:
             oc, orr = self.goal
 
@@ -837,6 +840,37 @@ class DigWorld(GameApp):
             self._start("place", (c, r, want), PLACE_T)
             return True
         return False
+
+    # ------------------------------------------------------------- the fruit-fly pilot
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's miner (2 px blocks, feet on row `mr`)."""
+        if self._seat != 1:
+            m = self.miners.get(1)
+            if m is None:
+                return None
+            c, r = m["mc"], m["mr"]
+        else:
+            c, r = self.mc, self.mr
+        return (c - self.cam_c) * 2 + 1, (r - self.cam_r) * 2
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Ore: the richest one in reach (dig towards it), else down and along to explore; home at dusk."""
+        if self._seat != 1 or self.down_t > 0:
+            return []
+        c, r = self.mc, self.mr
+
+        def at(cc: float, rr: float, k: float = 1.0) -> list[tuple[float, float, float]]:
+            return [((cc - self.cam_c) * 2 + 1, (rr - self.cam_r) * 2, k)]
+
+        if self.tod >= DUSK - 0.06 or self.tod < 0.02:  # night is coming: climb towards the sky
+            return at(c, min(r, self.surface[max(0, min(WW - 1, c))]) - 6, 0.7)
+        ore = self._ore_near(c, r)
+        if ore is not None:
+            return at(*ore)
+        self._pick_goal()
+        if self.goal is not None:
+            return at(*self.goal)
+        return at(c + 8 * self.face, r + 4, 0.6)
 
     def _ai(self) -> None:
         c, r = self.mc, self.mr

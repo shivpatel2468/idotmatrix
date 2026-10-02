@@ -1,11 +1,16 @@
 """The app you're using right now: foreground window, its process, its real icon, and time spent today.
 
-Windows-only (user32/shell32 via ctypes). Icons are extracted from the executable once and cached
-as 32x32 RGBA arrays, so any app — not just a curated list — gets its own artwork on the panel.
+* Windows — user32/shell32 via ctypes. Icons are extracted from the executable once and cached as 32x32 RGBA
+  arrays, so any app — not just a curated list — gets its own artwork on the panel.
+* macOS — AppKit (pyobjc): frontmost app + its bundle icon; window titles need Screen Recording permission.
+* Linux — X11 only, through `xdotool` (if installed); no icons (a monogram tile is drawn). Wayland compositors
+  don't reveal the focused window to other apps, so there it reports an error.
+* Android — not available (`feature = "window"`).
 """
 
 from __future__ import annotations
 
+import asyncio
 import ctypes
 import logging
 import sys
@@ -14,9 +19,13 @@ from datetime import date
 from typing import Any
 
 import numpy as np
-import psutil
 
 from .base import Provider
+
+try:
+    import psutil
+except ImportError:  # optional: only used to name the foreground process
+    psutil = None  # type: ignore[assignment]
 
 log = logging.getLogger("deskdot.window")
 IS_WIN = sys.platform == "win32"
@@ -139,9 +148,50 @@ CATEGORY["design"] |= {"figma.app"}
 def category_of(proc: str) -> str:
     p = proc.lower()
     for cat, names in CATEGORY.items():
-        if p in names:
+        if p in names or f"{p}.exe" in names:  # Linux process names have no ".exe"
             return cat
     return "other"
+
+
+def friendly_name(proc: str) -> str:
+    key = proc.lower()
+    return (
+        FRIENDLY.get(key)
+        or FRIENDLY.get(f"{key}.exe")
+        or (proc.removesuffix(".exe").removesuffix(".EXE").title() or "Desktop")
+    )
+
+
+def _linux_foreground() -> tuple[str, str, str]:
+    """(process name, exe path, window title) of the focused X11 window through `xdotool`. Blocking: run it
+    in a thread."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("xdotool"):
+        raise RuntimeError("active-window tracking on Linux needs xdotool (sudo apt install xdotool) and X11")
+
+    def run(*args: str) -> str:
+        r = subprocess.run(["xdotool", "getactivewindow", *args], capture_output=True, text=True, timeout=1.5)
+        if r.returncode != 0:
+            raise RuntimeError("no focused X11 window (Wayland hides it from other apps; use an X11 session)")
+        return r.stdout.strip()
+
+    title = run("getwindowname")
+    proc, exe = "", ""
+    try:
+        pid = int(run("getwindowpid"))
+        if psutil is not None:
+            p = psutil.Process(pid)
+            proc, exe = p.name(), p.exe()
+        else:
+            with open(f"/proc/{pid}/comm", encoding="utf-8") as fh:
+                proc = fh.read().strip()
+    except (ValueError, OSError, RuntimeError) as e:
+        log.debug("foreground pid: %s", e)
+    except Exception as e:  # psutil.Error
+        log.debug("foreground process: %s", e)
+    return proc, exe, title
 
 
 if IS_WIN:
@@ -277,6 +327,7 @@ class WindowProvider(Provider[dict[str, Any]]):
     name = "window"
     interval = 0.5
     retry = 5.0
+    feature = "window"
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)
@@ -305,7 +356,7 @@ class WindowProvider(Provider[dict[str, Any]]):
             name, bundle, title = _mac_foreground()
             return name.lower().replace(" ", "") + ".app", bundle, title
         if not IS_WIN:
-            raise RuntimeError("active-window tracking needs Windows or macOS")
+            raise RuntimeError("active-window tracking needs Windows, macOS or Linux (X11)")
         hwnd = user32.GetForegroundWindow()
         length = user32.GetWindowTextLengthW(hwnd)
         title_buf = ctypes.create_unicode_buffer(length + 1)
@@ -313,15 +364,21 @@ class WindowProvider(Provider[dict[str, Any]]):
         pid = wintypes.DWORD()
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
         proc, exe = "", ""
-        try:
-            p = psutil.Process(pid.value)
-            proc, exe = p.name(), p.exe()
-        except (psutil.Error, OSError):
-            pass
+        if psutil is not None:
+            try:
+                p = psutil.Process(pid.value)
+                proc, exe = p.name(), p.exe()
+            except (psutil.Error, OSError):
+                pass
         return proc, exe, title_buf.value
 
     async def fetch(self) -> dict[str, Any]:
-        proc, exe, title = self._foreground()
+        from ..platforms import current
+
+        if current() == "linux":
+            proc, exe, title = await asyncio.to_thread(_linux_foreground)
+        else:
+            proc, exe, title = self._foreground()
         now = time.time()
         if date.today() != self._usage_day:
             self.usage, self._usage_day = {}, date.today()
@@ -338,7 +395,7 @@ class WindowProvider(Provider[dict[str, Any]]):
         return {
             "proc": key,
             "exe": exe,
-            "name": FRIENDLY.get(key, proc.removesuffix(".exe").removesuffix(".EXE").title() or "Desktop"),
+            "name": friendly_name(proc),
             "title": title,
             "category": category_of(key),
             "since": self._since,
@@ -346,7 +403,7 @@ class WindowProvider(Provider[dict[str, Any]]):
                 {
                     "proc": k,
                     "exe": self.exes.get(k, ""),
-                    "name": FRIENDLY.get(k, k.removesuffix(".exe").title()),
+                    "name": friendly_name(k),
                     "seconds": v,
                 }
                 for k, v in top

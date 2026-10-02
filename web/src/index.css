@@ -423,6 +423,7 @@ summary::-webkit-details-marker { display: none; }
   border-radius: var(--radius-chassis);
   border: 1px solid var(--color-line);
   background: #04050a;
+  overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
   animation: wing-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 0.32s; /* after the drawers have started closing */
@@ -486,8 +487,105 @@ summary::-webkit-details-marker { display: none; }
 .fly-swatch { width: 26px; height: 26px; border-radius: 8px; border: 2px solid transparent; transition: transform 0.15s; }
 .fly-swatch:hover { transform: scale(1.1); }
 .fly-swatch[data-on="true"] { border-color: #fff; box-shadow: 0 0 12px rgba(255, 255, 255, 0.35); }
+.fly-labels[data-hide="true"] .fly-label { display: none; }
+.fly-label-row { font-size: 8px; letter-spacing: 0.1em; transform: translateX(-50%); }
+.fly-keycap-sm { min-width: 34px; height: 20px; font-size: 10px; }
+/* resize bars between the wings and the panel: they sit in the row's gap */
+.fly-split { position: relative; align-self: stretch; width: 14px; margin: 0 -13px; flex: none; cursor: col-resize; touch-action: none; z-index: 5; outline: none; }
+.fly-split > span {
+  position: absolute; left: 6px; top: 32%; bottom: 32%; width: 2px; border-radius: 2px;
+  background: var(--color-line-2); transition: background 0.15s, top 0.2s, bottom 0.2s, box-shadow 0.2s;
+}
+.fly-split:hover > span, .fly-split:focus-visible > span, .fly-split[data-drag="true"] > span {
+  top: 10%; bottom: 10%; background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember), 0 0 22px rgba(255, 72, 24, 0.5);
+}
+/* quick controls in a scene's header */
+.fly-mini {
+  height: 26px; max-width: 132px; padding: 0 22px 0 8px; border-radius: 8px; appearance: none; cursor: pointer;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--color-ink-1);
+  background: rgba(8, 9, 16, 0.6) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23a8a5ad'/%3E%3C/svg%3E") no-repeat right 8px center;
+  border: 1px solid rgba(255, 255, 255, 0.09); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.fly-mini:hover { border-color: rgba(255, 255, 255, 0.2); }
+.fly-mini option { background: var(--color-chassis-2); color: var(--color-ink-1); }
+.fly-mini-btn {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; color: var(--color-ink-2);
+  background: rgba(8, 9, 16, 0.6); border: 1px solid rgba(255, 255, 255, 0.09); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.fly-mini-btn:hover { color: var(--color-ink-1); border-color: rgba(255, 255, 255, 0.22); }
+.fly-cambar {
+  display: flex; gap: 2px; padding: 3px; border-radius: 10px; z-index: 3; transition: opacity 0.35s ease;
+  background: rgba(8, 9, 16, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.fly-cambar > button {
+  height: 26px; padding: 0 10px; border-radius: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-ink-3); transition: background 0.15s, color 0.15s;
+}
+.fly-cambar > button:hover { color: var(--color-ink-1); }
+.fly-cambar > button[data-on="true"] { background: var(--color-chassis-4); color: var(--color-ink-1); }
+.fly-form {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 9px; text-align: left;
+  background: var(--color-chassis-0); border: 1px solid var(--color-line); transition: border-color 0.15s, background 0.15s;
+}
+.fly-form b { font-size: 12px; font-weight: 600; color: var(--color-ink-1); }
+.fly-form span { font-size: 10.5px; line-height: 1.35; color: var(--color-ink-3); }
+.fly-form:hover { border-color: var(--color-line-2); }
+.fly-form[data-on="true"] { border-color: var(--color-ember); background: var(--color-ember-deep); }
+.fly-chip-btn {
+  height: 26px; padding: 0 10px; border-radius: 99px; font-size: 11.5px; color: var(--color-ink-2);
+  background: var(--color-chassis-0); border: 1px solid var(--color-line);
+}
+.fly-chip-btn:hover { color: var(--color-ink-1); border-color: var(--color-line-2); }
+.fly-chip-btn[data-on="true"] { color: var(--color-ink-1); border-color: var(--color-ember); background: var(--color-ember-deep); }
+.fly-kbd { margin-left: 2px; padding: 0 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 9px; color: var(--color-ink-3); border: 1px solid var(--color-line-2); }
+
+/* full screen: one scene, or brain + live panel + keyboard */
+.fly-full { position: fixed; inset: 0; z-index: 200; background: #030409; color: var(--color-ink-1); }
+.fly-full[data-idle="true"] { cursor: none; }
+.fly-full-bar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 8px; padding: max(10px, env(safe-area-inset-top, 0px)) 14px 10px;
+  background: linear-gradient(to bottom, rgba(3, 4, 9, 0.85), transparent); transition: opacity 0.35s ease;
+}
+.fly-full[data-idle="true"] .fly-full-bar, .fly-full[data-idle="true"] .fly-cambar { opacity: 0; pointer-events: none; }
+.fly-full-body { position: absolute; inset: 0; display: grid; gap: 12px; }
+.fly-full .fly-pane { background: #04050a; }
+.fly-full[data-layout="single"] .fly-full-body { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.fly-full[data-layout="side"] .fly-full-body {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; padding: 58px 12px 12px;
+}
+.fly-full[data-layout="side"] .fly-pane, .fly-full[data-layout="stacked"] .fly-pane, .fly-full[data-layout="inset"] .fly-full-keys {
+  border-radius: var(--radius-chassis); border: 1px solid var(--color-line);
+}
+.fly-full .fly-full-brain { order: 1; }
+.fly-full .fly-full-panel { order: 2; }
+.fly-full .fly-full-keys { order: 3; }
+.fly-full[data-layout="side"][data-swap="true"] .fly-full-brain { order: 3; }
+.fly-full[data-layout="side"][data-swap="true"] .fly-full-keys { order: 1; }
+.fly-full[data-layout="stacked"] .fly-full-body { grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); padding: 58px 12px 12px; }
+.fly-full[data-layout="inset"] .fly-full-body { display: block; }
+.fly-full[data-layout="inset"] .fly-full-brain { position: absolute; inset: 0; }
+.fly-full[data-layout="inset"] .fly-full-keys {
+  position: absolute; right: 16px; bottom: 16px; width: min(36%, 560px); height: min(44%, 420px); z-index: 4;
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.9);
+}
+.fly-full[data-layout="inset"] .fly-full-panel { position: absolute; left: 16px; bottom: 16px; z-index: 4; }
+/* full-bleed panes: their own header and camera bar sit below the full-screen bar */
+.fly-full[data-layout="single"] .fly-pane-head, .fly-full[data-layout="inset"] .fly-full-brain .fly-pane-head { top: 60px; }
+.fly-full[data-layout="single"] .fly-cambar, .fly-full[data-layout="inset"] .fly-full-brain .fly-cambar { top: 108px; }
+.fly-full[data-layout="inset"] .fly-full-brain .fly-brainhud { left: 50%; right: auto; bottom: auto; top: 156px; width: min(460px, 34%); transform: translateX(-50%); }
+.fly-full-panel { display: grid; place-items: center; min-width: 0; min-height: 0; }
+.fly-full-bezel { aspect-ratio: 1 / 1; width: min(26vw, calc(100vh - 110px)); height: auto; }
+.fly-full[data-layout="stacked"] .fly-full-bezel { width: min(24vh, 60vw); }
+.fly-full[data-layout="inset"] .fly-full-bezel { width: min(26vh, 24vw); }
+@media (max-width: 900px) {
+  .fly-full[data-layout="side"] .fly-full-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .fly-full[data-layout="side"] .fly-full-bezel { width: min(24vh, 60vw); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .drawer, .drawer > *, .fly-wing { transition: none; animation: none; }
+  .fly-split > span, .fly-full-bar, .fly-cambar { transition: none; }
 }
 
 /* ---------------------------------------------------------------- intro / outro doors (components/Boot) */
@@ -501,19 +599,20 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 .boot-door-r canvas { margin-left: auto; }
 .boot-shine {
   position: absolute; inset: 0; opacity: 0; pointer-events: none;
-  background: radial-gradient(ellipse 38% 70% at 50% 42%, rgba(255, 236, 220, 0.85), rgba(255, 178, 26, 0.35) 30%, rgba(31, 224, 255, 0.12) 60%, transparent 80%);
+  background: radial-gradient(ellipse 38% 70% at 50% 48%, rgba(255, 238, 220, 0.85), rgba(255, 140, 46, 0.4) 30%, rgba(255, 79, 123, 0.16) 60%, transparent 80%);
 }
+.boot-glass { padding: 14px 18px 10px; border-radius: 14px; background: rgba(10, 4, 14, 0.42); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255, 140, 46, 0.18); }
 .boot[data-phase="opening"] .boot-ui { opacity: 0; transform: translateY(14px) scale(0.98); }
 .boot[data-phase="closing"] .boot-ui { animation: rise 0.6s 0.8s both; }
-.boot-bar { background: linear-gradient(90deg, #ff2d78, #ffb21a 50%, #1fe0ff); box-shadow: 0 0 14px rgba(255, 45, 120, 0.6), 0 0 22px rgba(31, 224, 255, 0.35); }
+.boot-bar { background: linear-gradient(90deg, #ff4f7b, #ff8c2e 50%, #ffcf4d); box-shadow: 0 0 14px rgba(255, 79, 123, 0.6), 0 0 22px rgba(255, 207, 77, 0.35); }
 @media (prefers-reduced-motion: reduce) { .app-shell { transition: none; } }
 
 /* ---------------------------------------------------------------- the roaming fly (components/RoamingFly) */
-.roam-fly, .roam-shadow, .roam-tip { position: fixed; left: 0; top: 0; z-index: 90; will-change: transform, opacity; }
+.roam-fly, .roam-shadow, .roam-tip { position: fixed; left: 0; top: 0; z-index: 45; /* above the studio, below dialogs (z-50) */ will-change: transform, opacity; }
 .roam-fly { width: 136px; height: 136px; cursor: pointer; transform-origin: 50% 50%; border-radius: 50%; }
 /* the fly glows: a warm amber halo with a pink rim, breathing */
-.roam-fly canvas { filter: drop-shadow(0 0 5px rgba(255, 178, 26, 0.75)) drop-shadow(0 0 16px rgba(255, 45, 120, 0.45)); animation: fly-glow 2.4s ease-in-out infinite; }
-@keyframes fly-glow { 50% { filter: drop-shadow(0 0 7px rgba(255, 178, 26, 0.95)) drop-shadow(0 0 24px rgba(31, 224, 255, 0.45)); } }
+.roam-fly canvas { filter: drop-shadow(0 0 5px rgba(255, 207, 77, 0.75)) drop-shadow(0 0 16px rgba(255, 79, 123, 0.45)); animation: fly-glow 2.4s ease-in-out infinite; }
+@keyframes fly-glow { 50% { filter: drop-shadow(0 0 7px rgba(255, 207, 77, 0.95)) drop-shadow(0 0 24px rgba(255, 140, 46, 0.55)); } }
 .roam-shadow {
   width: 60px; height: 30px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
@@ -521,7 +620,7 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 .roam-tip {
   pointer-events: none; display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 10px;
   font-size: 12px; white-space: nowrap; color: var(--color-ink-1);
-  background: rgba(14, 14, 20, 0.88); border: 1px solid rgba(255, 72, 24, 0.45); backdrop-filter: blur(6px);
+  background: rgba(14, 14, 20, 0.88); border: 1px solid rgba(255, 72, 24, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 0 18px -6px var(--color-ember); transition: opacity 0.2s ease;
 }
 .roam-tip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-ember-2); }

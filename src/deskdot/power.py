@@ -13,7 +13,6 @@ import ctypes
 import logging
 import sys
 import threading
-from ctypes import wintypes
 from typing import Any
 
 log = logging.getLogger("deskdot.power")
@@ -33,6 +32,8 @@ def start_power_watch(engine: Any, loop: asyncio.AbstractEventLoop) -> threading
 
 
 def _run(engine: Any, loop: asyncio.AbstractEventLoop) -> None:
+    from ctypes import wintypes  # Windows only: keep the module importable everywhere
+
     user32 = ctypes.windll.user32
     kernel32 = ctypes.windll.kernel32
     lresult = ctypes.c_ssize_t

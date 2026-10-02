@@ -59,13 +59,20 @@ def Choice(
     options: list[str] | dict[str, str],
     title: str | None = None,
     group: str | None = None,
+    platforms: dict[str, list[str]] | None = None,
     **kw: Any,
 ) -> Any:
-    """A select field. `options` is a list or {value: label}; `group` puts it in a collapsible studio section."""
+    """A select field. `options` is a list or {value: label}; `group` puts it in a collapsible studio section.
+
+    `platforms` marks options that only work on some hosts, e.g. ``{"window": ["windows", "macos"]}``
+    (see `deskdot.platforms`); the studio disables them elsewhere and the app shows its "not here" state.
+    """
     opts = options if isinstance(options, dict) else {o: o.replace("_", " ").title() for o in options}
     extra: dict[str, Any] = {"enum": list(opts), "enumLabels": opts}
     if group:
         extra["group"] = group
+    if platforms:
+        extra["enumPlatforms"] = {k: list(v) for k, v in platforms.items()}
     return Field(default=default, title=title, json_schema_extra=extra, **kw)
 
 
@@ -119,6 +126,7 @@ class AppMeta:
     category: Category
     actions: list[Action] = field(default_factory=list)
     settings_schema: dict[str, Any] = field(default_factory=dict)
+    platforms: list[str] | None = None  # hosts the app works on (None = everywhere)
 
 
 class App:
@@ -135,6 +143,9 @@ class App:
     clip_fps: ClassVar[float] = 12.0
     clip_colors: ClassVar[int] = 256  # palette cap for the baked GIF (smaller = faster upload/decode)
     hidden: ClassVar[bool] = False  # not shown in the library (e.g. internal apps)
+    #: hosts the app can work on, e.g. ("windows", "macos") — empty = everywhere (see deskdot.platforms).
+    #: Elsewhere the studio greys it out, the playlist skips it and render() should show `_kit.unsupported()`.
+    platforms: ClassVar[tuple[str, ...]] = ()
 
     def __init__(self, ctx: AppContext, settings: AppSettings) -> None:
         self.ctx = ctx
@@ -184,8 +195,15 @@ class App:
 
     # ----------------------------------------------------------- scheduling
     def relevant(self) -> bool:
-        """False lets the playlist skip this app (e.g. no live games right now)."""
-        return True
+        """False lets the playlist skip this app (e.g. no live games right now, or not on this OS)."""
+        return self.supported_here()
+
+    @classmethod
+    def supported_here(cls) -> bool:
+        """Whether this app can work on the host the engine runs on (`platforms`)."""
+        from ..platforms import current
+
+        return not cls.platforms or current() in cls.platforms
 
     def wants_focus(self) -> bool:
         """True asks the playlist to show this app now (e.g. music started)."""
@@ -210,6 +228,9 @@ class App:
     # ---------------------------------------------------------------- meta
     @classmethod
     def meta(cls) -> AppMeta:
+        schema = cls.Settings.model_json_schema()
+        if cls.platforms:
+            schema["platforms"] = list(cls.platforms)  # the studio's schema form shows a "not here" banner
         return AppMeta(
             id=cls.id,
             name=cls.name,
@@ -217,7 +238,8 @@ class App:
             icon=cls.icon,
             category=cls.category,
             actions=list(cls.actions),
-            settings_schema=cls.Settings.model_json_schema(),
+            settings_schema=schema,
+            platforms=list(cls.platforms) or None,
         )
 
 

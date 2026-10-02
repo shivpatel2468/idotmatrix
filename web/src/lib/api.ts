@@ -1,5 +1,6 @@
 import type { LobbyInfo, LobbyResponse, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
 import { toast, useStore } from "./store";
+import type { Autotune, CalTest, Calib, MotionInfo, MotionTest, PresetListing, VideoInfo } from "./calib";
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
   const init: RequestInit = { method };
@@ -55,7 +56,18 @@ export const api = {
   nowplaying: (op: "toggle" | "next" | "prev") => req("POST", `/api/nowplaying/${op}`),
   autopilot: (enabled: boolean, rules: AutopilotRule[]) => req("PUT", "/api/autopilot", { enabled, rules }),
   display: (patch: Record<string, unknown>) => req<Record<string, unknown>>("PATCH", "/api/display", patch),
-  calibration: (c: Record<string, number>) => req("PUT", "/api/calibration", c),
+  calibration: (c: Partial<Calib> | Record<string, number>) => req<Calib>("PUT", "/api/calibration", c),
+  // calibration wizard, picture presets and the motion lab (docs/CALIBRATION.md)
+  calibPresets: () => req<PresetListing>("GET", "/api/calibration/presets"),
+  calibPreset: (id: string, keep_balance = true, apply = true) =>
+    req<Calib>("POST", `/api/calibration/preset/${encodeURIComponent(id)}`, { keep_balance, apply }),
+  calibQuick: (body: { room: string; use: string; tint: string; apply?: boolean }) => req<Calib>("POST", "/api/calibration/quick", body),
+  calibVideos: () => req<{ videos: VideoInfo[]; motion: VideoInfo[]; fps: number }>("GET", "/api/calibration/videos"),
+  calibTest: (t: CalTest) => req<{ ok: boolean; pattern: string; fps: number }>("POST", "/api/calibration/test", t),
+  motion: () => req<MotionInfo>("GET", "/api/motion"),
+  motionTest: (t: MotionTest) => req<{ ok: boolean; pattern: string; fps?: number; mode: string }>("POST", "/api/motion/test", t),
+  motionPreset: (id: string) => req<Record<string, unknown>>("POST", `/api/motion/preset/${encodeURIComponent(id)}`),
+  motionAutotune: (apply = false, seconds = 4) => req<Autotune>("POST", "/api/motion/autotune", { apply, seconds }),
   pattern: (name: string) => req("POST", `/api/calibration/pattern/${name}`),
   clearPattern: () => req("DELETE", "/api/calibration/pattern"),
   applyTransferCalib: (data: { max_fps: number; packet_gap_ms: number; transition: "cut" | "push" | "fade" | "wipe" }) =>

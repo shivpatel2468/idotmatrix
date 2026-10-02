@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Minimize2, Play, Shuffle, SkipBack, SkipForward, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { exitFullscreen, fullscreenElement, onFullscreenChange, requestFullscreen } from "../lib/compat";
 import { appMeta, useStore } from "../lib/store";
 import { Icon } from "./Icon";
 import { LedPanel } from "./LedPanel";
@@ -35,17 +36,14 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
 
   // real fullscreen while open; leaving the browser's fullscreen (Esc / F11) closes the view too
   useEffect(() => {
-    const el = root.current;
-    el?.requestFullscreen?.().catch(() => {
-      /* not allowed (e.g. iframe): the overlay still covers the window */
+    // not allowed (iframe) or not supported (iPhone Safari): the fixed overlay still covers the window
+    void requestFullscreen(root.current);
+    const off = onFullscreenChange(() => {
+      if (!fullscreenElement()) close.current();
     });
-    const onFs = () => {
-      if (!document.fullscreenElement) close.current();
-    };
-    document.addEventListener("fullscreenchange", onFs);
     return () => {
-      document.removeEventListener("fullscreenchange", onFs);
-      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      off();
+      exitFullscreen();
     };
   }, []);
 

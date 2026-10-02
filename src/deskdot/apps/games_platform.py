@@ -368,6 +368,29 @@ class LeafLeap(GameApp):
             if h["move_t"] <= 0:
                 h["move_dir"] = 0
 
+    # ------------------------------------------------------------- the fruit-fly pilot
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's hero (on screen)."""
+        if self._seat != 1:
+            h = self.heroes.get(1)
+            return None if h is None else (h["x"] - self.screen * 32 + 1.5, h["y"] + 1.5)
+        return self.x - self.screen * 32 + 1.5, self.y + 1.5
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The way on: ahead (or back, to let a beetle pass), and up-ahead when the next stretch needs a jump.
+        Planned with the game's own physics look-ahead, refreshed ~7 times a second."""
+        if self._seat != 1 or self.dead_t > 0 or self.win_t > 0:
+            return []
+        now = self._clock()
+        cache = getattr(self, "_fly_plan", None)
+        if cache is None or now - cache[1] > 0.14:
+            cache = self._fly_plan = (self._ai() if self.ground else (1, False), now)
+        run, jump = cache[0]
+        x, y = self.x - self.screen * 32 + 1.5, self.y + 1.5
+        if jump:
+            return [(x + run * 4, y - 10, 1.0)]
+        return [(x + run * 8, y, 1.0)] if run else []
+
     # --------------------------------------------------------------------- AI
     HOLD = 0.4  # a pause or back-step lasts this long, then Sprig runs on
 

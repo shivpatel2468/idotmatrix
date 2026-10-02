@@ -1,0 +1,32 @@
+name: DeskDot Bar (macOS)
+
+on:
+  push:
+    paths: ["integrations/macos/**", ".github/workflows/macos-bar.yml"]
+  pull_request:
+    paths: ["integrations/macos/**", ".github/workflows/macos-bar.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: integrations/macos/DeskDotBar
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version && xcodebuild -version
+      - name: Build (release)
+        run: swift build -c release
+      - name: Bundle DeskDotBar.app
+        run: bash scripts/bundle.sh
+        env:
+          BUILD: ${{ github.run_number }}
+      - name: Zip
+        run: ditto -c -k --keepParent build/DeskDotBar.app build/DeskDotBar.app.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DeskDotBar-app
+          path: integrations/macos/DeskDotBar/build/DeskDotBar.app.zip
+          if-no-files-found: error

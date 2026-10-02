@@ -5,13 +5,17 @@
   QUNS_RUNNING_D3D_FULL_SCREEN (3) for exclusive-mode games and QUNS_PRESENTATION_MODE (4); these are the
   states in which Windows itself holds back notifications, so we hold back the eye-break nudge too.
 
-Other operating systems report `{"supported": False}`; features built on this provider stay dormant.
+macOS reports idle time from `ioreg` (IOHIDSystem's HIDIdleTime); it has no full-screen signal, so
+`fullscreen` stays False there. Other operating systems report `{"supported": False}`; features built on this
+provider stay dormant.
 """
 
 from __future__ import annotations
 
 import asyncio
 import ctypes
+import re
+import subprocess
 import sys
 from typing import Any
 
@@ -42,6 +46,18 @@ def notification_state() -> int:
     return state.value if hr == 0 else 0
 
 
+def mac_idle_seconds() -> float | None:
+    """Seconds since the last input on macOS (blocking: ~10 ms `ioreg` call). None if unreadable."""
+    try:
+        out = subprocess.run(
+            ["ioreg", "-c", "IOHIDSystem", "-d", "4"], capture_output=True, text=True, timeout=2.0
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.search(r'"HIDIdleTime"\s*=\s*(\d+)', out)
+    return int(m.group(1)) / 1e9 if m else None
+
+
 class IdleProvider(Provider[dict[str, Any]]):
     name = "idle"
     interval = 5.0
@@ -55,6 +71,10 @@ class IdleProvider(Provider[dict[str, Any]]):
         return await asyncio.to_thread(self._read)
 
     def _read(self) -> dict[str, Any]:
+        if sys.platform == "darwin":
+            idle = mac_idle_seconds()
+            if idle is not None:
+                return {"supported": True, "idle_s": round(idle, 1), "fullscreen": False, "state": 0}
         if sys.platform != "win32":
             return {"supported": False, "idle_s": 0.0, "fullscreen": False, "state": 0}
         state = notification_state()

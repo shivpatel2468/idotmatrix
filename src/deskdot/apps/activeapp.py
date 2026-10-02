@@ -14,7 +14,8 @@ from ..engine.app import App, AppSettings, Choice, register
 from ..gfx import Frame, hsv, mix, scale
 from ..gfx.color import calibrate
 from ..gfx.font import draw_marquee, fit, measure
-from ._kit import loading, offline
+from ..platforms import DESKTOP
+from ._kit import loading, offline, unsupported
 from .timer import smooth_bar
 
 Icon = tuple[np.ndarray, np.ndarray]  # (rgb, mask)
@@ -80,6 +81,7 @@ class ActiveApp(App):
     Settings = ActiveAppSettings
     fps = 8.0
     uses = ("window",)
+    platforms = DESKTOP  # Windows, macOS, Linux on X11 with xdotool (see providers/window.py)
 
     def __init__(self, *a: Any, **kw: Any) -> None:
         super().__init__(*a, **kw)
@@ -118,7 +120,10 @@ class ActiveApp(App):
         p = self.ctx.provider("window")
         w = p.value
         if not w:
-            (offline(f, "WINDOW", "N/A") if p.error else loading(f, t, "APP"))
+            if not self.supported_here():
+                unsupported(f, "WINDOW")
+            else:
+                (offline(f, "WINDOW", "N/A") if p.error else loading(f, t, "APP"))
             return
         self._track(w)
         {"icon": self.lay_icon, "title": self.lay_title, "focus": self.lay_focus}[self.settings.layout](

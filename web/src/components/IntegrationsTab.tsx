@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../lib/api";
-import { toast } from "../lib/store";
+import { PLATFORM_LABEL } from "../lib/platform";
+import { toast, useStore } from "../lib/store";
 import type { EngineState, Indicator, Integrations } from "../lib/types";
 import { Row, Slider, Toggle } from "./controls";
 import { Icon } from "./Icon";
@@ -47,7 +48,10 @@ function OnAirSection({ st, cfg }: { st: St; cfg: Integrations["onair"] }) {
   const save = (p: Partial<Integrations["onair"]>) => api.integration("onair", p);
   const live = st.engine.onair;
   const apps = live ? Object.values(live.apps).flat() : [];
-  const win = !navigator.userAgent.includes("Mac");
+  // the engine's host decides (not this browser's OS): On Air reads the Windows privacy registry
+  const meta = useStore((s) => s.meta);
+  const win = meta?.features?.onair ?? meta?.platform === undefined;
+  const host = meta?.platform ? PLATFORM_LABEL[meta.platform] : "this OS";
   return (
     <Section icon="radio" id="onair" title="On Air" status={
       <><span className="led" data-on={live?.active ? "bad" : cfg.enabled ? "ok" : undefined} />
@@ -55,7 +59,7 @@ function OnAirSection({ st, cfg }: { st: St; cfg: Integrations["onair"] }) {
     }>
       <Row label="Show when I'm on a call" hint={win
         ? "Lights up while any app uses your webcam or microphone (Windows privacy registry, checked every 2 s)."
-        : "Needs Windows: the camera / microphone usage registry isn't available on this OS."}>
+        : `Needs Windows: DeskDot runs on ${host}, which doesn't say when the camera / microphone is in use. The style below still works with the preview.`}>
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="On Air" />
       </Row>
       <Row label="Style" hint={cfg.style === "full" ? "Takes over the playlist; plays natively, so a long call costs no Bluetooth traffic."
@@ -87,12 +91,16 @@ function EyeBreakSection({ st, cfg }: { st: St; cfg: Integrations["eyebreak"] })
   const save = (p: Partial<Integrations["eyebreak"]>) => api.integration("eyebreak", p);
   const eb = st.engine.eyebreak;
   const next = eb?.next_in_s;
+  const platform = useStore((s) => s.meta?.platform);
+  const unsupported = eb?.supported === false;
   return (
     <Section icon="eye" id="eyebreak" title="Eye break · 20-20-20" status={
       <><span className="led" data-on={eb?.active ? "ember" : cfg.enabled ? "ok" : undefined} />
         {eb?.active ? "break now" : cfg.enabled && next != null ? `next in ${Math.ceil(next / 60)} min` : "off"}</>
     }>
-      <Row label="Remind me to look away" hint="After continuous keyboard / mouse use, a calm 20-second countdown: look 20 feet away. Skipped during calls and full-screen games; 2 min away from the keyboard resets the timer.">
+      <Row label="Remind me to look away" hint={unsupported
+        ? `Needs Windows or macOS: DeskDot runs on ${platform ? PLATFORM_LABEL[platform] : "a host"} that can't see keyboard / mouse activity, so the timer never starts. "Try it now" still shows it.`
+        : "After continuous keyboard / mouse use, a calm 20-second countdown: look 20 feet away. Skipped during calls and full-screen games (Windows); 2 min away from the keyboard resets the timer."}>
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="Eye break" />
       </Row>
       <Row label="Every">

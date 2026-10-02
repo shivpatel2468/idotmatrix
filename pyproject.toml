@@ -27,6 +27,10 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = ["mcp>=1.2"]
+launcher = [
+    "pystray>=0.19",
+    "pywebview>=5.3",
+]
 
 [project.scripts]
 deskdot = "deskdot.cli:main"

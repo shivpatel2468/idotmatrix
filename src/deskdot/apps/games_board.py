@@ -291,6 +291,39 @@ class TicTacToe(GameApp):
             c = _minimax(self.board, self.turn)[1]
         return c if c >= 0 and not self.board[c] else self.rng.choice(free)
 
+    # ------------------------------------------------------------------ the fruit-fly pilot
+    fly_feeds = True  # standing on the best cell: the feeding reflex places the mark
+
+    @staticmethod
+    def _cell_xy(i: int) -> tuple[float, float]:
+        r, c = divmod(i, 3)
+        return BX + c * (CELL + 1) + 4, BY + r * (CELL + 1) + 4
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye sits on seat 1's cursor."""
+        return self._cell_xy(self.curs[1])
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """X's best cell (the game's own minimax for this variant), while it's X's turn."""
+        if self.end_t > 0 or (self.you and self.turn != 1):
+            return []
+        key = (self.board, tuple(self.order[1]), tuple(self.order[2]), self.variant)
+        cached = getattr(self, "_fly_best", None)
+        if cached is None or cached[0] != key:
+            free = [i for i in range(9) if not self.board[i]]
+            if not free:
+                return []
+            if len(free) == 9:
+                c = 4
+            elif self.variant == "vanish":
+                c = _vanish(tuple(self.order[1]), tuple(self.order[2]), 1, VANISH_DEPTH)[1]
+            elif self.variant == "misere":
+                c = _misere(self.board, 1)[1]
+            else:
+                c = _minimax(self.board, 1)[1]
+            cached = self._fly_best = (key, c if c in free else free[0])
+        return [(*self._cell_xy(cached[1]), 1.0)]
+
     # ------------------------------------------------------------------ loop
     def key_p(self, k: str, player: int) -> None:
         if player not in (1, 2):

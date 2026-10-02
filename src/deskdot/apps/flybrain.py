@@ -20,7 +20,8 @@ import numpy as np
 from pydantic import Field
 
 from ..engine.app import App, AppSettings, Choice, Clip, Kind, register
-from ..fly import FlyBrain
+from ..fly import FlyBrain, FlyConfig
+from ..fly import config as flycfg
 from ..gfx import Frame
 from ._kit import loading
 
@@ -39,7 +40,7 @@ SHADOW = (70, 44, 110)
 SHADOW_RIM = (190, 120, 255)
 DANGER = {"calm": 0.0, "normal": 1.0, "hectic": 2.2}
 
-Key = tuple[str, int, int]
+Key = tuple[str, int, int, tuple[float, ...]]  # settings + the brain's tuning (deskdot.fly.config)
 _READY: dict[Key, list[np.ndarray]] = {}
 _TELEMETRY: dict[Key, list[dict[str, Any]]] = {}  # the brain's activity for each frame of the loop
 
@@ -59,9 +60,12 @@ def _spawn(rng: random.Random) -> tuple[float, float]:
     return rng.uniform(3, 28), rng.uniform(4, ARENA_H - 3)
 
 
-def _simulate(danger: str, n_fruit: int, seed: int) -> tuple[list[np.ndarray], list[dict[str, Any]]]:
+def _simulate(
+    danger: str, n_fruit: int, seed: int, tuning: tuple[float, ...] | None = None
+) -> tuple[list[np.ndarray], list[dict[str, Any]]]:
     rng = random.Random(seed)
-    brain = FlyBrain(seed=seed * 31 + 1)
+    cfg = flycfg.current() if tuning is None else FlyConfig(**dict(zip(flycfg.TUNING, tuning, strict=True)))
+    brain = FlyBrain(seed=seed * 31 + 1, config=cfg)  # pinned for the whole bake
     x, y, vx, vy = 16.0, 12.0, 0.0, 0.0
     fruit = [_spawn(rng) for _ in range(n_fruit)]
     shadow: dict[str, float] | None = None
@@ -210,7 +214,11 @@ class FlyBrainApp(App):
 
     def _key(self) -> Key:
         s = self.settings
-        return (s.danger, s.fruit, s.seed)
+        return (s.danger, s.fruit, s.seed, flycfg.tuning_key())
+
+    def clip_key(self) -> str:
+        """Settings + the brain's tuning: changing the fly's config (PATCH /api/fly/config) re-bakes the loop."""
+        return f"{super().clip_key()}|fly={flycfg.tuning_key()}"
 
     def _index(self, t: float) -> int:
         return int(round(t * self.clip_fps, 6)) % N_FRAMES

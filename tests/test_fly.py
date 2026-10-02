@@ -8,18 +8,36 @@ from __future__ import annotations
 import io
 import math
 import time
+from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pytest
+from fastapi.testclient import TestClient
 from PIL import Image
 
 import deskdot.apps  # noqa: F401 — registers apps
 import deskdot.apps.flybrain as fb
+from deskdot.config import Config
 from deskdot.engine.app import REGISTRY
 from deskdot.fly import FlyBrain
+from deskdot.fly import config as flycfg
 from deskdot.gfx import Frame
 from deskdot.gfx.image import encode_gif_budget
+from deskdot.server import create_app
+
+PILOT_GAMES = sorted(
+    gid for gid, cls in REGISTRY.items() if "pilot" in getattr(cls.Settings, "model_fields", {})
+)
+
+
+@pytest.fixture(autouse=True)
+def _default_brain() -> Iterator[None]:
+    """Every test starts (and leaves) the shared brain config at its defaults."""
+    flycfg.set_current(flycfg.DEFAULT)
+    yield
+    flycfg.set_current(flycfg.DEFAULT)
 
 
 def blank() -> np.ndarray:
@@ -238,3 +256,219 @@ async def test_the_studio_fly_takes_over_straight_away() -> None:
     assert not app._fly_driving(clock["t"])
     await app.action("fly", {})
     assert app._fly_driving(clock["t"]), "clicking the fly hands it the game at once"
+
+
+# ================================================================= tuning the brain (deskdot.fly.config)
+DEFAULT_CONFIG = {
+    "phototaxis": 0.3,
+    "looming": 1.0,
+    "motion": 1.0,
+    "leak": 0.8,
+    "threshold": 1.0,
+    "refractory": 2,
+    "noise": 0.06,
+    "escape": 1.0,
+    "lure": 1.0,
+    "preset": "default",
+}
+
+
+def _client(tmp_path: Path) -> TestClient:
+    return TestClient(create_app(Config(device="sim", data_dir=tmp_path, plugins_dir=tmp_path / "plugins")))
+
+
+def test_the_default_config_is_the_original_brain() -> None:
+    assert flycfg.DEFAULT.model_dump() == DEFAULT_CONFIG
+
+
+def test_fly_config_api(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        assert c.get("/api/fly/config").json() == DEFAULT_CONFIG
+        got = c.patch("/api/fly/config", json={"noise": 0.2, "refractory": 4}).json()
+        assert got == {**DEFAULT_CONFIG, "noise": 0.2, "refractory": 4, "preset": "custom"}
+        assert flycfg.current().noise == 0.2, "every brain reads the new config"
+        assert c.get("/api/fly/config").json()["noise"] == 0.2
+        assert c.patch("/api/fly/config", json={"noise": 5}).status_code == 422
+        assert c.patch("/api/fly/config", json={"refractory": -1}).status_code == 422
+        assert c.patch("/api/fly/config", json={"preset": "nope"}).status_code == 422
+        assert c.get("/api/fly/config").json()["noise"] == 0.2, "a refused patch changes nothing"
+        presets = c.get("/api/fly/presets").json()
+        ids = [p["id"] for p in presets]
+        assert ids[0] == "default" and {"calm", "curious", "twitchy", "hunter", "daredevil"} <= set(ids)
+        for p in presets:
+            assert p["name"] and p["description"] and set(p["config"]) == set(DEFAULT_CONFIG)
+        calm = next(p for p in presets if p["id"] == "calm")
+        assert c.patch("/api/fly/config", json={"preset": "calm"}).json() == calm["config"]
+        assert c.patch("/api/fly/config", json={"preset": "default"}).json() == DEFAULT_CONFIG
+        c.patch("/api/fly/config", json={"lure": 2.0})
+        store = c.app.state.engine.store  # type: ignore[attr-defined]
+        assert store.get("fly")["lure"] == 2.0, "kept in state.json"
+    store.save_now()
+    flycfg.set_current(flycfg.DEFAULT)
+    with _client(tmp_path) as c2:
+        assert c2.get("/api/fly/config").json()["lure"] == 2.0, "and loaded back at start-up"
+
+
+def test_stale_stored_config_is_repaired() -> None:
+    cfg = flycfg.load({"noise": 9, "leak": 0.9, "bogus": 1})
+    assert cfg.noise == 0.06 and cfg.leak == 0.9 and cfg.preset == "custom"
+    assert flycfg.load("garbage") == flycfg.DEFAULT
+
+
+def test_more_noise_means_more_spontaneous_spikes() -> None:
+    def spikes(noise: float) -> int:
+        brain = FlyBrain(4, config=flycfg.FlyConfig(noise=noise))
+        return sum(len(brain.step(blank())) for _ in range(200))
+
+    assert spikes(0.0) == 0, "a dark, still world and no noise: the fly sits still"
+    assert spikes(0.5) > 40
+
+
+def test_the_config_reaches_every_brain() -> None:
+    f = blank()
+    f[14:18, 27:30] = 255
+    keen = flycfg.FlyConfig(phototaxis=0.9, refractory=0)
+    brain = FlyBrain(1)
+    flycfg.set_current(keen)
+    a = sum(len(brain.step(f)) for _ in range(30))
+    flycfg.set_current(flycfg.DEFAULT)
+    b = sum(len(brain.step(f)) for _ in range(30))
+    assert a > b, "a brain made earlier picks up the change on its next step"
+
+
+def test_the_lure_is_a_smell_the_brain_follows() -> None:
+    """A lure is a sensory cue: it pulls the fly through the same phototaxis pathway, scaled by `lure`."""
+    sniff = FlyBrain(2)
+    keys = [k for _ in range(30) for k in sniff.step(blank(), (16, 16), [(28, 16, 1.0)])]
+    assert keys.count("right") >= 5 and keys.count("left") == 0
+    snap = sniff.snapshot()
+    assert snap["lures"] and max(snap["odour"]) > 0
+    flycfg.set_current(flycfg.FlyConfig(lure=0.0))
+    anosmic = FlyBrain(2)
+    keys = [k for _ in range(30) for k in anosmic.step(blank(), (16, 16), [(28, 16, 1.0)])]
+    assert keys.count("right") <= 2, "no sense of smell: the lure does nothing"
+
+
+def test_a_lure_one_step_away_is_felt_on_either_side() -> None:
+    for x, key in ((14, "left"), (18, "right")):
+        brain = FlyBrain(5, config=flycfg.FlyConfig(noise=0.0))
+        keys = [k for _ in range(12) for k in brain.step(blank(), (16, 16), [(x, 16, 1.0)])]
+        assert keys.count(key) >= 2, key
+
+
+def test_the_feeding_reflex_fires_only_on_the_sugar() -> None:
+    brain = FlyBrain(3)
+    on = [k for _ in range(12) for k in brain.step(blank(), (10, 10), [(10, 10, 1.0)], feed=True)]
+    assert "a" in on
+    off = FlyBrain(3)
+    away = [k for _ in range(12) for k in off.step(blank(), (10, 10), [(24, 10, 1.0)], feed=True)]
+    assert "a" not in away
+    nofeed = FlyBrain(3)
+    assert "a" not in [k for _ in range(12) for k in nofeed.step(blank(), (10, 10), [(10, 10, 1.0)])]
+
+
+def test_the_fly_brain_app_rebakes_when_the_config_changes() -> None:
+    app = fb.FlyBrainApp(Ctx(), fb.FlyBrainSettings())  # type: ignore[arg-type]
+    before = app.clip_key()
+    flycfg.set_current(flycfg.FlyConfig(noise=0.3))
+    assert app.clip_key() != before
+    assert app._key()[-1] == flycfg.tuning_key()
+
+
+# ================================================================= the fly plays every game
+def _fly_game(gid: str) -> tuple[Any, dict[str, float]]:
+    cls = REGISTRY[gid]
+    app = cls(Ctx(), cls.Settings(pilot="fly"))  # type: ignore[arg-type,call-arg]
+    clock = {"t": 1000.0}
+    app._clock = lambda: clock["t"]  # type: ignore[method-assign]
+    app.reset()
+    return app, clock
+
+
+def _frames(app: Any, clock: dict[str, float], n: int, fps: float = 12.0) -> None:
+    for i in range(n):
+        clock["t"] += 1 / fps
+        app.render(Frame(), i / fps)
+
+
+def test_every_game_can_be_flown() -> None:
+    assert len(PILOT_GAMES) >= 20
+    assert {"arcade", "tetris", "pong", "g2048", "tictactoe", "fourup", "digworld"} <= set(PILOT_GAMES)
+
+
+@pytest.mark.parametrize("gid", PILOT_GAMES)
+def test_the_fly_plays_every_game(gid: str) -> None:
+    app, clock = _fly_game(gid)
+    pressed: list[str] = []
+    orig = app.key_p
+
+    def spy(k: str, p: int) -> None:
+        pressed.append(k)
+        orig(k, p)
+
+    app.key_p = spy  # type: ignore[method-assign]
+    worst, anchored, lured = 0.0, 0, 0
+    for i in range(300):
+        clock["t"] += 1 / 12
+        t0 = time.perf_counter()
+        app.render(Frame(), i / 12)
+        worst = max(worst, time.perf_counter() - t0)
+        anchored += app._fly.anchor is not None
+        lured += bool(app._fly.lures)
+    assert pressed, "the fly's neurons pressed the game's keys"
+    assert anchored > 30, "the eye is centred on the fly's own character"
+    assert lured > 5, "the game tells the fly where its goal is"
+    assert worst < 0.05
+    assert app.status()["player"] == "fly"
+    snap = app.fly_telemetry(25.0)
+    assert snap is not None and snap["keys"], "the studio sees the keys the fly pressed"
+
+
+def test_the_fly_eats_in_snake() -> None:
+    app, clock = _fly_game("arcade")
+    for _ in range(600):
+        _frames(app, clock, 1)
+        if any(s.apples for s in app.snakes):
+            return
+    raise AssertionError("the fly never reached an apple")
+
+
+def test_the_fly_returns_the_ball_in_pong() -> None:
+    app, clock = _fly_game("pong")
+    hits = 0
+    orig = app._paddles
+
+    def watch(p: int) -> None:
+        nonlocal hits
+        before = app.vx
+        orig(p)
+        hits += before < 0 < app.vx  # the left paddle (seat 1, the fly) sent it back
+
+    app._paddles = watch  # type: ignore[method-assign]
+    _frames(app, clock, 900)
+    assert hits >= 1
+
+
+def test_the_fly_stacks_tetris() -> None:
+    app, clock = _fly_game("tetris")
+    locks: list[int] = []
+    orig = app._lock
+
+    def watch(w: Any, p: Any) -> None:
+        locks.append(p.seat)
+        orig(w, p)
+
+    app._lock = watch  # type: ignore[method-assign]
+    _frames(app, clock, 1200)
+    assert len(locks) >= 12, "it rotates, slides and drops piece after piece"
+    assert app.wells[0].lines >= 1 or app.over_at is None, "it clears lines (or at least hasn't topped out)"
+
+
+def test_the_fly_plays_board_games() -> None:
+    app, clock = _fly_game("tictactoe")
+    _frames(app, clock, 400)
+    assert app.you, "the fly took the X seat"
+    assert sum(app.wins) >= 1, "rounds get played to the end"
+    mines, mclock = _fly_game("mines")
+    _frames(mines, mclock, 400)
+    assert len(mines.shown) >= 10, "the feeding reflex opens safe cells"

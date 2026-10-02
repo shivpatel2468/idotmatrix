@@ -6,7 +6,7 @@ from pydantic import Field
 
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, mix, scale
-from ._kit import loading
+from ._kit import loading, offline
 
 #: bar tracks and the graph baseline: dim but still lit through the panel's gamma (see DISPLAY_DESIGN §3)
 TRACK_K = 0.3
@@ -41,9 +41,10 @@ class Sysmon(App):
     uses = ("system",)
 
     def render(self, f: Frame, t: float) -> None:
-        d = self.ctx.provider("system").value
+        p = self.ctx.provider("system")
+        d = p.value
         if not d:
-            loading(f, t, "SYSTEM")
+            (offline(f, "SYSTEM", "N/A") if p.error else loading(f, t, "SYSTEM"))
             return
         (self._graph if self.settings.layout == "graph" else self._bars)(f, d)
 
@@ -56,15 +57,22 @@ class Sysmon(App):
         )
         for i, (label, v, c) in enumerate(rows):
             y = 1 + i * 11
-            col = heat(c, v)
             f.text(1, y, label, scale(c, 0.75))
+            if v is None:  # this host hides the metric (CPU on Android, disks in some containers)
+                f.text_right(30, y, "--", scale(c, 0.5))
+                f.bar(1, y + 6, 30, 2, 0.0, c, track=scale(c, TRACK_K))
+                continue
             f.text_right(30, y, f"{v}%", (255, 255, 255))
-            f.bar(1, y + 6, 30, 2, v / 100, col, track=scale(c, TRACK_K))
+            f.bar(1, y + 6, 30, 2, v / 100, heat(c, v), track=scale(c, TRACK_K))
 
     def _graph(self, f: Frame, d: dict) -> None:  # type: ignore[type-arg]
         s = self.settings
         f.text(1, 1, "CPU", scale(s.cpu_color, 0.75))
-        f.text_right(30, 1, f"{d['cpu']}%", heat(s.cpu_color, d["cpu"]), font="small")
+        cpu = d.get("cpu")
+        if cpu is None:
+            f.text_right(30, 1, "--", scale(s.cpu_color, 0.5), font="small")
+        else:
+            f.text_right(30, 1, f"{cpu}%", heat(s.cpu_color, cpu), font="small")
         hist = d.get("cpu_hist") or [0, 0]
         hist = ([0.0] * 32 + list(hist))[-32:]
         top, h = 10, 14
@@ -74,7 +82,8 @@ class Sysmon(App):
             for k in range(bh):
                 f.set(x, top + h - 1 - k, scale(s.cpu_color, 0.45 + 0.55 * (k + 1) / max(1, bh)))
         f.text(1, 26, "RAM", scale(s.ram_color, 0.75))
-        f.bar(16, 27, 15, 3, d["ram"] / 100, heat(s.ram_color, d["ram"]), track=scale(s.ram_color, TRACK_K))
+        ram = d.get("ram")
+        f.bar(16, 27, 15, 3, (ram or 0) / 100, heat(s.ram_color, ram or 0), track=scale(s.ram_color, TRACK_K))
 
     def status(self) -> dict:  # type: ignore[type-arg]
         d = self.ctx.provider("system").value or {}

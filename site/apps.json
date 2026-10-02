@@ -61,7 +61,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/ambient.html",
+   "preview": "media/apps/ambient.gif",
+   "poster": "media/apps/ambient.png",
+   "og_image": "media/apps/og/ambient.png",
    "source": "src/deskdot/apps/ambient.py",
    "actions": [],
    "settings": [
@@ -189,7 +192,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-loops.gif",
+   "page": "apps/loops.html",
+   "preview": "media/apps/loops.gif",
+   "poster": "media/apps/loops.png",
+   "og_image": "media/apps/og/loops.png",
    "source": "src/deskdot/apps/loops.py",
    "actions": [],
    "settings": [
@@ -261,7 +267,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-wireframe.gif",
+   "page": "apps/wireframe.html",
+   "preview": "media/apps/wireframe.gif",
+   "poster": "media/apps/wireframe.png",
+   "og_image": "media/apps/og/wireframe.png",
    "source": "src/deskdot/apps/wireframe.py",
    "actions": [],
    "settings": [
@@ -345,7 +354,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/canvas.html",
+   "preview": "media/apps/canvas.gif",
+   "poster": "media/apps/canvas.png",
+   "og_image": "media/apps/og/canvas.png",
    "source": "src/deskdot/apps/canvas.py",
    "actions": [
     {
@@ -365,7 +377,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/emotes.html",
+   "preview": "media/apps/emotes.gif",
+   "poster": "media/apps/emotes.png",
+   "og_image": "media/apps/og/emotes.png",
    "source": "src/deskdot/apps/emotes.py",
    "actions": [],
    "settings": [
@@ -532,7 +547,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/sand.html",
+   "preview": "media/apps/sand.gif",
+   "poster": "media/apps/sand.png",
+   "og_image": "media/apps/og/sand.png",
    "source": "src/deskdot/apps/sand.py",
    "actions": [],
    "settings": [
@@ -616,7 +634,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-boids.gif",
+   "page": "apps/boids.html",
+   "preview": "media/apps/boids.gif",
+   "poster": "media/apps/boids.png",
+   "og_image": "media/apps/og/boids.png",
    "source": "src/deskdot/apps/boids.py",
    "actions": [],
    "settings": [
@@ -688,7 +709,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-flybrain.gif",
+   "page": "apps/flybrain.html",
+   "preview": "media/apps/flybrain.gif",
+   "poster": "media/apps/flybrain.png",
+   "og_image": "media/apps/og/flybrain.png",
    "source": "src/deskdot/apps/flybrain.py",
    "actions": [],
    "settings": [
@@ -742,7 +766,10 @@
     "clip",
     "stream"
    ],
-   "gif": null,
+   "page": "apps/fontlab.html",
+   "preview": "media/apps/fontlab.gif",
+   "poster": "media/apps/fontlab.png",
+   "og_image": "media/apps/og/fontlab.png",
    "source": "src/deskdot/apps/fontlab.py",
    "actions": [],
    "settings": [
@@ -981,7 +1008,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/brain.html",
+   "preview": "media/apps/brain.gif",
+   "poster": "media/apps/brain.png",
+   "og_image": "media/apps/og/brain.png",
    "source": "src/deskdot/apps/brain.py",
    "actions": [],
    "settings": [
@@ -1061,7 +1091,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/pixabots.html",
+   "preview": "media/apps/pixabots.gif",
+   "poster": "media/apps/pixabots.png",
+   "og_image": "media/apps/og/pixabots.png",
    "source": "src/deskdot/apps/pixabots.py",
    "actions": [],
    "settings": [
@@ -1179,7 +1212,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/avatar.html",
+   "preview": "media/apps/avatar.gif",
+   "poster": "media/apps/avatar.png",
+   "og_image": "media/apps/og/avatar.png",
    "source": "src/deskdot/apps/avatar.py",
    "actions": [],
    "settings": [
@@ -1311,7 +1347,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/playercard.html",
+   "preview": "media/apps/playercard.gif",
+   "poster": "media/apps/playercard.png",
+   "og_image": "media/apps/og/playercard.png",
    "source": "src/deskdot/apps/cards.py",
    "actions": [],
    "settings": [
@@ -1583,7 +1622,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-synthwave.gif",
+   "page": "apps/synthwave.html",
+   "preview": "media/apps/synthwave.gif",
+   "poster": "media/apps/synthwave.png",
+   "og_image": "media/apps/og/synthwave.png",
    "source": "src/deskdot/apps/synthwave.py",
    "actions": [],
    "settings": [
@@ -1660,7 +1702,10 @@
     "clip",
     "stream"
    ],
-   "gif": null,
+   "page": "apps/text.html",
+   "preview": "media/apps/text.gif",
+   "poster": "media/apps/text.png",
+   "og_image": "media/apps/og/text.png",
    "source": "src/deskdot/apps/text.py",
    "actions": [],
    "settings": [
@@ -1791,7 +1836,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/composer.html",
+   "preview": "media/apps/composer.gif",
+   "poster": "media/apps/composer.png",
+   "og_image": "media/apps/og/composer.png",
    "source": "src/deskdot/apps/composer.py",
    "actions": [],
    "settings": [
@@ -1852,7 +1900,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/airquality.html",
+   "preview": "media/apps/airquality.gif",
+   "poster": "media/apps/airquality.png",
+   "og_image": "media/apps/og/airquality.png",
    "source": "src/deskdot/apps/airquality.py",
    "actions": [],
    "settings": [
@@ -1964,7 +2015,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-markets.gif",
+   "page": "apps/markets.html",
+   "preview": "media/apps/markets.gif",
+   "poster": "media/apps/markets.png",
+   "og_image": "media/apps/og/markets.png",
    "source": "src/deskdot/apps/markets.py",
    "actions": [],
    "settings": [
@@ -2002,7 +2056,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/currency.html",
+   "preview": "media/apps/currency.gif",
+   "poster": "media/apps/currency.png",
+   "og_image": "media/apps/og/currency.png",
    "source": "src/deskdot/apps/currency.py",
    "actions": [],
    "settings": [
@@ -2175,7 +2232,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/quakes.html",
+   "preview": "media/apps/quakes.gif",
+   "poster": "media/apps/quakes.png",
+   "og_image": "media/apps/og/quakes.png",
    "source": "src/deskdot/apps/quakes.py",
    "actions": [],
    "settings": [
@@ -2392,7 +2452,10 @@
     "clip",
     "stream"
    ],
-   "gif": "media/app-radar.gif",
+   "page": "apps/radar.html",
+   "preview": "media/apps/radar.gif",
+   "poster": "media/apps/radar.png",
+   "og_image": "media/apps/og/radar.png",
    "source": "src/deskdot/apps/radar.py",
    "actions": [
     {
@@ -2541,7 +2604,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/github.html",
+   "preview": "media/apps/github.gif",
+   "poster": "media/apps/github.png",
+   "og_image": "media/apps/og/github.png",
    "source": "src/deskdot/apps/extras.py",
    "actions": [],
    "settings": [
@@ -2600,7 +2666,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/headlines.html",
+   "preview": "media/apps/headlines.gif",
+   "poster": "media/apps/headlines.png",
+   "og_image": "media/apps/og/headlines.png",
    "source": "src/deskdot/apps/headlines.py",
    "actions": [
     {
@@ -2783,7 +2852,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/hassentity.html",
+   "preview": "media/apps/hassentity.gif",
+   "poster": "media/apps/hassentity.png",
+   "og_image": "media/apps/og/hassentity.png",
    "source": "src/deskdot/apps/hassentity.py",
    "actions": [],
    "settings": [
@@ -2945,7 +3017,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/scores.html",
+   "preview": "media/apps/scores.gif",
+   "poster": "media/apps/scores.png",
+   "og_image": "media/apps/og/scores.png",
    "source": "src/deskdot/apps/scores.py",
    "actions": [],
    "settings": [
@@ -3270,7 +3345,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/planets.html",
+   "preview": "media/apps/planets.gif",
+   "poster": "media/apps/planets.png",
+   "og_image": "media/apps/og/planets.png",
    "source": "src/deskdot/apps/planets.py",
    "actions": [],
    "settings": [
@@ -3345,7 +3423,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/rainradar.html",
+   "preview": "media/apps/rainradar.gif",
+   "poster": "media/apps/rainradar.png",
+   "og_image": "media/apps/og/rainradar.png",
    "source": "src/deskdot/apps/rainradar.py",
    "actions": [],
    "settings": [
@@ -3534,7 +3615,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/space.html",
+   "preview": "media/apps/space.gif",
+   "poster": "media/apps/space.png",
+   "og_image": "media/apps/og/space.png",
    "source": "src/deskdot/apps/space.py",
    "actions": [
     {
@@ -3732,7 +3816,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/stocks.html",
+   "preview": "media/apps/stocks.gif",
+   "poster": "media/apps/stocks.png",
+   "og_image": "media/apps/og/stocks.png",
    "source": "src/deskdot/apps/stocks.py",
    "actions": [],
    "settings": [
@@ -4014,7 +4101,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/sysmon.html",
+   "preview": "media/apps/sysmon.gif",
+   "poster": "media/apps/sysmon.png",
+   "og_image": "media/apps/og/sysmon.png",
    "source": "src/deskdot/apps/sysmon.py",
    "actions": [],
    "settings": [
@@ -4064,7 +4154,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/tides.html",
+   "preview": "media/apps/tides.gif",
+   "poster": "media/apps/tides.png",
+   "og_image": "media/apps/og/tides.png",
    "source": "src/deskdot/apps/tides.py",
    "actions": [],
    "settings": [
@@ -4149,7 +4242,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-weather.gif",
+   "page": "apps/weather.html",
+   "preview": "media/apps/weather.gif",
+   "poster": "media/apps/weather.png",
+   "og_image": "media/apps/og/weather.png",
    "source": "src/deskdot/apps/weather.py",
    "actions": [],
    "settings": [
@@ -4187,7 +4283,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/wear.html",
+   "preview": "media/apps/wear.gif",
+   "poster": "media/apps/wear.png",
+   "og_image": "media/apps/og/wear.png",
    "source": "src/deskdot/apps/wear.py",
    "actions": [],
    "settings": [
@@ -4285,7 +4384,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/printer.html",
+   "preview": "media/apps/printer.gif",
+   "poster": "media/apps/printer.png",
+   "og_image": "media/apps/og/printer.png",
    "source": "src/deskdot/apps/printer.py",
    "actions": [],
    "settings": [
@@ -4387,7 +4489,10 @@
    "kinds": [
     "native"
    ],
-   "gif": null,
+   "page": "apps/native.html",
+   "preview": "media/apps/native.gif",
+   "poster": "media/apps/native.png",
+   "og_image": "media/apps/og/native.png",
    "source": "src/deskdot/apps/native.py",
    "actions": [],
    "settings": [
@@ -4501,7 +4606,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/g2048.html",
+   "preview": "media/apps/g2048.gif",
+   "poster": "media/apps/g2048.png",
+   "og_image": "media/apps/og/g2048.png",
    "source": "src/deskdot/apps/games_puzzle.py",
    "actions": [
     {
@@ -4796,7 +4904,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/raycaster.html",
+   "preview": "media/apps/raycaster.gif",
+   "poster": "media/apps/raycaster.png",
+   "og_image": "media/apps/og/raycaster.png",
    "source": "src/deskdot/apps/raycaster.py",
    "actions": [],
    "settings": [
@@ -4884,7 +4995,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/asteroids.html",
+   "preview": "media/apps/asteroids.gif",
+   "poster": "media/apps/asteroids.png",
+   "og_image": "media/apps/og/asteroids.png",
    "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
@@ -5194,7 +5308,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/breakout.html",
+   "preview": "media/apps/breakout.gif",
+   "poster": "media/apps/breakout.png",
+   "og_image": "media/apps/og/breakout.png",
    "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
@@ -5493,7 +5610,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/chess.html",
+   "preview": "media/apps/chess.gif",
+   "poster": "media/apps/chess.png",
+   "og_image": "media/apps/og/chess.png",
    "source": "src/deskdot/apps/chess.py",
    "actions": [
     {
@@ -5644,7 +5764,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-digworld.gif",
+   "page": "apps/digworld.html",
+   "preview": "media/apps/digworld.gif",
+   "poster": "media/apps/digworld.png",
+   "og_image": "media/apps/og/digworld.png",
    "source": "src/deskdot/apps/games_world.py",
    "actions": [
     {
@@ -5951,7 +6074,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/dino.html",
+   "preview": "media/apps/dino.gif",
+   "poster": "media/apps/dino.png",
+   "og_image": "media/apps/og/dino.png",
    "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
@@ -6226,7 +6352,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/flappy.html",
+   "preview": "media/apps/flappy.gif",
+   "poster": "media/apps/flappy.png",
+   "og_image": "media/apps/og/flappy.png",
    "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
@@ -6502,7 +6631,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/fourup.html",
+   "preview": "media/apps/fourup.gif",
+   "poster": "media/apps/fourup.png",
+   "og_image": "media/apps/og/fourup.png",
    "source": "src/deskdot/apps/games_connect.py",
    "actions": [
     {
@@ -6765,7 +6897,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/gamedeals.html",
+   "preview": "media/apps/gamedeals.gif",
+   "poster": "media/apps/gamedeals.png",
+   "og_image": "media/apps/og/gamedeals.png",
    "source": "src/deskdot/apps/gamedeals.py",
    "actions": [
     {
@@ -6980,7 +7115,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/infinity.html",
+   "preview": "media/apps/infinity.gif",
+   "poster": "media/apps/infinity.png",
+   "og_image": "media/apps/og/infinity.png",
    "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
@@ -7277,7 +7415,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/invaders.html",
+   "preview": "media/apps/invaders.gif",
+   "poster": "media/apps/invaders.png",
+   "og_image": "media/apps/og/invaders.png",
    "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
@@ -7586,7 +7727,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/leafleap.html",
+   "preview": "media/apps/leafleap.gif",
+   "poster": "media/apps/leafleap.png",
+   "og_image": "media/apps/og/leafleap.png",
    "source": "src/deskdot/apps/games_platform.py",
    "actions": [
     {
@@ -7883,7 +8027,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-cycles.gif",
+   "page": "apps/cycles.html",
+   "preview": "media/apps/cycles.gif",
+   "poster": "media/apps/cycles.png",
+   "og_image": "media/apps/og/cycles.png",
    "source": "src/deskdot/apps/games_party.py",
    "actions": [
     {
@@ -8174,7 +8321,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/maze.html",
+   "preview": "media/apps/maze.gif",
+   "poster": "media/apps/maze.png",
+   "og_image": "media/apps/og/maze.png",
    "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
@@ -8475,7 +8625,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/mines.html",
+   "preview": "media/apps/mines.gif",
+   "poster": "media/apps/mines.png",
+   "og_image": "media/apps/og/mines.png",
    "source": "src/deskdot/apps/games_bonus.py",
    "actions": [
     {
@@ -8757,7 +8910,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/neonheat.html",
+   "preview": "media/apps/neonheat.gif",
+   "poster": "media/apps/neonheat.png",
+   "og_image": "media/apps/og/neonheat.png",
    "source": "src/deskdot/apps/games_city.py",
    "actions": [
     {
@@ -9059,7 +9215,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-pong.gif",
+   "page": "apps/pong.html",
+   "preview": "media/apps/pong.gif",
+   "poster": "media/apps/pong.png",
+   "og_image": "media/apps/og/pong.png",
    "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
@@ -9347,7 +9506,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/racer.html",
+   "preview": "media/apps/racer.gif",
+   "poster": "media/apps/racer.png",
+   "og_image": "media/apps/og/racer.png",
    "source": "src/deskdot/apps/games_classic.py",
    "actions": [
     {
@@ -9617,7 +9779,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/arcade.html",
+   "preview": "media/apps/arcade.gif",
+   "poster": "media/apps/arcade.png",
+   "og_image": "media/apps/og/arcade.png",
    "source": "src/deskdot/apps/arcade.py",
    "actions": [
     {
@@ -9956,7 +10121,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/starship.html",
+   "preview": "media/apps/starship.gif",
+   "poster": "media/apps/starship.png",
+   "og_image": "media/apps/og/starship.png",
    "source": "src/deskdot/apps/games_bonus.py",
    "actions": [
     {
@@ -10230,7 +10398,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/streetsurge.html",
+   "preview": "media/apps/streetsurge.gif",
+   "poster": "media/apps/streetsurge.png",
+   "og_image": "media/apps/og/streetsurge.png",
    "source": "src/deskdot/apps/games_road.py",
    "actions": [
     {
@@ -10528,7 +10699,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/tetris.html",
+   "preview": "media/apps/tetris.gif",
+   "poster": "media/apps/tetris.png",
+   "og_image": "media/apps/og/tetris.png",
    "source": "src/deskdot/apps/games_puzzle.py",
    "actions": [
     {
@@ -10832,7 +11006,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/trivia.html",
+   "preview": "media/apps/trivia.gif",
+   "poster": "media/apps/trivia.png",
+   "og_image": "media/apps/og/trivia.png",
    "source": "src/deskdot/apps/trivia.py",
    "actions": [
     {
@@ -11106,7 +11283,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/tictactoe.html",
+   "preview": "media/apps/tictactoe.gif",
+   "poster": "media/apps/tictactoe.png",
+   "og_image": "media/apps/og/tictactoe.png",
    "source": "src/deskdot/apps/games_board.py",
    "actions": [
     {
@@ -11359,7 +11539,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/camera.html",
+   "preview": "media/apps/camera.gif",
+   "poster": "media/apps/camera.png",
+   "og_image": "media/apps/og/camera.png",
    "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
@@ -11670,7 +11853,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/gallery.html",
+   "preview": "media/apps/gallery.gif",
+   "poster": "media/apps/gallery.png",
+   "og_image": "media/apps/og/gallery.png",
    "source": "src/deskdot/apps/gallery.py",
    "actions": [],
    "settings": [
@@ -11744,7 +11930,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/mediaserver.html",
+   "preview": "media/apps/mediaserver.gif",
+   "poster": "media/apps/mediaserver.png",
+   "og_image": "media/apps/og/mediaserver.png",
    "source": "src/deskdot/apps/mediaserver.py",
    "actions": [],
    "settings": [
@@ -11852,7 +12041,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/nowplaying.html",
+   "preview": "media/apps/nowplaying.gif",
+   "poster": "media/apps/nowplaying.png",
+   "og_image": "media/apps/og/nowplaying.png",
    "source": "src/deskdot/apps/nowplaying.py",
    "actions": [
     {
@@ -12122,7 +12314,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/photoframe.html",
+   "preview": "media/apps/photoframe.gif",
+   "poster": "media/apps/photoframe.png",
+   "og_image": "media/apps/og/photoframe.png",
    "source": "src/deskdot/apps/photoframe.py",
    "actions": [
     {
@@ -12302,7 +12497,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/mirror.html",
+   "preview": "media/apps/mirror.gif",
+   "poster": "media/apps/mirror.png",
+   "og_image": "media/apps/og/mirror.png",
    "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
@@ -12562,7 +12760,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/visualizer.html",
+   "preview": "media/apps/visualizer.gif",
+   "poster": "media/apps/visualizer.png",
+   "og_image": "media/apps/og/visualizer.png",
    "source": "src/deskdot/apps/live.py",
    "actions": [],
    "settings": [
@@ -12650,7 +12851,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/pet.html",
+   "preview": "media/apps/pet.gif",
+   "poster": "media/apps/pet.png",
+   "og_image": "media/apps/og/pet.png",
    "source": "src/deskdot/apps/pets.py",
    "actions": [],
    "settings": [
@@ -13146,7 +13350,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": "media/app-petworld.gif",
+   "page": "apps/petworld.html",
+   "preview": "media/apps/petworld.gif",
+   "poster": "media/apps/petworld.png",
+   "og_image": "media/apps/og/petworld.png",
    "source": "src/deskdot/apps/petworld.py",
    "actions": [],
    "settings": [
@@ -13818,7 +14025,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/pokedex.html",
+   "preview": "media/apps/pokedex.gif",
+   "poster": "media/apps/pokedex.png",
+   "og_image": "media/apps/og/pokedex.png",
    "source": "src/deskdot/apps/pokedex.py",
    "actions": [
     {
@@ -14016,7 +14226,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/activeapp.html",
+   "preview": "media/apps/activeapp.gif",
+   "poster": "media/apps/activeapp.png",
+   "og_image": "media/apps/og/activeapp.png",
    "source": "src/deskdot/apps/activeapp.py",
    "actions": [],
    "settings": [
@@ -14067,7 +14280,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/anki.html",
+   "preview": "media/apps/anki.gif",
+   "poster": "media/apps/anki.png",
+   "og_image": "media/apps/og/anki.png",
    "source": "src/deskdot/apps/anki.py",
    "actions": [],
    "settings": [
@@ -14136,7 +14352,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/calendar.html",
+   "preview": "media/apps/calendar.gif",
+   "poster": "media/apps/calendar.png",
+   "og_image": "media/apps/og/calendar.png",
    "source": "src/deskdot/apps/calendar.py",
    "actions": [],
    "settings": [
@@ -14212,7 +14431,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/ci.html",
+   "preview": "media/apps/ci.gif",
+   "poster": "media/apps/ci.png",
+   "og_image": "media/apps/og/ci.png",
    "source": "src/deskdot/apps/ci.py",
    "actions": [],
    "settings": [
@@ -14354,7 +14576,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/agent.html",
+   "preview": "media/apps/agent.gif",
+   "poster": "media/apps/agent.png",
+   "og_image": "media/apps/og/agent.png",
    "source": "src/deskdot/apps/agent.py",
    "actions": [],
    "settings": [
@@ -14418,7 +14643,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/custom.html",
+   "preview": "media/apps/custom.gif",
+   "poster": "media/apps/custom.png",
+   "og_image": "media/apps/og/custom.png",
    "source": "src/deskdot/apps/custom.py",
    "actions": [],
    "settings": [
@@ -14442,7 +14670,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/daily.html",
+   "preview": "media/apps/daily.gif",
+   "poster": "media/apps/daily.png",
+   "og_image": "media/apps/og/daily.png",
    "source": "src/deskdot/apps/daily.py",
    "actions": [
     {
@@ -14691,7 +14922,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/focuspet.html",
+   "preview": "media/apps/focuspet.gif",
+   "poster": "media/apps/focuspet.png",
+   "og_image": "media/apps/og/focuspet.png",
    "source": "src/deskdot/apps/focuspet.py",
    "actions": [],
    "settings": [
@@ -14835,7 +15069,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/timer.html",
+   "preview": "media/apps/timer.gif",
+   "poster": "media/apps/timer.png",
+   "og_image": "media/apps/og/timer.png",
    "source": "src/deskdot/apps/timer.py",
    "actions": [
     {
@@ -14936,7 +15173,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/habits.html",
+   "preview": "media/apps/habits.gif",
+   "poster": "media/apps/habits.png",
+   "og_image": "media/apps/og/habits.png",
    "source": "src/deskdot/apps/habits.py",
    "actions": [
     {
@@ -15039,7 +15279,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/obs.html",
+   "preview": "media/apps/obs.gif",
+   "poster": "media/apps/obs.png",
+   "og_image": "media/apps/og/obs.png",
    "source": "src/deskdot/apps/obs.py",
    "actions": [],
    "settings": [
@@ -15113,7 +15356,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/qr.html",
+   "preview": "media/apps/qr.gif",
+   "poster": "media/apps/qr.png",
+   "og_image": "media/apps/og/qr.png",
    "source": "src/deskdot/apps/qr.py",
    "actions": [],
    "settings": [
@@ -15233,7 +15479,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/uptime.html",
+   "preview": "media/apps/uptime.gif",
+   "poster": "media/apps/uptime.png",
+   "og_image": "media/apps/og/uptime.png",
    "source": "src/deskdot/apps/uptime.py",
    "actions": [],
    "settings": [
@@ -15368,7 +15617,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": "media/app-clock.gif",
+   "page": "apps/clock.html",
+   "preview": "media/apps/clock.gif",
+   "poster": "media/apps/clock.png",
+   "og_image": "media/apps/og/clock.png",
    "source": "src/deskdot/apps/clock.py",
    "actions": [],
    "settings": [
@@ -15480,7 +15732,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/countdown.html",
+   "preview": "media/apps/countdown.gif",
+   "poster": "media/apps/countdown.png",
+   "og_image": "media/apps/og/countdown.png",
    "source": "src/deskdot/apps/extras.py",
    "actions": [],
    "settings": [
@@ -15531,7 +15786,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/daynight.html",
+   "preview": "media/apps/daynight.gif",
+   "poster": "media/apps/daynight.png",
+   "og_image": "media/apps/og/daynight.png",
    "source": "src/deskdot/apps/daynight.py",
    "actions": [],
    "settings": [
@@ -15648,7 +15906,10 @@
    "kinds": [
     "clip"
    ],
-   "gif": null,
+   "page": "apps/fiveoclock.html",
+   "preview": "media/apps/fiveoclock.gif",
+   "poster": "media/apps/fiveoclock.png",
+   "og_image": "media/apps/og/fiveoclock.png",
    "source": "src/deskdot/apps/fiveoclock.py",
    "actions": [],
    "settings": [
@@ -15709,7 +15970,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/holidays.html",
+   "preview": "media/apps/holidays.gif",
+   "poster": "media/apps/holidays.png",
+   "og_image": "media/apps/og/holidays.png",
    "source": "src/deskdot/apps/holidays.py",
    "actions": [],
    "settings": [
@@ -15826,7 +16090,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/progress.html",
+   "preview": "media/apps/progress.gif",
+   "poster": "media/apps/progress.png",
+   "og_image": "media/apps/og/progress.png",
    "source": "src/deskdot/apps/progress.py",
    "actions": [],
    "settings": [
@@ -16051,7 +16318,10 @@
    "kinds": [
     "stream"
    ],
-   "gif": null,
+   "page": "apps/sky.html",
+   "preview": "media/apps/sky.gif",
+   "poster": "media/apps/sky.png",
+   "og_image": "media/apps/og/sky.png",
    "source": "src/deskdot/apps/sky.py",
    "actions": [],
    "settings": [

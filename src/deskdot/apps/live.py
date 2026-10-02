@@ -11,7 +11,8 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import Frame, hsv, mix, scale
 from ..gfx.adjust import ImageControls
-from ._kit import loading, offline
+from ..platforms import DESKTOP, FEATURES
+from ._kit import loading, offline, unsupported
 
 FALL = 1.2  # bars fall at most this share of full height per second: a smooth decay, not a drop
 PEAK_HOLD = 0.35  # seconds a peak dot hangs before it falls
@@ -47,6 +48,7 @@ class Visualizer(App):
     Settings = VisualizerSettings
     fps = 12.0
     uses = ("audio",)
+    platforms = DESKTOP  # sound capture (soundcard); the Android app can't capture other apps' audio
 
     def __init__(self, *a: Any, **kw: Any) -> None:
         super().__init__(*a, **kw)
@@ -94,7 +96,10 @@ class Visualizer(App):
         p = self.ctx.provider("audio")
         d = p.value
         if not d:
-            (offline(f, "AUDIO", "NO DEVICE") if p.error else loading(f, t, "AUDIO"))
+            if not self.supported_here():
+                unsupported(f, "AUDIO")
+            else:
+                (offline(f, "AUDIO", "NO DEVICE") if p.error else loading(f, t, "AUDIO"))
             return
         s = self.settings
         bands = np.clip(np.asarray(d["bands"], np.float32) * s.gain, 0, 1)
@@ -168,6 +173,8 @@ class MirrorSettings(ImageControls):
             "ambilight": "Ambilight colours",
         },
         title="Source",
+        # Linux has no portable window rect / cursor position: those fall back to the whole screen there
+        platforms={"window": list(FEATURES["screen_window"]), "cursor": list(FEATURES["screen_window"])},
     )
     fit: str = Choice("contain", {"contain": "Fit whole screen", "cover": "Fill (crop)"})
     cursor_box: int = Field(
@@ -194,6 +201,7 @@ class Mirror(App):
     Settings = MirrorSettings
     fps = 10.0
     uses = ("screen",)
+    platforms = DESKTOP  # Linux: X11 (or GNOME's screenshot tool on Wayland); not on a phone
 
     def on_start(self) -> None:
         s = self.settings
@@ -204,7 +212,10 @@ class Mirror(App):
     def render(self, f: Frame, t: float) -> None:
         p = self.ctx.provider("screen")
         if p.value is None:
-            (offline(f, "SCREEN", "N/A") if p.error else loading(f, t, "SCREEN"))
+            if not self.supported_here():
+                unsupported(f, "SCREEN")
+            else:
+                (offline(f, "SCREEN", "N/A") if p.error else loading(f, t, "SCREEN"))
             return
         f.px[:] = p.value
 
@@ -260,6 +271,7 @@ class Camera(App):
     Settings = CameraSettings
     fps = 10.0
     uses = ("camera",)
+    platforms = DESKTOP  # OpenCV (DirectShow / AVFoundation / V4L2); not packaged in the Android app
 
     def on_start(self) -> None:
         s = self.settings
@@ -269,6 +281,9 @@ class Camera(App):
 
     def render(self, f: Frame, t: float) -> None:
         p = self.ctx.provider("camera")
+        if p.value is None and not self.supported_here():
+            unsupported(f, "CAMERA")
+            return
         if p.value is None:
             (
                 offline(f, "CAMERA", "N/A")

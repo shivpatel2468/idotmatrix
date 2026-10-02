@@ -13,9 +13,21 @@ export type JsonSchemaProp = {
   maxLength?: number;
   pattern?: string;
   group?: string;
+  /** Hosts this setting works on (engine `platforms.only_on`); absent = everywhere. */
+  platforms?: Platform[];
+  /** Enum options that only work on some hosts: option -> platforms. */
+  enumPlatforms?: Record<string, Platform[]>;
 };
 
-export type AppSchema = { properties?: Record<string, JsonSchemaProp>; title?: string };
+/** The engine's host OS (GET /api/meta `platform`). A Raspberry Pi is "linux". */
+export type Platform = "windows" | "macos" | "linux" | "android";
+
+export type AppSchema = {
+  properties?: Record<string, JsonSchemaProp>;
+  title?: string;
+  /** The whole app only works on these hosts (App.platforms); absent = everywhere. */
+  platforms?: Platform[];
+};
 
 export type AppMeta = {
   id: string;
@@ -30,6 +42,9 @@ export type AppMeta = {
   controls?: ("dpad" | "joystick" | "swipe" | "tap" | "gamepad")[];
   /** Games: ways to play with their player ranges (first = default). Older engines omit it. */
   modes?: GameMode[];
+  /** Hosts the app works on (null = everywhere) and whether this engine's host is one. Older engines omit both. */
+  platforms?: Platform[] | null;
+  supported?: boolean;
 };
 
 /** A game mode from `/api/meta`. `teams`: versus modes show the side-select screen before the match. */
@@ -47,6 +62,10 @@ export type Meta = {
   icons: string[];
   leagues: Record<string, string>;
   plugins: string[];
+  /** The engine's host OS, a display label ("Linux (Raspberry Pi)") and host-feature support. Older engines omit them. */
+  platform?: Platform;
+  platform_label?: string;
+  features?: Record<string, boolean>;
 };
 
 export type DeviceInfo = {
@@ -109,6 +128,8 @@ export type EngineState = {
     };
     overlay: Notice | null;
     pattern: string | null;
+    /** the calibration / motion test card on the panel, if any */
+    test?: { name: string; kind: "calibration" | "motion" | "still"; fps: number; native: boolean } | null;
     released?: boolean; // handed off: the panel is running on its own
     autopilot: { enabled: boolean; rules: AutopilotRule[]; active: number | null };
     queued_notices: number;
@@ -132,10 +153,12 @@ export type EngineState = {
       max_fps: number;
       packet_gap_ms: number;
       idle_dim: number;
+      smoothing?: number; // temporal smoothing of streamed frames (0 = off)
+      motion_preset?: string | null;
       night: { enabled: boolean; start: string; end: string; brightness: number };
     };
     night_active: boolean;
-    calibration: Record<string, number>;
+    calibration: Record<string, number | boolean | string>; // lib/calib.ts `toCalib()` reads it
     integrations?: Integrations;
   };
   apps: Record<string, Record<string, unknown>>;

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>DeskDot compatibility and iDotMatrix panel specs</title>
+<meta name="description" content="Which computers run DeskDot (Windows, Raspberry Pi, Linux, macOS, Android beta) and the measured limits of the iDotMatrix 32×32 panel it drives." />
+<link rel="canonical" href="https://idotmatrix.com/specs.html" />
+<meta name="theme-color" content="#08070a" />
+<meta name="color-scheme" content="dark" />
+<meta name="author" content="Shiv Patel" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="DeskDot" />
+<meta property="og:url" content="https://idotmatrix.com/specs.html" />
+<meta property="og:title" content="DeskDot compatibility and iDotMatrix panel specs" />
+<meta property="og:description" content="Which computers run DeskDot (Windows, Raspberry Pi, Linux, macOS, Android beta) and the measured limits of the iDotMatrix 32×32 panel it drives." />
+<meta property="og:image" content="https://idotmatrix.com/media/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="DeskDot compatibility and iDotMatrix panel specs" />
+<meta name="twitter:description" content="Which computers run DeskDot (Windows, Raspberry Pi, Linux, macOS, Android beta) and the measured limits of the iDotMatrix 32×32 panel it drives." />
+<meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
+<meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="stylesheet" href="/styles.css" />
+<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script src="/main.js" defer></script>
+</head>
+<body class="page-specs">
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9L12 2.6Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
+</svg>
+<header class="bar" id="bar">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <nav id="nav" aria-label="Main">
+      <a href="/setup.html">AI setup</a>
+      <a href="/guide.html">Run it</a>
+      <a href="/apps.html">Apps</a>
+      <a href="/features.html">Features</a>
+      <a href="/studio.html">Studio</a>
+      <a href="/specs.html" aria-current="page">Specs</a>
+      <a href="/faq.html">FAQ</a>
+    </nav>
+    <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<!-- page:start -->
+<section class="page-sec" id="specs" aria-labelledby="specs-h">
+    <div class="wrap">
+      <p class="kicker">Compatibility</p>
+      <h1 id="specs-h" class="page-title reveal">What it runs on, and the panel it drives</h1>
+      <p class="sub reveal">Measured on a real unit. These are the numbers DeskDot is built around; the byte-level details are in
+        <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/HARDWARE_PROTOCOL.md">docs/HARDWARE_PROTOCOL.md</a>.</p>
+      <div class="spec-grid">
+        <div class="table-scroll reveal">
+          <table class="data-table">
+            <caption>Hosts</caption>
+            <tbody>
+              <tr><th scope="row">Windows 10/11</th><td><span class="status ok">Verified</span> Bluetooth LE via WinRT; sleep/wake hand-off</td></tr>
+              <tr><th scope="row">Raspberry Pi OS / Debian / Ubuntu</th><td><span class="status part">Supported</span> BlueZ; <code>scripts/install-pi.sh</code> sets up a systemd service (installer not yet tried on a real Pi)</td></tr>
+              <tr><th scope="row">macOS</th><td><span class="status part">Untested</span> finds the panel by its <code>IDM-</code> name</td></tr>
+              <tr><th scope="row">Android 8+ (64-bit)</th><td><span class="status beta">Beta</span> the Android app runs the whole engine on the phone</td></tr>
+              <tr><th scope="row">iPhone / iPad</th><td><span class="status no">Not a host</span> iOS suspends background apps; use it as a studio or controller</td></tr>
+              <tr><th scope="row">Any browser</th><td><span class="status ok">Studio &amp; controller</span> Chrome, Edge, Firefox, Safari; gamepads on desktop</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll reveal" style="--i:1">
+          <table class="data-table">
+            <caption>The iDotMatrix panel</caption>
+            <tbody>
+              <tr><th scope="row">Display</th><td>32 × 32 RGB LEDs, 1,024 pixels <span class="status ok">Verified</span></td></tr>
+              <tr><th scope="row">Other sizes</th><td>16×16, 64×64 <span class="status part">Untested</span> every app is designed for 32×32</td></tr>
+              <tr><th scope="row">Connection</th><td>Bluetooth LE, advertises as <code>IDM-xxxxxx</code>, one connection at a time</td></tr>
+              <tr><th scope="row">Live frames</th><td>~9 fps simple frames, ~5–6 fps full scenes</td></tr>
+              <tr><th scope="row">Native animation</th><td>GIFs looped by the firmware: smooth at ≤ 10 fps, up to 40 KB</td></tr>
+              <tr><th scope="row">Brightness &amp; modes</th><td>5–100 %, on/off, flip 180°, night mode; built-in clock, countdown, scoreboard</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- page:end -->
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
+        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+      </div>
+      <div>
+        <h2>Get started</h2>
+        <ul>
+          <li><a href="/setup.html">Set up with an AI agent</a></li>
+          <li><a href="/guide.html">Step-by-step guide</a></li>
+          <li><a href="/apps.html">Apps explorer</a></li>
+          <li><a href="/specs.html">Compatibility</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Docs</h2>
+        <ul>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/README.md">README</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">MCP server</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/API.md">HTTP API</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DEPLOY.md">Raspberry Pi &amp; hosts</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fine">
+      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
+      <span>1,024 pixels. Zero subscriptions.</span>
+    </div>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

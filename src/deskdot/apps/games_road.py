@@ -407,9 +407,22 @@ class StreetSurge(GameApp):
         if self.rng.random() < dt * 0.25:
             r.ai_x = self.rng.choice((-0.55, 0.0, 0.55))
 
-    def _driver_ai(self, r: Racer, dt: float) -> None:
-        """Take the inside of curves, pass slower cars through the widest gap, lift when boxed in, nitro on
-        straights. Each seat keeps its own side of the racing line so two AI players don't trade paint."""
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's car (drawn near the bottom middle)."""
+        r = self.players.get(1)
+        return None if r is None else (16 + (r.x - r.x * 0.85) * KX / AHEAD, 28.0)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The racing line: the inside of the coming curve, or the widest gap past slower cars, beside the car."""
+        r = self.players.get(1)
+        if r is None or r.done is not None or self.go > 0 or 1 not in self.active_seats:
+            return []
+        want, _blockers, _ahead = self._racing_line(r)
+        x0 = 16 + (r.x - r.x * 0.85) * KX / AHEAD
+        return [(x0 + (want - r.x) * KX / AHEAD, 28.0, 1.0)]
+
+    def _racing_line(self, r: Racer) -> tuple[float, list[float], float]:
+        """(lateral target, blockers' x, curvature ahead) for racer `r`."""
         s = self._seg(r.d)
         ahead = sum(self.curve[(s + k) % self.L] for k in range(2, 9))
         bias = (-0.2, 0.2, -0.45, 0.45)[(r.seat - 1) % 4]
@@ -427,12 +440,16 @@ class StreetSurge(GameApp):
                 if sc > best_s:
                     best, best_s = x, sc
             want = best
-            if min(abs(want - bx) for bx in blockers) < 0.45:
-                close = [
-                    o for o in self.racers if o is not r and 0 < o.d - r.d < 2.0 and abs(o.x - r.x) < 0.5
-                ]
-                if close:
-                    r.brake = 0.1  # no gap: lift instead of rear-ending
+        return want, blockers, ahead
+
+    def _driver_ai(self, r: Racer, dt: float) -> None:
+        """Take the inside of curves, pass slower cars through the widest gap, lift when boxed in, nitro on
+        straights. Each seat keeps its own side of the racing line so two AI players don't trade paint."""
+        want, blockers, ahead = self._racing_line(r)
+        if blockers and min(abs(want - bx) for bx in blockers) < 0.45:
+            close = [o for o in self.racers if o is not r and 0 < o.d - r.d < 2.0 and abs(o.x - r.x) < 0.5]
+            if close:
+                r.brake = 0.1  # no gap: lift instead of rear-ending
         noise = (1.0 - self.skill) * 0.6 * math.sin(self.t * 1.3 + r.seat)
         r.ai_x = clamp(want + noise, -0.85, 0.85)
         straight = abs(ahead) < 0.05

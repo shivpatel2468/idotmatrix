@@ -248,6 +248,41 @@ class Invaders(_ActionGame):
         elif k == "a":
             self._fire(c)
 
+    #: the fly steering "up" (towards the invaders) fires
+    fly_keys: ClassVar[dict[str, str]] = {"up": "a"}
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's cannon."""
+        c = next((c for c in self.cannons if c["seat"] == 1 and not c["out"]), None)
+        return None if c is None else (c["x"], 30.0)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Beside the cannon, away from the nearest falling bullet; else the lowest invader of the nearest column
+        (straight above = steer "up" = fire)."""
+        c = next((c for c in self.cannons if c["seat"] == 1 and not c["out"]), None)
+        if c is None:
+            return []
+        x = c["x"]
+        danger = [s for s in self.shots if s[1] > 15 and abs(s[0] - x) < 3.5]
+        if danger:
+            s = max(danger, key=lambda s: s[1])
+            away = -1 if x > 26 else 1 if x < 5 else (1 if s[0] <= x else -1)
+            return [(clamp(x + away * 6, 2, 29), 30.0, 1.0)]
+        best: tuple[float, float, float] | None = None
+        for col in range(A_COLS):
+            rows = [r for r in range(len(self.alive)) if self.alive[r][col]]
+            if not rows:
+                continue
+            ax, ay = self._alien_pos(rows[-1], col)
+            cx = ax + 2 + self.adir * 1.2
+            if best is None or abs(cx - x) < abs(best[0] - x):
+                best = (cx, ay + 2, 1.0)
+        if best is None:
+            return []
+        if abs(best[0] - x) > 1.5:
+            return [(best[0], 30.0, 1.0)]  # line up first
+        return [best] if c["bullet"] is None else []
+
     def _fire(self, c: dict[str, Any]) -> None:
         if c["bullet"] is None and c["respawn"] <= 0:
             c["bullet"] = [c["x"], 27.0]
@@ -791,6 +826,48 @@ class Maze(_ActionGame):
         # nowhere safe: step to the neighbour farthest from ghosts
         return max(self.open[pos], key=lambda d: gd.get(self._next(pos, d), 99))
 
+    def _fly_ent(self) -> dict[str, Any] | None:
+        """Seat 1's runner (or, in Hunt, its ghost)."""
+        return next(
+            (e for e in [*self.runners, *self.ghosts] if e.get("seat") == 1 and not e.get("out")), None
+        )
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's runner."""
+        e = self._fly_ent()
+        if e is None:
+            return None
+        x, y = self._xy(e)
+        return x + 1, y + 1
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Down the corridor towards the nearest dot that avoids the ghosts (towards a runner, for a ghost)."""
+        e = self._fly_ent()
+        if e is None or e.get("dead", 0) > 0:
+            return []
+        pos = e["pos"]
+        d: str | None = None
+        if any(e is g for g in self.ghosts):
+            runners = self._live_runners()
+            if runners:
+                bfs = self._bfs(pos)
+                reach = [bfs[r["pos"]] for r in runners if r["pos"] in bfs and bfs[r["pos"]][1]]
+                d = min(reach)[1] if reach else None
+        else:
+            gd = self._ghost_dist()
+            radius = 1 + round(2 * self.skill)
+            danger = {c for c, n in gd.items() if n <= radius} - {pos}
+            bfs = self._bfs(pos, danger)
+            targets = [bfs[c] for c in (self.dots | self.pills) if c in bfs and bfs[c][1]]
+            if targets:
+                d = min(targets)[1]
+            elif self.open[pos]:
+                d = max(self.open[pos], key=lambda k: gd.get(self._next(pos, k), 99))
+        if d is None:
+            return []
+        dx, dy = DXY[d]
+        return [(4 * (pos[0] + 2 * dx) + 2, 4 * (pos[1] + 2 * dy) + 2, 1.0)]
+
     def _ghost_dir(self, g: dict[str, Any], i: int) -> str:
         pos = g["pos"]
         opts = [d for d in self.open[pos] if d != OPP[g["dir"]]] or list(self.open[pos])
@@ -1271,6 +1348,54 @@ class Asteroids(_ActionGame):
                     break
             s["vx"] = s["vy"] = 0.0
             s["inv"] = max(s["inv"], 0.5)
+
+    def _fly_ship(self) -> dict[str, Any] | None:
+        return next((s for s in self.ships if s["seat"] == 1 and not s["out"] and s["dead"] <= 0), None)
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's ship."""
+        s = self._fly_ship()
+        return None if s is None else (s["x"], s["y"])
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The nearest rock or rival (led by its motion); away from a rock about to hit (then the fly flees)."""
+        s = self._fly_ship()
+        self._fly_flee = False
+        if s is None:
+            return []
+        sx, sy = s["x"], s["y"]
+        for r in self.rocks:
+            dx, dy = _wrapd(r["x"], sx), _wrapd(r["y"], sy)
+            if math.hypot(dx, dy) - ROCK_R[r["size"]] < 4.5:
+                n = math.hypot(dx, dy) or 1.0
+                self._fly_flee = True
+                return [(sx - dx / n * 10, sy - dy / n * 10, 1.0)]
+        targets = [(r["x"], r["y"], r["vx"], r["vy"]) for r in self.rocks]
+        targets += [
+            (o["x"], o["y"], o["vx"], o["vy"])
+            for o in self.ships
+            if self._foe(s, o) and not o["out"] and o["dead"] <= 0
+        ]
+        if not targets:
+            return []
+        tx, ty, tvx, tvy = min(targets, key=lambda t: math.hypot(_wrapd(t[0], sx), _wrapd(t[1], sy)))
+        dx, dy = _wrapd(tx, sx), _wrapd(ty, sy)
+        lead = math.hypot(dx, dy) / 32
+        return [(sx + dx + tvx * lead, sy + dy + tvy * lead, 1.0)]
+
+    def fly_key(self, k: str) -> str | None:
+        """The ship is steered tank-style, so the fly's screen directions become turns: towards the side it wants
+        to go, and once the nose points there, fire (or thrust, when fleeing). The giant fibre = hyperspace."""
+        if k == "a":
+            return "b"
+        s = self._fly_ship()
+        d = DXY.get(k)
+        if s is None or d is None:
+            return None
+        diff = (math.atan2(d[1], d[0]) - s["ang"] + math.pi) % (2 * math.pi) - math.pi
+        if abs(diff) < 0.5:
+            return "up" if getattr(self, "_fly_flee", False) else "a"
+        return "right" if diff > 0 else "left"
 
     def _fire(self, s: dict[str, Any]) -> None:
         if s["cool"] > 0 or sum(1 for b in self.bullets if b[5] == s["seat"]) >= 4:
@@ -1804,6 +1929,16 @@ class Infinity(_ActionGame):
             if abs(s["ty"] - s["y"]) > 6:
                 s["ty"] = s["y"]
             s["ty"] = clamp(s["ty"] + (-3 if k in ("up", "a") else 3), 1, 30)
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's ship."""
+        s = next((s for s in self.ships if s["seat"] == 1 and not s["out"]), None)
+        return None if s is None else (s["x"] + 1, s["y"])
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The flyable height a few columns ahead, at the ship's own column ("up"/"down" to reach it)."""
+        s = next((s for s in self.ships if s["seat"] == 1 and not s["out"] and s["dead"] <= 0), None)
+        return [] if s is None else [(s["x"] + 2, self._ai_target(s), 1.0)]
 
     def _ai_target(self, s: dict[str, Any]) -> float:
         """Backward pass over upcoming columns: the band of heights from which the cave stays flyable."""

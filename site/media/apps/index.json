@@ -1,0 +1,452 @@
+{
+ "activeapp": {
+  "frames": 24,
+  "ms": 3920,
+  "bytes": 1620
+ },
+ "agent": {
+  "frames": 4,
+  "ms": 2400,
+  "bytes": 396
+ },
+ "airquality": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 334
+ },
+ "ambient": {
+  "frames": 64,
+  "ms": 7680,
+  "bytes": 118040
+ },
+ "anki": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2095
+ },
+ "arcade": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 6449
+ },
+ "asteroids": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 11367
+ },
+ "avatar": {
+  "frames": 20,
+  "ms": 4000,
+  "bytes": 1356
+ },
+ "boids": {
+  "frames": 64,
+  "ms": 7680,
+  "bytes": 10933
+ },
+ "brain": {
+  "frames": 48,
+  "ms": 5760,
+  "bytes": 41703
+ },
+ "breakout": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 10157
+ },
+ "calendar": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 230
+ },
+ "camera": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2132
+ },
+ "canvas": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 224
+ },
+ "chess": {
+  "frames": 79,
+  "ms": 35300,
+  "bytes": 8892
+ },
+ "ci": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2080
+ },
+ "clock": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 547
+ },
+ "composer": {
+  "frames": 24,
+  "ms": 3890,
+  "bytes": 2538
+ },
+ "countdown": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 559
+ },
+ "currency": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 390
+ },
+ "custom": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 226
+ },
+ "cycles": {
+  "frames": 49,
+  "ms": 6000,
+  "bytes": 6117
+ },
+ "daily": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 297
+ },
+ "daynight": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 16156
+ },
+ "digworld": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 9009
+ },
+ "dino": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 12333
+ },
+ "emotes": {
+  "frames": 40,
+  "ms": 4000,
+  "bytes": 8660
+ },
+ "fiveoclock": {
+  "frames": 79,
+  "ms": 12000,
+  "bytes": 12962
+ },
+ "flappy": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 14951
+ },
+ "flybrain": {
+  "frames": 44,
+  "ms": 16000,
+  "bytes": 3906
+ },
+ "focuspet": {
+  "frames": 48,
+  "ms": 5760,
+  "bytes": 7449
+ },
+ "fontlab": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 172
+ },
+ "fourup": {
+  "frames": 46,
+  "ms": 6000,
+  "bytes": 2948
+ },
+ "g2048": {
+  "frames": 40,
+  "ms": 6000,
+  "bytes": 6112
+ },
+ "gallery": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 204
+ },
+ "gamedeals": {
+  "frames": 75,
+  "ms": 8700,
+  "bytes": 8010
+ },
+ "github": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 848
+ },
+ "habits": {
+  "frames": 1,
+  "ms": 2000,
+  "bytes": 345
+ },
+ "hassentity": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1110
+ },
+ "headlines": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 192
+ },
+ "holidays": {
+  "frames": 81,
+  "ms": 8800,
+  "bytes": 9981
+ },
+ "infinity": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 21211
+ },
+ "invaders": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 8773
+ },
+ "leafleap": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 5869
+ },
+ "loops": {
+  "frames": 96,
+  "ms": 11520,
+  "bytes": 49052
+ },
+ "markets": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 297
+ },
+ "maze": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 8495
+ },
+ "mediaserver": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 226
+ },
+ "mines": {
+  "frames": 40,
+  "ms": 6000,
+  "bytes": 3096
+ },
+ "mirror": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2132
+ },
+ "native": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 240
+ },
+ "neonheat": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 10838
+ },
+ "nowplaying": {
+  "frames": 25,
+  "ms": 3880,
+  "bytes": 22408
+ },
+ "obs": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2100
+ },
+ "pet": {
+  "frames": 68,
+  "ms": 30000,
+  "bytes": 9575
+ },
+ "petworld": {
+  "frames": 81,
+  "ms": 24000,
+  "bytes": 18194
+ },
+ "photoframe": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 611
+ },
+ "pixabots": {
+  "frames": 16,
+  "ms": 1920,
+  "bytes": 2549
+ },
+ "planets": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 312
+ },
+ "playercard": {
+  "frames": 41,
+  "ms": 10000,
+  "bytes": 14931
+ },
+ "pokedex": {
+  "frames": 73,
+  "ms": 24000,
+  "bytes": 13294
+ },
+ "pong": {
+  "frames": 59,
+  "ms": 6000,
+  "bytes": 6247
+ },
+ "printer": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 245
+ },
+ "progress": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 553
+ },
+ "qr": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 263
+ },
+ "quakes": {
+  "frames": 75,
+  "ms": 7500,
+  "bytes": 12615
+ },
+ "racer": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 20938
+ },
+ "radar": {
+  "frames": 40,
+  "ms": 4800,
+  "bytes": 26606
+ },
+ "rainradar": {
+  "frames": 33,
+  "ms": 4690,
+  "bytes": 3367
+ },
+ "raycaster": {
+  "frames": 80,
+  "ms": 20000,
+  "bytes": 21931
+ },
+ "sand": {
+  "frames": 67,
+  "ms": 9040,
+  "bytes": 7317
+ },
+ "scores": {
+  "frames": 19,
+  "ms": 3880,
+  "bytes": 2167
+ },
+ "sky": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 509
+ },
+ "space": {
+  "frames": 25,
+  "ms": 3880,
+  "bytes": 2768
+ },
+ "starship": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 16045
+ },
+ "stocks": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 420
+ },
+ "streetsurge": {
+  "frames": 44,
+  "ms": 6000,
+  "bytes": 11846
+ },
+ "synthwave": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 18168
+ },
+ "sysmon": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 347
+ },
+ "tetris": {
+  "frames": 60,
+  "ms": 6000,
+  "bytes": 8793
+ },
+ "text": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 212
+ },
+ "tictactoe": {
+  "frames": 38,
+  "ms": 6000,
+  "bytes": 3058
+ },
+ "tides": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 348
+ },
+ "timer": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 547
+ },
+ "trivia": {
+  "frames": 1,
+  "ms": 6000,
+  "bytes": 291
+ },
+ "uptime": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 2107
+ },
+ "visualizer": {
+  "frames": 32,
+  "ms": 3840,
+  "bytes": 12932
+ },
+ "wear": {
+  "frames": 24,
+  "ms": 2880,
+  "bytes": 1575
+ },
+ "weather": {
+  "frames": 4,
+  "ms": 4000,
+  "bytes": 643
+ },
+ "wireframe": {
+  "frames": 64,
+  "ms": 7680,
+  "bytes": 45547
+ }
+}

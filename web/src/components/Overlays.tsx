@@ -3,6 +3,7 @@ import { CornerDownLeft, Search, Send, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { openPlay } from "../lib/gameInput";
+import { letFlyPlay, takeBackFromFly } from "../lib/flyControl";
 import { openFriends } from "./Multiplayer";
 import { EMPTY_LIST, openSettings, toast, useStore } from "../lib/store";
 import type { Notice } from "../lib/types";
@@ -21,7 +22,7 @@ export function Modal({ open, onClose, title, children, width = 440, header, bod
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-[3px] sm:p-4" onMouseDown={onClose}>
-      <div className="surface flex h-[100dvh] w-full animate-rise flex-col max-sm:!rounded-none sm:h-auto" style={{ maxWidth: width }}
+      <div className="surface flex h-screen h-[100dvh] w-full animate-rise flex-col max-sm:!rounded-none sm:h-auto" style={{ maxWidth: width }}
         onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="flex shrink-0 items-center border-b border-line px-5 py-3">
           <h2 className="font-display text-[17px] font-[640] tracking-[-0.015em]">{title}</h2>
@@ -115,6 +116,8 @@ export function CommandPalette() {
     return [
       { id: "play", label: "Play a game…", hint: "Play mode", icon: "gamepad-2", run: () => void openPlay() },
       { id: "friends", label: "Play with a friend…", hint: "Play mode · Wi-Fi", icon: "users", run: () => void openFriends() },
+      { id: "fly-play", label: "Let the fly play", hint: "Fruit fly · F", icon: "bug", run: () => void letFlyPlay() },
+      { id: "fly-back", label: "Take the game back from the fly", hint: "Fruit fly · F", icon: "hand", run: () => void takeBackFromFly() },
       ...apps,
       ...pre,
       { id: "pl-play", label: "Resume playlist", hint: "Playback", icon: "play", run: () => api.playlist("play") },

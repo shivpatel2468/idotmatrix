@@ -7,6 +7,8 @@ Backends (picked by `sys.platform`):
   *playing* wins (the "current" session is often a paused tab).
 * **macOS** — `media_mac.MacBackend`: AppleScript for Spotify and Music.app, `nowplaying-cli` (if installed)
   for browsers and everything else.
+* **Linux** — `media_linux.LinuxBackend`: MPRIS through `playerctl` (Spotify, browsers, VLC, Rhythmbox…).
+* **Android** — none (the phone app doesn't read other apps' media sessions); the provider reports it.
 
 Position is kept on our own monotonic clock and only re-anchored when the player reports something new
 (a timeline update, a seek, play/pause, a new track). Windows refreshes its timeline only every few seconds,
@@ -47,7 +49,7 @@ try:
     from winrt.windows.storage.streams import Buffer, DataReader, InputStreamOptions
 
     AVAILABLE = sys.platform == "win32"
-except ImportError:  # non-Windows or winrt missing
+except Exception:  # non-Windows, winrt missing, or its DLLs failed to load
     AVAILABLE = False
 
 RGB = tuple[int, int, int]
@@ -367,12 +369,19 @@ class WinBackend:
 
 
 def make_backend() -> Backend | None:
-    if sys.platform == "win32" and AVAILABLE:
+    from ..platforms import current
+
+    plat = current()
+    if plat == "windows" and AVAILABLE:
         return WinBackend()
-    if sys.platform == "darwin":
+    if plat == "macos":
         from .media_mac import MacBackend
 
         return MacBackend()
+    if plat == "linux":
+        from .media_linux import LinuxBackend
+
+        return LinuxBackend()
     return None
 
 
@@ -381,6 +390,7 @@ class MediaProvider(Provider[dict[str, Any]]):
     name = "media"
     interval = 1.0
     retry = 5.0
+    feature = "media"
 
     def __init__(self, hub: Any, backend: Backend | None = None) -> None:
         super().__init__(hub)
@@ -401,6 +411,10 @@ class MediaProvider(Provider[dict[str, Any]]):
         self._art_task: asyncio.Task[None] | None = None
         self._itunes: OrderedDict[str, bytes | None] = OrderedDict()
         self._url_art: OrderedDict[str, bytes | None] = OrderedDict()
+
+    @property
+    def supported(self) -> bool:
+        return (self._backend_made and self._backend is not None) or super().supported
 
     @property
     def backend(self) -> Backend | None:
@@ -440,7 +454,11 @@ class MediaProvider(Provider[dict[str, Any]]):
     async def fetch(self) -> dict[str, Any]:
         be = self.backend
         if be is None:
-            raise RuntimeError("media info needs Windows (winrt) or macOS")
+            raise RuntimeError(
+                "Windows media controls unavailable: the winrt packages failed to import (run `uv sync`)"
+                if sys.platform == "win32"
+                else "media info isn't available on this system"
+            )
         snap = await be.snapshot()
         if snap is None or not snap.title:
             self._playing = False

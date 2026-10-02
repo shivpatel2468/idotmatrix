@@ -198,6 +198,23 @@ class Arcade(GameApp):
         snake = next((s for s in self.snakes if s.seat == 1 and s.alive and s.body), None)
         return None if snake is None else (snake.body[0][0] * 2 + 1, snake.body[0][1] * 2 + 1)
 
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The fly smells the nearest apple (wrap-around distance on wrapping maps)."""
+        snake = next((s for s in self.snakes if s.seat == 1 and s.alive and s.body), None)
+        if snake is None or not self.foods:
+            return []
+        hx, hy = snake.body[0]
+
+        def delta(a: int, b: int) -> int:
+            d = b - a
+            if self.wrap and abs(d) > N // 2:
+                d -= N if d > 0 else -N
+            return d
+
+        fx, fy = min(self.foods, key=lambda c: abs(delta(hx, c[0])) + abs(delta(hy, c[1])))
+        dx, dy = delta(hx, fx), delta(hy, fy)  # the shorter way round, which may lie off the panel
+        return [((hx + dx) * 2 + 1, (hy + dy) * 2 + 1, 1.0)]
+
     @property
     def mul(self) -> float:
         return 1.0  # `speed` is moves per second here, not a multiplier

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Gamepad2, ImagePlus, Sparkles, Trash2, Workflow } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { PLATFORM_LABEL, platformsLabel, supportedOn } from "../lib/platform";
 import { EMPTY_MAP, useStore } from "../lib/store";
 import type { AppSchema, JsonSchemaProp, MediaItem } from "../lib/types";
 
@@ -17,10 +18,20 @@ type Props = {
  *   number/integer with min+max -> fader · format "color" -> swatches + picker
  *   format "media" -> media library picker · format "password" -> masked secret · long string -> textarea
  *   string -> input
+ * Host support: `platforms` on the schema (whole app), a field, or `enumPlatforms` on an enum's options. When the
+ * engine's host (meta.platform) isn't listed, the app gets a banner, a field a badge and is disabled, an option is
+ * disabled. Older engines send no platform: everything stays enabled.
  */
 export function SchemaForm({ schema, value, onChange }: Props) {
+  const host = useStore((s) => s.meta?.platform);
   const props = Object.entries(schema.properties ?? {});
-  if (!props.length) return <p className="text-[12.5px] text-ink-3">This app has no settings.</p>;
+  const banner = schema.platforms && !supportedOn(schema.platforms, host) && host && (
+    <p role="note" className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-[12px] leading-snug text-ink-2">
+      <span className="font-[600] text-warn">{platformsLabel(schema.platforms)}.</span>{" "}
+      DeskDot is running on {PLATFORM_LABEL[host] ?? host}, so the panel shows “not on {PLATFORM_LABEL[host] ?? host}”.
+    </p>
+  );
+  if (!props.length) return banner || <p className="text-[12.5px] text-ink-3">This app has no settings.</p>;
   // fields tagged with json_schema_extra.group render in collapsible sections, after the ungrouped ones
   const loose = props.filter(([, p]) => !p.group);
   const groups: [string, typeof props][] = [];
@@ -56,6 +67,7 @@ export function SchemaForm({ schema, value, onChange }: Props) {
   };
   return (
     <div className="space-y-4">
+      {banner}
       {essentials.map(field)}
       {hidden > 0 && (
         <details className="group/more" open={!essentials.length}>
@@ -87,27 +99,47 @@ function splitLabel(label: string): [string, string | null] {
 /** How many settings the inspector shows before "More options". */
 const ESSENTIALS = 5;
 
+/** The small "Windows/macOS only" pill next to a setting that can't work on this host. */
+function PlatformBadge({ platforms }: { platforms: string[] }) {
+  return (
+    <span className="shrink-0 rounded-full border border-warn/40 px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.06em] text-warn">
+      {platformsLabel(platforms)}
+    </span>
+  );
+}
+
 function Field({ name, p, v, set }: { name: string; p: JsonSchemaProp; v: unknown; set: (v: unknown) => void }) {
+  const host = useStore((s) => s.meta?.platform);
   const label = p.title ?? name.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  const blocked = !supportedOn(p.platforms, host);
   const row = (control: React.ReactNode, inline = false) => (
-    <div className={clsx("field-row", inline ? "field-row-inline flex items-center justify-between gap-3" : "field-row-stack")}>
+    <div className={clsx("field-row", inline ? "field-row-inline flex items-center justify-between gap-3" : "field-row-stack")}
+      title={blocked && p.platforms ? `${platformsLabel(p.platforms)} — not available on ${host ? PLATFORM_LABEL[host] : "this host"}` : undefined}>
       <div className={clsx("field-label mb-1.5 flex items-baseline justify-between gap-2", inline && "mb-0")}>
-        <span className="text-[12.5px] font-[520] text-ink-1">{label}</span>
+        <span className={clsx("flex min-w-0 items-baseline gap-1.5 text-[12.5px] font-[520]", blocked ? "text-ink-3" : "text-ink-1")}>
+          {label}
+          {blocked && p.platforms && <PlatformBadge platforms={p.platforms} />}
+        </span>
         {p.description && !inline && <span className="field-desc truncate text-[10.5px] text-ink-4" title={p.description}>{p.description}</span>}
       </div>
-      <div className="field-control min-w-0">{control}</div>
+      {/* a disabled fieldset disables every control inside it (buttons, inputs, selects) in all browsers */}
+      <fieldset disabled={blocked} className={clsx("field-control m-0 min-w-0 border-0 p-0", blocked && "opacity-45")}>{control}</fieldset>
     </div>
   );
 
   if (p.enum) {
     const labels = p.enumLabels ?? Object.fromEntries(p.enum.map((e) => [e, e]));
+    const optBlocked = (opt: string) => !supportedOn(p.enumPlatforms?.[opt], host);
+    const optTitle = (opt: string) =>
+      optBlocked(opt) && p.enumPlatforms?.[opt] ? `${labels[opt]} — ${platformsLabel(p.enumPlatforms[opt])}` : labels[opt];
     if (p.enum.length <= 4) {
       const hint = splitLabel(labels[String(v)] ?? "")[1];
       return row(
         <>
           <div className="seg">
             {p.enum.map((opt) => (
-              <button key={opt} data-active={v === opt} onClick={() => set(opt)} title={labels[opt]}>
+              <button key={opt} data-active={v === opt} onClick={() => set(opt)} title={optTitle(opt)}
+                disabled={optBlocked(opt)} className={clsx(optBlocked(opt) && "cursor-not-allowed opacity-40")}>
                 {splitLabel(labels[opt])[0]}
               </button>
             ))}
@@ -119,8 +151,8 @@ function Field({ name, p, v, set }: { name: string; p: JsonSchemaProp; v: unknow
     return row(
       <select className="field" value={String(v)} onChange={(e) => set(e.target.value)}>
         {p.enum.map((opt) => (
-          <option key={opt} value={opt}>
-            {labels[opt]}
+          <option key={opt} value={opt} disabled={optBlocked(opt)}>
+            {optBlocked(opt) && p.enumPlatforms?.[opt] ? `${labels[opt]} (${platformsLabel(p.enumPlatforms[opt])})` : labels[opt]}
           </option>
         ))}
       </select>,

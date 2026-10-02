@@ -220,6 +220,47 @@ class LightCycles(GameApp):
                 best, choice = score, name
         b["next"] = choice
 
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Open space: a few pixels down the way with the most room left (a bounded flood fill) and the longest
+        clear run, so the turn is smelled early enough for a fly to make it."""
+        b = self.bikes.get(1)
+        if not b or not b["alive"]:
+            return []
+        key = (b["x"], b["y"], b["d"], len(self.grid))
+        cached = getattr(self, "_fly_way", None)
+        if cached is None or cached[0] != key:
+            cx, cy = DIRS[b["d"]]
+            ahead: set[Cell] = set()  # where the other bikes are about to be
+            for s, o in self.bikes.items():
+                if s != 1 and o["alive"]:
+                    ox, oy = o["x"], o["y"]
+                    for _ in range(5):
+                        ox, oy = self._nxt(ox, oy, *DIRS[o["d"]])
+                        ahead.add((ox, oy))
+            best, way = -1.0, b["d"]
+            for name, (dx, dy) in DIRS.items():
+                if (dx, dy) == (-cx, -cy):
+                    continue
+                x, y = b["x"], b["y"]
+                run = 0
+                while run < 10:
+                    x, y = self._nxt(x, y, dx, dy)
+                    if not self._free(x, y) or (x, y) in ahead:
+                        break
+                    run += 1
+                if run == 0:
+                    continue
+                room = (
+                    self._space(*self._nxt(b["x"], b["y"], dx, dy), 40)
+                    + 3 * run
+                    + (2 if name == b["d"] else 0)
+                )
+                if room > best:
+                    best, way = room, name
+            cached = self._fly_way = (key, way)
+        dx, dy = DIRS[cached[1]]
+        return [(b["x"] + dx * 5, b["y"] + dy * 5, 1.0)]
+
     def update(self, dt: float) -> None:
         if self.result_t > 0:
             self.result_t -= dt

@@ -24,6 +24,7 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, Clip, Color, register
 from ..gfx import Frame, mix, scale
 from ..gfx.characters import ACCESSORIES, CHARACTERS, GROUPS, draw_character, foot_gap, step_anim_time
+from ..platforms import only_on
 
 WORLD_W = 128
 GROUND = 27  # y of the floor line: characters' feet stand on it
@@ -145,7 +146,9 @@ class PetWorldSettings(AppSettings):
     lofi: bool = Field(
         True, title="Lofi warmth", description="Warm, soft colours", json_schema_extra={"group": "Mood"}
     )
-    music_sync: bool = Field(True, title="Dance to music", json_schema_extra={"group": "Music"})
+    music_sync: bool = Field(
+        True, title="Dance to music", json_schema_extra=only_on(feature="audio", group="Music")
+    )
     show_clock: bool = Field(False, title="Show the time", json_schema_extra={"group": "Mood"})
     wall: Color = Field(
         "#1e4650", title="Wall colour", description="Cosy room", json_schema_extra={"group": "Mood"}

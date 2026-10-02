@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Bot, Check, Copy, Play, Users, Wifi, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
+import { copyText } from "../lib/compat";
 import { qrEncode } from "../lib/qr";
 import { EMPTY_LIST, toast, useStore } from "../lib/store";
 import type { LobbyInfo, SeatStatus } from "../lib/types";
@@ -14,6 +15,7 @@ export const SEAT_COLORS: Record<number, string> = { 1: "#00c8ff", 2: "#ff3c5a",
 
 // ------------------------------------------------------------------ data
 let lastJson = "";
+
 /** Fetch the lobby into the store; only writes when something changed (no re-render per poll). */
 export async function refreshLobby() {
   try {
@@ -173,11 +175,10 @@ export function LobbyPanel({ lobby, compact = false }: { lobby: LobbyInfo; compa
   const empty = lobby.max_players - 1 - joined;
   const copy = async () => {
     if (!lobby.url) return;
-    try {
-      await navigator.clipboard.writeText(lobby.url);
+    if (await copyText(lobby.url)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1400);
-    } catch {
+    } else {
       toast("Couldn't copy — select the address instead", "error");
     }
   };

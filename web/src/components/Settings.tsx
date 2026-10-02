@@ -1,14 +1,17 @@
 import clsx from "clsx";
-import { AlertTriangle, Bluetooth, Check, RotateCcw, Search, Trash2, X, Zap } from "lucide-react";
+import { AlertTriangle, Bluetooth, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, loadPresets } from "../lib/api";
 import { type SettingsSection, type SettingsTab, toast, useStore } from "../lib/store";
 import type { EngineState, Handoff } from "../lib/types";
 import { AutopilotEditor } from "./AutopilotEditor";
+import { ColourCalibration } from "./calibration/ColourCalibration";
+import { MotionLab } from "./calibration/MotionLab";
 import { Row, Slider, Toggle } from "./controls";
 import { IntegrationsTab } from "./IntegrationsTab";
 import { Icon } from "./Icon";
 import { Modal } from "./Overlays";
+import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
 
 type St = EngineState;
 
@@ -35,9 +38,13 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Brightness", "dim bright level", "display-basics"],
   ["Night mode", "dim overnight schedule sleep dark", "display-basics"],
   ["Rotate 180°", "flip upside down mount", "display-basics"],
-  ["Colour calibration", "color white gamma saturation black wizard tint", "calibrate"],
-  ["Smooth motion test", "tearing flicker stutter calibration transfer", "transfer"],
+  ["Colour calibration", "color white gamma saturation black wizard tint match screen video test", "calibrate"],
+  ["Colour presets", "preset sony lg samsung macbook apple dell benq srgb rec709 warm night claude quick match", "calibrate"],
+  ["Advanced colour", "contrast temperature kelvin per-channel gamma gains dither peak level preview match", "calibrate"],
+  ["Smooth motion test", "tearing flicker stutter judder ufo ball scroll calibration transfer", "transfer"],
+  ["Motion presets", "smoothest balanced battery ble friendly auto-tune autotune", "transfer"],
   ["Refresh rate", "fps hz frames speed", "transfer"],
+  ["Temporal smoothing", "smooth streams jitter visualiser", "transfer"],
   ["Packet spacing", "bluetooth gap ms timing", "transfer"],
   ["Computer notifications", "windows mac teams whatsapp toast alerts", "notifications"],
   ["On Air", "call webcam camera microphone meeting", "onair"],
@@ -121,345 +128,16 @@ function DisplayBasics({ st }: { st: St }) {
   );
 }
 
-// -------------------------------------------------------- transfer calibration
-type TransferOption = {
-  label: string;
-  desc: string;
-  max_fps: number;
-  packet_gap_ms: number;
-  transition: "cut" | "push" | "fade" | "wipe";
-};
-
-type TransferStep = {
-  pattern: string;
-  title: string;
-  q: string;
-  hint: string;
-  options: TransferOption[];
-};
-
-const TRANSFER_STEPS: TransferStep[] = [
-  {
-    pattern: "protocol_tear",
-    title: "Step 1: Motion Slicing & Tearing Test",
-    q: "How does the vertical motion line look across your physical LEDs?",
-    hint: "The panel is displaying high-speed alternating scan lines. Look for any horizontal tier splits or jagged seams.",
-    options: [
-      {
-        label: "Solid & Smooth (No Split Lines)",
-        desc: "Panel display controller is perfectly synchronized. Calibrates to high 12.0 Hz throughput.",
-        max_fps: 12.0,
-        packet_gap_ms: 18.0,
-        transition: "cut",
-      },
-      {
-        label: "Occasional Horizontal Tear / Split",
-        desc: "Display scanlines occasionally tear. Calibrates to balanced 9.0 Hz rhythmic cadence.",
-        max_fps: 9.0,
-        packet_gap_ms: 20.0,
-        transition: "cut",
-      },
-      {
-        label: "Stuttering or Jittery Pause",
-        desc: "BLE latency jitter detected. Calibrates to conservative 8.0 Hz rock-solid cadence.",
-        max_fps: 8.0,
-        packet_gap_ms: 22.0,
-        transition: "cut",
-      },
-    ],
-  },
-  {
-    pattern: "protocol_stress",
-    title: "Step 2: Multi-Packet Buffer & Stress Test",
-    q: "Does the 3-packet dense gradient display cleanly without flickering?",
-    hint: "This tests multi-packet BLE fragmentation (>1200 bytes per frame). Look for any black flashes or dropped rows.",
-    options: [
-      {
-        label: "Clean & Solid (Zero Dropped Packets)",
-        desc: "Fast BLE buffer confirmed. Calibrates packet gap to 15.0 ms (66% faster transfer).",
-        max_fps: 12.0,
-        packet_gap_ms: 15.0,
-        transition: "cut",
-      },
-      {
-        label: "Stable with Slight Line Flicker",
-        desc: "Moderate BLE buffer. Calibrates packet gap to 18.0 ms (ideal balanced).",
-        max_fps: 10.0,
-        packet_gap_ms: 18.0,
-        transition: "cut",
-      },
-      {
-        label: "Flickering or Dropped Frame",
-        desc: "Sensitive BLE buffer. Calibrates packet gap to 25.0 ms to eliminate packet loss.",
-        max_fps: 8.0,
-        packet_gap_ms: 25.0,
-        transition: "cut",
-      },
-    ],
-  },
-  {
-    pattern: "protocol_cut",
-    title: "Step 3: App Transition & Glitch Prevention",
-    q: "How should transitions between animations and apps behave?",
-    hint: "Smooth sliding transitions send noisy partial frames that clash with GIF decoders. Clean cut prevents all block noise.",
-    options: [
-      {
-        label: "Instant Clean Cut (Recommended - Zero Glitches)",
-        desc: "Instant handoff with zero intermediate dirty frames. Eliminates all scrambled block noise.",
-        max_fps: 12.0,
-        packet_gap_ms: 18.0,
-        transition: "cut",
-      },
-      {
-        label: "Fade Through Black",
-        desc: "Fades down to black before loading new app. Recommended only if link signal is high.",
-        max_fps: 10.0,
-        packet_gap_ms: 20.0,
-        transition: "fade",
-      },
-    ],
-  },
-];
-
-function TransferTab({ st }: { st: St }) {
-  const dev = st.device;
-  const d = st.settings.display;
-  const [step, setStep] = useState<number | null>(null);
-  const active = step !== null && step < TRANSFER_STEPS.length ? TRANSFER_STEPS[step] : null;
-
-  useEffect(() => {
-    if (active) api.pattern(active.pattern);
-    return () => {
-      if (active) api.clearPattern();
-    };
-  }, [active]);
-
-  const selectOption = async (opt: TransferOption) => {
-    if (step !== null && step + 1 < TRANSFER_STEPS.length) {
-      setStep(step + 1);
-    } else {
-      await api.applyTransferCalib({ max_fps: opt.max_fps, packet_gap_ms: opt.packet_gap_ms, transition: opt.transition });
-      setStep(null);
-      toast("Motion settings tuned for your panel", "ok");
-    }
-  };
-
-  if (active) {
-    return (
-      <div className="space-y-4">
-        <div className="flex gap-1">
-          {TRANSFER_STEPS.map((_, i) => (
-            <span key={i} className={clsx("h-1 flex-1 rounded-full transition-colors", i <= step! ? "bg-ember" : "bg-chassis-3")} />
-          ))}
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="engrave !text-ember">{active.title}</div>
-          <span className="font-mono text-[11px] text-ink-3">Look at the real panel</span>
-        </div>
-        <div className="font-display text-[17px] font-[650] leading-snug">{active.q}</div>
-        <p className="text-[12px] leading-relaxed text-ink-2">{active.hint}</p>
-        <div className="space-y-2 pt-1">
-          {active.options.map((opt, i) => (
-            <button key={i} onClick={() => selectOption(opt)}
-              className="group w-full rounded-[10px] border border-line bg-chassis-0 p-3 text-left transition hover:border-ember hover:bg-chassis-1">
-              <div className="text-[13px] font-medium text-ink-1 transition-colors group-hover:text-ember">{opt.label}</div>
-              <div className="mt-0.5 text-[11.5px] text-ink-3">{opt.desc}</div>
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center justify-between border-t border-line pt-3">
-          <button className="key key-ghost" onClick={() => { api.clearPattern(); setStep(step === 0 ? null : step! - 1); }}>Back</button>
-          <button className="key key-ghost" onClick={() => { api.clearPattern(); setStep(null); }}>Cancel test</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        <button className="key key-ember" onClick={() => setStep(0)}><Zap size={13} /> Start the 3-question test</button>
-        <button className="key" onClick={async () => {
-          await api.applyTransferCalib({ max_fps: 12.0, packet_gap_ms: 18.0, transition: "cut" });
-          toast("Recommended motion settings applied", "ok");
-        }}>Use recommended settings</button>
-      </div>
-      <Advanced label="Speed & timing (advanced)">
-        <div className="divide-y divide-line">
-          <Row label="Refresh rate" hint="Frames per second sent to the panel. Bluetooth tops out around 9–12 Hz; lower saves CPU.">
-            <Slider value={d.max_fps} min={1} max={20} unit=" Hz" onCommit={(v) => api.display({ max_fps: v })} />
-          </Row>
-          <Row label="Packet spacing" hint="Pause between Bluetooth packets. 18–30 ms is reliable; lower is faster but the panel may drop frames.">
-            <Slider value={d.packet_gap_ms} min={10} max={80} unit=" ms" onCommit={(v) => api.display({ packet_gap_ms: v })} />
-          </Row>
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2 font-mono text-[11px] sm:grid-cols-4">
-          {([
-            ["Link rate", `${dev.link_fps.toFixed(1)} fps`],
-            ["Write time", `${dev.last_write_ms} ms`],
-            ["Spacing", `${d.packet_gap_ms} ms`],
-            ["Transition", st.settings.transition],
-          ] as const).map(([k, v]) => (
-            <div key={k} className="rounded-[10px] border border-line bg-chassis-0 p-2.5">
-              <div className="text-[9.5px] text-ink-4">{k}</div>
-              <div className="mt-0.5 text-[13px] font-bold uppercase text-ink-1">{v}</div>
-            </div>
-          ))}
-        </div>
-      </Advanced>
-    </div>
-  );
-}
-
-// -------------------------------------------------------------- calibration
-type Calib = { red: number; green: number; blue: number; gamma: number; black_level: number; lift: number; saturation: number };
-const IDENTITY: Calib = { red: 1, green: 1, blue: 1, gamma: 1, black_level: 0, lift: 0, saturation: 1 };
-const WHITE: Record<string, [number, number, number]> = { A: [1, 1, 1], B: [1, 0.9, 0.8], C: [1, 0.82, 0.7], D: [1, 0.75, 0.6] };
-const GAMMA: Record<string, number> = { A: 1, B: 1.5, C: 2 };
-const SAT: Record<string, number> = { A: 0.8, B: 1, C: 1.3 };
-
-type Step = { pattern: string; q: string; hint: string; options: string[]; apply: (c: Calib, a: string) => Calib };
-const STEPS: Step[] = [
-  {
-    pattern: "white", q: "Which square looks the most neutral white?", hint: "Look straight at the panel. Pick the one that looks least blue and least yellow — like paper.",
-    options: ["A", "B", "C", "D"], apply: (c, a) => ({ ...c, red: WHITE[a][0], green: WHITE[a][1], blue: WHITE[a][2] }),
-  },
-  {
-    pattern: "gamma", q: "Which row steps most evenly from dark to bright?", hint: "Each row is 8 grey steps. In the best row every step looks like the same jump — no bunching at the bright end.",
-    options: ["A", "B", "C"], apply: (c, a) => ({ ...c, gamma: GAMMA[a] }),
-  },
-  {
-    pattern: "black", q: "What's the first square you can see at all?", hint: "Eight very dark squares, numbered. The dimmest ones may be completely off on your panel.",
-    options: ["1", "2", "3", "4", "5", "6", "7", "8"],
-    apply: (c, a) => ({ ...c, lift: +a <= 1 ? 0 : 2 + (+a - 1) * 3 }),
-  },
-  {
-    pattern: "saturation", q: "Which rainbow looks the most natural?", hint: "Too low looks washed out; too high makes neighbouring colours blend together.",
-    options: ["A", "B", "C"], apply: (c, a) => ({ ...c, saturation: SAT[a] }),
-  },
-  {
-    pattern: "rgb", q: "Are red, green, blue and white about equally bright?", hint: "If one bar clearly outshines the others, pick it and we'll tone it down.",
-    options: ["Balanced", "Red too strong", "Green too strong", "Blue too strong"],
-    apply: (c, a) => a === "Red too strong" ? { ...c, red: +(c.red * 0.88).toFixed(2) }
-      : a === "Green too strong" ? { ...c, green: +(c.green * 0.88).toFixed(2) }
-      : a === "Blue too strong" ? { ...c, blue: +(c.blue * 0.88).toFixed(2) } : c,
-  },
-];
-
-const FIELDS: [keyof Calib, string, number, number, number][] = [
-  ["red", "Red gain", 0.3, 1.2, 0.01], ["green", "Green gain", 0.3, 1.2, 0.01], ["blue", "Blue gain", 0.3, 1.2, 0.01],
-  ["gamma", "Gamma", 0.5, 2.5, 0.05], ["saturation", "Saturation", 0, 2, 0.05],
-  ["black_level", "Black cutoff", 0, 40, 1], ["lift", "Shadow lift", 0, 40, 1],
-];
-
-function CalibrateTab({ st }: { st: St }) {
-  const saved = { ...IDENTITY, ...(st.settings.calibration as Partial<Calib>) };
-  const [step, setStep] = useState<number | null>(null); // null = overview, STEPS.length = review
-  const [c, setC] = useState<Calib>(saved);
-  const active = step !== null && step < STEPS.length ? STEPS[step] : null;
-
-  useEffect(() => {
-    if (step === null) return;
-    api.pattern(active ? active.pattern : "preview");
-  }, [step, active]);
-  useEffect(() => () => void api.clearPattern(), []);
-
-  // rgb/preview cards are drawn through the saved calibration, so re-show them after it lands
-  const push = async (next: Calib) => {
-    setC(next);
-    await api.calibration(next);
-    if (step !== null && step >= STEPS.length) api.pattern("preview");
-  };
-  const answer = async (a: string) => {
-    if (!active) return;
-    const next = active.apply(c, a);
-    setC(next);
-    await api.calibration(next);
-    setStep((step ?? 0) + 1);
-  };
-
-  if (step === null) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <div className="flex flex-wrap gap-2">
-            <button className="key key-ember" onClick={() => { setC(IDENTITY); api.calibration(IDENTITY); setStep(0); }}>
-              <Icon name="wand-sparkles" size={13} /> Start the wizard
-            </button>
-            <button className="key" onClick={() => setStep(STEPS.length)}>Fine-tune manually</button>
-            <button className="key key-ghost ml-auto" title="Back to factory colours" onClick={() => { push(IDENTITY); toast("Calibration reset", "ok"); }}>
-              <RotateCcw size={13} /> Reset
-            </button>
-          </div>
-        </div>
-        <CalibSummary c={saved} />
-      </div>
-    );
-  }
-
-  if (active) {
-    return (
-      <div className="space-y-4">
-        <div className="flex gap-1">
-          {STEPS.map((_, i) => <span key={i} className={clsx("h-1 flex-1 rounded-full", i <= step ? "bg-ember" : "bg-chassis-3")} />)}
-        </div>
-        <div className="engrave">Question {step + 1} of {STEPS.length} · look at the panel</div>
-        <div className="font-display text-[18px] font-[620] leading-snug">{active.q}</div>
-        <p className="text-[12.5px] leading-relaxed text-ink-2">{active.hint}</p>
-        <div className="flex flex-wrap gap-2">
-          {active.options.map((o) => (
-            <button key={o} className={clsx("key", o.length === 1 && "!w-12 justify-center font-mono !text-[15px]")} onClick={() => answer(o)}>{o}</button>
-          ))}
-        </div>
-        <div className="flex gap-2 pt-2">
-          <button className="key key-ghost" onClick={() => setStep(step === 0 ? null : step - 1)}>Back</button>
-          <button className="key key-ghost ml-auto" onClick={() => setStep(step + 1)}>Skip</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="engrave">The panel shows a test card through your calibration</div>
-      {FIELDS.map(([k, label, min, max, stp]) => (
-        <Row key={k} label={label}>
-          <Slider value={c[k]} min={min} max={max} step={stp} onCommit={(v) => push({ ...c, [k]: v })} />
-        </Row>
-      ))}
-      <div className="flex gap-2 pt-2">
-        <button className="key key-ghost" onClick={() => setStep(0)}>Redo questions</button>
-        <button className="key" onClick={() => api.pattern("rgb")}>RGB bars</button>
-        <button className="key" onClick={() => api.pattern("preview")}>Test card</button>
-        <button className="key key-ember ml-auto" onClick={() => { api.calibration(c); api.clearPattern(); setStep(null); toast("Calibration saved", "ok"); }}>
-          <Check size={13} /> Done
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CalibSummary({ c }: { c: Calib }) {
-  const white = `rgb(${255 * c.red},${255 * c.green},${255 * c.blue})`;
-  return (
-    <div className="grid grid-cols-2 gap-2 font-mono text-[11px] sm:grid-cols-4">
-      <div className="flex items-center gap-2 rounded-lg bg-chassis-0 px-3 py-2"><span className="h-3 w-3 rounded-sm" style={{ background: white }} /> white</div>
-      <div className="rounded-lg bg-chassis-0 px-3 py-2">γ {c.gamma.toFixed(2)}</div>
-      <div className="rounded-lg bg-chassis-0 px-3 py-2">sat {c.saturation.toFixed(2)}</div>
-      <div className="rounded-lg bg-chassis-0 px-3 py-2">lift {c.lift} · cut {c.black_level}</div>
-    </div>
-  );
-}
-
 // ------------------------------------------------------------ notifications
 function NotificationsTab({ st }: { st: St }) {
   const n = st.settings.os_notifications;
   const save = (p: Partial<typeof n>) => api.settings({ os_notifications: { ...n, ...p } });
-  const mac = navigator.userAgent.includes("Mac");
+  const [can, host] = useHostCan("notifications");
+  const mac = useStore((s) => s.meta?.platform) === "macos";
   return (
     <div className="divide-y divide-line">
-      <Row label="Show computer notifications" hint={`Toasts from ${mac ? "macOS" : "Windows"} (Teams, WhatsApp, Mail, Discord…) appear live on the panel.`}>
-        <Toggle on={n.enabled} onChange={(v) => save({ enabled: v })} />
+      <Row label="Show computer notifications" hint={can ? `Toasts from ${mac ? "macOS" : "Windows"} (Teams, WhatsApp, Mail, Discord…) appear live on the panel.` : `Windows/macOS only — not available on ${host}.`}>
+        <fieldset disabled={!can} className={can ? undefined : "opacity-50"}><Toggle on={n.enabled} onChange={(v) => save({ enabled: v })} /></fieldset>
       </Row>
       <Row label="Style">
         <div className="seg">
@@ -488,14 +166,23 @@ function NotificationsTab({ st }: { st: St }) {
 }
 
 // ------------------------------------------------------------------- audio
+/** Can this engine's host do `feature`? (Older engines don't say: assume yes.) */
+function useHostCan(feature: string): [boolean, string] {
+  const meta = useStore((s) => s.meta);
+  const ok = meta?.features?.[feature] ?? true;
+  return [ok, meta?.platform_label ?? "this computer"];
+}
+
 function AudioTab({ st }: { st: St }) {
   const src = st.settings.audio_source;
   const p = st.providers.audio;
+  const [loopback, host] = useHostCan("audio_loopback");
   return (
     <div className="divide-y divide-line">
       <Row label="Listen to" hint="Drives the Visualizer, and pets & characters dancing to the beat.">
         <div className="seg">
-          <button data-active={src === "system"} onClick={() => api.settings({ audio_source: "system" })}>System audio</button>
+          <button data-active={src === "system"} disabled={!loopback} title={loopback ? undefined : `Not available on ${host}`}
+            onClick={() => api.settings({ audio_source: "system" })}>System audio</button>
           <button data-active={src === "mic"} onClick={() => api.settings({ audio_source: "mic" })}>Microphone</button>
         </div>
       </Row>
@@ -533,6 +220,7 @@ function LocationTab({ st }: { st: St }) {
 
 // --------------------------------------------------------- playlist & hand-off
 function HandoffSection({ st }: { st: St }) {
+  const [sleepOk] = useHostCan("sleep_handoff");
   const [h, setH] = useState<Handoff | null>(null);
   const [busy, setBusy] = useState(false);
   const apps = st ? Object.keys(st.apps) : [];
@@ -572,7 +260,7 @@ function HandoffSection({ st }: { st: St }) {
         )}
         <Row label="When DeskDot closes"><Toggle on={h.on_exit} label="Hand over when DeskDot closes" onChange={(v) => save({ on_exit: v })} /></Row>
         <Row label="When the computer goes to sleep" hint="Windows only. Always uses the panel's clock (there's only a moment before sleep).">
-          <Toggle on={h.on_sleep} label="Hand over on sleep" onChange={(v) => save({ on_sleep: v })} />
+          <fieldset disabled={!sleepOk} className={sleepOk ? undefined : "opacity-50"}><Toggle on={h.on_sleep} label="Hand over on sleep" onChange={(v) => save({ on_sleep: v })} /></fieldset>
         </Row>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -690,19 +378,42 @@ function SourcesBlock({ st }: { st: St }) {
   );
 }
 
+/** The studio's intro / outro theme (per browser; it plays before the engine is reachable). */
+function IntroThemePicker() {
+  const [v, setV] = useState<IntroTheme>(() => getIntroTheme());
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        {INTRO_THEMES.map((t) => (
+          <button key={t.id} onClick={() => { setIntroTheme(t.id); setV(t.id); }} aria-pressed={v === t.id}
+            className={clsx("rounded-[10px] border px-3 py-2.5 text-left transition", v === t.id ? "border-ember bg-ember-deep/40" : "border-line hover:border-line-2")}>
+            <div className="text-[13px] font-[600]">{t.name}{t.id === "sunset" && <span className="ml-2 text-[10px] text-ink-3">default</span>}</div>
+            <div className="text-[11.5px] leading-snug text-ink-3">{t.hint}</div>
+          </button>
+        ))}
+      </div>
+      <div><button className="key" onClick={() => replayIntro()}>Play it now</button></div>
+    </div>
+  );
+}
+
 // ------------------------------------------------------------------- sheet
 function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
   if (id === "display") {
     return (
       <div className="space-y-4">
         <DisplayBasics st={st} />
+        <Block id="intro" title="Intro & outro" icon="clapperboard"
+          hint="What plays while the studio connects, and when the engine stops. OG is the original LED fly-in.">
+          <IntroThemePicker />
+        </Block>
         <Block id="calibrate" title="Colour calibration" icon="palette"
-          hint="Every LED panel shows colour a little differently. Answer five quick questions while looking at the real panel and every app, photo and GIF is corrected to match.">
-          <CalibrateTab st={st} />
+          hint="Every LED panel shows colour a little differently. Match it to your screen with test videos that play on both, pick a preset, or tune every knob — apps, photos and GIFs are all corrected.">
+          <ColourCalibration st={st} />
         </Block>
         <Block id="transfer" title="Smooth motion" icon="zap"
-          hint="Seeing tearing, flicker or stutter? Three quick questions about test patterns on the panel tune the speed for your Bluetooth link.">
-          <TransferTab st={st} />
+          hint="Seeing judder, tearing or stutter? Watch motion tests on the panel, pick the smoother one, or let Claude measure your Bluetooth link.">
+          <MotionLab st={st} />
         </Block>
       </div>
     );

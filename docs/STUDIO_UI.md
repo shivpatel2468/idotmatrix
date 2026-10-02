@@ -154,7 +154,7 @@ Four sections, each a stack of titled blocks with an anchor id `set-<block>`:
 
 | Section | Blocks |
 | --- | --- |
-| Display & colour | display (brightness, night mode, rotate) · `calibrate` colour wizard · `transfer` smooth-motion test (+ advanced refresh rate / packet spacing / link stats) |
+| Display & colour | display (brightness, night mode, rotate) · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
 | Notifications & integrations | `notifications` computer alerts · `integrations`: On Air, eye break, status indicators, phone pushes (ntfy), Home Assistant |
 | Playlist & hand-off | transitions · your presets · `autopilot` "Follow the app I'm using" · `handoff` "Keep showing when my computer is off" |
 | Device | `panel` connection (reconnect, scan, disconnect…) · `weather` location & units · `audio` sound input · data sources |

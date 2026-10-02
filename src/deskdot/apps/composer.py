@@ -104,7 +104,8 @@ class Composer(App):
             return f"{w['temp']}°" if w else "--°"
         if k in ("cpu", "ram"):
             s = self.ctx.provider("system").value
-            return f"{lay.text}{s[k]}%" if s else f"{lay.text}--%"
+            v = s.get(k) if s else None  # None: this host hides it (e.g. CPU on Android)
+            return f"{lay.text}{v}%" if v is not None else f"{lay.text}--%"
         if k == "price":
             sym = lay.text.strip().upper() or "BTC"
             d = (self.ctx.provider("markets").value or {}).get(sym)

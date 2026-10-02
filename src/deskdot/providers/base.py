@@ -109,6 +109,9 @@ class Provider(Generic[T]):
     name: ClassVar[str]
     interval: ClassVar[float] = 60.0  # seconds between fetches
     retry: ClassVar[float] = 15.0  # seconds after a failure
+    #: host feature this provider reads (a key of `deskdot.platforms.FEATURES`), e.g. "window". On a host
+    #: without it the provider never polls: `error` says "… isn't available on Linux" and `supported` is False.
+    feature: ClassVar[str | None] = None
 
     def __init__(self, hub: Hub) -> None:
         self.hub = hub
@@ -119,9 +122,26 @@ class Provider(Generic[T]):
         self._task: asyncio.Task[None] | None = None
         self._kick = asyncio.Event()
 
+    @property
+    def supported(self) -> bool:
+        """Whether this provider can work on this host (see `feature`)."""
+        from ..platforms import supported
+
+        return self.feature is None or supported(self.feature)
+
+    def unsupported_error(self) -> str:
+        from ..platforms import FEATURES, LABELS, current, label
+
+        return f"not available on {LABELS[current()]} ({label(FEATURES[self.feature or ''])})"
+
     # --------------------------------------------------------------- usage
     def acquire(self) -> None:
         self._refs += 1
+        if not self.supported:
+            if self.error is None:
+                self.error = self.unsupported_error()
+                self.hub.on_change(self.name)
+            return
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._loop(), name=f"provider-{self.name}")
 
@@ -155,7 +175,10 @@ class Provider(Generic[T]):
                 pass
 
     def snapshot(self) -> dict[str, Any]:
-        return {"updated": self.updated or None, "error": self.error, "active": self._refs > 0}
+        out = {"updated": self.updated or None, "error": self.error, "active": self._refs > 0}
+        if self.feature is not None:
+            out["supported"] = self.supported
+        return out
 
     # ------------------------------------------------------------ internals
     async def _loop(self) -> None:

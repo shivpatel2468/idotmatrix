@@ -328,6 +328,36 @@ class Mines(GameApp):
             self._solved = (self.ver, self._solve())
         return self._solved[1]
 
+    # ------------------------------------------------------------------ the fruit-fly pilot
+    fly_feeds = True  # standing on a safe cell: the feeding reflex opens it
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye sits on seat 1's cursor."""
+        cur = self.cur.get(1)
+        return None if cur is None else (2 + cur["x"] * 3, 2 + cur["y"] * 3)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The nearest cell the solver knows (or guesses best) is safe to open."""
+        cur = self.cur.get(1)
+        if cur is None or self.won_t > 0:
+            return []
+        cached = getattr(self, "_fly_opens", None)
+        if cached is None or cached[0] != (id(self.shown), self.ver):
+            plan = self._plan()
+            opens = [c for kind, c in plan if kind == "open" and c not in self.shown and c not in self.flags]
+            if not opens:  # the solver only found mines: the fly avoids them, so open what they make safe
+                mines = self.flags | {c for kind, c in plan if kind == "flag"}
+                for c in self.shown:
+                    hidden = [x for x in self._nb(c) if x not in self.shown and x not in mines]
+                    if hidden and sum(1 for x in self._nb(c) if x in mines) == self._count(c):
+                        opens.extend(hidden)
+            cached = self._fly_opens = ((id(self.shown), self.ver), opens)
+        opens = cached[1]
+        if not opens:
+            return []
+        cx, cy = min(opens, key=lambda c: abs(c[0] - cur["x"]) + abs(c[1] - cur["y"]))
+        return [(2 + cx * 3, 2 + cy * 3, 1.0)]
+
     def key(self, k: str) -> None:
         self.key_p(k, 1)
 
@@ -655,6 +685,31 @@ class Starship(GameApp):
             s["tx"] = clamp(s["tx"] + (-3 if k == "left" else 3), 2, 29)
         elif k == "a":
             self._bomb(player)
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's ship (the giant fibre, A, drops a bomb)."""
+        s = self.ships.get(1)
+        return None if s is None or not s["alive"] else (s["x"], SHIP_Y + 2)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Beside the ship, away from a bolt, rock or diving foe above it; else under the lowest foe."""
+        s = self.ships.get(1)
+        if s is None or not s["alive"]:
+            return []
+        x = s["x"]
+        threats = [b[0] for b in self.bolts if b[1] > 16 and abs(b[0] - x) < 3.5]
+        threats += [e["x"] + 2.5 for e in self.foes if e["y"] > 14 and abs(e["x"] + 2.5 - x) < 5]
+        threats += [r[0] + 1 for r in self.rocks if r[1] > 13 and abs(r[0] + 1 - x) < 4.5]
+        lo, hi = self._gap(SHIP_Y + 2)
+        if threats:
+            tx = min(threats, key=lambda v: abs(v - x))
+            away = -1 if x > hi - 6 else 1 if x < lo + 6 else (1 if tx <= x else -1)
+            return [(clamp(x + away * 6, 2, 29), SHIP_Y + 2, 1.0)]
+        live = [e for e in self.foes if -4 < e["y"] < 20]
+        if not live:
+            return [(16.0, SHIP_Y + 2, 0.3)]
+        e = max(live, key=lambda e: e["y"])
+        return [(clamp(e["x"] + 2.5, 2, 29), SHIP_Y + 2, 1.0)]
 
     def _bomb(self, seat: int = 1) -> None:
         if self.bombs <= 0:

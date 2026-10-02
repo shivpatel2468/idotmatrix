@@ -39,7 +39,24 @@ export type Quality = "auto" | "low" | "balanced" | "high" | "ultra";
 export type ThemeId = "neon" | "bio" | "thermal" | "ice" | "ember";
 export type BoardStyle = "midnight" | "rgb" | "retro" | "glass";
 export type FlyLook = "wild" | "golden" | "ghost" | "chrome";
-export type CameraMode = "orbit" | "front" | "top" | "close";
+/** A fixed camera angle a scene frames itself for. */
+export type Shot = "orbit" | "front" | "top" | "close";
+/** A camera setting: a fixed angle, or "cinematic" (the camera cuts and dollies between angles by itself). */
+export type CameraMode = Shot | "cinematic";
+/** How the brain wing draws the circuit (all driven by the same live telemetry). */
+export type BrainForm = "tower" | "cloud" | "wheel" | "raster" | "web";
+/** Which scenes fill the screen; "both" puts the brain, the live panel and the keyboard together. */
+export type FullView = "brain" | "keyboard" | "both";
+export type FullLayout = "side" | "inset" | "stacked";
+
+export const BRAIN_FORMS: [BrainForm, string, string][] = [
+  ["tower", "Tower", "The circuit as a layered tower, eye on top, keys at the bottom"],
+  ["cloud", "Connectome", "Thousands of neurons in a brain-shaped cloud, FlyWire style"],
+  ["wheel", "Wheel", "Every neuron group around a ring, synapses as pulsing arcs"],
+  ["raster", "Raster + scope", "A scrolling wall of spikes and the descending neurons' voltages"],
+  ["web", "Neural web", "A living force-directed web of ~300 neurons"],
+];
+export const CAMERAS: [CameraMode, string][] = [["orbit", "Orbit"], ["front", "Front"], ["top", "Top"], ["close", "Close"], ["cinematic", "Cinematic"]];
 
 export type FlyGfx = {
   autoOpen: boolean; // open the Fly view (and close the side drawers) when a fly starts playing
@@ -53,7 +70,9 @@ export type FlyGfx = {
   theme: ThemeId;
   autoRotate: boolean;
   rotateSpeed: number; // 0..2
-  camera: CameraMode;
+  camBrain: CameraMode; // camera of the brain scene
+  camKeys: CameraMode; // camera of the keyboard scene
+  brainForm: BrainForm;
   brainSpread: number; // 0.7..1.4 vertical spacing of the layers
   fly: FlyLook;
   flySize: number; // 0.7..1.4
@@ -64,12 +83,28 @@ export type FlyGfx = {
   swap: boolean; // keyboard on the left, brain on the right
   shadows: boolean;
   roam: boolean; // the fly that wanders the screen (click it to let it play)
+  wingL: number; // flex weights of the left and right wings (drag the glowing bars beside the panel)
+  wingR: number;
+  fullLayout: FullLayout; // the "Both" full-screen arrangement
 };
 
 export const DEFAULT_GFX: FlyGfx = {
   autoOpen: true, quality: "auto", fpsCap: 60, bloom: true, bloomStrength: 1.1, particles: 0.7, trails: true,
-  labels: true, theme: "neon", autoRotate: true, rotateSpeed: 0.6, camera: "orbit", brainSpread: 1, fly: "wild",
-  flySize: 1, wingShimmer: true, board: "midnight", hud: true, showFps: false, swap: false, shadows: true, roam: true,
+  labels: true, theme: "neon", autoRotate: true, rotateSpeed: 0.6, camBrain: "orbit", camKeys: "orbit", brainForm: "cloud",
+  brainSpread: 1, fly: "wild", flySize: 1, wingShimmer: true, board: "midnight", hud: true, showFps: false, swap: false,
+  shadows: true, roam: true, wingL: 1, wingR: 1, fullLayout: "side",
+};
+
+const ONE_OF: Partial<Record<keyof FlyGfx, readonly unknown[]>> = {
+  quality: ["auto", "low", "balanced", "high", "ultra"],
+  fpsCap: [30, 60, 0],
+  theme: ["neon", "bio", "thermal", "ice", "ember"],
+  camBrain: CAMERAS.map((c) => c[0]),
+  camKeys: CAMERAS.map((c) => c[0]),
+  brainForm: BRAIN_FORMS.map((f) => f[0]),
+  fly: ["wild", "golden", "ghost", "chrome"],
+  board: ["midnight", "rgb", "retro", "glass"],
+  fullLayout: ["side", "inset", "stacked"],
 };
 
 export type Theme = {
@@ -107,12 +142,25 @@ export const THEMES: Record<ThemeId, Theme> = {
   },
 };
 
+/** Stored settings may come from an older studio: migrate renamed keys and drop values that no longer exist. */
 function loadGfx(): FlyGfx {
+  let raw: Record<string, unknown> = {};
   try {
-    return { ...DEFAULT_GFX, ...JSON.parse(localStorage.getItem("deskdot.fly") ?? localStorage.getItem("dotdeck.fly") ?? "{}") };
+    raw = JSON.parse(localStorage.getItem("deskdot.fly") ?? localStorage.getItem("dotdeck.fly") ?? "{}") ?? {};
   } catch {
-    return { ...DEFAULT_GFX };
+    /* corrupt: defaults */
   }
+  if (typeof raw.camera === "string") raw = { camBrain: raw.camera, camKeys: raw.camera, ...raw }; // one camera for both, before
+  const out: FlyGfx = { ...DEFAULT_GFX };
+  for (const k of Object.keys(DEFAULT_GFX) as (keyof FlyGfx)[]) {
+    const v = raw[k];
+    if (v === undefined || typeof v !== typeof DEFAULT_GFX[k]) continue;
+    if (ONE_OF[k] && !ONE_OF[k]!.includes(v)) continue;
+    (out as Record<string, unknown>)[k] = v;
+  }
+  out.wingL = Math.min(4, Math.max(0.25, out.wingL));
+  out.wingR = Math.min(4, Math.max(0.25, out.wingR));
+  return out;
 }
 
 // ------------------------------------------------------------------ store
@@ -129,6 +177,10 @@ type FlyStore = {
   forced: boolean;
   forcedAt: number;
   settingsOpen: boolean;
+  /** Which scenes are showing full screen (null = none). */
+  full: FullView | null;
+  /** The brain's tuning, as last read from the engine (null until loaded or on an older engine). */
+  brainCfg: BrainConfig | null;
   setGfx: (p: Partial<FlyGfx>) => void;
   set: (p: Partial<FlyStore>) => void;
 };
@@ -144,6 +196,8 @@ export const useFly = create<FlyStore>((set, get) => ({
   forced: false,
   forcedAt: 0,
   settingsOpen: false,
+  full: null,
+  brainCfg: null,
   set: (p) => set(p),
   setGfx: (p) => {
     const gfx = { ...get().gfx, ...p };
@@ -167,7 +221,7 @@ export function useFlyView(): boolean {
 
 export function closeFlyView() {
   const s = useFly.getState();
-  s.set({ dismissedFor: s.snap.app, forced: false, settingsOpen: false });
+  s.set({ dismissedFor: s.snap.app, forced: false, settingsOpen: false, full: null });
 }
 
 export function openFlyView() {
@@ -283,4 +337,48 @@ export function level(q: Exclude<Quality, "auto">, gfx: FlyGfx): Level {
   l.shadows = l.shadows && gfx.shadows;
   l.particles *= gfx.particles;
   return l;
+}
+
+// ------------------------------------------------------------------ brain tuning (GET/PATCH /api/fly/config)
+
+export type BrainConfig = {
+  phototaxis: number; looming: number; motion: number; leak: number; threshold: number; refractory: number;
+  noise: number; escape: number; lure: number; preset: string;
+};
+export type BrainPreset = { id: string; name: string; description: string; config: BrainConfig };
+
+/** An engine too old to have the endpoint answers 404; that is not an error to shout about. */
+export class OldEngine extends Error {}
+
+async function call<T>(url: string, init?: RequestInit): Promise<T> {
+  const r = await fetch(url, init);
+  if (r.status === 404 || r.status === 405) throw new OldEngine(url);
+  if (!r.ok) {
+    let msg = `${r.status} ${r.statusText}`;
+    try {
+      const j = await r.json();
+      const d = j?.detail;
+      msg = typeof d === "string" ? d : Array.isArray(d) ? d.map((e) => e?.msg ?? String(e)).join("; ") : msg;
+    } catch {
+      /* not JSON */
+    }
+    throw new Error(msg);
+  }
+  return (await r.json()) as T;
+}
+
+export async function loadBrainConfig(): Promise<BrainConfig> {
+  const cfg = await call<BrainConfig>("/api/fly/config");
+  useFly.setState({ brainCfg: cfg });
+  return cfg;
+}
+
+export const loadBrainPresets = () => call<BrainPreset[]>("/api/fly/presets");
+
+export async function patchBrainConfig(p: Partial<BrainConfig>): Promise<BrainConfig> {
+  const cfg = await call<BrainConfig>("/api/fly/config", {
+    method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p),
+  });
+  useFly.setState({ brainCfg: cfg });
+  return cfg;
 }

@@ -18,8 +18,10 @@ from ..engine.app import App, AppSettings, Choice, Clip, Color, Kind, register
 from ..gfx import Frame, hsv, mix, scale
 from ..gfx.font import FONTS
 
-ROOT = Path(__file__).resolve().parents[3]
-FONT_DIRS = (ROOT / "assets" / "fonts", ROOT / "data" / "fonts")
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[3] if len(_HERE.parents) > 3 else _HERE.parent  # the repo (installed/packaged: unused)
+# repo assets, the repo's data dir, and ./data/fonts (the engine's working dir: Pi service, packaged installs)
+FONT_DIRS = tuple(dict.fromkeys((ROOT / "assets" / "fonts", ROOT / "data" / "fonts", Path("data") / "fonts")))
 
 
 def discover_fonts() -> dict[str, str]:
@@ -29,9 +31,14 @@ def discover_fonts() -> dict[str, str]:
         "big": "Built-in big digits (10px)",
     }
     for d in FONT_DIRS:
-        if d.is_dir():
-            for p in sorted(d.glob("*.[ot]tf")) + sorted(d.glob("*.[OT]TF")):
-                fonts[f"ttf:{p.name}"] = p.stem.replace("_", " ")
+        try:
+            files = (
+                sorted(p for p in d.iterdir() if p.suffix.lower() in (".ttf", ".otf")) if d.is_dir() else []
+            )
+        except OSError:  # unreadable dir (permissions, a packaged app's read-only assets)
+            files = []
+        for p in files:  # any case: ".TTF" on a case-sensitive Linux / Android file system too
+            fonts[f"ttf:{p.name}"] = p.stem.replace("_", " ")
     return fonts
 
 
@@ -54,7 +61,10 @@ def raster(text: str, font: str, size: int, spacing: int) -> np.ndarray:
     path = next((d / name for d in FONT_DIRS if (d / name).exists()), None)
     if path is None:
         return raster(text, "small", size, spacing)
-    ttf = ImageFont.truetype(str(path), size)
+    try:
+        ttf = ImageFont.truetype(str(path), size)
+    except (OSError, ImportError):  # unreadable font, or a Pillow built without FreeType
+        return raster(text, "small", size, spacing)
     w = int(ttf.getlength(text)) + 4 + spacing * len(text)
     img = Image.new("1", (max(1, w), size * 3), 0)
     d = ImageDraw.Draw(img)

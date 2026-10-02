@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -14,5 +15,16 @@ export default defineConfig({
       "/ws": { target: ENGINE.replace(/^http/, "ws"), ws: true },
     },
   },
-  build: { outDir: "dist", sourcemap: true, chunkSizeWarningLimit: 1500 },
+  build: {
+    outDir: "dist",
+    sourcemap: true,
+    chunkSizeWarningLimit: 1500,
+    // two pages: the studio and the system-wide command bar (`deskdot launcher`, served at /launcher)
+    rollupOptions: {
+      input: {
+        studio: resolve(import.meta.dirname, "index.html"),
+        launcher: resolve(import.meta.dirname, "launcher.html"),
+      },
+    },
+  },
 });

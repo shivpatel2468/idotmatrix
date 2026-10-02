@@ -37,9 +37,10 @@ from pydantic import Field
 from ..engine.app import Action, App, AppSettings, Choice, Color, register
 from ..gfx import Frame, calibrate, mix, scale, to_rgb
 from ..gfx.font import FONTS, draw_marquee, measure
+from ..platforms import DESKTOP
 from ..providers.lyrics import normalize_track
 from ..providers.media import decode_art, extract_palette
-from ._kit import loading, offline
+from ._kit import loading, offline, unsupported
 
 RGB = tuple[int, int, int]
 LYRIC_LAYOUTS = ("karaoke", "lyrics", "lyrics_art")
@@ -411,6 +412,8 @@ class NowPlaying(App):
     category = "media"
     Settings = NowPlayingSettings
     uses = ("media", "lyrics")  # "audio" is acquired on demand (spectrum / beat-synced layouts only)
+    # the host's media session: Windows GSMTC, macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl)
+    platforms = DESKTOP
     actions = (
         Action("prev", "Previous", "skip-back"),
         Action("toggle", "Play/Pause", "play"),
@@ -468,6 +471,8 @@ class NowPlaying(App):
         return bool(m and m.get("active") and m.get("playing"))
 
     def relevant(self) -> bool:
+        if not self.supported_here():
+            return False
         m = self.ctx.provider("media").value
         return m is None or bool(m.get("active"))
 
@@ -558,7 +563,9 @@ class NowPlaying(App):
         mp = self._media()
         m = mp.value
         if m is None:
-            if getattr(mp, "error", None):
+            if not self.supported_here():
+                unsupported(f, "MUSIC")
+            elif getattr(mp, "error", None):
                 offline(f, "MUSIC", "NO PLAYER")
             else:
                 loading(f, t, "MUSIC", self.settings.accent)

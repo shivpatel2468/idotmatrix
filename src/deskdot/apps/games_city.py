@@ -454,6 +454,19 @@ class NeonHeat(GameApp):
         return False
 
     # ------------------------------------------------------------------ input
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's car (on screen coordinates)."""
+        p = self.players.get(1)
+        return None if p is None else self._scr(p.car.x, p.car.y)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The job: the pickup, the drop-off while carrying, or a rival carrying the parcel (may be off-screen)."""
+        p = self.players.get(1)
+        if p is None or 1 not in self.active_seats:
+            return []
+        goal = self._goal_of(1)
+        return [] if goal is None else [(*self._scr(*goal), 1.0)]
+
     def key(self, k: str) -> None:
         self.key_p(k, 1)
 

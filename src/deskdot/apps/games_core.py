@@ -301,6 +301,10 @@ class GameApp(App):
     game_themes: ClassVar[dict[str, Theme]] = {}
     game_theme_labels: ClassVar[dict[str, str]] = {}
     _clock: Callable[[], float] = staticmethod(time.monotonic)
+    #: the fruit-fly pilot's keys mapped onto this game's (e.g. {"up": "a"}: steering forward fires). See `fly_key`.
+    fly_keys: ClassVar[dict[str, str]] = {}
+    #: True: standing on the lure triggers the fly's proboscis (feeding) reflex, pressed as "a" (place, drop, open)
+    fly_feeds: ClassVar[bool] = False
 
     def __init_subclass__(cls, **kw: Any) -> None:
         """Give every game a settings form that includes its own modes, maps and themes."""
@@ -578,6 +582,16 @@ class GameApp(App):
         Games override this; None = the fly looks at the whole panel."""
         return None
 
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Where seat 1's goal is, as smells for the fly: [(x, y, strength 0..1)] in panel pixels (may lie off
+        the panel). A *sensory cue* (sugar, an odour plume), not a key press: the fly's brain still decides what
+        to do with it, weighted by its `lure` setting (docs/FLY_BRAIN.md). Keep it cheap: called every frame."""
+        return []
+
+    def fly_key(self, k: str) -> str | None:
+        """Map a key the fly's neurons pressed onto this game's controls (None = ignore it)."""
+        return self.fly_keys.get(k, k)
+
     def _fly_driving(self, now: float) -> bool:
         return (
             getattr(self.settings, "pilot", "ai") == "fly"
@@ -607,9 +621,17 @@ class GameApp(App):
             anchor = self.pilot_anchor()
         except Exception:
             anchor = None
-        for k in self._fly.step(f.px, anchor):
-            self.human_at = self._fly_at = now  # the game's own AI stands down while the fly flies
-            self.key_p(k, 1)
+        try:
+            lures = self.fly_lure() or []
+        except Exception:
+            lures = []
+        fired = self._fly.step(f.px, anchor, lures, feed=self.fly_feeds)
+        self._fly_at = now
+        self.human_at = now  # the game's own AI stands down while the fly flies, even between spikes
+        for k in fired:
+            key = self.fly_key(k)
+            if key:
+                self.key_p(key, 1)
 
     def fly_telemetry(self, t: float) -> dict[str, Any] | None:
         fly = getattr(self, "_fly", None)

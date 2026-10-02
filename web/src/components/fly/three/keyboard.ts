@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { type FlyGfx, type FlyKey, KEY_GLYPH, onPress, useFly } from "../../../lib/fly";
+import { type FlyGfx, type FlyKey, KEY_GLYPH, type Shot, onPress, useFly } from "../../../lib/fly";
 import { type FlyScene, type Host, Particles, approach, col, glowSprite } from "./host";
 
 /** A fruit fly on a mechanical keyboard. Every spike of its descending neurons is a key press: it hops onto the
@@ -108,9 +108,12 @@ export class KeyboardScene implements FlyScene {
   private q = new THREE.Quaternion();
   private up = new THREE.Vector3(0, 1, 0);
 
-  frame(mode: FlyGfx["camera"]) {
+  camKey = "camKeys" as const;
+  deps: (keyof FlyGfx)[] = ["fly", "flySize", "wingShimmer", "board"];
+
+  frame(mode: Shot) {
     const t = new THREE.Vector3(0.7, -0.5, 0.4);
-    const p: Record<FlyGfx["camera"], THREE.Vector3> = {
+    const p: Record<Shot, THREE.Vector3> = {
       orbit: new THREE.Vector3(4.2, 5, 8.4),
       front: new THREE.Vector3(0.7, 3.6, 8.2),
       top: new THREE.Vector3(0.71, 9.5, 1.4),

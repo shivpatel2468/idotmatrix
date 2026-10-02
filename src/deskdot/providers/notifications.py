@@ -3,8 +3,10 @@
 Both OSes keep delivered notifications in a local SQLite database that the signed-in user can read:
 
 * Windows: %LOCALAPPDATA%/Microsoft/Windows/Notifications/wpndatabase.db (toast XML payloads)
-* macOS:   ~/Library/Group Containers/group.com.apple.usernoted/db2/db (binary plists).
+* macOS:   ~/Library/Group Containers/group.com.apple.usernoted/db2/db (macOS 15+), or
+           $(getconf DARWIN_USER_DIR)/com.apple.notificationcenter/db2/db (macOS 10.13–14); binary plists.
            Requires Full Disk Access for the terminal / Python running DeskDot.
+* Linux / Android: not available (no shared notification store); the provider says so and never polls.
 
 The provider polls for rows newer than the last one seen (never replays history) and emits a hub
 event "os_notification" {app, title, body}; the engine turns it into an overlay per the user's settings.
@@ -69,7 +71,18 @@ def _win_db() -> Path:
 
 
 def _mac_db() -> Path:
-    return Path.home() / "Library/Group Containers/group.com.apple.usernoted/db2/db"
+    new = Path.home() / "Library/Group Containers/group.com.apple.usernoted/db2/db"  # macOS 15 Sequoia +
+    if new.exists():
+        return new
+    try:  # macOS 10.13–14 keep it in the per-user temp dir (getconf DARWIN_USER_DIR = confstr 65537)
+        user_dir = os.confstr(65537) if hasattr(os, "confstr") else None
+    except (OSError, ValueError):
+        user_dir = None
+    if user_dir:
+        old = Path(user_dir) / "com.apple.notificationcenter/db2/db"
+        if old.exists():
+            return old
+    return new
 
 
 def parse_toast(payload: bytes | str) -> tuple[str, str]:
@@ -83,6 +96,7 @@ class NotificationsProvider(Provider[dict[str, Any]]):
     name = "notifications"
     interval = 2.0
     retry = 30.0
+    feature = "notifications"
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)

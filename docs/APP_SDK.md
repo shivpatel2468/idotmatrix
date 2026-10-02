@@ -44,6 +44,7 @@ A complete example lives in `plugins/_example_countdown.py`.
 | `Settings` | a subclass of `AppSettings` (pydantic). Unknown keys are ignored, so renames are safe |
 | `fps` | stream render rate. Frames are deduped, so a static screen costs nothing |
 | `uses` | provider names acquired while the app is visible, e.g. `("weather",)` |
+| `platforms` | hosts the app can work on, e.g. `DESKTOP` or `("windows", "macos")` from `deskdot.platforms`; empty = everywhere. Elsewhere the studio greys it out, the playlist skips it, and `render()` should draw `_kit.unsupported(f, "LABEL")` (see [COMPATIBILITY.md](COMPATIBILITY.md)) |
 | `actions` | `Action(id, label, icon)` buttons the studio shows; handled in `async def action()` |
 | `clip_seconds`, `clip_fps` | loop length and rate when baked as a clip |
 | `clip_colors` | palette cap for the baked GIF (gradients look fine at 48; the engine also enforces a 40 KB budget) |
@@ -68,6 +69,7 @@ More UI hints:
 | Python | Studio |
 | --- | --- |
 | `Field(..., json_schema_extra={"group": "Exposure"})` / `Choice(..., group="Framing")` | collapsible section (first group open) |
+| `Field(..., json_schema_extra=only_on(feature="audio"))` / `Choice(..., platforms={"window": ["windows", "macos"]})` | a "Windows/macOS only" badge; the field / option is disabled on other hosts |
 | `datetime` / `date` fields | native date-time / date pickers |
 | `list[...]` with `json_schema_extra={"format": "layers"}` | hidden in the form (edited on the preview, like Text Studio) |
 | subclass `deskdot.gfx.adjust.ImageControls` | the full exposure / colour / framing panel for camera-like apps |

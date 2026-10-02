@@ -62,6 +62,7 @@ class CameraProvider(Provider[np.ndarray]):
     name = "camera"
     interval = 0.08
     retry = 3.0
+    feature = "camera"
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)
@@ -110,6 +111,13 @@ class CameraProvider(Provider[np.ndarray]):
 
     # ---------------------------------------------------------------- worker
     def _run(self) -> None:
+        try:
+            self._capture()
+        except Exception as e:  # OpenCV missing/broken, no camera backend: say so instead of "starting…"
+            self._err = f"camera unavailable: {type(e).__name__}: {e}"[:200]
+            log.info(self._err)
+
+    def _capture(self) -> None:
         import sys
 
         import cv2
@@ -124,7 +132,9 @@ class CameraProvider(Provider[np.ndarray]):
         )
         cap = cv2.VideoCapture(self.index, backend)
         if not cap.isOpened():
-            self._err = f"camera {self.index} not available (in use by another app?)"
+            self._err = (
+                f"camera {self.index} not available (in use by another app, or camera permission denied?)"
+            )
             return
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -177,7 +187,8 @@ class CameraProvider(Provider[np.ndarray]):
 
     def acquire(self) -> None:
         super().acquire()
-        self._ensure_thread()
+        if self.supported:
+            self._ensure_thread()
 
     def release(self) -> None:
         super().release()

@@ -47,8 +47,9 @@ The installer adds BlueZ, installs `uv` (which brings its own Python 3.13), inst
 `host = "0.0.0.0"` and `lan_studio = true` so the studio is reachable on the LAN, and registers a `deskdot` systemd service that starts
 at boot, restarts on failure and hands off gracefully on stop. Logs: `journalctl -u deskdot -f`.
 
-Things that are Windows/macOS-only simply switch off on the Pi: "now playing" media keys, the active-app icon,
-OS notifications and screen mirroring (they describe *that* computer). Everything network-based — weather,
+Things that read *the computer itself* switch off on a headless Pi: now playing, the active app, OS notifications,
+screen and camera mirror, On Air (on a Pi desktop with X11, `playerctl` and `xdotool`, now playing and the active app
+work). The full matrix: [COMPATIBILITY.md](COMPATIBILITY.md). Everything network-based — weather,
 sports, stocks, flights, space, radar, the games, pets, clocks — works the same.
 
 ## Playing with friends (local Wi-Fi)

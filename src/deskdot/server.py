@@ -35,10 +35,11 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 
-from . import __version__
+from . import __version__, platforms
 from .apps import load_plugins
 from .apps.canvas import frame_from_rows
 from .apps.games_core import KEYS
+from .calibration_api import register as register_calibration
 from .config import Config, Store
 from .device import Device, SimDevice
 from .engine import REGISTRY, Engine, Notice, Playlist, presets
@@ -46,6 +47,7 @@ from .engine.integrations import SECTIONS
 from .engine.overlay import ICONS
 from .engine.persistent import Indicator
 from .engine.runtime import PlaylistItem
+from .fly import config as flycfg
 from .gfx import PALETTE, Frame, to_hex
 from .gfx.calib import PanelCalibration
 from .gfx.font import FONTS
@@ -70,7 +72,11 @@ from .providers.sports import LEAGUES
 
 log = logging.getLogger("deskdot.server")
 # the built studio; the Android app ships it elsewhere and points DESKDOT_WEB_DIST at it
-WEB_DIST = Path(os.environ.get("DESKDOT_WEB_DIST") or os.environ.get("DOTDECK_WEB_DIST") or Path(__file__).resolve().parents[2] / "web" / "dist")
+WEB_DIST = Path(
+    os.environ.get("DESKDOT_WEB_DIST")
+    or os.environ.get("DOTDECK_WEB_DIST")
+    or Path(__file__).resolve().parents[2] / "web" / "dist"
+)
 
 
 # ============================================================ websocket hub
@@ -151,6 +157,8 @@ class DisplayPatch(BaseModel):
     max_fps: float | None = Field(default=None, ge=0.5, le=30)
     packet_gap_ms: float | None = Field(default=None, ge=0, le=200)
     idle_dim: int | None = Field(default=None, ge=0, le=240)
+    smoothing: float | None = Field(default=None, ge=0, le=0.6, description="temporal smoothing of streams")
+    motion_preset: str | None = Field(default=None, max_length=40, description="motion preset tag (studio)")
     night: dict[str, Any] | None = None
 
 
@@ -226,7 +234,7 @@ class AiConfigPatch(BaseModel):
 
 class TransferCalibBody(BaseModel):
     max_fps: float = Field(default=12.0, ge=1.0, le=20.0)
-    packet_gap_ms: float = Field(default=18.0, ge=5.0, le=80.0)
+    packet_gap_ms: float = Field(default=18.0, ge=18.0, le=80.0)  # never below the safe floor (rule 13)
     transition: Literal["cut", "push", "fade", "wipe"] = "cut"
 
 
@@ -487,6 +495,8 @@ def create_app(cfg: Config) -> FastAPI:
 
     @app.get("/api/meta")
     async def meta() -> dict[str, Any]:
+        host = platforms.info()  # {"platform": "windows", "platform_label", "features": {name: bool}}
+        host_platform = host["platform"]
         apps = []
         for cls in REGISTRY.values():
             if cls.hidden:
@@ -500,6 +510,9 @@ def create_app(cfg: Config) -> FastAPI:
                     "icon": m.icon,
                     "category": m.category,
                     "schema": m.settings_schema,
+                    # hosts the app works on (None = everywhere); the studio greys it out elsewhere
+                    "platforms": m.platforms,
+                    "supported": m.platforms is None or host_platform in m.platforms,
                     "actions": [{"id": a.id, "label": a.label, "icon": a.icon} for a in m.actions],
                     # games: how many can play and which controllers suit them (best first)
                     "max_players": int(getattr(cls, "max_players", 1)),
@@ -526,6 +539,7 @@ def create_app(cfg: Config) -> FastAPI:
             "leagues": {k: v[1] for k, v in LEAGUES.items()},
             "plugins": plugins,
             "size": [32, 32],
+            **host,
         }
 
     @app.get("/api/state")
@@ -536,6 +550,31 @@ def create_app(cfg: Config) -> FastAPI:
     async def fly() -> dict[str, Any]:
         """The fruit-fly brain's live activity (eye, layers, neurons, keys) when a fly is playing. Studio only."""
         return engine.fly_telemetry()
+
+    # the fly's brain tuning (deskdot.fly.config), shared by every game it plays and the Fly Brain app
+    flycfg.set_current(flycfg.load(store.get("fly")))
+
+    @app.get("/api/fly/config")
+    async def fly_config() -> dict[str, Any]:
+        return flycfg.current().model_dump()
+
+    @app.patch("/api/fly/config")
+    async def fly_config_patch(patch: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        """Partial update; `preset` (an id from /api/fly/presets) loads that preset first. 422 when out of range."""
+        try:
+            cfg = flycfg.merge(flycfg.current(), patch)
+        except ValidationError:
+            raise
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        flycfg.set_current(cfg)
+        store.set("fly", cfg.model_dump())
+        engine.changed()
+        return cfg.model_dump()
+
+    @app.get("/api/fly/presets")
+    async def fly_presets() -> list[dict[str, Any]]:
+        return flycfg.PRESETS
 
     @app.get("/api/frame.png")
     async def frame_png(scale: int = Query(1, ge=1, le=32)) -> Response:
@@ -1032,6 +1071,8 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         engine.clear_pattern()
         return {"ok": True}
 
+    register_calibration(app, engine, store)  # wizard videos, presets, motion lab (calibration_api.py)
+
     @app.post("/api/calibration/transfer/apply")
     async def calibration_transfer_apply(body: TransferCalibBody) -> dict[str, Any]:
         s = store.section("settings")
@@ -1186,6 +1227,20 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         finally:
             pump.cancel()
             ws_hub.remove(client)
+
+    # ------------------------------------------------------------------ launcher (docs/LAUNCHERS.md)
+    @app.get("/launcher", response_model=None)
+    async def launcher_page() -> Response:
+        """The command bar page `deskdot launcher` shows (second Vite entry: web/launcher.html)."""
+        page = WEB_DIST / "launcher.html"
+        if page.is_file():
+            return FileResponse(page, headers={"Cache-Control": "no-store"})
+        return HTMLResponse(
+            "<body style='font:15px system-ui;background:#0f0f13;color:#ddd;padding:32px'>"
+            "<h3>The launcher page isn't built yet</h3><p>Run <code>cd web &amp;&amp; npm run build</code>, "
+            "then reopen the launcher.</p></body>",
+            headers={"Cache-Control": "no-store"},
+        )
 
     # ------------------------------------------------------------------ studio
     if WEB_DIST.is_dir():

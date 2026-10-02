@@ -18,6 +18,7 @@ import { INSPECTOR_MAX, LIBRARY_MAX, type MobileTab, appMeta, useStore } from ".
 import { gameKeyDown, isPlayable } from "./lib/gameInput";
 import { connect } from "./lib/ws";
 import { startFlyPolling, useFlyView } from "./lib/fly";
+import { flyPlayingNow, toggleFly } from "./lib/flyControl";
 
 function useShortcuts() {
   useEffect(() => {
@@ -41,6 +42,7 @@ function useShortcuts() {
         if (k === "p" && isPlayable(appMeta(current))) return void s.set({ playMode: true });
       }
       if (current === "composer" && k.startsWith("arrow")) return; // Text Studio nudges layers
+      if (k === "f" && !painting) return void toggleFly(flyPlayingNow()); // the fruit fly plays / hands back
       if (k === "n") s.set({ notifyOpen: true });
       else if (k === "arrowright") api.playlist("next");
       else if (k === "arrowleft") api.playlist("prev");

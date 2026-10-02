@@ -8,11 +8,15 @@ Errors: `400` bad request · `404` unknown app/media · `422` validation (`detai
 | Method | Path | Returns |
 | --- | --- | --- |
 | GET | `/api/health` | `{ok, version, device}` |
-| GET | `/api/meta` | apps (id, name, description, icon, category, **schema**, actions; games also `max_players`, `controls` and `modes: [{id, name, min_players, max_players, teams}]` with `teams` = solo/coop/ffa/versus), palette, fonts, icons, leagues, plugins |
+| GET | `/api/meta` | apps (id, name, description, icon, category, **schema**, actions; games also `max_players`, `controls` and `modes: [{id, name, min_players, max_players, teams}]` with `teams` = solo/coop/ffa/versus; every app also `platforms` (hosts it works on, `null` = everywhere) and `supported` on this host), palette, fonts, icons, leagues, plugins, and the host: `platform` (`windows`/`macos`/`linux`/`android`), `platform_label`, `features` ({feature: bool}, see [COMPATIBILITY.md](COMPATIBILITY.md)) |
 | GET | `/api/state` | full snapshot: `device`, `engine` (mode, current, playlist, overlay, render_ms, takeover, onair, eyebreak, indicators, custom), `settings` (incl. `integrations`, tokens masked), `apps` (settings per app), `providers` |
 | GET | `/api/frame.png?scale=1..32` | exactly what the panel shows |
 | GET | `/api/frame` | `{width, height, rgb: base64(3072 bytes)}` |
-| GET | `/api/fly` | the fruit-fly brain while a fly plays (the Fly Brain app, or a game with `pilot: "fly"`): `{active, app, driving, step, eye, on, off, mh, mv, hs, looming, gf, dn, light, spikes, keys: [[step, key]…], anchor, world?}`. The maps are 256 values (16×16). Otherwise `{active: false, app}`. Studio only; never drawn on the panel. |
+| GET | `/launcher` | the system search bar page (used by `deskdot launcher`; see docs/LAUNCHERS.md) |
+| GET | `/api/fly` | the fruit-fly brain while a fly plays (the Fly Brain app, or a game with `pilot: "fly"`): `{active, app, driving, step, eye, on, off, mh, mv, hs, looming, gf, dn, light, spikes, keys: [[step, key]…], anchor, lures: [[x, y, strength]…], odour, preset, world?}`. The maps are 256 values (16×16). Otherwise `{active: false, app}`. Studio only; never drawn on the panel. |
+| GET | `/api/fly/config` | the brain's tuning, shared by every game the fly plays and the Fly Brain app: `{phototaxis: 0.3, looming: 1.0, motion: 1.0, leak: 0.8, threshold: 1.0, refractory: 2, noise: 0.06, escape: 1.0, lure: 1.0, preset: "default"}` (these defaults are the original brain). Bounds: phototaxis 0–1, looming / motion / escape / lure 0–3, leak 0.3–0.99, threshold 0.3–3, refractory 0–10 (int), noise 0–0.5. Stored in `state.json` under `fly`. |
+| PATCH | `/api/fly/config` | partial update, returns the full config; 422 on an out-of-range value or an unknown preset. `{"preset": "calm"}` loads a preset (other fields in the same patch then override it); `preset` in the reply names the preset the values match, or `"custom"`. Applies at once to every running brain; the Fly Brain app re-bakes its loop. |
+| GET | `/api/fly/presets` | `[{id, name, description, config}]`: `default`, `calm`, `curious`, `twitchy`, `hunter`, `daredevil`. |
 
 ## Apps
 
@@ -242,10 +246,20 @@ preset drives the playlist.
 | Method | Path | Body |
 | --- | --- | --- |
 | PATCH | `/api/settings` | `{brightness?: 5–100, power?, flip?, transition?: cut|push|fade|wipe, units?: metric|imperial, location?: {city} or {lat, lon, city}, audio_source?: system|mic, os_notifications?: {enabled, style: banner|full, duration, only, exclude}}` |
-| PATCH | `/api/display` | `{max_fps?: 0.5–30 (the panel "Hz"), packet_gap_ms?: 0–200, night?: {enabled, start: "HH:MM", end, brightness}}` → the merged display config |
-| GET / PUT | `/api/calibration` | panel colour calibration `{red, green, blue, gamma, black_level, lift, saturation}`; PUT re-bakes clips |
-| POST | `/api/calibration/pattern/{white|gamma|black|saturation|rgb|preview}` | show a wizard test card on the panel (10 min or until cleared) |
-| DELETE | `/api/calibration/pattern` | back to the current app |
+| PATCH | `/api/display` | `{max_fps?: 0.5–30 (the panel "Hz"), packet_gap_ms?: 0–200, smoothing?: 0–0.6 (temporal smoothing of streamed frames, 0 = off), motion_preset?: str, night?: {enabled, start: "HH:MM", end, brightness}}` → the merged display config |
+| GET / PUT | `/api/calibration` | panel colour calibration `{red, green, blue (0.3–1.2), gamma (0.5–2.5), gamma_red/green/blue (0.7–1.4), black_level, lift (0–40), saturation (0–2), contrast (0.6–1.6), temperature (3000–9500 K, 6500 = neutral), level (0.5–1), dither (bool), preset (tag)}`; every field defaults to "no change"; PUT re-bakes clips |
+| GET | `/api/calibration/presets` | `{presets: [{id, name, group: claude|inspired|standard, blurb, values, swatches: [7 hex]}], groups, disclaimer, current}` |
+| POST | `/api/calibration/preset/{id}` | `{keep_balance?: true, apply?: true}` → the preset's calibration (keeps the measured RGB gains unless `keep_balance: false`); saved unless `apply: false` |
+| POST | `/api/calibration/quick` | `{room: bright|dim|dark, use: mixed|text|photos|games, tint: neutral|blue|yellow|green|pink, apply?: false}` → "Quick match" calibration |
+| POST | `/api/calibration/gains` | a calibration → `{gains, temperature_gains}` (effective per-channel gains) |
+| GET | `/api/calibration/videos` | the animated calibration videos and motion tests `{videos, motion, fps}` |
+| POST | `/api/calibration/test` | `{video: bars|ramp|pulse|white|skin|sky|wheel|card, a: calibration, b?: calibration, layout?: ab|wipe, split?: 0–32, labels?: [str, str], seconds?}` — plays an animated test video on the panel (`a` full screen; `a`+`b` "ab" = same content in both halves, A left / B right; "wipe" = before/after split at `split`). The studio preview receives the *uncorrected reference* frame meanwhile |
+| POST | `/api/calibration/pattern/{white|gamma|black|saturation|rgb|preview}` | show a first-generation still test card on the panel (10 min or until cleared) |
+| DELETE | `/api/calibration/pattern` | stop any test card / video / motion test |
+| GET | `/api/motion` | `{presets, limits (fixed link physics), current: {max_fps, packet_gap_ms, smoothing, transition, preset}, tests}` |
+| POST | `/api/motion/test` | `{test: ufo|ball|scroll|sweep|pan|live|transition, a: {fps 3–12, speed 1–24 px/s, soft, smoothing 0–0.6, transition}, b?: same, layout?: stack|alternate, mode?: stream|clip}`; `clip` bakes A as a native GIF (≤ 10 fps, ≤ 40 KB) — 429 if within 20 s of the last test upload |
+| POST | `/api/motion/preset/{smoothest|balanced|ble_friendly|calm}` | applies `max_fps`, `packet_gap_ms` (never < 18), `transition`, `smoothing` |
+| POST | `/api/motion/autotune` | `{seconds?: 2–8, apply?: false}` → streams the heaviest test at 12 fps, measures the delivered rate, returns `{max_fps, packet_gap_ms, transition, smoothing, measured_fps, frame_bytes}` |
 | POST | `/api/device/link` | `{enabled}` — Bluetooth link on/off (separate from display `power`) |
 | GET / PUT | `/api/autopilot` | `{enabled, rules: [{match, app, settings}]}` — foreground-app rules |
 | POST | `/api/device/reconnect` | |

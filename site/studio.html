@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The DeskDot studio: browser, phone and 3D views</title>
+<meta name="description" content="Library, live LED-accurate preview, settings generated from each app's schema, Play mode for games, the phone controller and the 3D Fly Brain view." />
+<link rel="canonical" href="https://idotmatrix.com/studio.html" />
+<meta name="theme-color" content="#08070a" />
+<meta name="color-scheme" content="dark" />
+<meta name="author" content="Shiv Patel" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="DeskDot" />
+<meta property="og:url" content="https://idotmatrix.com/studio.html" />
+<meta property="og:title" content="The DeskDot studio: browser, phone and 3D views" />
+<meta property="og:description" content="Library, live LED-accurate preview, settings generated from each app's schema, Play mode for games, the phone controller and the 3D Fly Brain view." />
+<meta property="og:image" content="https://idotmatrix.com/media/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="The DeskDot studio: browser, phone and 3D views" />
+<meta name="twitter:description" content="Library, live LED-accurate preview, settings generated from each app's schema, Play mode for games, the phone controller and the 3D Fly Brain view." />
+<meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
+<meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="stylesheet" href="/styles.css" />
+<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script src="/main.js" defer></script>
+</head>
+<body class="page-studio">
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9L12 2.6Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
+</svg>
+<header class="bar" id="bar">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <nav id="nav" aria-label="Main">
+      <a href="/setup.html">AI setup</a>
+      <a href="/guide.html">Run it</a>
+      <a href="/apps.html">Apps</a>
+      <a href="/features.html">Features</a>
+      <a href="/studio.html" aria-current="page">Studio</a>
+      <a href="/specs.html">Specs</a>
+      <a href="/faq.html">FAQ</a>
+    </nav>
+    <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<!-- page:start -->
+<section class="page-sec" id="studio" aria-labelledby="studio-h">
+  <div class="wrap">
+    <p class="kicker">See it move</p>
+    <h1 id="studio-h" class="page-title reveal">The studio</h1>
+    <p class="sub reveal">Pick an app and it's on the panel in a second. Every setting is live, every form is generated from
+      the app's own schema, and it works the same in a desktop browser and on your phone. The engine serves it at
+      <code>http://127.0.0.1:8765</code>.</p>
+
+    <figure class="shot hero-shot reveal">
+      <picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/studio-tour-poster.webp" /><img src="/media/studio-tour.webp" width="1120" height="630" fetchpriority="high" alt="A tour of the DeskDot studio: the app library, the live LED preview and an app's settings" /></picture>
+      <figcaption>Studio tour: library, live preview, settings</figcaption>
+    </figure>
+
+    <div class="shots">
+      <figure class="shot reveal"><img src="/media/studio.webp" width="1600" height="900" loading="lazy" alt="The studio's library of apps next to the live preview of the panel" /><figcaption>The library and the LED-accurate preview</figcaption></figure>
+      <figure class="shot reveal" style="--i:1"><img src="/media/studio-settings.webp" width="1600" height="900" loading="lazy" alt="An app's settings form in the studio" /><figcaption>Settings generated from each app's schema</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<div class="divider amber wrap" aria-hidden="true"></div>
+
+<section class="page-sec" id="play" aria-labelledby="play-h">
+  <div class="wrap">
+    <p class="kicker">Play mode</p>
+    <h2 id="play-h" class="reveal">An arcade on 1,024 pixels</h2>
+    <p class="sub reveal">Press <kbd>▶</kbd> Play on any game. <kbd>B</kbd> opens the match setup: mode, players, map and theme.
+      For multiplayer the panel shows a QR code and friends' phones become controllers over your Wi-Fi.</p>
+    <div class="shots">
+      <figure class="shot reveal"><img src="/media/studio-play.webp" width="1600" height="900" loading="lazy" alt="Play mode with the match setup: mode, players, map and theme" /><figcaption>Match setup: mode, players, map, theme</figcaption></figure>
+      <figure class="shot reveal" style="--i:1"><img src="/media/studio-multiplayer.webp" width="1600" height="900" loading="lazy" alt="The studio's Play with friends screen with a QR code for phones to join" /><figcaption>Play with friends: scan, pick a seat, go</figcaption></figure>
+    </div>
+    <h3 class="row-title reveal">Multiplayer games, as the panel plays them</h3>
+    <div class="app-grid">
+<!-- gen:games -->
+<a class="card app-card" href="/apps/g2048.html" style="--glow:#ff7419;--i:0">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/g2048.png" /><img src="/media/apps/g2048.gif" width="32" height="32" loading="lazy" decoding="async" alt="2048 running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>2048</h3>
+    <p>Slide and merge tiles towards 2048; colour tells the value. The AI hugs a corner. Arrows slide. B in the demo opens the menu: Race on 2–4 small boards, or Relay (take turns on one board).</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>2 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/asteroids.html" style="--glow:#ff7419;--i:1">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroids.png" /><img src="/media/apps/asteroids.gif" width="32" height="32" loading="lazy" decoding="async" alt="Asteroids running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Asteroids</h3>
+    <p>Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.</p>
+    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/digworld.html" style="--glow:#ff7419;--i:2">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/digworld.png" /><img src="/media/apps/digworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dig World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Dig World</h3>
+    <p>A block-world sandbox: the miner digs for ore, builds a house at dusk and hides from night creatures. Arrows walk/dig, A jumps (or places in build mode), B toggles dig/build. Two miners play co-op, up to four race for ore.</p>
+    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/dino.html" style="--glow:#ff7419;--i:3">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/dino.png" /><img src="/media/apps/dino.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dino Runner running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Dino Runner</h3>
+    <p>An endless desert run: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/flappy.html" style="--glow:#ff7419;--i:4">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flappy.png" /><img src="/media/apps/flappy.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flappy running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Flappy</h3>
+    <p>A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/infinity.html" style="--glow:#ff7419;--i:5">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/infinity.png" /><img src="/media/apps/infinity.gif" width="32" height="32" loading="lazy" decoding="async" alt="Infinity running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Infinity</h3>
+    <p>A tiny ship flying forever through a procedurally generated neon cave. Up/down to steer.</p>
+    <div class="foot"><span>16 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/invaders.html" style="--glow:#ff7419;--i:6">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/invaders.png" /><img src="/media/apps/invaders.gif" width="32" height="32" loading="lazy" decoding="async" alt="Invaders running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Invaders</h3>
+    <p>Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.</p>
+    <div class="foot"><span>16 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:7">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Light Cycles running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Light Cycles</h3>
+    <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<!-- /gen:games -->
+    </div>
+  </div>
+</section>
+
+<div class="divider cyan wrap" aria-hidden="true"></div>
+
+<section class="page-sec" id="phone" aria-labelledby="phone-h">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <p class="kicker">On your phone</p>
+        <h2 id="phone-h" class="reveal">The same studio in your pocket, and seven controllers</h2>
+        <p class="sub reveal">The studio is responsive, so your phone gets the full library and every setting. In a game, a
+          phone becomes a controller: d-pad, analog stick, swipe, tap zones, tilt, a real gamepad or the keyboard. Friends
+          join with the room code; they only ever reach the controller, never your studio.</p>
+        <ul class="ticks reveal">
+          <li>Seat 1 on the keyboard or the studio, everyone else on phones</li>
+          <li>Empty seats are played by the AI, so a match always starts</li>
+          <li>Every game plays itself as a screensaver until someone presses a key</li>
+        </ul>
+      </div>
+      <div class="phones">
+        <figure class="shot phone reveal"><img src="/media/studio-phone.webp" width="390" height="844" loading="lazy" alt="The DeskDot studio on a phone, showing the app library" /><figcaption>Studio on a phone</figcaption></figure>
+        <figure class="shot phone reveal" style="--i:1"><img src="/media/phone-controller.webp" width="390" height="844" loading="lazy" alt="The phone game controller with a d-pad and A/B buttons" /><figcaption>Phone controller</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider pink wrap" aria-hidden="true"></div>
+
+<section class="page-sec" id="fly" aria-labelledby="fly-h">
+  <div class="wrap">
+    <div class="fly reveal">
+      <div>
+        <p class="kicker">The 3D Fly view</p>
+        <h2 id="fly-h">Watch a fruit-fly brain play</h2>
+        <p>When the Fly Brain plays a game, the studio shows its visual-to-motor circuit in 3D: the panel's frame goes in
+          like a compound eye, neurons fire, and the motor neurons steer. It is only ever shown in the studio, never on the panel.</p>
+        <div class="refs"><a href="/apps/flybrain.html">Fly Brain app</a><a href="/features.html#fly-h">How it works</a><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/FLY_BRAIN.md">docs/FLY_BRAIN.md</a></div>
+      </div>
+      <img src="/media/studio-flyview.webp" width="1600" height="900" loading="lazy" alt="The studio's 3D view of the fruit-fly brain's neurons firing while it plays a game" />
+    </div>
+    <div class="cta center reveal">
+      <a class="btn primary" href="/setup.html">Open the studio on your machine <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="btn" href="/guide.html">Step-by-step guide</a>
+    </div>
+  </div>
+</section>
+<!-- page:end -->
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
+        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+      </div>
+      <div>
+        <h2>Get started</h2>
+        <ul>
+          <li><a href="/setup.html">Set up with an AI agent</a></li>
+          <li><a href="/guide.html">Step-by-step guide</a></li>
+          <li><a href="/apps.html">Apps explorer</a></li>
+          <li><a href="/specs.html">Compatibility</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Docs</h2>
+        <ul>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/README.md">README</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">MCP server</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/API.md">HTTP API</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DEPLOY.md">Raspberry Pi &amp; hosts</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fine">
+      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
+      <span>1,024 pixels. Zero subscriptions.</span>
+    </div>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

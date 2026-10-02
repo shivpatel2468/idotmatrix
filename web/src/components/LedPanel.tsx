@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { LOOK_HINT, LOOK_LABEL, LOOKS, type PanelLook, useLook } from "../lib/look";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { calibrator, toCalib } from "../lib/calib";
+import { LOOK_HINT, LOOK_LABEL, LOOKS, matchesPanel, type PanelLook, useLook } from "../lib/look";
 import { lastFrame, onFrame, pushFrame, useStore } from "../lib/store";
 import { paint } from "../lib/ws";
 
@@ -18,6 +19,11 @@ type Props = {
   look?: PanelLook;
   /** Show the small Glow / Pixel / LED switch on hover (default: true). */
   lookSwitch?: boolean;
+  /**
+   * Never apply the panel colour calibration here (the calibration wizard's screen reference). Otherwise the
+   * viewer's colour-match choice (lib/look.ts) decides whether the preview shows what the LEDs are sent.
+   */
+  raw?: boolean;
 };
 
 const N = 32;
@@ -38,11 +44,20 @@ export function LedPanel({
   crisp = false,
   look: forced,
   lookSwitch = true,
+  raw = false,
 }: Props) {
   const saved = useLook((s) => s.look);
   const setLook = useLook((s) => s.setLook);
   const bloomAmt = useLook((s) => s.bloom); // "Sharpness": 0 = crisp, 0.5 = classic glow, 1 = soft
   const look = forced ?? saved;
+  const match = useLook((s) => s.match);
+  const calibRaw = useStore((s) => s.state?.settings.calibration);
+  const calibKey = JSON.stringify(calibRaw ?? null);
+  // the same maths as the engine (lib/calib.ts): the preview shows what the panel is actually sent
+  const toPanel = useMemo(
+    () => (raw || !matchesPanel(look, match) ? null : calibrator(toCalib(calibRaw))),
+    [raw, look, match, calibKey],
+  );
   const wrap = useRef<HTMLDivElement>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const tiny = useRef<HTMLCanvasElement | null>(null);
@@ -122,7 +137,9 @@ export function LedPanel({
       }
     };
 
-    const draw = (rgb: Uint8Array) => {
+    const shown = new Uint8Array(N * N * 3);
+    const draw = (src: Uint8Array) => {
+      const rgb = toPanel ? toPanel(src, shown) : src;
       if (look !== "led") {
         drawPixels(rgb);
         drawHover();
@@ -199,7 +216,7 @@ export function LedPanel({
     }
     drawRef.current = draw;
     return onFrame(draw);
-  }, [px, glow, paintable, crisp, look, bloomAmt]);
+  }, [px, glow, paintable, crisp, look, bloomAmt, toPanel]);
 
   // ------------------------------------------------------------- painting
   const drawing = useRef(false);

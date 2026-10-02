@@ -1,15 +1,86 @@
 import * as THREE from "three";
-import { type FlyGfx, type FlyKey, type FlySnap, onPress, useFly } from "../../../lib/fly";
+import { type BrainForm as FormId, type FlyGfx, type FlyKey, type Shot, onPress, useFly } from "../../../lib/fly";
+import { BrainData, type BrainForm } from "./data";
+import { CloudForm } from "./forms/cloud";
+import { RasterForm } from "./forms/raster";
+import { WebForm } from "./forms/web";
+import { WheelForm } from "./forms/wheel";
 import { type FlyScene, type Host, Particles, approach, col, glowSprite, neuronMaterial, pointsMaterial } from "./host";
+
+/** The brain wing. The same live circuit (GET /api/fly → BrainData) drawn in one of several forms — the
+ *  tower, the connectome cloud, the wheel, the spike raster + scope, the neural web — picked in the wing's
+ *  header or Graphics → Scene → Brain view. */
+export class BrainScene implements FlyScene {
+  camKey = "camBrain" as const;
+  deps: (keyof FlyGfx)[] = ["trails", "brainSpread", "brainForm"];
+  reframeOn: (keyof FlyGfx)[] = ["brainForm", "brainSpread"];
+  private data = new BrainData();
+  private form: BrainForm | null = null;
+  private unsub: (() => void) | null = null;
+  private host: Host | null = null;
+
+  get bloomThreshold() {
+    return this.form?.bloomThreshold ?? 0.2;
+  }
+
+  get shots() {
+    return this.form?.shots;
+  }
+
+  build(host: Host) {
+    this.host = host;
+    this.form?.dispose?.();
+    this.form = makeForm(host.gfx.brainForm);
+    host.root.position.set(0, 0, 0); // a form may have moved or turned the whole tree
+    host.root.rotation.set(0, 0, 0);
+    this.data.setTheme(host.theme);
+    this.form.build(host, this.data);
+    this.unsub ??= onPress((p) => {
+      this.data.spike(p.key);
+      if (this.host) this.form?.spike?.(p.key, this.host, this.data);
+    });
+  }
+
+  update(dt: number, t: number, host: Host) {
+    this.data.update(dt, t, useFly.getState().snap);
+    this.form?.update(dt, t, host, this.data);
+  }
+
+  frame(mode: Shot) {
+    return this.form?.frame(mode) ?? { target: new THREE.Vector3(), position: new THREE.Vector3(10, 8, 18) };
+  }
+
+  dispose() {
+    this.unsub?.();
+    this.unsub = null;
+    this.form?.dispose?.();
+    this.form = null;
+    this.data.dispose();
+    this.host = null;
+  }
+}
+
+function makeForm(id: FormId): BrainForm {
+  switch (id) {
+    case "cloud": return new CloudForm();
+    case "wheel": return new WheelForm();
+    case "raster": return new RasterForm();
+    case "web": return new WebForm();
+    default: return new TowerForm();
+  }
+}
+
+// ------------------------------------------------------------------ the tower
 
 /** The fly's visual circuit as a glowing tower, top to bottom: compound eye → lamina (ON/OFF) → medulla T4/T5
  *  motion detectors → lobula plate HS/VS → LPLC2 looming → giant fibre → descending neurons → the keys.
- *  Every layer is driven by the live brain (GET /api/fly); signal pulses travel the wiring in proportion to
- *  activity, and each spike flashes its neuron and sends a pulse down to its key. */
+ *  Signal pulses travel the wiring in proportion to activity, and each spike flashes its neuron and sends a
+ *  pulse down to its key. */
 
 const N = 16;
 const CELL = 0.3;
 const DN_ORDER = ["left", "up", "down", "right"] as const;
+const ARROW: Record<string, string> = { left: "←", up: "↑", down: "↓", right: "→" };
 
 type Curve = { pts: Float32Array; src: () => number; color: THREE.Color; rate: number };
 
@@ -38,24 +109,24 @@ class Signals {
     this.points.frustumCulled = false;
   }
 
-  fire(ci: number, boost = 1) {
+  fire(ci: number, boost = 1, color?: THREE.Color) {
     if (!this.n || !this.curves[ci]) return; // a pulse scheduled just before a rebuild
     const i = this.next;
     this.next = (this.next + 1) % this.n;
     this.curve[i] = ci;
     this.t[i] = 0;
     this.speed[i] = (0.9 + Math.random() * 0.6) * boost;
-    const c = this.curves[ci].color;
+    const c = color ?? this.curves[ci].color;
     this.colr.set([c.r, c.g, c.b], i * 3);
     this.size[i] = 1.1 + Math.random() * 0.8 + (boost > 1 ? 1.2 : 0);
   }
 
-  update(dt: number, density: number) {
+  update(dt: number, density: number, tint?: (ci: number) => THREE.Color | undefined) {
     // spawn: each wire fires pulses in proportion to the activity of the cells it leaves
     for (let ci = 0; ci < this.curves.length; ci++) {
       const c = this.curves[ci];
       const p = c.src() * c.rate * density * dt;
-      if (Math.random() < p) this.fire(ci);
+      if (Math.random() < p) this.fire(ci, 1, tint?.(ci));
     }
     for (let i = 0; i < this.n; i++) {
       const ci = this.curve[i];
@@ -90,9 +161,9 @@ function bezier(a: THREE.Vector3, b: THREE.Vector3, bend: number, segs: number):
   return out;
 }
 
-type Soma = { mesh: THREE.Mesh; mat: THREE.ShaderMaterial; halo: THREE.Sprite; flash: number; charge: number; color: THREE.Color };
+type Soma = { mesh: THREE.Mesh; mat: THREE.ShaderMaterial; halo: THREE.Sprite; flash: number; charge: number; color: THREE.Color; r: number };
 
-export class BrainScene implements FlyScene {
+class TowerForm implements BrainForm {
   private eye!: THREE.InstancedMesh;
   private lam!: THREE.InstancedMesh;
   private med!: THREE.InstancedMesh;
@@ -103,23 +174,28 @@ export class BrainScene implements FlyScene {
   private dn: Record<string, Soma> = {};
   private outLabels: Record<string, HTMLElement> = {};
   private rings: { mesh: THREE.Mesh; life: number }[] = [];
+  private ringGeo: THREE.TorusGeometry | null = null;
   private signals!: Signals;
   private sparks!: Particles;
   private dust!: THREE.Points;
   private lightDot!: THREE.Sprite;
+  private wires: THREE.LineSegments | null = null;
+  private floor: THREE.Mesh | null = null;
   private y = { eye: 0, lam: 0, med: 0, lp: 0, lplc2: 0, gf: 0, dn: 0, out: 0 };
-  private cur = { eye: new Float32Array(N * N), on: new Float32Array(N * N), off: new Float32Array(N * N), mh: new Float32Array(N * N), mv: new Float32Array(N * N) };
-  private val = { hs: { left: 0, right: 0, up: 0, down: 0 }, loom: 0, gf: 0, dn: { left: 0, right: 0, up: 0, down: 0 } };
-  private unsub: (() => void) | null = null;
-  private host: Host | null = null;
   private tmp = new THREE.Object3D();
   private c = new THREE.Color();
   private spread = 1;
+  private gfCurve = 0;
+  private dnCurve: Record<string, number> = {};
+  private lamCurves = new Map<number, number>(); // curve → cell, lamina → medulla: ON or OFF colour, live
+  private timers: ReturnType<typeof setTimeout>[] = [];
+  // theme colours, resolved once per build (no allocation per frame)
+  private tc = { eye: new THREE.Color(), on: new THREE.Color(), off: new THREE.Color(), left: new THREE.Color(), right: new THREE.Color(), up: new THREE.Color(), down: new THREE.Color() };
 
-  frame(mode: FlyGfx["camera"]) {
+  frame(mode: Shot) {
     const s = this.spread;
     const t = new THREE.Vector3(0, 0.2 * s, 0);
-    const p: Record<FlyGfx["camera"], THREE.Vector3> = {
+    const p: Record<Shot, THREE.Vector3> = {
       orbit: new THREE.Vector3(10, 8.5 * s, 18),
       front: new THREE.Vector3(0, 1.5 * s, 23),
       top: new THREE.Vector3(0.01, 22, 4),
@@ -128,14 +204,14 @@ export class BrainScene implements FlyScene {
     return { target: mode === "close" ? new THREE.Vector3(0, 4.2 * s, 0) : t, position: p[mode] };
   }
 
-  build(host: Host) {
-    this.host = host;
+  build(host: Host, data: BrainData) {
     const th = host.theme;
     const lv = host.lv;
     const root = host.root;
     const s = (this.spread = host.gfx.brainSpread);
     this.y = { eye: 6.6 * s, lam: 4.7 * s, med: 2.9 * s, lp: 1.1 * s, lplc2: -0.6 * s, gf: -1.9 * s, dn: -3.4 * s, out: -5.1 * s };
     const seg = lv.segments;
+    for (const k of Object.keys(this.tc) as (keyof typeof this.tc)[]) this.tc[k].set(th[k]);
 
     // light: a cool key, a warm rim, and the scene's own glow does the rest
     root.add(new THREE.AmbientLight(0xffffff, 0.25));
@@ -224,12 +300,12 @@ export class BrainScene implements FlyScene {
       const [x, z] = ring(i, 1.9);
       const soma = this.soma(root, col(th.dn), 0.4, seg, new THREE.Vector3(x, this.y.dn, z));
       this.dn[k] = soma;
-      this.addLabel(host, soma.mesh, `DN ${({ left: "←", up: "↑", down: "↓", right: "→" } as Record<string, string>)[k]}`, "", 0.62);
+      this.addLabel(host, soma.mesh, `DN ${ARROW[k]}`, "", 0.62);
       const out = new THREE.Object3D();
       const [ox, oz] = ring(i, 2.3);
       out.position.set(ox, this.y.out, oz);
       root.add(out);
-      this.outLabels[k] = this.addLabel(host, out, ({ left: "←", up: "↑", down: "↓", right: "→" } as Record<string, string>)[k], "fly-keycap", 0);
+      this.outLabels[k] = this.addLabel(host, out, ARROW[k], "fly-keycap", 0);
     });
     const outA = new THREE.Object3D();
     outA.position.set(0, this.y.out - 0.9, 0);
@@ -248,26 +324,30 @@ export class BrainScene implements FlyScene {
     const segs = 14;
     const pick = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * N * N));
     const at = (i: number, y: number) => new THREE.Vector3(gx(i % N), y, gx(Math.floor(i / N)) * 0.88);
-    const nWires = Math.round(40 * Math.min(1.5, Math.max(0.4, lv.particles)));
-    for (const i of pick(nWires)) curves.push({ pts: bezier(at(i, this.y.eye + 0.8), at(i, this.y.lam), 0.3, segs), src: () => this.cur.eye[i] * 0.7 + 0.08, color: col(th.eye), rate: 1.3 });
-    for (const i of pick(nWires)) curves.push({ pts: bezier(at(i, this.y.lam), at(i, this.y.med), 0.3, segs), src: () => Math.min(1, this.cur.on[i] + this.cur.off[i]) + 0.04, color: this.cur.on[i] >= this.cur.off[i] ? col(th.on) : col(th.off), rate: 3 });
+    const nWires = Math.round(48 * Math.min(1.5, Math.max(0.4, lv.particles)));
+    for (const i of pick(nWires)) curves.push({ pts: bezier(at(i, this.y.eye + 0.8), at(i, this.y.lam), 0.3, segs), src: () => data.eye[i] * 0.7 + 0.08, color: this.tc.eye, rate: 1.3 });
+    this.lamCurves = new Map();
+    for (const i of pick(nWires)) {
+      this.lamCurves.set(curves.length, i);
+      curves.push({ pts: bezier(at(i, this.y.lam), at(i, this.y.med), 0.3, segs), src: () => Math.min(1, data.on[i] + data.off[i]) + 0.04, color: this.tc.on, rate: 3 });
+    }
     for (const i of pick(nWires)) {
       const k = (["left", "right", "up", "down"] as const)[Math.floor(Math.random() * 4)];
       const p = this.lp[k].mesh.position;
-      curves.push({ pts: bezier(at(i, this.y.med), p, 1.4, segs), src: () => Math.min(1, this.val.hs[k] * 2) + 0.03, color: col(th[k]), rate: 2.4 });
+      curves.push({ pts: bezier(at(i, this.y.med), p, 1.4, segs), src: () => Math.min(1, data.hs[k] * 2) + 0.03, color: this.tc[k], rate: 2.4 });
     }
     for (const k of ["left", "right", "up", "down"] as const) {
       const from = this.lp[k].mesh.position;
       for (const d of DN_ORDER) {
         const to = this.dn[d].mesh.position;
-        curves.push({ pts: bezier(from, to, 1.0, segs), src: () => (d === k ? 0.9 : 0.12) * Math.min(1, this.val.hs[k] * 2 + this.val.dn[d] * 0.5), color: col(th[k]), rate: 2.6 });
+        curves.push({ pts: bezier(from, to, 1.0, segs), src: () => (d === k ? 0.9 : 0.12) * Math.min(1, data.hs[k] * 2 + data.dn[d] * 0.5), color: this.tc[k], rate: 2.6 });
       }
     }
-    for (const n of this.lplc2) curves.push({ pts: bezier(n.mesh.position, this.gf.mesh.position, 0.5, segs), src: () => Math.min(1, this.val.loom * 1.2), color: col(th.loom), rate: 6 });
+    for (const n of this.lplc2) curves.push({ pts: bezier(n.mesh.position, this.gf.mesh.position, 0.5, segs), src: () => Math.min(1, data.loom * 1.2), color: col(th.loom), rate: 6 });
     this.dnCurve = {};
     for (const k of DN_ORDER) {
       // the eye's light (phototaxis) feeds the descending neurons directly
-      curves.push({ pts: bezier(new THREE.Vector3(0, this.y.eye, 0), this.dn[k].mesh.position, 3.5, segs * 2), src: () => this.val.dn[k] * 0.6, color: col(th.dn), rate: 1.4 });
+      curves.push({ pts: bezier(new THREE.Vector3(0, this.y.eye, 0), this.dn[k].mesh.position, 3.5, segs * 2), src: () => data.dn[k] * 0.6, color: col(th.dn), rate: 1.4 });
       // and each one's axon runs down to its key (pulses only when it spikes)
       const p = this.dn[k].mesh.position;
       this.dnCurve[k] = curves.length;
@@ -279,6 +359,7 @@ export class BrainScene implements FlyScene {
     this.gfCurve = curves.length;
     curves.push({ pts: gfPts, src: () => 0, color: col(th.gf), rate: 0 });
 
+    this.wires = null;
     if (host.gfx.trails) {
       const pos: number[] = [];
       for (const c of curves) {
@@ -286,9 +367,10 @@ export class BrainScene implements FlyScene {
       }
       const g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-      root.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: col(th.wire), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })));
+      this.wires = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: col(th.wire), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+      root.add(this.wires);
     }
-    this.signals = new Signals(Math.round(900 * lv.particles), curves);
+    this.signals = new Signals(Math.round(1000 * lv.particles), curves);
     root.add(this.signals.points);
     this.sparks = new Particles(Math.round(500 * lv.particles), 1);
     root.add(this.sparks.points);
@@ -336,13 +418,8 @@ export class BrainScene implements FlyScene {
     root.add(floor);
 
     this.rings = [];
-    this.unsub?.();
-    this.unsub = onPress((p) => this.spike(p.key));
+    this.ringGeo = new THREE.TorusGeometry(0.5, 0.025, 6, 48); // shared by every shockwave; freed in dispose()
   }
-
-  private gfCurve = 0;
-  private dnCurve: Record<string, number> = {};
-  private floor: THREE.Mesh | null = null;
 
   private soma(root: THREE.Object3D, color: THREE.Color, r: number, seg: number, at: THREE.Vector3): Soma {
     const mat = neuronMaterial(color);
@@ -351,7 +428,7 @@ export class BrainScene implements FlyScene {
     const halo = glowSprite(color, r * 5, 0.25);
     halo.position.copy(at);
     root.add(mesh, halo);
-    return { mesh, mat, halo, flash: 0, charge: 0, color };
+    return { mesh, mat, halo, flash: 0, charge: 0, color, r };
   }
 
   private addLabel(host: Host, parent: THREE.Object3D, text: string, cls: string, dy: number): HTMLElement {
@@ -362,14 +439,12 @@ export class BrainScene implements FlyScene {
   }
 
   /** A descending neuron (or the giant fibre) fired: flash, shockwave, sparks, and a pulse down to its key. */
-  private spike(k: FlyKey) {
-    const host = this.host;
-    if (!host) return;
+  spike(k: FlyKey, host: Host) {
     const soma = k === "a" ? this.gf : this.dn[k];
-    if (!soma) return;
+    if (!soma || !this.ringGeo) return;
     soma.flash = 1;
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.5, 0.025, 6, 48),
+      this.ringGeo,
       new THREE.MeshBasicMaterial({ color: soma.color, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }),
     );
     ring.position.copy(soma.mesh.position);
@@ -377,7 +452,10 @@ export class BrainScene implements FlyScene {
     host.root.add(ring);
     this.rings.push({ mesh: ring, life: 1 });
     this.sparks.burst(soma.mesh.position, soma.color, Math.round(26 * host.lv.particles) + 4, 3.2);
-    for (let i = 0; i < 4; i++) setTimeout(() => this.signals.fire(k === "a" ? this.gfCurve : this.dnCurve[k], 1.6), i * 45);
+    const signals = this.signals;
+    const ci = k === "a" ? this.gfCurve : this.dnCurve[k];
+    for (let i = 0; i < 4; i++) this.timers.push(setTimeout(() => signals.fire(ci, 1.6), i * 45));
+    if (this.timers.length > 40) this.timers = this.timers.slice(-20);
     if (k === "a") for (const n of this.lplc2) n.flash = 1;
     const el = this.outLabels[k];
     if (el) {
@@ -387,33 +465,14 @@ export class BrainScene implements FlyScene {
     }
   }
 
-  update(dt: number, t: number, host: Host) {
-    const snap: FlySnap = useFly.getState().snap;
-    const th = host.theme;
-    const cur = this.cur;
-    const rate = 12;
-    const k = 1 - Math.exp(-rate * dt);
-    const take = (dst: Float32Array, src: number[] | undefined, scale: number) => {
-      if (!src) return;
-      for (let i = 0; i < dst.length; i++) dst[i] += ((src[i] ?? 0) * scale - dst[i]) * k;
-    };
-    take(cur.eye, snap.eye, 1 / 255);
-    take(cur.on, snap.on, 1 / 255);
-    take(cur.off, snap.off, 1 / 255);
-    take(cur.mh, snap.mh, 1 / 127);
-    take(cur.mv, snap.mv, 1 / 127);
-    const v = this.val;
-    for (const d of ["left", "right", "up", "down"] as const) {
-      v.hs[d] = approach(v.hs[d], snap.hs?.[d] ?? 0, rate, dt);
-      v.dn[d] = approach(v.dn[d], snap.dn?.[d] ?? 0, rate, dt);
-    }
-    v.loom = approach(v.loom, snap.looming ?? 0, rate, dt);
-    v.gf = approach(v.gf, snap.gf ?? 0, rate, dt);
+  update(dt: number, t: number, host: Host, data: BrainData) {
+    const snap = useFly.getState().snap;
+    const tc = this.tc;
 
     // eye: ommatidia glow with what they see
-    const eyeC = col(th.eye);
+    const eyeC = tc.eye;
     for (let i = 0; i < N * N; i++) {
-      const e = cur.eye[i];
+      const e = data.eye[i];
       this.c.setRGB(0.03 + eyeC.r * e * 1.2, 0.03 + eyeC.g * e * 1.2, 0.05 + eyeC.b * e * 1.2);
       this.eye.setColorAt(i, this.c);
     }
@@ -425,14 +484,14 @@ export class BrainScene implements FlyScene {
     this.lightDot.scale.setScalar(0.8 + Math.sin(t * 6) * 0.12);
 
     // lamina and medulla
-    const on = col(th.on);
-    const off = col(th.off);
+    const on = tc.on;
+    const off = tc.off;
     const gx = (c: number) => (c - (N - 1) / 2) * CELL;
     for (let r = 0; r < N; r++)
       for (let c = 0; c < N; c++) {
         const i = r * N + c;
-        const a = Math.min(1, cur.on[i]);
-        const b = Math.min(1, cur.off[i]);
+        const a = Math.min(1, data.on[i]);
+        const b = Math.min(1, data.off[i]);
         const act = Math.max(a, b);
         this.tmp.position.set(gx(c), this.y.lam + act * 0.25, gx(r) * 0.88);
         this.tmp.rotation.set(0, 0, 0);
@@ -442,8 +501,8 @@ export class BrainScene implements FlyScene {
         this.c.setRGB(0.04 + on.r * a + off.r * b, 0.04 + on.g * a + off.g * b, 0.06 + on.b * a + off.b * b);
         this.lam.setColorAt(i, this.c);
 
-        const mx = cur.mh[i];
-        const mz = cur.mv[i];
+        const mx = data.mh[i];
+        const mz = data.mv[i];
         const m = Math.min(1, Math.hypot(mx, mz) * 1.4);
         this.tmp.position.set(gx(c), this.y.med, gx(r) * 0.88);
         this.tmp.rotation.set(0, 0, 0);
@@ -455,8 +514,7 @@ export class BrainScene implements FlyScene {
         this.tmp.scale.set(0.6 + m, 0.35 + m * 1.6, 0.6 + m);
         this.tmp.updateMatrix();
         this.med.setMatrixAt(i, this.tmp.matrix);
-        const dirCol = Math.abs(mx) > Math.abs(mz) ? (mx > 0 ? th.right : th.left) : mz > 0 ? th.down : th.up;
-        const dc = col(dirCol);
+        const dc = Math.abs(mx) > Math.abs(mz) ? (mx > 0 ? tc.right : tc.left) : mz > 0 ? tc.down : tc.up;
         this.c.setRGB(0.05 + dc.r * m, 0.05 + dc.g * m, 0.07 + dc.b * m);
         this.med.setColorAt(i, this.c);
       }
@@ -473,13 +531,15 @@ export class BrainScene implements FlyScene {
       s.mat.uniforms.uTime.value = t;
       const pulse = 1 + s.flash * 0.35 + Math.sin(t * 3 + s.mesh.position.x) * 0.015;
       s.halo.material.opacity = 0.1 + s.charge * 0.28 + s.flash * 0.8;
-      s.halo.scale.setScalar((s.mesh.geometry as THREE.SphereGeometry).parameters.radius * 5 * pulse);
+      s.halo.scale.setScalar(s.r * 5 * pulse);
     };
-    for (const d of ["left", "right", "up", "down"] as const) drive(this.lp[d], v.hs[d] * 2.2);
-    for (const n of this.lplc2) drive(n, v.loom * 1.2);
-    drive(this.gf, v.gf);
-    for (const d of DN_ORDER) drive(this.dn[d], v.dn[d]);
-    (this.gfTube.material as THREE.MeshBasicMaterial).opacity = 0.18 + v.gf * 0.5 + this.gf.flash * 0.8;
+    for (const d of ["left", "right", "up", "down"] as const) drive(this.lp[d], data.hs[d] * 2.2);
+    for (const n of this.lplc2) drive(n, data.loom * 1.2);
+    drive(this.gf, data.gf);
+    for (const d of DN_ORDER) drive(this.dn[d], data.dn[d]);
+    (this.gfTube.material as THREE.MeshBasicMaterial).opacity = 0.18 + data.gf * 0.5 + this.gf.flash * 0.8;
+    // the wiring brightens as the whole circuit gets busy
+    if (this.wires) (this.wires.material as THREE.LineBasicMaterial).opacity = 0.4 + Math.min(0.45, data.overall * 1.4);
 
     for (const r of this.rings) {
       r.life -= dt * 1.6;
@@ -487,21 +547,30 @@ export class BrainScene implements FlyScene {
       (r.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, r.life);
       if (r.life <= 0) {
         host.root.remove(r.mesh);
-        r.mesh.geometry.dispose();
         (r.mesh.material as THREE.Material).dispose();
       }
     }
     this.rings = this.rings.filter((r) => r.life > 0);
-    this.signals.update(dt, host.lv.particles);
+    // lamina → medulla pulses take the colour of the channel that is firing right now (ON or OFF)
+    const lamTint = this.lamCurves;
+    this.signals.update(dt, host.lv.particles, (ci) => {
+      const cell = lamTint.get(ci);
+      return cell === undefined ? undefined : data.on[cell] >= data.off[cell] ? tc.on : tc.off;
+    });
     this.sparks.update(dt);
-    this.dust.rotation.y = t * 0.02;
-    this.dust.position.y = Math.sin(t * 0.3) * 0.2;
+    if (!host.reduced) {
+      this.dust.rotation.y = t * 0.02;
+      this.dust.position.y = Math.sin(t * 0.3) * 0.2;
+      // a slow breath of the whole tower
+      host.root.position.y = Math.sin(t * 0.6) * 0.06;
+    }
     if (this.floor) (this.floor.material as THREE.ShaderMaterial).uniforms.uTime.value = t;
-    // a slow breath of the whole tower
-    host.root.position.y = Math.sin(t * 0.6) * 0.06;
   }
 
   dispose() {
-    this.unsub?.();
+    this.timers.forEach(clearTimeout);
+    this.timers = [];
+    this.ringGeo?.dispose(); // the shockwave rings share it; the host's tree walk may already have freed it (harmless)
+    this.ringGeo = null;
   }
 }

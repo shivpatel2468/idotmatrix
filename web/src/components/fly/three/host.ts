@@ -5,23 +5,36 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { type FlyGfx, type Level, type Quality, THEMES, type Theme, level } from "../../../lib/fly";
+import { type CameraMode, type FlyGfx, type Level, type Quality, type Shot, THEMES, type Theme, level } from "../../../lib/fly";
 
 /** What a scene implements; the host owns the renderer, the loop and the quality. */
 export interface FlyScene {
+  /** Which setting holds this scene's camera. */
+  camKey: "camBrain" | "camKeys";
+  /** Settings (beyond theme and quality) whose change needs a rebuild; anything else applies live. */
+  deps: (keyof FlyGfx)[];
   /** Build (or rebuild, when the theme or quality changes) everything inside `root`. */
   build(host: Host): void;
   update(dt: number, t: number, host: Host): void;
-  /** Where the camera looks and how far it sits, per camera mode. */
-  frame(mode: FlyGfx["camera"]): { target: THREE.Vector3; position: THREE.Vector3 };
+  /** Where the camera looks and how far it sits, per camera angle. */
+  frame(mode: Shot): { target: THREE.Vector3; position: THREE.Vector3 };
+  /** The angles the cinematic camera cuts between (default: all four). */
+  shots?: Shot[];
+  /** Settings that change the scene's shape: the camera re-frames when they change. */
+  reframeOn?: (keyof FlyGfx)[];
   /** Bloom threshold (0..1): lit scenes need a higher one than glowing ones. */
   bloomThreshold?: number;
   dispose?(): void;
 }
 
 const ORDER: Exclude<Quality, "auto">[] = ["low", "balanced", "high", "ultra"];
+const COMMON: (keyof FlyGfx)[] = ["theme", "quality", "bloom", "particles", "shadows"];
+const Y = new THREE.Vector3(0, 1, 0);
 
-/** A WebGL view with bloom, labels, orbit controls, an fps cap, adaptive quality, and pause-when-hidden. */
+type CamAnim = { from: THREE.Vector3; to: THREE.Vector3; tFrom: THREE.Vector3; tTo: THREE.Vector3; p: number; rate: number };
+
+/** A WebGL view with bloom, labels, orbit controls, an fps cap, adaptive quality, a cinematic camera, and
+ *  pause-when-hidden. One per visible canvas: dispose() gives the GL context back. */
 export class Host {
   renderer: THREE.WebGLRenderer;
   labels: CSS2DRenderer;
@@ -37,6 +50,8 @@ export class Host {
   /** The quality actually in use (Auto steps it up or down from measured frame times). */
   tier: Exclude<Quality, "auto">;
   fps = 0;
+  /** prefers-reduced-motion: no auto-rotate, no cinematic cuts; scenes calm their own idle motion. */
+  reduced = false;
   onFps?: (fps: number, tier: string) => void;
 
   private raf = 0;
@@ -49,14 +64,19 @@ export class Host {
   private visible = true;
   private ro: ResizeObserver;
   private io: IntersectionObserver;
+  private mq: MediaQueryList;
   private touched = false; // the person has moved the camera: stop re-framing on resize
-  private camAnim: { from: THREE.Vector3; to: THREE.Vector3; tFrom: THREE.Vector3; tTo: THREE.Vector3; p: number } | null = null;
+  private camAnim: CamAnim | null = null;
+  private cine = { next: 0, i: -1, shot: "orbit" as Shot };
 
   constructor(private el: HTMLElement, private view: FlyScene, gfx: FlyGfx) {
     this.gfx = gfx;
     this.theme = THEMES[gfx.theme];
     this.tier = gfx.quality === "auto" ? (navigator.hardwareConcurrency >= 8 ? "high" : "balanced") : gfx.quality;
     this.lv = level(this.tier, gfx);
+    this.mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.reduced = this.mq.matches;
+    this.mq.addEventListener("change", this.onMotionPref);
     this.renderer = this.makeRenderer();
     this.labels = new CSS2DRenderer();
     this.labels.domElement.className = "fly-labels";
@@ -71,6 +91,7 @@ export class Host {
     this.controls.addEventListener("start", () => {
       this.touched = true;
       this.camAnim = null;
+      this.cine.next = this.clock + 12; // the cinematic camera waits while the person looks around
     });
     this.rebuild();
     this.ro = new ResizeObserver(() => this.resize());
@@ -81,6 +102,22 @@ export class Host {
     this.last = performance.now();
     this.raf = requestAnimationFrame(this.loop);
   }
+
+  /** The camera setting for this scene. */
+  get mode(): CameraMode {
+    return this.gfx[this.view.camKey];
+  }
+
+  /** The fixed angle the camera rests at: the cinematic camera's current shot, or the chosen angle. */
+  private get rest(): Shot {
+    const m = this.mode;
+    return m === "cinematic" ? (this.reduced ? "orbit" : this.cine.shot) : m;
+  }
+
+  private onMotionPref = () => {
+    this.reduced = this.mq.matches;
+    this.syncControls();
+  };
 
   private makeRenderer() {
     const r = new THREE.WebGLRenderer({ antialias: this.lv.aa, powerPreference: "high-performance", alpha: false });
@@ -95,46 +132,92 @@ export class Host {
     return r;
   }
 
-  /** Settings changed: re-theme, re-level, rebuild the scene (keeps the camera where the person left it). */
-  apply(gfx: FlyGfx) {
+  /** Settings changed. Only what needs it is rebuilt (theme, quality, the scene's own `deps`); camera, glow
+   *  strength, rotation, labels and layout apply live, so dragging a wing's width never rebuilds a scene. */
+  apply(gfx: FlyGfx, force = false) {
     const prev = this.gfx;
     this.gfx = gfx;
     this.theme = THEMES[gfx.theme];
     if (gfx.quality !== "auto") this.tier = gfx.quality;
-    const aaChanged = level(this.tier, gfx).aa !== this.lv.aa;
-    this.lv = level(this.tier, gfx);
-    if (aaChanged) {
-      // antialiasing is fixed at context creation
-      this.renderer.dispose();
-      this.renderer.domElement.remove();
-      this.renderer = this.makeRenderer();
+    const lv = level(this.tier, gfx);
+    const was = this.lv;
+    const lvChanged = (Object.keys(lv) as (keyof Level)[]).some((k) => lv[k] !== was[k]);
+    const need = force || lvChanged || [...COMMON, ...this.view.deps].some((k) => prev[k] !== gfx[k]);
+    if (need) {
+      this.lv = lv;
+      if (lv.aa !== was.aa) {
+        // antialiasing is fixed at context creation
+        this.disposeRenderer();
+        this.renderer = this.makeRenderer();
+      }
+      this.renderer.setPixelRatio(this.lv.pixelRatio);
+      this.renderer.shadowMap.enabled = this.lv.shadows;
+      this.rebuild();
+      this.resize();
+      if (this.view.reframeOn?.some((k) => prev[k] !== gfx[k])) this.flyTo(this.rest);
     }
-    this.renderer.setPixelRatio(this.lv.pixelRatio);
-    this.renderer.shadowMap.enabled = this.lv.shadows;
-    this.rebuild();
-    if (prev.camera !== gfx.camera) this.flyTo(gfx.camera);
-    this.resize();
+    if (this.bloom) this.bloom.strength = gfx.bloomStrength;
+    if (prev[this.view.camKey] !== gfx[this.view.camKey]) this.setMode();
+    this.syncControls();
   }
 
-  /** The scene's camera for a mode, pulled back so it fits a narrow (tall) view. */
-  private fit(mode: FlyGfx["camera"]) {
+  /** The camera setting changed: glide to the new angle (or start the cinematic camera). */
+  private setMode() {
+    if (this.mode === "cinematic") {
+      this.cine.next = this.clock; // first cut now
+      this.cine.i = -1;
+      if (this.reduced) this.flyTo("orbit");
+    } else this.flyTo(this.mode);
+  }
+
+  private syncControls() {
+    const m = this.mode;
+    this.controls.autoRotate = !this.reduced && ((this.gfx.autoRotate && m === "orbit") || m === "cinematic");
+    this.controls.autoRotateSpeed = m === "cinematic" ? 0.35 : this.gfx.rotateSpeed * 1.2;
+    this.labels.domElement.dataset.hide = String(!this.gfx.labels);
+  }
+
+  /** The scene's camera for an angle, pulled back so it fits a narrow (tall) view. */
+  private fit(mode: Shot) {
     const f = this.view.frame(mode);
     const k = Math.max(1, 1.05 / Math.max(0.3, this.camera.aspect));
     f.position.sub(f.target).multiplyScalar(k).add(f.target);
     return f;
   }
 
-  flyTo(mode: FlyGfx["camera"]) {
+  flyTo(mode: Shot, rate = 1.4) {
     this.touched = false;
     const f = this.fit(mode);
-    this.camAnim = { from: this.camera.position.clone(), to: f.position, tFrom: this.controls.target.clone(), tTo: f.target, p: 0 };
+    this.camAnim = { from: this.camera.position.clone(), to: f.position, tFrom: this.controls.target.clone(), tTo: f.target, p: 0, rate };
+  }
+
+  /** Cinematic: the next shot, seen from a slightly different side and distance; a slow dolly most of the
+   *  time, a hard cut now and then. */
+  private cut() {
+    const list = this.view.shots ?? ["orbit", "close", "front", "top"];
+    this.cine.i = (this.cine.i + 1) % list.length;
+    this.cine.shot = list[this.cine.i];
+    const f = this.fit(this.cine.shot);
+    const off = f.position.clone().sub(f.target).applyAxisAngle(Y, (Math.random() - 0.5) * 1.3).multiplyScalar(0.82 + Math.random() * 0.3);
+    f.position.copy(f.target).add(off);
+    this.touched = false;
+    if (Math.random() < 0.3 && this.cine.i > 0) {
+      this.camAnim = null;
+      this.camera.position.copy(f.position);
+      this.controls.target.copy(f.target);
+    } else {
+      this.camAnim = { from: this.camera.position.clone(), to: f.position, tFrom: this.controls.target.clone(), tTo: f.target, p: 0, rate: 0.42 };
+    }
+    this.cine.next = this.clock + 6.5 + Math.random() * 3.5;
   }
 
   private rebuild() {
     this.disposeTree(this.root);
+    // CSS labels live in the DOM: take every one out (nested ones never see a "removed" event)
+    this.root.traverse((o) => {
+      if (o instanceof CSS2DObject) o.element.remove();
+    });
     for (const c of [...this.root.children]) this.root.remove(c);
-    // CSS labels live in the DOM; clear any left by the previous build
-    this.labels.domElement.querySelectorAll(".fly-label").forEach((n) => n.remove());
     const th = this.theme;
     this.scene.background = new THREE.Color(th.bg);
     this.scene.fog = new THREE.FogExp2(new THREE.Color(th.fog), 0.035);
@@ -151,8 +234,7 @@ export class Host {
       this.composer.addPass(this.bloom);
       this.composer.addPass(new OutputPass());
     }
-    this.controls.autoRotate = this.gfx.autoRotate && this.gfx.camera === "orbit";
-    this.controls.autoRotateSpeed = this.gfx.rotateSpeed * 1.2;
+    this.syncControls();
   }
 
   /** A DOM label pinned to a 3D point. The renderer positions the outer element with a transform, so styling
@@ -178,7 +260,7 @@ export class Host {
     this.composer?.setSize(w, h);
     this.composer?.setPixelRatio(this.lv.pixelRatio);
     if (!this.touched && !this.camAnim) {
-      const f = this.fit(this.gfx.camera);
+      const f = this.fit(this.rest);
       this.camera.position.copy(f.position);
       this.controls.target.copy(f.target);
     }
@@ -197,10 +279,11 @@ export class Host {
     this.last = now;
     this.clock += dt;
     this.measure(dt);
+    if (this.mode === "cinematic" && !this.reduced && this.clock >= this.cine.next) this.cut();
     if (this.camAnim) {
       const a = this.camAnim;
-      a.p = Math.min(1, a.p + dt * 1.4);
-      const e = 1 - (1 - a.p) ** 3;
+      a.p = Math.min(1, a.p + dt * a.rate);
+      const e = a.rate < 1 ? a.p * a.p * (3 - 2 * a.p) : 1 - (1 - a.p) ** 3; // dollies ease in and out
       this.camera.position.lerpVectors(a.from, a.to, e);
       this.controls.target.lerpVectors(a.tFrom, a.tTo, e);
       if (a.p >= 1) this.camAnim = null;
@@ -229,7 +312,7 @@ export class Host {
       if (++this.slow >= 2 && i > 0) {
         this.slow = 0;
         this.tier = ORDER[i - 1];
-        this.apply(this.gfx);
+        this.apply(this.gfx, true);
       }
     } else if (this.fps >= target * 0.95) {
       this.slow = 0;
@@ -237,7 +320,7 @@ export class Host {
         // Auto never climbs to Ultra on its own
         this.fast = 0;
         this.tier = ORDER[i + 1];
-        this.apply(this.gfx);
+        this.apply(this.gfx, true);
       }
     } else {
       this.slow = this.fast = 0;
@@ -254,16 +337,25 @@ export class Host {
     });
   }
 
+  private disposeRenderer() {
+    this.renderer.dispose();
+    this.renderer.forceContextLoss(); // browsers cap live WebGL contexts: give this one back now
+    this.renderer.domElement.remove();
+  }
+
   dispose() {
     cancelAnimationFrame(this.raf);
     this.ro.disconnect();
     this.io.disconnect();
+    this.mq.removeEventListener("change", this.onMotionPref);
     this.view.dispose?.();
     this.disposeTree(this.root);
+    this.root.traverse((o) => {
+      if (o instanceof CSS2DObject) o.element.remove();
+    });
     this.composer?.dispose();
     this.controls.dispose();
-    this.renderer.dispose();
-    this.renderer.domElement.remove();
+    this.disposeRenderer();
     this.labels.domElement.remove();
   }
 }
@@ -272,7 +364,7 @@ export class Host {
 
 export const col = (hex: string) => new THREE.Color(hex);
 
-/** A soft additive glow sprite texture (generated, no assets). */
+/** A soft additive glow sprite texture (generated, no assets). Shared by every scene: never disposed. */
 let glowTex: THREE.Texture | null = null;
 export function glowTexture(): THREE.Texture {
   if (glowTex) return glowTex;
@@ -369,6 +461,7 @@ export class Particles {
   private life: Float32Array;
   private max: Float32Array;
   private next = 0;
+  private live = 0; // how many may still be alive (skip the loop when none are)
   gravity = -2.2;
   drag = 1.6;
 
@@ -398,6 +491,7 @@ export class Particles {
     this.life[i] = life;
     this.max[i] = life;
     this.size[i] = size;
+    this.live = this.n;
   }
 
   burst(p: THREE.Vector3, c: THREE.Color, count: number, speed: number, life = 0.9, size = 1.4) {
@@ -408,13 +502,25 @@ export class Particles {
     }
   }
 
+  /** A burst in every direction (no upward bias), for scenes without a floor. */
+  sphere(p: THREE.Vector3, c: THREE.Color, count: number, speed: number, life = 0.9, size = 1.4) {
+    const v = new THREE.Vector3();
+    for (let k = 0; k < count; k++) {
+      v.randomDirection().multiplyScalar(speed * (0.3 + Math.random()));
+      this.emit(p, v, c, life * (0.6 + Math.random() * 0.6), size * (0.5 + Math.random()));
+    }
+  }
+
   update(dt: number) {
+    if (!this.live) return;
     const d = Math.exp(-this.drag * dt);
+    let alive = 0;
     for (let i = 0; i < this.n; i++) {
       if (this.life[i] <= 0) {
         this.size[i] = 0;
         continue;
       }
+      alive++;
       this.life[i] -= dt;
       const k = Math.max(0, this.life[i] / this.max[i]);
       const j = i * 3;
@@ -428,6 +534,7 @@ export class Particles {
       this.colr[j + 1] = this.base[j + 1] * k;
       this.colr[j + 2] = this.base[j + 2] * k;
     }
+    this.live = alive;
     const g = this.points.geometry;
     g.attributes.position.needsUpdate = true;
     g.attributes.color.needsUpdate = true;

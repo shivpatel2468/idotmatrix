@@ -119,6 +119,17 @@ class Pong(GameApp):
         mid = pad["pos"] + self.settings.paddle / 2
         return (pad["plane"], mid) if pad["side"] in ("L", "R") else (mid, pad["plane"])
 
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Where the ball will cross seat 1's paddle line (bounces included); the middle while it's away."""
+        pad = next((p for p in self.pads if p["seat"] == 1), None)
+        if pad is None:
+            return []
+        if self._toward(pad["side"]) and self.wait <= 0:
+            at, k = self._predict(pad) + 1, 1.0
+        else:
+            at, k = 16.0, 0.4
+        return [(pad["plane"], at, k) if pad["side"] in ("L", "R") else (at, pad["plane"], k)]
+
     def new_game(self) -> None:
         self.mode = self.play_mode.id if self.roster else "classic"
         self.ls = self.rs = 0
@@ -500,6 +511,23 @@ class Breakout(GameApp):
     game_themes: ClassVar[dict[str, Theme]] = BREAKOUT_THEMES
     game_theme_labels: ClassVar[dict[str, str]] = {"arcade": "Arcade", "candy": "Candy", "lava": "Lava"}
 
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's paddle."""
+        pad = next((p for p in self.pads if p["seat"] == 1), None)
+        return None if pad is None else (pad["x"] + self.settings.paddle / 2, 28.5)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Where seat 1's ball will land on the paddle line (walls bounced); under the ball while it rises."""
+        i = next((j for j, p in enumerate(self.pads) if p["seat"] == 1), None)
+        if i is None:
+            return []
+        pad, b = self.pads[i], self.balls[i]
+        if not b:
+            return []
+        if b["vy"] > 0 and b["wait"] <= 0:
+            return [(self._landing_x(b, pad["lo"], pad["hi"]), 28.5, 1.0)]
+        return [(b["x"], 28.5, 0.5)]
+
     def new_game(self) -> None:
         self.mode = self.play_mode.id if self.roster else "solo"
         self.level = 1
@@ -874,7 +902,24 @@ class Flappy(GameApp):
     def pilot_anchor(self) -> tuple[float, float] | None:
         """The fruit-fly pilot's eye follows seat 1's bird."""
         bird = next((b for b in self.birds if b["seat"] == 1), None)
-        return None if bird is None else (bird["x"], bird["y"])
+        return None if bird is None else (bird["x"] + 2, bird["y"] + 2)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The middle of the next gap (the cave's narrowest stretch ahead), at the bird's own column: above it
+        means flap ("up"), below means let gravity work."""
+        b = next((b for b in self.birds if b["seat"] == 1 and b["alive"]), None)
+        if b is None:
+            return []
+        if self.map_id == "cave":
+            cols = [self._cave(self.scroll + b["x"] + dx) for dx in range(-1, 10, 2)]
+            target = (max(c[0] for c in cols) + min(c[1] for c in cols)) / 2
+        else:
+            nxt = next((p for p in self.pipes if p["x"] + 6 > b["x"]), None)
+            if nxt is None:
+                return [(b["x"] + 2, 15.0, 0.5)]
+            ahead = max(0.0, (nxt["x"] - b["x"]) / FLAP_SPEED)
+            target = self._top(nxt, ahead) + nxt["gap"] / 2
+        return [(b["x"] + 3, target, 1.0)]
 
     def new_game(self) -> None:
         self.race = bool(self.roster) and self.play_mode.id == "race"
@@ -1247,6 +1292,38 @@ class Dino(GameApp):
                 if (w + w2 + 2) / self.speed < window * 0.8:
                     self.obs.append({"x": x0 + w, "kind": "cactus", "i": j, "w": w2, "hgt": h2})
         self.next_gap = self.rng.uniform(0.9, 1.9) * (14 + self.speed * 0.9)
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's dino."""
+        d = next((d for d in self.dinos if d["seat"] == 1), None)
+        return None if d is None else (d["x"] + 5, GROUND_Y - 4 - d["y"])
+
+    def _next_threat(self, d: dict[str, Any]) -> tuple[str, float] | None:
+        """("jump" | "duck", seconds until the dino should act) for the next obstacle, or None."""
+        dx = d["x"] - 2
+        for o in sorted(self.obs, key=lambda o: o["x"]):
+            if o["x"] + o["w"] < 4 + dx:
+                continue
+            if o["kind"] == "bird" and o["h"] >= 9:
+                continue  # high bird: run under it
+            t_in = (o["x"] + 0.5 - (8.5 + dx)) / max(1.0, self.speed)
+            if o["kind"] == "bird" and o["h"] == 4:
+                return "duck", t_in - 0.1
+            t_out = (o["x"] + o["w"] - 0.5 - (5.5 + dx)) / max(1.0, self.speed)
+            return "jump", (t_in + t_out) / 2 - JUMP_V / GRAVITY
+        return None
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """Open air above the next cactus (jump: "up") or the ground under a mid-height bird (duck: "down"),
+        smelled just as the dino reaches it."""
+        d = next((d for d in self.dinos if d["seat"] == 1 and d["alive"]), None)
+        if d is None or d["y"] > 0:
+            return []
+        nxt = self._next_threat(d)
+        if nxt is None or nxt[1] > 0.12:  # smelled a step or two before the jump: the brain needs that long
+            return []
+        x = d["x"] + 5
+        return [(x, GROUND_Y - 16, 1.0)] if nxt[0] == "jump" else [(x, GROUND_Y + 4, 1.0)]
 
     def _jump(self, d: dict[str, Any]) -> None:
         if d["y"] <= 0 and d["duck"] <= 0:
@@ -1621,6 +1698,39 @@ class Racer(GameApp):
                 if best == depth:
                     break
         return best
+
+    def pilot_anchor(self) -> tuple[float, float] | None:
+        """The fruit-fly pilot's eye follows seat 1's car."""
+        pl = next((p for p in self.players if p["seat"] == 1), None)
+        return None if pl is None else (pl["x"] + 2.5, pl["y"] + 4)
+
+    def fly_lure(self) -> list[tuple[float, float, float]]:
+        """The free lane: the one the look-ahead survives longest in, beside the car (refreshed ~6× a second)."""
+        pl = next((p for p in self.players if p["seat"] == 1 and p["alive"]), None)
+        if pl is None:
+            return []
+        now = self._clock()
+        cache = getattr(self, "_fly_lane", None)
+        if cache is None or now - cache[1] > 0.15:
+            cache = self._fly_lane = (self._best_lane(pl), now)
+        return [(LANE_X[cache[0]] + 2.5, pl["y"] + 4, 1.0)]
+
+    def _best_lane(self, pl: dict[str, Any]) -> int:
+        step = 0.28
+        depth = 3 + round(3 * self.skill)
+        cur = pl["lane"]
+        scores = []
+        for nl in (cur, cur - 1, cur + 1):
+            if not 0 <= nl <= 2:
+                continue
+            if nl != cur and not (self._free(pl, nl, 0) and self._free(pl, nl, step)):
+                continue
+            if nl == cur and not self._free(pl, cur, step):
+                scores.append((0, 0, nl))
+                continue
+            sv = 1 + self._survive(pl, nl, step, depth - 1, step)
+            scores.append((sv, 1 if nl == cur else 0, nl))
+        return max(scores)[2] if scores else cur
 
     def _ai(self, pl: dict[str, Any], dt: float) -> None:
         pl["think"] -= dt
