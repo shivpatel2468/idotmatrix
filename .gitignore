@@ -59,3 +59,6 @@ minecraft/
 Thumbs.db
 desktop.ini
 web/tsconfig.tsbuildinfo
+
+# Local Netlify folder
+.netlify
