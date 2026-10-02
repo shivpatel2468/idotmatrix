@@ -472,3 +472,17 @@ def test_the_fly_plays_board_games() -> None:
     mines, mclock = _fly_game("mines")
     _frames(mines, mclock, 400)
     assert len(mines.shown) >= 10, "the feeding reflex opens safe cells"
+
+
+def test_taking_the_game_back_stops_reporting_the_fly() -> None:
+    cls = REGISTRY["pong"]
+    app = cls(Ctx(), cls.Settings(pilot="fly"))  # type: ignore[arg-type,call-arg]
+    clock = {"t": 1000.0}
+    app._clock = lambda: clock["t"]  # type: ignore[method-assign]
+    app.reset()
+    for i in range(40):
+        clock["t"] += 0.1
+        app.render(Frame(), i / 10)
+    assert app.status()["player"] == "fly"
+    app.settings = cls.Settings(pilot="ai")  # type: ignore[call-arg]
+    assert app.status()["player"] == "ai", "the studio's Fly button flips back at once"

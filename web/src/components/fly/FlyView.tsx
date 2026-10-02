@@ -204,7 +204,7 @@ function ScenePane({ kind, variant, className }: { kind: SceneKind; variant: "wi
               options={BRAIN_FORMS.map(([v, l]) => [v, l])} />
           ) : (
             <MiniSelect label="Fly look" value={look} onChange={(fly) => setGfx({ fly })}
-              options={[["wild", "Wild"], ["golden", "Gold"], ["chrome", "Chrome"], ["ghost", "Ghost"]]} />
+              options={[["wild", "Wild"], ["golden", "Gold"], ["chrome", "Chrome"], ["ghost", "Ghost"], ["hornet", "Hornet"], ["noir", "Noir"]]} />
           )}
           {variant === "wing" && <MiniSelect label="Camera angle" value={cam} onChange={setCam} options={CAMERAS} />}
           {variant === "wing" && (
@@ -556,7 +556,7 @@ function FlySettings({ onClose }: { onClose: () => void }) {
         {tab === "fly" && (
           <>
             <Line label="Fly">
-              <Seg value={g.fly} onChange={(fly) => setGfx({ fly })} options={[["wild", "Wild"], ["golden", "Gold"], ["chrome", "Chrome"], ["ghost", "Ghost"]]} />
+              <Seg value={g.fly} onChange={(fly) => setGfx({ fly })} options={[["wild", "Wild"], ["golden", "Gold"], ["chrome", "Chrome"], ["ghost", "Ghost"], ["hornet", "Hornet"], ["noir", "Noir"]]} />
             </Line>
             <Line label="Fly size"><Slider value={g.flySize} min={0.7} max={1.4} step={0.05} width={140} onCommit={(flySize) => setGfx({ flySize })} /></Line>
             <Line label="Iridescent wings"><Toggle on={g.wingShimmer} onChange={(wingShimmer) => setGfx({ wingShimmer })} label="Iridescent wings" /></Line>

@@ -609,12 +609,14 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 
 /* ---------------------------------------------------------------- the roaming fly (components/RoamingFly) */
 .roam-fly, .roam-shadow, .roam-tip { position: fixed; left: 0; top: 0; z-index: 45; /* above the studio, below dialogs (z-50) */ will-change: transform, opacity; }
-.roam-fly { width: 136px; height: 136px; cursor: pointer; transform-origin: 50% 50%; border-radius: 50%; }
+.roam-fly { width: 72px; height: 72px; cursor: pointer; transform-origin: 50% 50%; border-radius: 50%; }
 /* the fly glows: a warm amber halo with a pink rim, breathing */
 .roam-fly canvas { filter: drop-shadow(0 0 5px rgba(255, 207, 77, 0.75)) drop-shadow(0 0 16px rgba(255, 79, 123, 0.45)); animation: fly-glow 2.4s ease-in-out infinite; }
 @keyframes fly-glow { 50% { filter: drop-shadow(0 0 7px rgba(255, 207, 77, 0.95)) drop-shadow(0 0 24px rgba(255, 140, 46, 0.55)); } }
+.roam-fly[data-skin="hornet"] canvas { animation-name: fly-glow-hornet; filter: drop-shadow(0 0 5px rgba(57, 255, 122, 0.8)) drop-shadow(0 0 14px rgba(57, 255, 122, 0.4)); }
+@keyframes fly-glow-hornet { 50% { filter: drop-shadow(0 0 7px rgba(57, 255, 122, 1)) drop-shadow(0 0 22px rgba(255, 204, 51, 0.45)); } }
 .roam-shadow {
-  width: 60px; height: 30px; border-radius: 50%; pointer-events: none;
+  width: 32px; height: 16px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
 }
 .roam-tip {
@@ -624,3 +626,58 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
   box-shadow: 0 0 18px -6px var(--color-ember); transition: opacity 0.2s ease;
 }
 .roam-tip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-ember-2); }
+
+/* ---------------------------------------------------------------- "Let the fly play" (components/FlyToggle) */
+.flybtn {
+  position: relative; display: inline-flex; align-items: center; gap: 0.5rem; height: 2.1rem; padding: 0 0.95rem 0 0.7rem;
+  border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--color-ink-1); white-space: nowrap;
+  background: linear-gradient(180deg, #1c1418, #120d10);
+  border: 1px solid rgba(255, 116, 25, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 0 rgba(255, 116, 25, 0);
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.08s, background 0.25s;
+}
+.flybtn:hover { border-color: rgba(255, 140, 46, 0.75); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 18px -4px rgba(255, 116, 25, 0.6); }
+.flybtn:active { transform: translateY(1px); }
+.flybtn-compact { padding: 0 0.6rem; }
+.flybtn-label { letter-spacing: 0.01em; }
+.flybtn-fly { flex: none; overflow: visible; filter: drop-shadow(0 0 4px rgba(255, 204, 51, 0.55)); }
+.flybtn-wings ellipse { fill: rgba(190, 228, 255, 0.55); stroke: rgba(255, 255, 255, 0.65); stroke-width: 0.6; }
+.flybtn-abdomen { fill: #b07a3c; }
+.flybtn-thorax { fill: #d9a35a; }
+.flybtn-eye { fill: #ff3f2e; }
+.flybtn-wings { transform-origin: 12px 10px; }
+.flybtn:hover .flybtn-wings, .flybtn[data-on="true"] .flybtn-wings { animation: flybtn-buzz 0.09s linear infinite alternate; }
+@keyframes flybtn-buzz { from { transform: scaleY(1); } to { transform: scaleY(0.55); } }
+.flybtn[data-on="true"] {
+  padding-right: 0.35rem; color: #fff;
+  background: linear-gradient(180deg, #ff6a2b, #e0400f);
+  border-color: rgba(255, 190, 120, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 22px -2px rgba(255, 90, 31, 0.75);
+}
+.flybtn-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff7e0; box-shadow: 0 0 8px #ffe2a8; animation: pulse-dot 1.2s ease-in-out infinite; }
+.flybtn-back {
+  margin-left: 0.15rem; padding: 0.22rem 0.6rem; border-radius: 999px; font-size: 11px; font-weight: 700;
+  color: #4a1405; background: rgba(255, 245, 230, 0.92); box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
+@media (prefers-reduced-motion: reduce) { .flybtn-wings, .flybtn-dot { animation: none !important; } }
+
+/* the roaming fly's sign toggle (components/FlyToggle RoamSign) */
+.roamsign { position: relative; display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 999px; transition: transform 0.15s, background 0.2s; }
+.roamsign:hover { background: rgba(255, 255, 255, 0.05); transform: rotate(-6deg) scale(1.06); }
+.roamsign-ring { fill: #fff8ee; stroke-width: 3; }
+.roamsign[data-on="true"] .roamsign-ring { stroke: #23b45a; }
+.roamsign[data-on="false"] .roamsign-ring { stroke: #e3262e; }
+.roamsign-fly { fill: #2a1d14; }
+.roamsign-wing { fill: rgba(140, 190, 230, 0.75); stroke: #2a1d14; stroke-width: 0.6; }
+.roamsign-legs { stroke: #2a1d14; stroke-width: 1; stroke-linecap: round; fill: none; }
+.roamsign[data-on="false"] .roamsign-fly { opacity: 0.85; }
+.roamsign-slash { stroke: #e3262e; stroke-width: 3.2; stroke-linecap: round; }
+.roamsign-check { fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; paint-order: stroke; filter: drop-shadow(0 0 0.6px #23b45a) drop-shadow(0 0 0.6px #23b45a) drop-shadow(0 0 0.6px #23b45a); }
+.roamsign[data-on="true"] svg { filter: drop-shadow(0 0 6px rgba(35, 180, 90, 0.55)); }
+.roamsign[data-on="false"] svg { filter: drop-shadow(0 0 6px rgba(227, 38, 46, 0.5)); }
+/* a puff of spray when the fly is sent away */
+.roamsign-mist { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(220, 240, 255, 0.85) 0 18%, rgba(200, 230, 255, 0.4) 35%, transparent 62%);
+  animation: roamsign-mist 0.7s ease-out forwards; }
+@keyframes roamsign-mist { from { transform: scale(0.4); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .roamsign-mist { animation: none; display: none; } }

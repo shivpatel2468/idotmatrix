@@ -2,7 +2,7 @@ import { RefreshCw, Search, Settings2, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { openSettings, useStore } from "../lib/store";
-import { FlyToggle } from "./FlyToggle";
+import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
 
@@ -112,6 +112,7 @@ export function TopBar() {
       <div className="flex min-w-0 items-center"><StatusPill /></div>
       <Wordmark />
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+      <RoamSign />
       <FlyToggle picker compact className="xl:hidden" />
       <FlyToggle picker className="hidden xl:block" />
       <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">

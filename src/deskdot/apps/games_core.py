@@ -604,8 +604,11 @@ class GameApp(App):
         now = self._clock()
         fly_recent = now - getattr(self, "_fly_at", -1e9) < HUMAN_IDLE
         real_recent = now - getattr(self, "_real_human_at", -1e9) < HUMAN_IDLE
-        if fly_recent and not real_recent:
+        flying = getattr(self.settings, "pilot", "ai") == "fly"
+        if flying and fly_recent and not real_recent:
             return "fly"
+        if not flying and fly_recent and not real_recent:
+            return "ai"  # the fly was just taken off this game: the built-in AI is back, not "you"
         return "you" if self.human else "ai"
 
     def _fly_pilot(self, f: Frame, now: float) -> None:

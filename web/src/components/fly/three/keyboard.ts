@@ -77,6 +77,8 @@ const FLY_LOOK: Record<FlyGfx["fly"], { body: string; metal: number; rough: numb
   golden: { body: "#d9a441", metal: 1, rough: 0.22, emissive: "#2a1500", eye: "#ff2a1a", opacity: 1 },
   ghost: { body: "#cfe8ff", metal: 0, rough: 0.2, emissive: "#3a6a9a", eye: "#7ad7ff", opacity: 0.55 },
   chrome: { body: "#c8ccd6", metal: 1, rough: 0.08, emissive: "#000000", eye: "#ff2050", opacity: 1 },
+  hornet: { body: "#1a8a44", metal: 0.55, rough: 0.22, emissive: "#05300f", eye: "#39ff7a", opacity: 1 },
+  noir: { body: "#2a2a2c", metal: 0.35, rough: 0.3, emissive: "#000000", eye: "#ffcc33", opacity: 1 },
 };
 
 export class KeyboardScene implements FlyScene {

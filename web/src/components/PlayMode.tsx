@@ -443,7 +443,7 @@ function PlayView() {
           <Bot size={14} /> Let AI play
         </button>
       )}
-      <FlyToggle className="[&>.key]:w-full" />
+      <FlyToggle className="[&>.flybtn]:w-full [&>.flybtn]:justify-center" />
     </>
   );
 

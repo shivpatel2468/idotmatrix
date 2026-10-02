@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { flyCanPilot, flyTakeOver, useFly } from "../lib/fly";
+import { type FlyLook, flyCanPilot, flyTakeOver, useFly } from "../lib/fly";
 import { appMeta, useStore } from "../lib/store";
 
 /**
@@ -11,18 +11,43 @@ import { appMeta, useStore } from "../lib/store";
 
 type Mode = "fly" | "hover" | "land" | "walk" | "groom" | "escape" | "dive" | "inside" | "emerge";
 
-const SIZE = 136; // sprite canvas (CSS px)
-const ZOOM = 2.25; // the fly is drawn in a ~24-unit body space, scaled up
+const SIZE = 72; // sprite canvas (CSS px)
+const ZOOM = 1; // the fly is drawn in a ~24-unit body space
 
-function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz: number; walk: number; groom: number; air: number }) {
+/** Colours per skin (the 3D fly has matching looks in components/fly/three/keyboard.ts). */
+type Skin = {
+  legs: string; abdomen: [string, string]; bands: string; thorax: [string, string, string]; head: string;
+  eye: [string, string, string]; wing: [string, string, string, string]; alpha: number; mask?: string; stripes?: string;
+};
+const SKINS: Record<FlyLook, Skin> = {
+  wild: { legs: "#1a120b", abdomen: ["#5a3a1c", "#b08550"], bands: "rgba(40,22,10,0.75)", thorax: ["#e2c08a", "#9a6e3c", "#4b301a"], head: "#6b4a28",
+    eye: ["#ff5a4a", "#b3121c", "#4a0508"], wing: ["rgba(190,230,255,0.55)", "rgba(255,150,240,0.4)", "rgba(150,255,200,0.35)", "rgba(255,230,140,0.25)"], alpha: 1 },
+  golden: { legs: "#3a2604", abdomen: ["#8a5a10", "#f0c050"], bands: "rgba(90,50,0,0.6)", thorax: ["#fff0b0", "#e0a830", "#7a5208"], head: "#b07d18",
+    eye: ["#ff7a4a", "#d02010", "#5a0805"], wing: ["rgba(255,240,190,0.55)", "rgba(255,200,120,0.4)", "rgba(255,230,160,0.35)", "rgba(255,255,220,0.25)"], alpha: 1 },
+  chrome: { legs: "#2a2e36", abdomen: ["#5a606a", "#d8dde6"], bands: "rgba(30,34,40,0.6)", thorax: ["#ffffff", "#a8b0bc", "#4a505a"], head: "#8a909a",
+    eye: ["#ff5a7a", "#c0103a", "#40050f"], wing: ["rgba(220,235,255,0.55)", "rgba(200,210,255,0.4)", "rgba(230,240,255,0.35)", "rgba(255,255,255,0.25)"], alpha: 1 },
+  ghost: { legs: "#5a7aa0", abdomen: ["#7aa8d8", "#d8ecff"], bands: "rgba(60,90,130,0.5)", thorax: ["#ffffff", "#bcd8f5", "#6a8ab0"], head: "#9ab8d8",
+    eye: ["#bff4ff", "#5ad0ff", "#0a4a6a"], wing: ["rgba(200,240,255,0.5)", "rgba(170,220,255,0.35)", "rgba(200,255,255,0.3)", "rgba(255,255,255,0.2)"], alpha: 0.6 },
+  // an emerald masked-hero hornet: black bands, a black mask across glowing green eyes
+  hornet: { legs: "#020a05", abdomen: ["#04200d", "#1f8a44"], bands: "rgba(0,0,0,0.85)", thorax: ["#7dffb0", "#14904a", "#03200c"], head: "#0a3416",
+    eye: ["#e6fff0", "#39ff7a", "#04401a"], wing: ["rgba(180,255,210,0.5)", "rgba(57,255,122,0.35)", "rgba(255,204,51,0.25)", "rgba(200,255,220,0.2)"], alpha: 1,
+    mask: "#020604" },
+  // 1930s pulp noir: black with gold pinstripes and gold eyes
+  noir: { legs: "#000000", abdomen: ["#0c0c0d", "#3a3a3c"], bands: "rgba(0,0,0,0.9)", thorax: ["#b0b0b4", "#2c2c2e", "#08080a"], head: "#141416",
+    eye: ["#fff4c0", "#ffcc33", "#4a3500"], wing: ["rgba(230,230,230,0.45)", "rgba(180,180,180,0.3)", "rgba(255,204,51,0.2)", "rgba(255,255,255,0.15)"], alpha: 1,
+    stripes: "rgba(255,204,51,0.85)" },
+};
+
+function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz: number; walk: number; groom: number; air: number }, k: Skin) {
   const c = SIZE / 2;
   g.clearRect(0, 0, SIZE, SIZE);
   g.save();
   g.translate(c, c);
   g.scale(ZOOM, ZOOM);
+  g.globalAlpha = k.alpha;
   // the sprite faces +x
   // ---- legs (under everything): tucked in flight, a tripod gait when walking, front pair rubbing when grooming
-  g.strokeStyle = "#1a120b";
+  g.strokeStyle = k.legs;
   g.lineCap = "round";
   g.lineWidth = 1.3;
   const legs: [number, number, number][] = [
@@ -52,12 +77,12 @@ function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz
   const drawWing = (side: number, spread: number, alpha: number) => {
     g.save();
     g.rotate(side * (Math.PI - 0.35 - spread));
-    g.globalAlpha = alpha;
+    g.globalAlpha = alpha * k.alpha;
     const wg = g.createLinearGradient(0, 0, 17, 0);
-    wg.addColorStop(0, "rgba(190,230,255,0.55)");
-    wg.addColorStop(0.45, "rgba(255,150,240,0.4)");
-    wg.addColorStop(0.75, "rgba(150,255,200,0.35)");
-    wg.addColorStop(1, "rgba(255,230,140,0.25)");
+    wg.addColorStop(0, k.wing[0]);
+    wg.addColorStop(0.45, k.wing[1]);
+    wg.addColorStop(0.75, k.wing[2]);
+    wg.addColorStop(1, k.wing[3]);
     g.fillStyle = wg;
     g.beginPath();
     g.ellipse(9, side * 0.6, 9.5, 3.6, side * 0.08, 0, Math.PI * 2);
@@ -87,13 +112,13 @@ function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz
   }
   // ---- abdomen with dark bands
   const ab = g.createLinearGradient(-14, 0, -2, 0);
-  ab.addColorStop(0, "#5a3a1c");
-  ab.addColorStop(1, "#b08550");
+  ab.addColorStop(0, k.abdomen[0]);
+  ab.addColorStop(1, k.abdomen[1]);
   g.fillStyle = ab;
   g.beginPath();
   g.ellipse(-7, 0, 7.5, 4.4, 0, 0, Math.PI * 2);
   g.fill();
-  g.fillStyle = "rgba(40,22,10,0.75)";
+  g.fillStyle = k.bands;
   for (const bx of [-11.5, -8.3, -5.2]) {
     g.beginPath();
     g.ellipse(bx, 0, 1, 4.1 - Math.abs(bx + 7) * 0.25, 0, 0, Math.PI * 2);
@@ -101,9 +126,9 @@ function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz
   }
   // ---- thorax (with a sheen) and head
   const th = g.createRadialGradient(1.5, -1.5, 0.5, 2, 0, 5.5);
-  th.addColorStop(0, "#e2c08a");
-  th.addColorStop(0.5, "#9a6e3c");
-  th.addColorStop(1, "#4b301a");
+  th.addColorStop(0, k.thorax[0]);
+  th.addColorStop(0.5, k.thorax[1]);
+  th.addColorStop(1, k.thorax[2]);
   g.fillStyle = th;
   g.beginPath();
   g.ellipse(2.5, 0, 5, 4.2, 0, 0, Math.PI * 2);
@@ -116,16 +141,27 @@ function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz
     g.lineTo(-0.5, by * 1.5);
     g.stroke();
   }
-  g.fillStyle = "#6b4a28";
+  if (k.stripes) {
+    // pinstripes down the abdomen
+    g.strokeStyle = k.stripes;
+    g.lineWidth = 0.5;
+    for (const sy of [-1.6, 0, 1.6]) {
+      g.beginPath();
+      g.moveTo(-13, sy * 0.8);
+      g.lineTo(-2, sy);
+      g.stroke();
+    }
+  }
+  g.fillStyle = k.head;
   g.beginPath();
   g.ellipse(8.2, 0, 2.6, 3.3, 0, 0, Math.PI * 2);
   g.fill();
   // ---- big red compound eyes with a glint
   for (const side of [-1, 1]) {
     const eg = g.createRadialGradient(9, side * 2.4, 0.3, 9, side * 2.4, 3);
-    eg.addColorStop(0, "#ff5a4a");
-    eg.addColorStop(0.6, "#b3121c");
-    eg.addColorStop(1, "#4a0508");
+    eg.addColorStop(0, k.eye[0]);
+    eg.addColorStop(0.6, k.eye[1]);
+    eg.addColorStop(1, k.eye[2]);
     g.fillStyle = eg;
     g.beginPath();
     g.ellipse(8.8, side * 2.5, 2.6, 2.2, 0, 0, Math.PI * 2);
@@ -135,11 +171,22 @@ function drawFly(g: CanvasRenderingContext2D, t: number, s: { wing: number; buzz
     g.arc(9.6, side * 2.5 - 0.8, 0.55, 0, Math.PI * 2);
     g.fill();
   }
+  if (k.mask) {
+    // the hero's mask: a band across both eyes (drawn under the eye glints)
+    g.globalAlpha = 0.9 * k.alpha;
+    g.fillStyle = k.mask;
+    g.beginPath();
+    g.ellipse(8.4, 0, 1.2, 4.9, 0, 0, Math.PI * 2);
+    g.fill();
+  }
   g.restore();
 }
 
 export function RoamingFly() {
   const roam = useFly((s) => s.gfx.roam);
+  const skinId = useFly((s) => s.gfx.fly);
+  const skin = useRef<Skin>(SKINS[skinId] ?? SKINS.wild);
+  skin.current = SKINS[skinId] ?? SKINS.wild;
   const flying = useFly((s) => s.snap.active && s.snap.driving !== false);
   const cur = useStore((s) => s.state?.engine.current?.app);
   useStore((s) => s.meta);
@@ -340,18 +387,18 @@ export function RoamingFly() {
       st.walk = mode.current === "walk" ? t : 0;
       st.groom = mode.current === "groom" ? 1 : 0;
 
-      drawFly(g, t, { wing: 0, buzz: st.buzz, walk: st.walk, groom: st.groom, air: st.h });
+      drawFly(g, t, { wing: 0, buzz: st.buzz, walk: st.walk, groom: st.groom, air: st.h }, skin.current);
       const vis = booted ? st.visible : 0;
       const sc = (1 + st.h * 0.14) * st.scale;
       el.style.opacity = String(vis);
       el.style.transform = `translate3d(${st.x - SIZE / 2}px, ${st.y - SIZE / 2 - st.h * 6}px, 0) rotate(${st.heading}rad) scale(${sc})`;
       const sh = shadow.current!;
       sh.style.opacity = String(vis * (0.55 - st.h * 0.3) * st.scale);
-      sh.style.transform = `translate3d(${st.x - 30 + st.h * 22}px, ${st.y - 15 + st.h * 34}px, 0) scale(${(1 + st.h * 0.6) * st.scale})`;
+      sh.style.transform = `translate3d(${st.x - 16 + st.h * 14}px, ${st.y - 8 + st.h * 22}px, 0) scale(${(1 + st.h * 0.6) * st.scale})`;
       sh.style.filter = `blur(${2 + st.h * 6}px)`;
       const tp = tip.current;
       if (tp) {
-        tp.style.transform = `translate3d(${st.x + 44}px, ${st.y - 56}px, 0)`;
+        tp.style.transform = `translate3d(${st.x + 26}px, ${st.y - 34}px, 0)`;
         tp.style.opacity = curious && vis ? "1" : "0";
       }
       if (curious !== hintRef.current) {
@@ -377,7 +424,7 @@ export function RoamingFly() {
   return (
     <>
       <div ref={shadow} className="roam-shadow" aria-hidden />
-      <div ref={wrap} className="roam-fly" role="button" tabIndex={-1} aria-label="A fruit fly. Click it and it plays the game on the panel"
+      <div ref={wrap} className="roam-fly" data-skin={skinId} role="button" tabIndex={-1} aria-label="A fruit fly. Click it and it plays the game on the panel"
         onClick={() => clickRef.current()}>
         <canvas ref={cv} style={{ width: SIZE, height: SIZE }} />
       </div>

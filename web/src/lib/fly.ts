@@ -36,9 +36,9 @@ export type Press = { id: number; key: FlyKey; at: number };
 // ------------------------------------------------------------------ graphics settings
 
 export type Quality = "auto" | "low" | "balanced" | "high" | "ultra";
-export type ThemeId = "neon" | "bio" | "thermal" | "ice" | "ember";
+export type ThemeId = "neon" | "bio" | "thermal" | "ice" | "ember" | "hornet";
 export type BoardStyle = "midnight" | "rgb" | "retro" | "glass";
-export type FlyLook = "wild" | "golden" | "ghost" | "chrome";
+export type FlyLook = "wild" | "golden" | "ghost" | "chrome" | "hornet" | "noir";
 /** A fixed camera angle a scene frames itself for. */
 export type Shot = "orbit" | "front" | "top" | "close";
 /** A camera setting: a fixed angle, or "cinematic" (the camera cuts and dollies between angles by itself). */
@@ -98,11 +98,11 @@ export const DEFAULT_GFX: FlyGfx = {
 const ONE_OF: Partial<Record<keyof FlyGfx, readonly unknown[]>> = {
   quality: ["auto", "low", "balanced", "high", "ultra"],
   fpsCap: [30, 60, 0],
-  theme: ["neon", "bio", "thermal", "ice", "ember"],
+  theme: ["neon", "bio", "thermal", "ice", "ember", "hornet"],
   camBrain: CAMERAS.map((c) => c[0]),
   camKeys: CAMERAS.map((c) => c[0]),
   brainForm: BRAIN_FORMS.map((f) => f[0]),
-  fly: ["wild", "golden", "ghost", "chrome"],
+  fly: ["wild", "golden", "ghost", "chrome", "hornet", "noir"],
   board: ["midnight", "rgb", "retro", "glass"],
   fullLayout: ["side", "inset", "stacked"],
 };
@@ -134,6 +134,12 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Ice", bg: "#03060a", fog: "#0a1420", eye: "#d6f3ff", on: "#9fe8ff", off: "#7d8cff", right: "#bfe6ff",
     left: "#8fb8ff", up: "#e6fbff", down: "#a6c8ff", loom: "#b59bff", gf: "#ffffff", dn: "#f0fbff", wire: "#223650",
     accent: "#bfe6ff",
+  },
+  hornet: {
+    // green blooms far brighter than blue: the hornet's greens sit a step darker than the other themes' colours
+    name: "Emerald hornet", bg: "#010503", fog: "#020a05", eye: "#1fbf5a", on: "#8fd626", off: "#0a9a80", right: "#18c06a",
+    left: "#e0b020", up: "#5cc23a", down: "#08a878", loom: "#e0b020", gf: "#f2f2e6", dn: "#2bd968", wire: "#06240f",
+    accent: "#138a3e",
   },
   ember: {
     name: "Studio ember", bg: "#07060a", fog: "#130a08", eye: "#ff7a4d", on: "#ffb020", off: "#ff3b5c", right: "#ff4818",

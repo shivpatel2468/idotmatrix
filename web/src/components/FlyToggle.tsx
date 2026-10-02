@@ -1,4 +1,6 @@
 import clsx from "clsx";
+import { useState } from "react";
+import { useFly } from "../lib/fly";
 import { useStore } from "../lib/store";
 import { flyGames, letFlyPlay, takeBackFromFly, useCurrentIsFlyGame, useFlyPicker, useFlyPlaying } from "../lib/flyControl";
 import { Icon } from "./Icon";
@@ -22,25 +24,49 @@ export function FlyToggle({ compact = false, picker = false, className }: {
     : isGame
       ? "Hand this game to the fruit-fly brain (F)"
       : "Pick a game for the fruit-fly brain to play (F)";
+  const act = () => (playing ? takeBackFromFly() : isGame ? letFlyPlay() : setOpen(!open));
   return (
     <div className={clsx("relative", className)}>
       <button
-        className={clsx("key", playing ? "key-ember" : "key-ghost", compact && "key-icon !w-auto !px-2.5")}
+        className={clsx("flybtn", compact && "flybtn-compact")}
+        data-on={playing}
         aria-pressed={playing}
         aria-haspopup={!playing && !isGame ? "menu" : undefined}
         aria-expanded={picker && !playing && !isGame ? open : undefined}
         title={title}
         aria-label={label}
         onMouseDown={(e) => e.preventDefault()} // keep Play mode's keyboard focus
-        onClick={() => (playing ? takeBackFromFly() : isGame ? letFlyPlay() : setOpen(!open))}
+        onClick={act}
       >
-        <Icon name="bug" size={14} className={playing ? "animate-pulse" : undefined} />
-        {playing && <span className="led !h-[6px] !w-[6px]" data-on="ember" />}
-        {!compact && <span className="normal-case tracking-normal">{label}</span>}
-        {compact && playing && <span className="normal-case tracking-normal">Take back</span>}
+        <FlyGlyph />
+        {playing ? (
+          <>
+            <span className="flybtn-dot" aria-hidden />
+            {!compact && <span className="flybtn-label">Fly playing</span>}
+            <span className="flybtn-back">Take back</span>
+          </>
+        ) : (
+          !compact && <span className="flybtn-label">Let the fly play</span>
+        )}
       </button>
       {picker && open && !playing && <FlyGamePicker onClose={() => setOpen(false)} />}
     </div>
+  );
+}
+
+/** A tiny fruit fly (wings flutter on hover / while it plays). */
+function FlyGlyph() {
+  return (
+    <svg className="flybtn-fly" viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+      <g className="flybtn-wings">
+        <ellipse cx="7.2" cy="9" rx="5.2" ry="2.6" transform="rotate(-28 7.2 9)" />
+        <ellipse cx="16.8" cy="9" rx="5.2" ry="2.6" transform="rotate(28 16.8 9)" />
+      </g>
+      <ellipse cx="12" cy="15.2" rx="2.6" ry="4.4" className="flybtn-abdomen" />
+      <circle cx="12" cy="9.6" r="2.6" className="flybtn-thorax" />
+      <circle cx="10.4" cy="7.4" r="1.25" className="flybtn-eye" />
+      <circle cx="13.6" cy="7.4" r="1.25" className="flybtn-eye" />
+    </svg>
   );
 }
 
@@ -78,6 +104,41 @@ function PickRow({ id, name, icon, hint, autoFocus }: { id: string; name: string
       <Icon name={icon} size={14} className="text-ink-3" />
       <span className="flex-1 truncate">{name}</span>
       {hint && <span className="engrave !text-[8px]">{hint}</span>}
+    </button>
+  );
+}
+
+/**
+ * The roaming fly's on/off switch, drawn like the signs on insect-spray packs: a green "flies welcome" circle
+ * when the fly is out on the screen, the red "no flies" prohibition sign when it's away (with a puff of mist).
+ */
+export function RoamSign({ className }: { className?: string }) {
+  const roam = useFly((s) => s.gfx.roam);
+  const setGfx = useFly((s) => s.setGfx);
+  const [puff, setPuff] = useState(0);
+  const toggle = () => {
+    if (roam) setPuff((n) => n + 1);
+    setGfx({ roam: !roam });
+  };
+  const label = roam ? "Flies allowed: the fly roams your screen. Click to spray it away" : "No flies: the fly is away. Click to let it back";
+  return (
+    <button className={clsx("roamsign", className)} data-on={roam} onClick={toggle} title={label} aria-label={label} aria-pressed={roam}>
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden>
+        <circle cx="16" cy="16" r="13.2" className="roamsign-ring" />
+        <g className="roamsign-fly">
+          <ellipse cx="11.6" cy="12.6" rx="4.4" ry="2.2" transform="rotate(-30 11.6 12.6)" className="roamsign-wing" />
+          <ellipse cx="20.4" cy="12.6" rx="4.4" ry="2.2" transform="rotate(30 20.4 12.6)" className="roamsign-wing" />
+          <ellipse cx="16" cy="18.6" rx="2.6" ry="4.6" />
+          <circle cx="16" cy="12.8" r="2.4" />
+          <path d="M13.6 17 l-3.6 -1.6 M13.6 19.4 l-3.8 0.6 M14 21.6 l-3 2.4 M18.4 17 l3.6 -1.6 M18.4 19.4 l3.8 0.6 M18 21.6 l3 2.4" className="roamsign-legs" />
+        </g>
+        {roam ? (
+          <path d="M22.2 23.2 l2.2 2.2 l4.2 -4.6" className="roamsign-check" />
+        ) : (
+          <line x1="6.8" y1="25.2" x2="25.2" y2="6.8" className="roamsign-slash" />
+        )}
+      </svg>
+      {puff > 0 && <span key={puff} className="roamsign-mist" aria-hidden />}
     </button>
   );
 }

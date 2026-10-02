@@ -61,6 +61,12 @@ export async function letFlyPlay(app?: string) {
       await flyTakeOver();
     }
     useStore.getState().prefs({ lastGame: target });
+    // the Fly view needs the engine's /api/fly: an engine older than this studio has none, so say so
+    const probe = await fetch("/api/fly").catch(() => null);
+    if (probe && probe.status === 404) {
+      toast("The fly is playing, but this engine is older than the studio: restart DeskDot to see its brain", "error");
+      return;
+    }
     toast(`The fruit fly is playing ${nameOf(target)}`, "ok");
   } catch {
     toast("The fly couldn't get to the panel", "error");
