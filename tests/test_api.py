@@ -157,3 +157,16 @@ def test_fly_telemetry_endpoint(tmp_path: Path) -> None:
             snap = c.get("/api/fly").json()
         assert snap["active"] and snap["app"] == "pong"
         assert len(snap["eye"]) == 256 and "dn" in snap and "keys" in snap
+
+
+def test_studio_page_revalidates_and_assets_cache(tmp_path: Path) -> None:
+    """A rebuild renames the hashed assets: the page must never be served stale from the browser cache."""
+    import deskdot.server as srv
+
+    if not srv.WEB_DIST.is_dir():
+        return
+    with _client(tmp_path) as c:
+        assert c.get("/").headers.get("cache-control") == "no-cache"
+        asset = next((srv.WEB_DIST / "assets").glob("*.js"), None)
+        if asset is not None:
+            assert "immutable" in c.get(f"/assets/{asset.name}").headers.get("cache-control", "")

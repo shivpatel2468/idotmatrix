@@ -15,45 +15,111 @@ type SceneKind = "brain" | "keyboard";
 
 /** A three.js view; the scene code (and three.js itself) loads only when the first one mounts. One renderer per
  *  mounted canvas: unmounting disposes it (and gives its GL context back). */
+/** Can this browser make a WebGL 2 context at all? (three.js needs WebGL 2.) */
+function hasWebGL(): boolean {
+  try {
+    return !!document.createElement("canvas").getContext("webgl2");
+  } catch {
+    return false;
+  }
+}
+
+/** Settings to fall back to when a scene can't be built (an older GPU / driver, or a WebGL limit). */
+const SAFE: Partial<FlyGfx> = { brainForm: "tower", quality: "low", bloom: false, shadows: false, particles: 0.4 };
+
 function FlyCanvas({ kind, onFps }: { kind: SceneKind; onFps?: (fps: number, tier: string) => void }) {
   const el = useRef<HTMLDivElement>(null);
   const host = useRef<{ apply: (g: FlyGfx) => void; dispose: () => void } | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
+  const [safe, setSafe] = useState(false); // running on the fallback settings
+  const [attempt, setAttempt] = useState(0);
   const gfx = useFly((s) => s.gfx);
   const fps = useRef(onFps);
   fps.current = onFps;
 
   useEffect(() => {
     let dead = false;
+    setFailed(null);
+    const clear = () => {
+      // a scene that threw half-way may have left a canvas (and a WebGL context) behind
+      el.current?.querySelectorAll("canvas, .fly-labels").forEach((n) => n.remove());
+    };
     import("./three")
       .then((m) => {
         if (dead || !el.current) return;
-        try {
+        const build = (g: FlyGfx) => {
           const scene = kind === "brain" ? new m.BrainScene() : new m.KeyboardScene();
-          const h = new m.Host(el.current, scene, useFly.getState().gfx);
+          const h = new m.Host(el.current!, scene, g);
           h.onFps = (f, t) => fps.current?.(f, t);
           host.current = h;
+        };
+        const g = useFly.getState().gfx;
+        try {
+          build(g);
+          setSafe(false);
         } catch (e) {
-          setFailed(e instanceof Error ? e.message : String(e));
+          console.error(`[fly] ${kind} scene failed, retrying with safe settings`, e);
+          clear();
+          try {
+            build({ ...g, ...SAFE } as FlyGfx);
+            setSafe(true);
+          } catch (e2) {
+            console.error(`[fly] ${kind} scene failed with safe settings too`, e2);
+            clear();
+            setFailed(e2 instanceof Error ? e2.message : String(e2));
+          }
         }
       })
-      .catch((e) => setFailed(String(e)));
+      .catch((e) => {
+        console.error("[fly] couldn't load the 3D code", e);
+        setFailed("UPDATED");
+      });
     return () => {
       dead = true;
       host.current?.dispose();
       host.current = null;
     };
-  }, [kind]);
+  }, [kind, attempt]);
 
   useEffect(() => {
-    host.current?.apply(gfx);
-  }, [gfx]);
+    if (!host.current) return;
+    try {
+      host.current.apply(safe ? ({ ...gfx, ...SAFE } as FlyGfx) : gfx);
+    } catch (e) {
+      // a setting the GPU can't do: rebuild from scratch, which falls back to safe settings if needed
+      console.error("[fly] applying settings failed", e);
+      setAttempt((n) => n + 1);
+    }
+  }, [gfx, safe]);
 
   return (
     <div ref={el} className="fly-scene absolute inset-0">
+      {safe && !failed && (
+        <div className="pointer-events-none absolute bottom-[92px] left-1/2 z-[2] -translate-x-1/2 rounded-full border border-line bg-chassis-1/80 px-3 py-1 text-[10.5px] text-ink-3">
+          Simplified view — your graphics couldn't run the full one
+        </div>
+      )}
       {failed && (
-        <div className="absolute inset-0 grid place-items-center p-6 text-center text-[12px] text-ink-3">
-          3D isn't available in this browser (WebGL is off or blocked).
+        <div className="absolute inset-0 grid place-items-center p-6 text-center">
+          <div className="flex max-w-xs flex-col items-center gap-2">
+            {failed === "UPDATED" ? (
+              <>
+                <div className="text-[12.5px] text-ink-2">The studio was updated while this page was open.</div>
+                <button className="key key-ember mt-1 !h-8" onClick={() => location.reload()}>Reload to see the 3D view</button>
+              </>
+            ) : !hasWebGL() ? (
+              <>
+                <div className="text-[12.5px] text-ink-2">3D graphics (WebGL) are turned off in this browser.</div>
+                <div className="text-[11px] leading-snug text-ink-3">Turn on “Use graphics acceleration when available” in your browser's system settings, restart the browser, and check chrome://gpu shows WebGL as hardware accelerated.</div>
+              </>
+            ) : (
+              <>
+                <div className="text-[12.5px] text-ink-2">This 3D view couldn't start on this computer's graphics.</div>
+                <code className="max-w-full break-words text-[10.5px] text-ink-4">{failed}</code>
+              </>
+            )}
+            {failed !== "UPDATED" && <button className="key mt-1 !h-8" onClick={() => setAttempt((n) => n + 1)}>Try again</button>}
+          </div>
         </div>
       )}
     </div>

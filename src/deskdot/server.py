@@ -71,6 +71,21 @@ from .providers.custom import CustomApp
 from .providers.sports import LEAGUES
 
 log = logging.getLogger("deskdot.server")
+
+
+class _StudioFiles(StaticFiles):
+    """The built studio. Hashed assets never change, so they cache for good; the page itself must always be
+    revalidated, or a browser keeps an old page that asks for assets a rebuild has replaced."""
+
+    async def get_response(self, path: str, scope: Any) -> Response:
+        resp = await super().get_response(path, scope)
+        if path.replace("\\", "/").startswith("assets/"):  # Windows hands in backslashes
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            resp.headers["Cache-Control"] = "no-cache"
+        return resp
+
+
 # the built studio; the Android app ships it elsewhere and points DESKDOT_WEB_DIST at it
 WEB_DIST = Path(
     os.environ.get("DESKDOT_WEB_DIST")
@@ -1244,7 +1259,7 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
 
     # ------------------------------------------------------------------ studio
     if WEB_DIST.is_dir():
-        app.mount("/", StaticFiles(directory=WEB_DIST, html=True), name="studio")
+        app.mount("/", _StudioFiles(directory=WEB_DIST, html=True), name="studio")
     else:
 
         @app.get("/", response_class=HTMLResponse)
