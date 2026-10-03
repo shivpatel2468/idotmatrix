@@ -34,9 +34,10 @@ export const CATEGORY_LABEL: Record<string, string> = {
   productivity: "Focus & agents",
   pets: "Pets & characters",
   games: "Games",
+  casino: "Casino",
   device: "Panel",
 };
-export const CATEGORY_ORDER = ["time", "data", "media", "pets", "games", "creative", "productivity", "ambient", "device"];
+export const CATEGORY_ORDER = ["time", "data", "media", "pets", "games", "casino", "creative", "productivity", "ambient", "device"];
 
 /** Studio settings sections and blocks (web/src/lib/store.ts SettingsTab) with words people search for. */
 export const SETTINGS: { tab: string; title: string; words: string }[] = [

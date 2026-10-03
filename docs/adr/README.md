@@ -13,5 +13,6 @@
 | 0009 | [Pace packets and use the panel's acks for flow control](0009-paced-writes-and-ack-flow-control.md) | Accepted |
 | 0010 | [Provider events and Autopilot are engine-level](0010-events-and-autopilot-in-engine.md) | Accepted |
 | 0011 | [Host the whole engine on an Android phone as an app (Chaquopy + a Kotlin BLE bridge)](0011-android-host-app.md) | Proposed |
+| 0012 | [A web app: the real engine in the browser (Pyodide) with a Web Bluetooth bridge](0012-web-app-pyodide.md) | Accepted |
 
 New decisions: copy the format, next number, status `Proposed` → `Accepted`. Never rewrite an accepted ADR; supersede it.

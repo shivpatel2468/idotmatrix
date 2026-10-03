@@ -12,7 +12,7 @@
  "airquality": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 334
+  "bytes": 339
  },
  "ambient": {
   "frames": 64,
@@ -27,12 +27,12 @@
  "arcade": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 6449
+  "bytes": 5933
  },
  "asteroids": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 11367
+  "bytes": 12784
  },
  "avatar": {
   "frames": 20,
@@ -52,7 +52,7 @@
  "breakout": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 10157
+  "bytes": 9557
  },
  "calendar": {
   "frames": 1,
@@ -69,10 +69,55 @@
   "ms": 4000,
   "bytes": 224
  },
+ "casino_andarbahar": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 224
+ },
+ "casino_baccarat": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 222
+ },
+ "casino_bigsix": {
+  "frames": 3,
+  "ms": 4000,
+  "bytes": 383
+ },
+ "casino_blackjack": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 225
+ },
+ "casino_holdem": {
+  "frames": 2,
+  "ms": 3990,
+  "bytes": 358
+ },
+ "casino_roulette": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 226
+ },
+ "casino_sevens": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 225
+ },
+ "casino_slots": {
+  "frames": 1,
+  "ms": 4000,
+  "bytes": 415
+ },
+ "casino_teenpatti": {
+  "frames": 2,
+  "ms": 3990,
+  "bytes": 363
+ },
  "chess": {
-  "frames": 79,
-  "ms": 35300,
-  "bytes": 8892
+  "frames": 70,
+  "ms": 30800,
+  "bytes": 8271
  },
  "ci": {
   "frames": 32,
@@ -82,22 +127,22 @@
  "clock": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 547
+  "bytes": 549
  },
  "composer": {
   "frames": 24,
   "ms": 3890,
-  "bytes": 2538
+  "bytes": 2533
  },
  "countdown": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 559
+  "bytes": 557
  },
  "currency": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 390
+  "bytes": 381
  },
  "custom": {
   "frames": 1,
@@ -107,27 +152,27 @@
  "cycles": {
   "frames": 49,
   "ms": 6000,
-  "bytes": 6117
+  "bytes": 5987
  },
  "daily": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 297
+  "bytes": 262
  },
  "daynight": {
   "frames": 32,
   "ms": 3840,
-  "bytes": 16156
+  "bytes": 16128
  },
  "digworld": {
-  "frames": 60,
+  "frames": 59,
   "ms": 6000,
-  "bytes": 9009
+  "bytes": 10168
  },
  "dino": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 12333
+  "bytes": 11866
  },
  "emotes": {
   "frames": 40,
@@ -135,14 +180,14 @@
   "bytes": 8660
  },
  "fiveoclock": {
-  "frames": 79,
+  "frames": 83,
   "ms": 12000,
-  "bytes": 12962
+  "bytes": 11881
  },
  "flappy": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 14951
+  "bytes": 14903
  },
  "flybrain": {
   "frames": 44,
@@ -160,14 +205,14 @@
   "bytes": 172
  },
  "fourup": {
-  "frames": 46,
+  "frames": 45,
   "ms": 6000,
-  "bytes": 2948
+  "bytes": 2903
  },
  "g2048": {
-  "frames": 40,
+  "frames": 39,
   "ms": 6000,
-  "bytes": 6112
+  "bytes": 5270
  },
  "gallery": {
   "frames": 1,
@@ -175,14 +220,14 @@
   "bytes": 204
  },
  "gamedeals": {
-  "frames": 75,
-  "ms": 8700,
-  "bytes": 8010
+  "frames": 78,
+  "ms": 22950,
+  "bytes": 8822
  },
  "github": {
   "frames": 8,
   "ms": 4000,
-  "bytes": 848
+  "bytes": 853
  },
  "habits": {
   "frames": 1,
@@ -202,22 +247,22 @@
  "holidays": {
   "frames": 81,
   "ms": 8800,
-  "bytes": 9981
+  "bytes": 9984
  },
  "infinity": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 21211
+  "bytes": 22328
  },
  "invaders": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 8773
+  "bytes": 8760
  },
  "leafleap": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 5869
+  "bytes": 6102
  },
  "loops": {
   "frames": 96,
@@ -227,12 +272,12 @@
  "markets": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 297
+  "bytes": 296
  },
  "maze": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 8495
+  "bytes": 8460
  },
  "mediaserver": {
   "frames": 1,
@@ -240,9 +285,9 @@
   "bytes": 226
  },
  "mines": {
-  "frames": 40,
+  "frames": 42,
   "ms": 6000,
-  "bytes": 3096
+  "bytes": 3326
  },
  "mirror": {
   "frames": 32,
@@ -255,9 +300,9 @@
   "bytes": 240
  },
  "neonheat": {
-  "frames": 60,
+  "frames": 59,
   "ms": 6000,
-  "bytes": 10838
+  "bytes": 9401
  },
  "nowplaying": {
   "frames": 25,
@@ -270,14 +315,14 @@
   "bytes": 2100
  },
  "pet": {
-  "frames": 68,
+  "frames": 64,
   "ms": 30000,
-  "bytes": 9575
+  "bytes": 9197
  },
  "petworld": {
-  "frames": 81,
-  "ms": 24000,
-  "bytes": 18194
+  "frames": 24,
+  "ms": 3840,
+  "bytes": 6429
  },
  "photoframe": {
   "frames": 8,
@@ -292,7 +337,7 @@
  "planets": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 312
+  "bytes": 316
  },
  "playercard": {
   "frames": 41,
@@ -300,14 +345,14 @@
   "bytes": 14931
  },
  "pokedex": {
-  "frames": 73,
+  "frames": 66,
   "ms": 24000,
-  "bytes": 13294
+  "bytes": 12379
  },
  "pong": {
   "frames": 59,
   "ms": 6000,
-  "bytes": 6247
+  "bytes": 5952
  },
  "printer": {
   "frames": 1,
@@ -317,7 +362,7 @@
  "progress": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 553
+  "bytes": 558
  },
  "qr": {
   "frames": 1,
@@ -327,27 +372,32 @@
  "quakes": {
   "frames": 75,
   "ms": 7500,
-  "bytes": 12615
+  "bytes": 11572
  },
  "racer": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 20938
+  "bytes": 18955
  },
  "radar": {
   "frames": 40,
   "ms": 4800,
-  "bytes": 26606
+  "bytes": 25370
  },
  "rainradar": {
-  "frames": 33,
-  "ms": 4690,
-  "bytes": 3367
+  "frames": 37,
+  "ms": 4680,
+  "bytes": 7290
  },
  "raycaster": {
   "frames": 80,
   "ms": 20000,
   "bytes": 21931
+ },
+ "rps": {
+  "frames": 27,
+  "ms": 6000,
+  "bytes": 5532
  },
  "sand": {
   "frames": 67,
@@ -357,22 +407,22 @@
  "scores": {
   "frames": 19,
   "ms": 3880,
-  "bytes": 2167
+  "bytes": 2173
  },
  "sky": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 509
+  "bytes": 610
  },
  "space": {
   "frames": 25,
   "ms": 3880,
-  "bytes": 2768
+  "bytes": 2884
  },
  "starship": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 16045
+  "bytes": 15928
  },
  "stocks": {
   "frames": 1,
@@ -382,7 +432,7 @@
  "streetsurge": {
   "frames": 44,
   "ms": 6000,
-  "bytes": 11846
+  "bytes": 11904
  },
  "synthwave": {
   "frames": 60,
@@ -397,7 +447,7 @@
  "tetris": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 8793
+  "bytes": 8435
  },
  "text": {
   "frames": 1,
@@ -405,14 +455,14 @@
   "bytes": 212
  },
  "tictactoe": {
-  "frames": 38,
+  "frames": 37,
   "ms": 6000,
-  "bytes": 3058
+  "bytes": 3110
  },
  "tides": {
   "frames": 1,
   "ms": 4000,
-  "bytes": 348
+  "bytes": 349
  },
  "timer": {
   "frames": 1,
@@ -422,7 +472,7 @@
  "trivia": {
   "frames": 1,
   "ms": 6000,
-  "bytes": 291
+  "bytes": 266
  },
  "uptime": {
   "frames": 32,
@@ -442,7 +492,7 @@
  "weather": {
   "frames": 4,
   "ms": 4000,
-  "bytes": 643
+  "bytes": 640
  },
  "wireframe": {
   "frames": 64,

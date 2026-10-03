@@ -6,6 +6,7 @@ from pydantic import Field
 
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, mix, scale
+from ..platforms import FEATURES
 from ._kit import loading, offline
 
 #: bar tracks and the graph baseline: dim but still lit through the panel's gamma (see DISPLAY_DESIGN §3)
@@ -39,6 +40,7 @@ class Sysmon(App):
     Settings = SysmonSettings
     fps = 1.0
     uses = ("system",)
+    platforms = FEATURES["system"]  # psutil: every native host, not the browser app
 
     def render(self, f: Frame, t: float) -> None:
         p = self.ctx.provider("system")

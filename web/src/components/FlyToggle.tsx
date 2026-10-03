@@ -9,9 +9,10 @@ import { Icon } from "./Icon";
  * "Let the fly play" / "Fly playing · Take back": one toggle used in the top bar, Play mode and a game's status bar.
  * When the panel isn't showing a game, it opens a small list of games to start with the fly (`picker`).
  */
-export function FlyToggle({ compact = false, picker = false, className }: {
+export function FlyToggle({ compact = false, picker = false, up = false, className }: {
   compact?: boolean; // icon (+ short label) only — phones and tight bars
-  picker?: boolean; // this instance owns the game list pop-over (only the top bar's does)
+  picker?: boolean; // this instance owns the game list pop-over
+  up?: boolean; // open the pop-over above the button (bottom of the screen)
   className?: string;
 }) {
   const playing = useFlyPlaying();
@@ -49,7 +50,7 @@ export function FlyToggle({ compact = false, picker = false, className }: {
           !compact && <span className="flybtn-label">Let the fly play</span>
         )}
       </button>
-      {picker && open && !playing && <FlyGamePicker onClose={() => setOpen(false)} />}
+      {picker && open && !playing && <FlyGamePicker up={up} onClose={() => setOpen(false)} />}
     </div>
   );
 }
@@ -70,7 +71,7 @@ function FlyGlyph() {
   );
 }
 
-function FlyGamePicker({ onClose }: { onClose: () => void }) {
+function FlyGamePicker({ onClose, up = false }: { onClose: () => void; up?: boolean }) {
   const meta = useStore((s) => s.meta);
   const lastGame = useStore((s) => s.lastGame);
   const games = flyGames(meta);
@@ -79,7 +80,7 @@ function FlyGamePicker({ onClose }: { onClose: () => void }) {
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div role="menu" aria-label="Games the fly can play"
-        className="surface absolute right-0 top-11 z-50 flex max-h-[min(420px,70vh)] w-[min(280px,86vw)] flex-col overflow-hidden animate-rise"
+        className={clsx("surface absolute right-0 z-50 flex max-h-[min(420px,70vh)] w-[min(280px,86vw)] flex-col overflow-hidden animate-rise", up ? "bottom-11" : "top-11")}
         onKeyDown={(e) => e.key === "Escape" && onClose()}>
         <div className="border-b border-line px-3.5 py-2.5">
           <div className="engrave !text-[8.5px]">Let the fly play</div>

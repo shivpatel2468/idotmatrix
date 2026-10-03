@@ -63,6 +63,14 @@ Global settings with host limits: **Audio source "System sound"** (Windows, Linu
 **Hand off on sleep** (Windows), **OS notifications** (Windows, macOS), **On Air** (Windows), **Eye break**
 (Windows, macOS). `GET /api/meta` → `features` has one flag for each.
 
+## Browser host (the web app at idotmatrix.com/app/)
+
+The engine can also run inside a browser tab (Pyodide + Web Bluetooth; `platform: "web"`, label "Browser"). There
+every host feature above is ❌ — the tab can't see the computer — while network data, games, creative apps and all
+settings work. System Monitor is badged "Not on Browser" (psutil). Panel link: Chrome / Edge / Opera on Windows,
+macOS, ChromeOS and Android (Linux behind a flag), Bluefy on iOS; no Firefox or Safari. Packet size is guessed per
+OS and stepped down when refused. Full matrix, CORS notes and test steps: [WEB_APP.md](WEB_APP.md).
+
 ## Studio browsers
 
 Built with React 19, Tailwind 4 and Vite 8, so the studio needs a browser from 2023 on:

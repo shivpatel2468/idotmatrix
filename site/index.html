@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DeskDot: the all-in-one app for your iDotMatrix 32×32 panel</title>
-<meta name="description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta name="description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 100 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
 <link rel="canonical" href="https://idotmatrix.com/" />
 <meta name="theme-color" content="#08070a" />
 <meta name="color-scheme" content="dark" />
@@ -13,14 +13,14 @@
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/" />
 <meta property="og:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
-<meta property="og:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta property="og:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 100 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
-<meta name="twitter:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 90 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta name="twitter:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 100 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -59,6 +59,7 @@
       <a href="/faq.html">FAQ</a>
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
+    <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
     <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
   </div>
 </header>
@@ -73,14 +74,17 @@
         <canvas id="logo" role="img" aria-label="idotmatrix, written in glowing LED dots"></canvas>
       </div>
       <h1>Turn your iDotMatrix into a <span class="hl">live desktop companion</span>.</h1>
-      <p class="lede"><b>DeskDot is the all-in-one app for your iDotMatrix:</b> <span data-count="apps">90</span> apps,
-        <span data-count="multiplayer">21</span> multiplayer games, live data from 45+ free sources, a studio for your
+      <p class="lede"><b>DeskDot is the all-in-one app for your iDotMatrix:</b> <span data-count="apps">100</span> apps,
+        <span data-count="multiplayer">31</span> multiplayer games, live data from 45+ free sources, a studio for your
         browser and phone, and an MCP server so AI agents can see the panel and drive it.</p>
       <div class="cta">
-        <a class="btn primary" href="/setup.html">Set it up with your AI agent <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn primary" href="/app/">Open in your browser <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn" href="/setup.html">Set it up with your AI agent</a>
         <a class="btn" href="/guide.html">Run it yourself</a>
         <a class="btn" href="/apps.html">Browse the apps</a>
       </div>
+      <p class="hero-note">No install: the full engine runs in the tab and talks to the panel over Web Bluetooth (Chrome, Edge or
+        Opera on Windows, macOS, ChromeOS, Linux and Android; on iPhone use the Bluefy browser).</p>
       <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>no cloud</span><span>zero subscriptions</span><span>MIT</span></div>
     </div>
     <div class="device" id="device">
@@ -92,9 +96,9 @@
   </div>
   <div class="wrap">
     <ul class="stats reveal" aria-label="DeskDot in numbers">
-      <li><b data-count="apps">90</b><span>apps</span></li>
-      <li><b data-count="games">25</b><span>games</span></li>
-      <li><b data-count="settings">905</b><span>settings, all documented</span></li>
+      <li><b data-count="apps">100</b><span>apps</span></li>
+      <li><b data-count="games">26</b><span>games</span></li>
+      <li><b data-count="settings">960</b><span>settings, all documented</span></li>
       <li><b>45+</b><span>free live sources</span></li>
       <li><b>7</b><span>phone controllers</span></li>
       <li><b>21</b><span>MCP tools</span></li>
@@ -137,7 +141,7 @@
     <p class="kicker">Real renders, not mock-ups</p>
     <h2 id="featured-h" class="reveal">Every app, exactly as the LEDs show it</h2>
     <p class="sub reveal">Each preview on this site is rendered by DeskDot's own engine at 32×32, the same frames your panel gets.
-      Here are a few; the explorer has all <span data-count="apps">90</span>.</p>
+      Here are a few; the explorer has all <span data-count="apps">100</span>.</p>
     <div class="app-grid">
 <!-- gen:featured -->
 <a class="card app-card" href="/apps/synthwave.html" style="--glow:#c39bff;--i:0">
@@ -214,7 +218,7 @@
 </a>
 <!-- /gen:featured -->
     </div>
-    <p class="more-link"><a class="btn" href="/apps.html">See all <span data-count="apps">90</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+    <p class="more-link"><a class="btn" href="/apps.html">See all <span data-count="apps">100</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
   </div>
 </section>
 

@@ -160,6 +160,8 @@ h1 .hl { background: linear-gradient(90deg, var(--rose), var(--tangerine) 50%, v
 .lede { font-size: clamp(17px, 1.6vw, 19.5px); color: var(--ink-2); max-width: 40ch; margin: 0 0 28px; }
 .lede b { color: var(--ink); font-weight: 600; }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.bar .web-app { margin-left: auto; margin-right: 8px; white-space: nowrap; }
+.hero-note { margin: 14px 0 0; max-width: 560px; font-size: 13.5px; color: var(--ink-3); }
 .hero-meta { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 11.5px var(--mono); color: var(--ink-3); letter-spacing: 0.05em; }
 .hero-meta span::before { content: "● "; color: var(--ember); }
 
@@ -596,6 +598,7 @@ html:not(.vt) main { animation: vt-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; 
   .bar nav a { font-size: 13px; padding: 12px 10px; }
   .js .menu-btn { display: block; }
   .bar .gh { margin-left: 0; }
+  .js .bar .web-app { margin-left: 0; }
   .hero-grid, .agent, .fly { grid-template-columns: minmax(0, 1fr); }
   .device { width: min(100%, 380px); }
   .device-frame { transform: none; }

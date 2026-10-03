@@ -122,6 +122,8 @@ def test_no_broken_internal_links() -> None:
 
 def test_site_says_deskdot_not_dotdeck() -> None:
     for f in SITE.rglob("*"):
+        if f.is_relative_to(SITE / "app"):
+            continue  # the web app's studio bundle still reads the old `dotdeck.*` localStorage keys (migration)
         if f.suffix in (".html", ".js", ".css", ".json", ".xml", ".txt", ".webmanifest", ".svg"):
             assert "dotdeck" not in f.read_text(encoding="utf-8").lower(), f
 
@@ -129,7 +131,19 @@ def test_site_says_deskdot_not_dotdeck() -> None:
 def test_netlify_config_matches_the_site() -> None:
     cfg = tomllib.loads((ROOT / "netlify.toml").read_text(encoding="utf-8"))
     assert cfg["build"]["publish"] == "site"
-    csp = next(h["values"]["Content-Security-Policy"] for h in cfg["headers"] if h["for"] == "/*")
-    assert _load("build_site_pages").csp_hash() in csp  # the inline <script> is allowed by its hash
-    assert "https://api.github.com" in csp and "https://fonts.gstatic.com" in csp
+    csps = {
+        h["for"]: h["values"]["Content-Security-Policy"]
+        for h in cfg["headers"]
+        if "Content-Security-Policy" in h["values"]
+    }
+    # The website's pages share one policy; the web app (/app/*) has its own (Pyodide from the CDN, wasm, a
+    # worker, live data APIs). No rule may match both, or Netlify would send two policies and both would apply.
+    assert "/*" not in csps
+    site = csps["/:page"]
+    for pattern in ("/", "/apps/*", "/media/*"):
+        assert csps[pattern] == site, pattern
+    assert _load("build_site_pages").csp_hash() in site  # the inline <script> is allowed by its hash
+    assert "https://api.github.com" in site and "https://fonts.gstatic.com" in site
+    app = csps["/app/*"]
+    assert "'wasm-unsafe-eval'" in app and "https://cdn.jsdelivr.net" in app and "worker-src 'self'" in app
     assert (SITE / "404.html").exists() and (SITE / "CNAME").read_text().strip() == "idotmatrix.com"

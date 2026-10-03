@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Web app at idotmatrix.com/app/:** the real engine runs in the browser (Pyodide in a Web Worker) and drives the
+  panel over Web Bluetooth — no install. Same studio, apps and settings (saved in the browser); OS-level features
+  are greyed out as "Not on Browser". New `device = "web"` backend (`device/web.py`), `web` platform, build with
+  `scripts/build_webapp.py`. See docs/WEB_APP.md and ADR 0012.
 - **Renamed DotDeck → DeskDot** (`uv run deskdot serve`). `dotdeck.toml`, `DOTDECK_*` and old studio preferences
   still work.
 - **System search bars:**

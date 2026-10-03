@@ -19,6 +19,7 @@ the controller page and its socket, and only with a valid room code. The studio 
 
 from __future__ import annotations
 
+import hashlib
 import ipaddress
 import re
 import secrets
@@ -309,6 +310,15 @@ def game_profile(prof: dict[str, Any]) -> dict[str, Any]:
     return {k: prof.get(k) for k in ("name", "color", "avatar", "team", "ready")}
 
 
+def player_pid(cid: Any) -> str | None:
+    """A stable player id derived from a phone's client id: casino wallets follow it across reconnects and seat
+    changes. One-way, so the game (and the studio) never see the cid itself."""
+    c = clean_cid(cid)
+    if c is None:
+        return None
+    return "p" + hashlib.sha256(f"deskdot-player:{c}".encode()).hexdigest()[:15]
+
+
 def avatar_table() -> list[dict[str, Any]]:
     return [{"id": k, "name": v[0], "px": list(v[1])} for k, v in AVATARS.items()]
 
@@ -316,3 +326,5 @@ def avatar_table() -> list[dict[str, Any]]:
 # The phone controller page: one self-contained file (inline CSS/JS, no CDNs; phones on the LAN may be offline).
 # Read once at import, so edits go live when the engine restarts.
 CONTROLLER_HTML = Path(__file__).with_name("controller.html").read_text(encoding="utf-8")
+# The phone casino page (docs/CASINO.md §5), served instead when the lobby's app is in category "casino".
+CASINO_HTML = Path(__file__).with_name("casino.html").read_text(encoding="utf-8")

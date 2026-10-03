@@ -148,6 +148,17 @@ game* in place of *Let AI play*. Switching games closes the room. Seat joins sho
 the state stream; `/api/play/lobby` is polled only while Play mode is open (700 ms while waiting, 2.5 s otherwise) and
 written to the store only when it changed (`lobby`, `lanReady`, `mpGames`).
 
+### Casino mode (`components/casino/`)
+
+When a casino game (category `casino`) is on the panel the studio becomes the host's table (docs/CASINO.md §6 and
+"Studio casino mode" in §8): the drawers shut, the panel sits on felt inside a marquee of chasing bulbs, and two
+resizable wings open — **left** Tables (game picker with previews) · House (presets, base credits, limits, timers,
+auto-next, new session) · Rules (from the schema) · Odds (exact house edge per bet, slot RTP); **right** Players
+(seats, live credits, top-up / set / kick, everyone) · Ranking · Rounds (history + Verify) · Play (the host seat's
+chip rack and bets). Centre: title + round + commitment hash, the host bar (phase, countdown ring, Start / Next
+round, Lock now, Pause; the result replaces the phase on a result) and the room strip (open, QR, code, Hide QR,
+close). Below ~980 px of stage width the wings become two tabs under the table. Gold replaces ember inside `.cz`.
+
 ## Settings
 
 Four sections, each a stack of titled blocks with an anchor id `set-<block>`:

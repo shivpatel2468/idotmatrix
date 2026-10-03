@@ -118,6 +118,7 @@ CAT_COLOR = {
     "creative": "#c39bff",
     "pets": "#5cf2a0",
     "games": "#ff7419",
+    "casino": "#ffcc33",
     "ambient": "#4fe3c8",
     "productivity": "#ffe27a",
     "device": "#a6adff",
@@ -267,6 +268,7 @@ def header(active: str | None) -> str:
       {chr(10).join("      " + link for link in links).strip()}
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
+    <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
     <a class="btn small gh" href="{REPO}" aria-label="{BRAND} on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
   </div>
 </header>"""

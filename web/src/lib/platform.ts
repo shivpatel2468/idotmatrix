@@ -1,8 +1,8 @@
 // Host-OS support for apps and settings (engine: src/deskdot/platforms.py, docs/COMPATIBILITY.md).
 import type { Platform } from "./types";
 
-const ALL: Platform[] = ["windows", "macos", "linux", "android"];
-export const PLATFORM_LABEL: Record<Platform, string> = { windows: "Windows", macos: "macOS", linux: "Linux", android: "Android" };
+const ALL: Platform[] = ["windows", "macos", "linux", "android", "web"];
+export const PLATFORM_LABEL: Record<Platform, string> = { windows: "Windows", macos: "macOS", linux: "Linux", android: "Android", web: "Browser" };
 
 /** True when `platforms` is absent (works everywhere), the host is unknown (older engine), or the host is listed. */
 export function supportedOn(platforms: readonly string[] | null | undefined, host: string | undefined): boolean {

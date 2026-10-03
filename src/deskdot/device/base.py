@@ -35,7 +35,7 @@ PanelMode = Literal["unknown", "diy", "gif", "native"]
 
 
 class DeviceInfo(BaseModel):
-    kind: Literal["ble", "sim", "android"]
+    kind: Literal["ble", "sim", "android", "web"]
     status: Status = "disconnected"
     address: str | None = None
     name: str | None = None
@@ -56,7 +56,7 @@ class DeviceInfo(BaseModel):
 class Device(ABC):
     """Base class: owns the work slots and the writer task. Backends implement I/O."""
 
-    kind: Literal["ble", "sim", "android"]
+    kind: Literal["ble", "sim", "android", "web"]
 
     #: bytes per ATT write; backends set this after connecting
     packet_size: int = 20

@@ -4,7 +4,8 @@ Some apps read *the computer they run on* (its screen, media session, foreground
 notifications). Those depend on the OS; everything network-based works everywhere. This module is the one place
 that knows the difference (docs/COMPATIBILITY.md has the full matrix):
 
-* `current()` — "windows" | "macos" | "linux" | "android" (Raspberry Pi is "linux"; `is_raspberry_pi()` tells).
+* `current()` — "windows" | "macos" | "linux" | "android" | "web" (Raspberry Pi is "linux"; `is_raspberry_pi()`
+  tells; "web" is the engine running in a browser tab under Pyodide, docs/WEB_APP.md).
 * `FEATURES` — host feature → the platforms it works on. Providers and apps declare a feature; the studio greys
   out what can't work here.
 * `only_on(...)` — the JSON-schema marker for a setting (``json_schema_extra={"platforms": [...]}``) that the
@@ -20,13 +21,27 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Literal
 
-Platform = Literal["windows", "macos", "linux", "android"]
-ALL: tuple[Platform, ...] = ("windows", "macos", "linux", "android")
+Platform = Literal["windows", "macos", "linux", "android", "web"]
+ALL: tuple[Platform, ...] = ("windows", "macos", "linux", "android", "web")
 DESKTOP: tuple[Platform, ...] = ("windows", "macos", "linux")
+#: hosts that run a real OS process (everything but the browser tab)
+NATIVE: tuple[Platform, ...] = ("windows", "macos", "linux", "android")
 
-LABELS: dict[str, str] = {"windows": "Windows", "macos": "macOS", "linux": "Linux", "android": "Android"}
+LABELS: dict[str, str] = {
+    "windows": "Windows",
+    "macos": "macOS",
+    "linux": "Linux",
+    "android": "Android",
+    "web": "Browser",
+}
 #: panel-sized names (tiny font, ≤ 30 px: the 1 px-margin text box)
-SHORT: dict[str, str] = {"windows": "WIN", "macos": "MACOS", "linux": "LINUX", "android": "ANDROID"}
+SHORT: dict[str, str] = {
+    "windows": "WIN",
+    "macos": "MACOS",
+    "linux": "LINUX",
+    "android": "ANDROID",
+    "web": "WEB",
+}
 
 #: host feature -> platforms where it works (see docs/COMPATIBILITY.md for the reasons)
 FEATURES: dict[str, tuple[Platform, ...]] = {
@@ -54,8 +69,9 @@ FEATURES: dict[str, tuple[Platform, ...]] = {
     "notifications": ("windows", "macos"),
     # hand the panel its own clock when the computer goes to sleep (WM_POWERBROADCAST)
     "sleep_handoff": ("windows",),
-    # CPU / RAM / disk / network via psutil (Android hides CPU and network counters from apps)
-    "system": ALL,
+    # CPU / RAM / disk / network via psutil (Android hides CPU and network counters from apps; a browser tab has
+    # no psutil and no access to the computer's counters at all)
+    "system": NATIVE,
 }
 
 
@@ -64,6 +80,8 @@ def current() -> Platform:
     """The host OS. Android counts as its own platform (Chaquopy reports "android" on Python 3.13+, or
     "linux" with `sys.getandroidapilevel` on older builds)."""
     p = sys.platform
+    if p == "emscripten":  # Pyodide in a browser tab (the web app)
+        return "web"
     if p == "win32" or p == "cygwin":
         return "windows"
     if p == "darwin":

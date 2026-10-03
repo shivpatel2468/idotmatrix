@@ -1,0 +1,22 @@
+{
+  "name": "DeskDot",
+  "short_name": "DeskDot",
+  "description": "The iDotMatrix 32\u00d732 panel studio, in your browser",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#08080a",
+  "theme_color": "#0c0c0f",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

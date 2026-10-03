@@ -1,8 +1,8 @@
 {
  "version": "3.2.0",
- "count": 90,
- "games": 25,
- "multiplayer": 21,
+ "count": 100,
+ "games": 26,
+ "multiplayer": 31,
  "categories": [
   {
    "id": "time",
@@ -32,7 +32,12 @@
   {
    "id": "games",
    "label": "Games",
-   "count": 25
+   "count": 26
+  },
+  {
+   "id": "casino",
+   "label": "Casino",
+   "count": 9
   },
   {
    "id": "ambient",
@@ -256,6 +261,1063 @@
      "max": 1.0
     }
    ]
+  },
+  {
+   "id": "casino_sevens",
+   "name": "7 Up 7 Down",
+   "category": "casino",
+   "icon": "dices",
+   "description": "The dice party game: bet under 7, over 7 or lucky 7 from your phone; the panel rolls.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_sevens.html",
+   "preview": "media/apps/casino_sevens.gif",
+   "poster": "media/apps/casino_sevens.png",
+   "og_image": "media/apps/og/casino_sevens.png",
+   "source": "src/deskdot/apps/casino_sevens.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "seven_pays",
+     "title": "Lucky 7 pays (to 1)",
+     "type": "integer",
+     "description": "4:1 is the classic table (16.7 % edge on every bet); 5:1 makes the 7 a fair bet.",
+     "default": 4,
+     "min": 4,
+     "max": 5
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_andarbahar",
+   "name": "Andar Bahar",
+   "category": "casino",
+   "icon": "spade",
+   "description": "The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_andarbahar.html",
+   "preview": "media/apps/casino_andarbahar.gif",
+   "poster": "media/apps/casino_andarbahar.png",
+   "og_image": "media/apps/og/casino_andarbahar.png",
+   "source": "src/deskdot/apps/casino_andarbahar.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "first",
+     "title": "First card goes to",
+     "type": "choice",
+     "description": "The side that gets the first card wins 51.5 % of games, so it pays 0.9:1 (edge 2.15 %); the other side pays 1:1 (edge 3.00 %).",
+     "default": "andar",
+     "options": [
+      {
+       "value": "andar",
+       "label": "Andar (the standard table)"
+      },
+      {
+       "value": "bahar",
+       "label": "Bahar"
+      }
+     ]
+    },
+    {
+     "key": "side_bets",
+     "title": "Card-count side bets",
+     "type": "toggle",
+     "description": "Bet on how many cards are dealt (1-5, 6-10 … 41-49).",
+     "default": true
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_baccarat",
+   "name": "Baccarat",
+   "category": "casino",
+   "icon": "spade",
+   "description": "Punto Banco for parties: bet Player, Banker or Tie from your phone; the panel deals the coup.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_baccarat.html",
+   "preview": "media/apps/casino_baccarat.gif",
+   "poster": "media/apps/casino_baccarat.png",
+   "og_image": "media/apps/og/casino_baccarat.png",
+   "source": "src/deskdot/apps/casino_baccarat.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "commission",
+     "title": "Banker commission",
+     "type": "choice",
+     "description": "Standard: Banker edge 1.06 %. No commission: a Banker win with 6 pays half (edge 1.46 %).",
+     "default": "standard",
+     "options": [
+      {
+       "value": "standard",
+       "label": "Banker pays 0.95:1 (5 % commission)"
+      },
+      {
+       "value": "no_commission",
+       "label": "No commission (Banker 6 pays 1:2)"
+      }
+     ]
+    },
+    {
+     "key": "tie_pays",
+     "title": "Tie pays (to 1)",
+     "type": "integer",
+     "description": "8:1 = 14.4 % house edge; 9:1 = 4.8 %.",
+     "default": 8,
+     "min": 8,
+     "max": 9
+    },
+    {
+     "key": "decks",
+     "title": "Decks",
+     "type": "integer",
+     "description": "A fresh shoe of this many decks every coup.",
+     "default": 8,
+     "min": 1,
+     "max": 8
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_bigsix",
+   "name": "Big Six",
+   "category": "casino",
+   "icon": "disc",
+   "description": "The money wheel: bet on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_bigsix.html",
+   "preview": "media/apps/casino_bigsix.gif",
+   "poster": "media/apps/casino_bigsix.png",
+   "og_image": "media/apps/og/casino_bigsix.png",
+   "source": "src/deskdot/apps/casino_bigsix.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_blackjack",
+   "name": "Blackjack",
+   "category": "casino",
+   "icon": "club",
+   "description": "Blackjack for parties: everyone plays the dealer from their phone; the panel deals the hands.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_blackjack.html",
+   "preview": "media/apps/casino_blackjack.gif",
+   "poster": "media/apps/casino_blackjack.png",
+   "og_image": "media/apps/og/casino_blackjack.png",
+   "source": "src/deskdot/apps/casino_blackjack.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "decks",
+     "title": "Decks in the shoe",
+     "type": "integer",
+     "default": 6,
+     "min": 1,
+     "max": 8
+    },
+    {
+     "key": "penetration",
+     "title": "Cut card at (% of the shoe)",
+     "type": "integer",
+     "description": "A new shoe starts after the cut card.",
+     "default": 75,
+     "min": 50,
+     "max": 90
+    },
+    {
+     "key": "soft17",
+     "title": "Dealer on soft 17",
+     "type": "choice",
+     "default": "stand",
+     "options": [
+      {
+       "value": "stand",
+       "label": "Dealer stands on soft 17 (S17)"
+      },
+      {
+       "value": "hit",
+       "label": "Dealer hits soft 17 (H17, +0.22 %)"
+      }
+     ]
+    },
+    {
+     "key": "blackjack_pays",
+     "title": "Blackjack pays",
+     "type": "choice",
+     "default": "3:2",
+     "options": [
+      {
+       "value": "3:2",
+       "label": "Blackjack pays 3:2"
+      },
+      {
+       "value": "6:5",
+       "label": "Blackjack pays 6:5 (+1.4 % edge)"
+      }
+     ]
+    },
+    {
+     "key": "double_on",
+     "title": "Double on",
+     "type": "choice",
+     "default": "any",
+     "options": [
+      {
+       "value": "any",
+       "label": "Any first two cards"
+      },
+      {
+       "value": "9-11",
+       "label": "Hard 9, 10, 11 only"
+      }
+     ]
+    },
+    {
+     "key": "double_after_split",
+     "title": "Double after split",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "max_splits",
+     "title": "Splits per hand",
+     "type": "integer",
+     "description": "3 = up to four hands.",
+     "default": 3,
+     "min": 1,
+     "max": 3
+    },
+    {
+     "key": "surrender",
+     "title": "Surrender",
+     "type": "choice",
+     "default": "late",
+     "options": [
+      {
+       "value": "late",
+       "label": "Late surrender"
+      },
+      {
+       "value": "none",
+       "label": "No surrender"
+      }
+     ]
+    },
+    {
+     "key": "insurance",
+     "title": "Offer insurance (pays 2:1)",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "dealer_peek",
+     "title": "Dealer peeks for blackjack",
+     "type": "toggle",
+     "description": "Off = European no-hole-card: a dealer blackjack also takes doubles and splits.",
+     "default": true
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_roulette",
+   "name": "Roulette",
+   "category": "casino",
+   "icon": "circle-dot",
+   "description": "Casino roulette for parties: friends bet from their phones, the panel spins the wheel.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_roulette.html",
+   "preview": "media/apps/casino_roulette.gif",
+   "poster": "media/apps/casino_roulette.png",
+   "og_image": "media/apps/og/casino_roulette.png",
+   "source": "src/deskdot/apps/casino_roulette.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "wheel",
+     "title": "Wheel",
+     "type": "choice",
+     "description": "European pays the same with one zero: 2.70 % house edge. American adds 00: 5.26 %.",
+     "default": "european",
+     "options": [
+      {
+       "value": "european",
+       "label": "European (single 0)"
+      },
+      {
+       "value": "american",
+       "label": "American (0 and 00)"
+      }
+     ]
+    },
+    {
+     "key": "la_partage",
+     "title": "La Partage",
+     "type": "toggle",
+     "description": "European only: even-money bets get half back when the ball lands on 0 (edge 1.35 %).",
+     "default": false
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_slots",
+   "name": "Slots",
+   "category": "casino",
+   "icon": "cherry",
+   "description": "A slot machine for every phone: pull the lever, watch your reels spin on the panel.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_slots.html",
+   "preview": "media/apps/casino_slots.gif",
+   "poster": "media/apps/casino_slots.png",
+   "og_image": "media/apps/og/casino_slots.png",
+   "source": "src/deskdot/apps/casino_slots.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo loop"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: betting"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: no more bets"
+      },
+      {
+       "value": "spinning",
+       "label": "Preview: spin / roll"
+      },
+      {
+       "value": "result",
+       "label": "Preview: result"
+      },
+      {
+       "value": "board",
+       "label": "Preview: result board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "theme",
+     "title": "Machine theme",
+     "type": "choice",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic fruits"
+      },
+      {
+       "value": "neon",
+       "label": "Neon 7s"
+      },
+      {
+       "value": "space",
+       "label": "Space"
+      }
+     ]
+    },
+    {
+     "key": "volatility",
+     "title": "Volatility",
+     "type": "choice",
+     "description": "Picks the reel-strip set. Every preset's RTP (≈95–96 %) is computed exactly and shown.",
+     "default": "medium",
+     "options": [
+      {
+       "value": "low",
+       "label": "Low: frequent small wins"
+      },
+      {
+       "value": "medium",
+       "label": "Medium"
+      },
+      {
+       "value": "high",
+       "label": "High: rarer, bigger wins"
+      }
+     ]
+    },
+    {
+     "key": "lines",
+     "title": "Paylines",
+     "type": "choice",
+     "default": "5",
+     "options": [
+      {
+       "value": "1",
+       "label": "1 line (middle row)"
+      },
+      {
+       "value": "3",
+       "label": "3 lines (the rows)"
+      },
+      {
+       "value": "5",
+       "label": "5 lines (rows + diagonals)"
+      }
+     ]
+    },
+    {
+     "key": "bet_per_line",
+     "title": "Default bet per line",
+     "type": "choice",
+     "description": "Players pick their own bet per line on the phone; this is where it starts.",
+     "default": "1",
+     "options": [
+      {
+       "value": "1",
+       "label": "1"
+      },
+      {
+       "value": "2",
+       "label": "2"
+      },
+      {
+       "value": "5",
+       "label": "5"
+      },
+      {
+       "value": "10",
+       "label": "10"
+      },
+      {
+       "value": "25",
+       "label": "25"
+      }
+     ]
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic fruits"
+     },
+     {
+      "value": "neon",
+      "label": "Neon 7s"
+     },
+     {
+      "value": "space",
+      "label": "Space"
+     }
+    ]
+   }
+  },
+  {
+   "id": "casino_teenpatti",
+   "name": "Teen Patti",
+   "category": "casino",
+   "icon": "spade",
+   "description": "Three-card Indian poker: play blind or seen, chaal, raise, sideshow and show from your phone.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_teenpatti.html",
+   "preview": "media/apps/casino_teenpatti.gif",
+   "poster": "media/apps/casino_teenpatti.png",
+   "og_image": "media/apps/og/casino_teenpatti.png",
+   "source": "src/deskdot/apps/casino_teenpatti.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others replay a demo hand played by bots, or freeze one moment of it, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo hand (bots)"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: next hand"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: shuffle"
+      },
+      {
+       "value": "dealing",
+       "label": "Preview: dealing"
+      },
+      {
+       "value": "action",
+       "label": "Preview: a turn"
+      },
+      {
+       "value": "result",
+       "label": "Preview: showdown"
+      },
+      {
+       "value": "board",
+       "label": "Preview: winner"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "boot",
+     "title": "Boot (ante)",
+     "type": "integer",
+     "description": "Everyone's entry into each pot.",
+     "default": 10,
+     "min": 1,
+     "max": 100000
+    },
+    {
+     "key": "chaal_limit",
+     "title": "Chaal limit",
+     "type": "integer",
+     "description": "The largest the stake may grow to.",
+     "default": 1280,
+     "min": 1,
+     "max": 10000000
+    },
+    {
+     "key": "pot_limit",
+     "title": "Pot limit",
+     "type": "integer",
+     "description": "When the pot reaches it, everyone shows.",
+     "default": 10240,
+     "min": 2,
+     "max": 100000000
+    },
+    {
+     "key": "max_blind_rounds",
+     "title": "Blind bets before you must see",
+     "type": "integer",
+     "description": "Then your cards open.",
+     "default": 4,
+     "min": 1,
+     "max": 20
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_holdem",
+   "name": "Texas Hold'em",
+   "category": "casino",
+   "icon": "spade",
+   "description": "No-limit poker for the party: phones hold the cards, the panel shows the board, pot and turns.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_holdem.html",
+   "preview": "media/apps/casino_holdem.gif",
+   "poster": "media/apps/casino_holdem.png",
+   "og_image": "media/apps/og/casino_holdem.png",
+   "source": "src/deskdot/apps/casino_holdem.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others replay a demo hand played by bots, or freeze one moment of it, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo hand (bots)"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: next hand"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: shuffle"
+      },
+      {
+       "value": "dealing",
+       "label": "Preview: dealing"
+      },
+      {
+       "value": "action",
+       "label": "Preview: a turn"
+      },
+      {
+       "value": "result",
+       "label": "Preview: showdown"
+      },
+      {
+       "value": "board",
+       "label": "Preview: winner"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "small_blind",
+     "title": "Small blind",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 100000
+    },
+    {
+     "key": "big_blind",
+     "title": "Big blind",
+     "type": "integer",
+     "default": 10,
+     "min": 2,
+     "max": 200000
+    },
+    {
+     "key": "blind_up_every",
+     "title": "Double the blinds every N hands",
+     "type": "integer",
+     "description": "0 keeps the blinds fixed.",
+     "default": 0,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "rake_percent",
+     "title": "Rake (%)",
+     "type": "integer",
+     "description": "The house's share of each pot at a showdown. 0 = none.",
+     "default": 0,
+     "min": 0,
+     "max": 10
+    },
+    {
+     "key": "rake_cap",
+     "title": "Rake cap per hand",
+     "type": "integer",
+     "description": "0 = no cap.",
+     "default": 0,
+     "min": 0,
+     "max": 1000000
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
   },
   {
    "id": "wireframe",
@@ -9765,6 +10827,344 @@
      {
       "value": "dunes",
       "label": "Dunes"
+     }
+    ]
+   }
+  },
+  {
+   "id": "rps",
+   "name": "Rock Paper Scissors",
+   "category": "games",
+   "icon": "hand",
+   "description": "The party classic, 1 v 1: two pixel hands pump ROCK… PAPER… SCISSORS… SHOOT! Play the AI, a friend (keyboard + phone, or two phones) or run a 3–8 player tournament — friends join by scanning the panel's QR code and pick their hand on big buttons. Plays AI vs AI when idle.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/rps.html",
+   "preview": "media/apps/rps.gif",
+   "poster": "media/apps/rps.png",
+   "og_image": "media/apps/og/rps.png",
+   "source": "src/deskdot/apps/games_rps.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "arena",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "arena",
+       "label": "Arena"
+      },
+      {
+       "value": "party",
+       "label": "Party"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "best_of",
+     "title": "Match length",
+     "type": "choice",
+     "default": "3",
+     "options": [
+      {
+       "value": "1",
+       "label": "Best of 1"
+      },
+      {
+       "value": "3",
+       "label": "Best of 3"
+      },
+      {
+       "value": "5",
+       "label": "Best of 5"
+      },
+      {
+       "value": "7",
+       "label": "Best of 7"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "round_timer",
+     "title": "Seconds to pick",
+     "type": "integer",
+     "description": "Anyone who hasn't picked when time runs out gets a random hand",
+     "default": 8,
+     "min": 3,
+     "max": 30,
+     "group": "Game"
+    },
+    {
+     "key": "ai_style",
+     "title": "AI style",
+     "type": "choice",
+     "default": "random",
+     "options": [
+      {
+       "value": "random",
+       "label": "Random (truly uniform — unbeatable in the long run)"
+      },
+      {
+       "value": "pattern",
+       "label": "Pattern hunter (punishes your habits)"
+      },
+      {
+       "value": "cheeky",
+       "label": "Cheeky (gives away tells… mostly honest)"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "reveal",
+     "title": "Reveal",
+     "type": "choice",
+     "default": "shoot",
+     "options": [
+      {
+       "value": "shoot",
+       "label": "Rock, paper, scissors, shoot!"
+      },
+      {
+       "value": "count",
+       "label": "3-2-1 countdown"
+      },
+      {
+       "value": "instant",
+       "label": "Instant"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "cpu",
+     "options": [
+      {
+       "value": "cpu",
+       "label": "You vs AI"
+      },
+      {
+       "value": "pvp",
+       "label": "1 v 1"
+      },
+      {
+       "value": "tour",
+       "label": "Tournament"
+      },
+      {
+       "value": "demo",
+       "label": "AI vs AI"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "knockout",
+     "options": [
+      {
+       "value": "knockout",
+       "label": "Knockout"
+      },
+      {
+       "value": "robin",
+       "label": "Round robin"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 8,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 8,
+    "controls": [
+     "rps",
+     "dpad",
+     "gamepad"
+    ],
+    "modes": [
+     {
+      "id": "cpu",
+      "name": "You vs AI",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     },
+     {
+      "id": "pvp",
+      "name": "1 v 1",
+      "min_players": 2,
+      "max_players": 2,
+      "teams": "ffa"
+     },
+     {
+      "id": "tour",
+      "name": "Tournament",
+      "min_players": 3,
+      "max_players": 8,
+      "teams": "ffa"
+     },
+     {
+      "id": "demo",
+      "name": "AI vs AI",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     }
+    ],
+    "maps": [
+     {
+      "id": "knockout",
+      "label": "Knockout"
+     },
+     {
+      "id": "robin",
+      "label": "Round robin"
+     }
+    ],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "arena",
+      "label": "Arena"
+     },
+     {
+      "value": "party",
+      "label": "Party"
      }
     ]
    }

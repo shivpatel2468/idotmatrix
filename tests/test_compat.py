@@ -186,7 +186,9 @@ GATED = [cls.id for cls in REGISTRY.values() if cls.platforms]
 
 @pytest.mark.parametrize("app_id", GATED)
 async def test_apps_render_unsupported_state(engine, monkeypatch: pytest.MonkeyPatch, app_id: str) -> None:  # type: ignore[no-untyped-def]
-    monkeypatch.setattr(platforms, "current", lambda: "android")
+    # a host the app doesn't support: Android for desktop-only apps, the browser for System Monitor
+    host = next(h for h in ("android", "web") if h not in REGISTRY[app_id].platforms)
+    monkeypatch.setattr(platforms, "current", lambda: host)
     slot = engine._slot(app_id)
     engine._hold(slot)  # acquiring an unsupported provider must not start polling
     try:
@@ -194,7 +196,7 @@ async def test_apps_render_unsupported_state(engine, monkeypatch: pytest.MonkeyP
             p = engine.hub.get(name)
             if p.feature and not platforms.supported(p.feature):
                 assert p.supported is False and p._task is None
-                assert "not available on Android" in (p.error or "")
+                assert f"not available on {platforms.LABELS[host]}" in (p.error or "")
                 assert p.snapshot()["supported"] is False
         assert slot.app.relevant() is False  # the playlist skips it
         for t in (0.0, 1.3):

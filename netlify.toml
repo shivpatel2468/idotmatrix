@@ -15,23 +15,56 @@
   to = "/apps.html"
   status = 301
 
+# The web app lives at /app/ (its service worker's scope); the bare path lands there. Its live-data fallback
+# (/app/proxy) is a Netlify Function (netlify/functions/cors-proxy.mjs) routed by its own `config.path`.
+[[redirects]]
+  from = "/app"
+  to = "/app/"
+  status = 301
+
 # Anything else unknown → the styled 404 page (Netlify serves site/404.html automatically; kept explicit).
 [[redirects]]
   from = "/*"
   to = "/404.html"
   status = 404
 
+# Security headers for everything (the website and the web app).
 [[headers]]
   for = "/*"
   [headers.values]
-    # The one inline script (marks <html class="js">) is allowed by its hash; build_site_pages.py prints it
-    # (csp_hash()) and tests/test_site_data.py checks that this header still matches.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+# Content-Security-Policy for the website's pages. Kept off /app/* on purpose: Netlify combines matching rules, and
+# two policies would both apply (the web app's needs wasm and the Pyodide CDN). The one inline script (marks
+# <html class="js">) is allowed by its hash; build_site_pages.py prints it (csp_hash()) and
+# tests/test_site_data.py checks that these headers still match.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+[[headers]]
+  for = "/:page"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+[[headers]]
+  for = "/apps/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+# The web app (docs/WEB_APP.md): Pyodide from the pinned jsDelivr CDN ('wasm-unsafe-eval' compiles its WebAssembly),
+# the engine in a same-origin worker, and the apps' live-data APIs over https (the engine fetches them from the page).
+[[headers]]
+  for = "/app/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
 # Pages, CSS, JS and data: always revalidate (names don't change between deploys).
 [[headers]]

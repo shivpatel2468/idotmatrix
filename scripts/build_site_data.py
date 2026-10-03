@@ -34,6 +34,7 @@ CATEGORY_LABELS = {
     "creative": "Creative",
     "pets": "Pets",
     "games": "Games",
+    "casino": "Casino",
     "ambient": "Ambient",
     "productivity": "Productivity",
     "device": "Device",

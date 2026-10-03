@@ -303,6 +303,54 @@ canvas.av{display:block;image-rendering:pixelated}
 .gpd [data-g=a]::after,.gpd [data-g=b]::after{content:attr(data-g);position:absolute;inset:0;display:grid;place-items:center;font:800 12px var(--disp);text-transform:uppercase;color:var(--dim)}
 .map{margin:0;padding:0;list-style:none;display:grid;gap:6px;color:var(--dim);font-size:14px}.map b{color:var(--ink)}
 
+/* rock paper scissors: three big hand buttons, lock-in, reveal, tournament board */
+.rps{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+.rps-vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px;border-radius:18px;background:var(--s1);border:1px solid var(--line)}
+.rps-side{display:flex;align-items:center;gap:8px;min-width:0}
+.rps-side.them{flex-direction:row-reverse;text-align:right}
+.rps-side canvas{flex:none;width:30px;height:30px;border-radius:8px;background:#050507}
+.rps-side .nm{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rps-side b{font:800 14px/1.1 var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--pc,var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pips{display:flex;gap:4px}.rps-side.them .pips{justify-content:flex-end}
+.pips i{width:10px;height:10px;border-radius:3px;background:var(--pc,#888);opacity:.22}
+.pips i.on{opacity:1;box-shadow:0 0 10px var(--pc)}
+.rps-mid{display:flex;flex-direction:column;align-items:center;gap:2px;font:800 15px/1 var(--mono);color:var(--amber)}
+.rps-mid small{font:700 10px/1 var(--mono);color:var(--mute);letter-spacing:.12em}
+.rps-msg{min-height:2.5em;display:flex;align-items:center;justify-content:center;text-align:center;font:800 clamp(18px,5.4vw,26px)/1.15 var(--disp);letter-spacing:-.01em}
+.rps-msg.hot{color:var(--c);text-shadow:0 0 22px var(--ca55)}
+.rps-timer{height:8px;border-radius:4px;background:var(--s2);overflow:hidden;border:1px solid var(--line)}
+.rps-timer i{display:block;height:100%;width:100%;background:var(--ok);transition:width 1s linear,background-color .3s}
+.rps-timer.warn i{background:var(--amber)}.rps-timer.bad i{background:var(--bad)}
+.rps-picks{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(120px,min(100%,300px));align-content:center;gap:10px;min-height:0}
+.rps-b{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;padding:10px 4px;border-radius:24px;
+  border:1.5px solid #373742;background:linear-gradient(180deg,#24242c,#17171c);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 0 #040406,0 12px 20px rgba(0,0,0,.45);
+  font:800 13px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);transition:transform .14s var(--ease),opacity .2s,box-shadow .14s,border-color .14s}
+.rps-b canvas{width:min(26vw,120px);height:min(26vw,120px);image-rendering:pixelated}
+.rps-b kbd{position:absolute;top:8px;right:10px;font:700 10px/1 var(--mono);color:var(--mute)}
+.rps-b.on{transition:none;transform:translateY(5px);box-shadow:0 1px 0 #040406,0 0 30px var(--ca55)}
+.rps-b.sel{border-color:var(--c);color:var(--ink);background:linear-gradient(180deg,var(--ca35),var(--ca10));box-shadow:0 0 34px var(--ca55),inset 0 0 30px var(--ca20)}
+.rps-b.sel::after{content:"Locked";position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);padding:3px 10px;border-radius:999px;background:var(--c);color:#050507;font:850 10px/1.2 var(--mono);letter-spacing:.1em}
+.rps-picks.done .rps-b:not(.sel),.rps-picks.wait .rps-b{opacity:.35}
+.rps-picks.wait .rps-b{box-shadow:none}
+.land .rps-b canvas{width:min(18vh,110px);height:min(18vh,110px)}
+.rps-rand{align-self:center;min-height:44px;padding:0 18px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);color:var(--dim);font-weight:700}
+.rps-show{flex:1;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;min-height:0}
+.rps-show canvas{width:100%;max-width:150px;aspect-ratio:1;justify-self:center;image-rendering:pixelated}
+.rps-show.pump canvas{animation:bob .42s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-14%)}}
+.rps-show .res{font:900 clamp(20px,6vw,30px)/1 var(--disp);text-align:center;min-width:3ch}
+.rps-show .lose{opacity:.4;filter:saturate(.4)}
+.rps-board{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px}
+.rps-board h4{margin:6px 0 0;font:700 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.bm{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:var(--s1);border:1px solid var(--line);font:700 13px/1.2 var(--mono);text-transform:uppercase}
+.bm.cur{border-color:var(--amber);box-shadow:0 0 14px rgba(255,178,26,.2)}
+.bm.me{background:linear-gradient(90deg,var(--ca10),transparent 70%),var(--s1)}
+.bm .p{display:inline-flex;align-items:center;gap:6px;min-width:0;color:var(--dim)}
+.bm .p i{width:10px;height:10px;border-radius:3px;background:var(--pc);flex:none}
+.bm .p.w{color:var(--ink)}.bm .p.l{opacity:.45;text-decoration:line-through}
+.bm .v{color:var(--mute);font-size:11px}
+.bm .n{margin-left:auto;color:var(--ink)}
+
 /* ---------- toast / reconnect / end ---------- */
 .toast{position:fixed;left:50%;top:calc(var(--st) + 70px);transform:translateX(-50%);z-index:39;width:max-content;max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;
   background:#1d1d24;border:1px solid var(--c);box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 18px var(--ca20);font-weight:650;text-align:center;pointer-events:none;animation:drop .22s var(--ease)}
@@ -490,6 +538,26 @@ canvas.av{display:block;image-rendering:pixelated}
     </div>
   </section>
 
+  <section class="mode full" data-m="rps" hidden>
+    <div class="rps" id="rps">
+      <div class="rps-vs" id="rps-vs" aria-label="Score">
+        <div class="rps-side me"><canvas class="av" data-s="30" aria-hidden="true"></canvas><div class="nm"><b>You</b><span class="pips"></span></div></div>
+        <div class="rps-mid"><span>VS</span><small id="rps-round"></small></div>
+        <div class="rps-side them"><canvas class="av" data-s="30" aria-hidden="true"></canvas><div class="nm"><b>…</b><span class="pips"></span></div></div>
+      </div>
+      <div class="rps-msg" id="rps-msg" role="status" aria-live="polite">Watch the panel</div>
+      <div class="rps-timer" id="rps-timer" hidden><i></i></div>
+      <div class="rps-picks wait" id="rps-picks" data-surface role="group" aria-label="Pick rock, paper or scissors">
+        <button class="rps-b" data-mv="rock" data-k="left" aria-label="Rock"><kbd>1</kbd><canvas width="64" height="64" aria-hidden="true"></canvas><span>Rock</span></button>
+        <button class="rps-b" data-mv="paper" data-k="up" aria-label="Paper"><kbd>2</kbd><canvas width="64" height="64" aria-hidden="true"></canvas><span>Paper</span></button>
+        <button class="rps-b" data-mv="scissors" data-k="right" aria-label="Scissors"><kbd>3</kbd><canvas width="64" height="64" aria-hidden="true"></canvas><span>Scissors</span></button>
+      </div>
+      <div class="rps-show" id="rps-show" hidden><canvas id="rps-mine" width="64" height="64" aria-hidden="true"></canvas><div class="res" id="rps-res"></div><canvas id="rps-theirs" width="64" height="64" aria-hidden="true"></canvas></div>
+      <div class="rps-board scroll" id="rps-board" hidden></div>
+      <button class="rps-rand" id="rps-rand" data-click>Surprise me</button>
+    </div>
+  </section>
+
   <section class="mode full" data-m="keyboard" hidden>
     <div class="card">
       <div style="display:flex;flex-direction:column;gap:8px">
@@ -632,6 +700,7 @@ const ICON = {
   keyboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10" stroke-linecap="round"/></svg>',
   gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10a5 5 0 0 1 4.8 6.4l-1 3.4a2.5 2.5 0 0 1-4.3 1L15 16H9l-1.5 1.8a2.5 2.5 0 0 1-4.3-1l-1-3.4A5 5 0 0 1 7 7z"/><path d="M8 10v4M6 12h4" stroke-linecap="round"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>',
   tilt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2.5" transform="rotate(22 12 12)"/><path d="M3 20a9 9 0 0 1 0-6" stroke-linecap="round"/></svg>',
+  rps: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="6" height="10" rx="2.5"/><path d="M10 6h4v5h8v2h-8v1h7v2h-7v1h6v2h-10z" opacity=".9"/></svg>',
 };
 const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
@@ -642,6 +711,7 @@ const MODES = {
   tap: { name: "Tap zones", desc: "Hold the left or right half of the screen. Great one-thumb racing.", hint: "" },
   keyboard: { name: "Keyboard", desc: "A Bluetooth keyboard paired with this phone: arrows or WASD, Space = A, Shift = B.", hint: "" },
   gamepad: { name: "Game controller", desc: "Xbox, PlayStation, Switch Pro or 8BitDo paired with this phone.", hint: "" },
+  rps: { name: "Hand picker", desc: "Three big buttons: rock, paper, scissors. Tap one to lock in your hand.", hint: "" },
   tilt: { name: "Tilt to steer", desc: "Tilt the phone left and right like a steering wheel.", hint: "Tilt like a steering wheel" },
 };
 const MODE_IDS = Object.keys(MODES);
@@ -661,7 +731,7 @@ const WHY = {
   },
 };
 const why = (m) => (AVAIL[m] ? WHY[m][AVAIL[m]] : "");
-const usable = (m) => !!MODES[m] && !AVAIL[m];
+const usable = (m) => !!MODES[m] && !AVAIL[m] && (m !== "rps" || controls.includes("rps")); // the hand picker only suits RPS
 
 const OPTS = [
   { k: "stick", t: "Stick position", seg: [["float", "Where I touch"], ["fixed", "Fixed"]], modes: ["joystick"] },
@@ -958,6 +1028,7 @@ function kbLight(c, on) { for (const el of $$(".cap")) if (el.dataset.kc.split("
 addEventListener("keydown", (e) => {
   if (!$("#sheet").hidden) { if (e.key === "Escape") closeSheet(); return; }
   if (S.screen !== "play" || (e.target && e.target.tagName === "INPUT")) return;
+  if (cfg.mode === "rps" && !e.repeat && RPS_DIGIT[e.key]) { e.preventDefault(); rpsPick(RPS_DIGIT[e.key]); return; }
   const c = KB[e.code] ? e.code : KB[e.key] ? e.key : "";
   if (!c) return;
   e.preventDefault();
@@ -1324,10 +1395,11 @@ function onState(s, force) {
   else if (flow === "teams") { parts.push(r && r.ready ? "Ready — waiting for the others" : "Pick a side ◀ ▶ · A = ready"); mine = !!(r && !r.ready); }
   else if (flow === "intro") parts.push("Get ready…");
   else if (flow === "outro") parts.push("A = rematch");
+  if (s.rps) { const r = rpsParts(s); parts.length = 0; parts.push(...r.parts); mine = r.mine; }
   if (typeof s.turn === "number" && s.turn > 0) {
     mine = s.turn === S.seat;
     parts.unshift(mine ? "Your turn" : `Player ${s.turn}'s turn`);
-  } else if (typeof s.score === "number" && (flow === "play" || flow === "attract") && !s.lobby) parts.push(`Score ${s.score}`);
+  } else if (!s.rps && typeof s.score === "number" && (flow === "play" || flow === "attract") && !s.lobby) parts.push(`Score ${s.score}`);
   if (mine && !lastTurnMine && s.turn === S.seat) buzz([30, 50, 30]);
   lastTurnMine = mine && s.turn === S.seat;
   if (S.screen === "play" || force) {
@@ -1353,8 +1425,189 @@ function onState(s, force) {
   if (S.screen === "ready" && lastLobby === true && !s.lobby) { toast("Game on!"); buzz([20, 30, 20]); go("play"); }
   if (S.screen === "ready" && (flow !== lastFlow || s.lobby !== lastLobby)) renderReady();
   if (S.screen === "char") liveBanner();
+  if (s.rps) renderRps(s);
   lastFlow = flow; lastLobby = !!s.lobby;
 }
+
+/* ============================== rock paper scissors ============================== */
+// The hand picker (controller "rps"). Picks go out as ordinary keys: left = rock, up = paper, right = scissors,
+// down = let the engine pick at random. The engine sends its own pixel-art hands (status.rps.art), so the buttons
+// show exactly what the panel shows. Picks are secret: the status only says who has locked in until the reveal.
+const RPS_DIGIT = { "1": "left", "2": "up", "3": "right", r: "left", p: "up", s: "right" };
+const RPS_MOVE = { left: "rock", up: "paper", right: "scissors" };
+const R = { pick: null, art: null, btnSig: "", key: "", showSig: "" }; // pick = {key: "match:round", mv}
+const esc = (t) => String(t).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+function lighten(hex, k) {
+  const n = parseInt(hex.slice(1), 16), f = (v) => Math.round(v + (255 - v) * k).toString(16).padStart(2, "0");
+  return "#" + f(n >> 16) + f((n >> 8) & 255) + f(n & 255);
+}
+function drawHand(cv, mv, color, flip) { // LED dots on a 16 × 16 grid, like the panel
+  const rows = R.art && R.art[mv], W = 160;
+  if (cv.width !== W) { cv.width = W; cv.height = W; }
+  const g = cv.getContext("2d");
+  g.clearRect(0, 0, W, W);
+  if (!rows || !/^#[0-9a-f]{6}$/i.test(color || "")) return;
+  const n = 16, cell = W / n, h = rows.length, w = Math.max(...rows.map((r) => r.length));
+  const ox = Math.floor((n - w) / 2), oy = Math.floor((n - h) / 2), glove = lighten(color, 0.35);
+  const pal = { c: color, h: glove, l: lighten(color, 0.72), s: shade(glove, 0.5) };
+  for (let y = 0; y < h; y++) for (let x = 0; x < rows[y].length; x++) {
+    const fill = pal[rows[y][x]];
+    if (!fill) continue;
+    g.fillStyle = fill; g.beginPath();
+    g.arc((ox + (flip ? w - 1 - x : x) + 0.5) * cell, (oy + y + 0.5) * cell, cell * 0.46, 0, Math.PI * 2); g.fill();
+  }
+}
+function rpsWho(r, seat) { return (r.players && r.players[String(seat)]) || { name: "P" + seat, color: SEATS[seat] || "#888888", human: false }; }
+function rpsName(r, seat) { return seat === S.seat ? "You" : rpsWho(r, seat).name; }
+function rpsCtx(s) {
+  const r = s.rps, pair = r.pair || [], me = S.seat;
+  const inMatch = pair.includes(me) && !!rpsWho(r, me).human && r.kind !== "attract";
+  const key = r.match + ":" + r.round;
+  const mine = R.pick && R.pick.key === key ? R.pick : null; // tapped this round (the status may lag a moment)
+  return { r, pair, inMatch, opp: inMatch ? pair.find((x) => x !== me) : null, key, mine,
+    locked: (r.locked || []).includes(me) || (!!mine && r.phase === "pick") };
+}
+function knockedOut(r) {
+  const t = r.tour;
+  return !!t && t.format === "knockout" && t.rounds.some((rd) => rd.some(([a, b, w]) => w != null && (a === S.seat || b === S.seat) && w !== S.seat));
+}
+function rpsParts(s) {
+  const flow = s.flow || "", c = rpsCtx(s), r = c.r;
+  if (s.lobby) return { parts: ["Waiting for players…"], mine: false };
+  if (flow === "home") return { parts: ["Host is picking the mode"], mine: false };
+  if (flow === "intro") return { parts: ["Get ready…"], mine: false };
+  if (flow === "outro") return { parts: [r.champion === S.seat ? "You won!" : "Match over", "A = rematch"], mine: false };
+  if (r.kind === "attract") return { parts: ["Demo — the host starts a game"], mine: false };
+  if (!c.inMatch) return { parts: [`Watching ${rpsName(r, c.pair[0])} vs ${rpsName(r, c.pair[1])}`], mine: false };
+  if (r.phase === "pick") return { parts: [c.locked ? "Locked in" : "Your pick!"], mine: !c.locked };
+  return { parts: [`vs ${rpsName(r, c.opp)}`], mine: false };
+}
+function rpsSide(el, r, seat, s) {
+  if (seat == null) return;
+  const who = rpsWho(r, seat), col = seat === S.seat ? S.me.color : who.color || "#888888";
+  el.style.setProperty("--pc", col);
+  $("b", el).textContent = rpsName(r, seat);
+  const pips = $(".pips", el), n = r.first_to || 1, w = (r.wins || {})[String(seat)] || 0, sig = `${n}:${w}`;
+  if (pips.dataset.sig !== sig) { pips.dataset.sig = sig; pips.innerHTML = Array.from({ length: n }, (_, i) => `<i${i < w ? ' class="on"' : ""}></i>`).join(""); }
+  const info = (s.seats || []).find((x) => x.seat === seat);
+  const av = seat === S.seat ? S.me.avatar : (who.human && info && info.avatar) || (seat === 1 && who.human ? "knight" : "bot");
+  const cv = $("canvas", el), asig = av + col;
+  if (cv.dataset.sig !== asig) { cv.dataset.sig = asig; drawAvatar(cv, av, col, false); }
+}
+function rpsBoard(el, r) {
+  const t = r.tour;
+  if (!t) { el.innerHTML = ""; return; }
+  const sig = JSON.stringify([t, r.pair, S.seat, r.players]);
+  if (el.dataset.sig === sig) return;
+  el.dataset.sig = sig;
+  const cur = (a, b) => r.pair && r.pair.includes(a) && r.pair.includes(b);
+  const P = (seat, cls) => { const w = rpsWho(r, seat); return `<span class="p ${cls || ""}" style="--pc:${esc(w.color)}"><i></i>${esc(rpsName(r, seat))}</span>`; };
+  const row = (a, b, w) => `<div class="bm${w == null && cur(a, b) ? " cur" : ""}${a === S.seat || b === S.seat ? " me" : ""}">${P(a, w == null ? "" : w === a ? "w" : "l")}<span class="v">vs</span>${P(b, w == null ? "" : w === b ? "w" : "l")}</div>`;
+  let h = "";
+  if (t.format === "robin") {
+    h += "<h4>Standings</h4>";
+    t.table.forEach((x, i) => { h += `<div class="bm${x.seat === S.seat ? " me" : ""}"><span class="v">${i + 1}</span>${P(x.seat)}<span class="n">${x.wins} W · ${x.played} P</span></div>`; });
+    h += "<h4>Matches</h4>";
+    for (const [a, b, w] of t.games) h += row(a, b, w);
+  } else {
+    const title = (i, n) => (n === 1 ? "Final" : n === 2 ? "Semi-finals" : n === 4 ? "Quarter-finals" : "Round " + (i + 1));
+    t.rounds.forEach((rd, i) => {
+      h += `<h4>${title(i, rd.length)}</h4>`;
+      for (const [a, b, w] of rd) h += b == null ? `<div class="bm">${P(a, "w")}<span class="v">bye</span></div>` : row(a, b, w);
+    });
+  }
+  el.innerHTML = h;
+}
+function rpsButtons() { // the three hands, in my colour
+  const sig = S.me.color + (R.art ? "1" : "0");
+  if (sig === R.btnSig) return;
+  R.btnSig = sig;
+  for (const b of $$(".rps-b")) drawHand($("canvas", b), b.dataset.mv, S.me.color, false);
+}
+function renderRps(s) {
+  const c = rpsCtx(s), r = c.r, ph = r.phase, flow = s.flow || "";
+  if (r.art && !R.art) R.art = r.art;
+  rpsButtons();
+  if (R.pick && R.pick.key !== c.key) R.pick = null;
+  if (c.key !== R.key) { R.key = c.key; if (c.inMatch && ph === "pick" && flow === "play" && !c.locked) buzz([30, 50, 30]); }
+  const L = c.inMatch ? S.seat : c.pair[0], RR = c.inMatch ? c.opp : c.pair[1];
+  rpsSide($(".rps-side.me"), r, L, s);
+  rpsSide($(".rps-side.them"), r, RR, s);
+  $("#rps-round").textContent = r.round ? "R" + r.round : "";
+  const oppName = c.opp ? rpsName(r, c.opp) : "";
+  let text = "Watch the panel", hot = false, view = "picks";
+  if (s.lobby) text = "Waiting for players to join…";
+  else if (flow === "home") text = "The host is picking a mode";
+  else if (flow === "intro") text = c.inMatch ? `You vs ${oppName} — get ready!` : r.tour ? "The tournament is starting" : "Get ready…";
+  else if (flow === "outro") {
+    const ch = r.champion;
+    text = ch === S.seat ? (r.tour ? "You're the champion!" : "You win the match!") : ch ? `${rpsName(r, ch)} ${r.tour ? "is the champion" : "wins the match"}` : "Match over";
+    hot = ch === S.seat; view = r.tour ? "board" : "show";
+  } else if (r.kind === "attract") text = "Demo match — the host starts a game";
+  else if (!c.inMatch) {
+    view = r.tour && (ph === "bracket" || ph === "vs") ? "board" : "show";
+    text = `${ph === "bracket" || ph === "vs" ? "Next up" : "Watching"}: ${rpsName(r, c.pair[0])} vs ${rpsName(r, c.pair[1])}`;
+    if (knockedOut(r)) text = "You're out — " + text;
+  } else if (ph === "bracket") { view = "board"; text = `Next up: you vs ${oppName}`; hot = true; }
+  else if (ph === "vs") text = `You vs ${oppName}`;
+  else if (ph === "pick") {
+    if (!c.locked) { text = "Pick your hand!"; hot = true; }
+    else text = (r.locked || []).length >= 2 ? "Both locked in…" : `Locked in — waiting for ${oppName}`;
+  } else if (ph === "pump") { view = "show"; text = "Rock… Paper… Scissors…"; }
+  else if (ph === "reveal") {
+    view = "show"; const w = r.winner;
+    text = !r.picks ? "Shoot!" : w === 0 ? "Draw — go again!" : w === S.seat ? "You win the round!" : `${oppName} wins the round`;
+    hot = w === S.seat;
+  } else if (ph === "champ") {
+    view = "show"; const ch = r.champion;
+    text = ch === S.seat ? "You win the match!" : `${rpsName(r, ch)} wins the match`; hot = ch === S.seat;
+  }
+  const msg = $("#rps-msg");
+  if (msg.textContent !== text) msg.textContent = text;
+  msg.classList.toggle("hot", hot);
+  const canPick = flow === "play" && c.inMatch && ph === "pick" && !c.locked;
+  const timer = $("#rps-timer");
+  timer.hidden = !(canPick && r.timer);
+  if (!timer.hidden) {
+    const k = clamp((r.left || 0) / r.timer, 0, 1);
+    $("i", timer).style.width = Math.round(k * 100) + "%";
+    timer.classList.toggle("warn", k <= 0.5 && k > 0.25); timer.classList.toggle("bad", k <= 0.25);
+  }
+  const picks = $("#rps-picks"), show = $("#rps-show"), board = $("#rps-board");
+  picks.hidden = view !== "picks"; show.hidden = view !== "show"; board.hidden = view !== "board";
+  $("#rps-rand").hidden = view !== "picks" || !canPick;
+  picks.classList.toggle("wait", !canPick && !c.locked);
+  picks.classList.toggle("done", c.locked);
+  const mv = c.mine ? c.mine.mv : null;
+  for (const b of $$(".rps-b", picks)) { b.classList.toggle("sel", !!mv && c.locked && b.dataset.mv === mv); b.setAttribute("aria-disabled", String(!canPick)); }
+  if (view === "show") {
+    const shown = r.picks && (ph === "reveal" || ph === "champ" || flow === "outro");
+    const ml = shown ? r.picks[String(L)] : "rock", mr = shown ? r.picks[String(RR)] : "rock"; // the pump: two fists
+    const cl = L === S.seat ? S.me.color : rpsWho(r, L).color, cr = rpsWho(r, RR).color, w = shown ? r.winner : null;
+    show.classList.toggle("pump", ph === "pump");
+    const sig = [ml, mr, cl, cr, w, ph].join();
+    if (sig !== R.showSig) {
+      R.showSig = sig;
+      drawHand($("#rps-mine"), ml, cl, false);
+      drawHand($("#rps-theirs"), mr, cr, true);
+      $("#rps-mine").classList.toggle("lose", !!w && w !== L);
+      $("#rps-theirs").classList.toggle("lose", !!w && w !== RR);
+      $("#rps-res").textContent = ph === "pump" ? "VS" : w === 0 ? "DRAW" : w === L ? "◀ WIN" : w ? "WIN ▶" : "VS";
+    }
+  } else R.showSig = "";
+  if (view === "board") rpsBoard(board, r);
+}
+function rpsPick(k) {
+  const s = S.status, c = s.rps ? rpsCtx(s) : null;
+  if (!c || !c.inMatch || c.r.phase !== "pick" || c.locked || (s.flow || "") !== "play") { buzz(30); return; }
+  press(k); // instant: the panel locks this hand on the next frame
+  R.pick = { key: c.key, mv: RPS_MOVE[k] || null }; // "down" = the engine picks at random; we find out at the reveal
+  renderRps(s);
+}
+for (const b of $$(".rps-b")) {
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); flash(b); rpsPick(b.dataset.k); });
+}
+$("#rps-rand").addEventListener("click", () => rpsPick("down"));
 
 /* ============================== page hygiene ============================== */
 // no zoom, no scroll/bounce, no long-press menus; control surfaces never generate click/mouse emulation

@@ -25,7 +25,7 @@ import uuid
 from collections import deque
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field, ValidationError
@@ -83,6 +83,9 @@ DEFAULT_PLAYLIST = Playlist(
 )
 
 
+T = TypeVar("T")
+
+
 class AppContext:
     """What an app may touch. Deliberately small."""
 
@@ -101,6 +104,17 @@ class AppContext:
 
     def save(self) -> None:
         self._engine.store.save_soon()
+
+    def shared(self, key: str, factory: Callable[[dict[str, Any], Callable[[], None]], T]) -> T:
+        """One object shared by a family of apps (e.g. the casino session: credits follow players across games).
+
+        Built once per engine by `factory(section, save)`, where `section` is the persisted store section `key`
+        and `save()` schedules a debounced write of the state file."""
+        obj = self._engine.shared.get(key)
+        if obj is None:
+            store = self._engine.store
+            obj = self._engine.shared[key] = factory(store.section(key), store.save_soon)
+        return obj  # type: ignore[no-any-return]
 
     def invalidate(self) -> None:
         """Re-render now (and re-bake the clip if the app is a clip app)."""
@@ -165,6 +179,9 @@ class Engine:
         self.render_ms = 0.0
         self.ticks = 0
         self.library: Any = None
+        self.shared: dict[
+            str, Any
+        ] = {}  # objects a family of apps shares (AppContext.shared), e.g. the casino
         self._revert: asyncio.Task[None] | None = None
         self._revert_to: tuple[Any, str, bool] | None = None
         self.auto_rule: int | None = None  # index of the autopilot rule currently in control
@@ -1206,7 +1223,7 @@ class Engine:
 
     def apply_display(self, d: dict[str, Any]) -> None:
         self.device.min_frame_interval = 1.0 / max(0.5, min(30.0, float(d["max_fps"])))
-        if self.device.kind == "ble":
+        if self.device.kind != "sim":  # every real link is paced (ble, android, web)
             self.device.packet_gap = max(0.0, min(0.2, float(d["packet_gap_ms"]) / 1000))
 
     def set_display(self, patch: dict[str, Any]) -> dict[str, Any]:

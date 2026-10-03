@@ -211,9 +211,52 @@ Pong = 2, Light Cycles = 4).
 | GET | `/api/play/lobby` | `{lobby: null | {code, app, url, max_players, lan_ready, seats: [{seat, name, color}]}, lan_ready, games: [{id, name, max_players}]}` |
 | POST | `/api/play/lobby` | `{"app": "<game id>"}` — opens a lobby, shows the game with the join QR |
 | POST | `/api/play/lobby/start` | hide the QR, play with whoever joined (the host's A key does the same) |
+| POST | `/api/play/lobby/switch` | `{"app": "<casino id>"}` — casino rooms only: move the open room to another casino table; phones stay connected on their seats (their socket follows the room's app), wallets carry over, the join QR moves along while the lobby still waits. 404 without a room, 422 for a non-casino app |
 | DELETE | `/api/play/lobby` | close it and disconnect the phones |
 | GET | `/p/{code}` | the phone controller page (reachable from the LAN) |
 | WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes}`, `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
+
+### Casino tables (`category: "casino"`, docs/CASINO.md)
+
+`GET /p/{code}` serves the phone casino page (`casino.html`) instead of the controller when the lobby's app is a
+casino table. Same socket, same `hello` / `profile` / `roster`; in addition:
+
+| Direction | Message |
+| --- | --- |
+| phone → | `{"type": "casino", "op": "bet", "spot": "n:17", "amount": 25}` · `{"op": "unbet", "spot", "amount"?}` (all of it without `amount`) · `{"op": "clear"}` · `{"op": "rebet"}` · `{"op": "done"}` (locks early once everyone with chips is done) · `{"op": "seed", "client_seed": "≤64 printable chars, no ':'"}` · game ops later (`hit`, `fold`, `pull`, …). The server overwrites `player` with the socket's seat; host ops from a phone are refused |
+| → phone | `state {status, private}` — `status` is public (every phone + the studio); `private` (from `App.private_status(seat)`) only ever reaches that seat's socket |
+
+`status` (casino): `{casino, game, name, phase, round, hash (commitment of this round), ends_in (whole s, null =
+waiting for the first chip), reveal_in, next_in, paused, rules, totals {spot: credits, all players}, bettors, done
+(seats, the host `"host"` first),
+house {base_credits, min_bet, max_bet, bet_seconds, result_seconds, turn_seconds, auto_next}, edges {bet kind: house
+edge}, players [{seat, name, color, avatar, online, credits, staked, net, biggest}] (leaderboard order), history
+[{round, game, label, tone, outcome, rules, proof {nonce, hash, client_seed, server_seed}}], lobby, max_players,
+result? {round, outcome, label, tone, winners [{seat, name, net}]} (result phase only)}`. The outcome is never in
+`status` before the result phase.
+
+`private`: `{seated, pid, seat, name, credits, escrow, net, biggest, client_seed, kicked, notice {id, text, kind:
+error|info|result}, bets {spot: credits}, staked, last_bets, can_bet, done, ops, result? {round, stake, payout, net,
+wins}}`.
+
+**Bets are frozen from the lock until settlement:** every bet op outside `phase == "betting"` is refused ("Bets are
+closed") and changes nothing.
+
+Host ops: `POST /api/apps/{id}/actions/casino` with `{"op": …}` (local only; `player` defaults to `"host"`):
+
+| op | payload | effect |
+| --- | --- | --- |
+| `start_round` | | open betting (from idle / result) |
+| `lock` | | close betting now ("spin now") |
+| `settings` | any `house` keys | table settings for every casino game |
+| `credits` | `{seat \| pid \| all: true, set \| add}` | set / top up a wallet (logged in the ledger) |
+| `kick` | `{seat \| pid, on?: bool}` | take a player off the table (open bets refunded while betting) |
+| `pause` | `{on?: bool}` | freeze every timer (toggle without `on`) |
+| `reset_session` | `{base_credits?}` | everyone back to base credits, history cleared |
+| `verify` | `{round}` | recompute a past round from its revealed seeds → `{ok, hash_ok, matches, outcome, proof}` |
+| `view` | `{spots?: bool}` | read-only, for the studio's casino mode: `{status (fresh), private (the host seat's own view; `{seated: false}` until the host first plays — looking never seats the host), players (leaderboard + `pid`, `kicked`), spots? [{id, label, kind, pays, numbers}], avatars? {id: {name, px}}}` |
+
+The host can also play from the studio with the player ops (`{"op": "bet", …}` → seat `"host"`).
 
 **LAN access.** The engine listens on all interfaces (`host = "0.0.0.0"`) so phones can join, but the `LanGate`
 middleware only lets other devices reach `/p/…` and `/ws/p/…` with a valid room code; the studio and every other

@@ -54,6 +54,7 @@ from .gfx.font import FONTS
 from .gfx.image import encode_gif_budget, import_media
 from .media import MediaLibrary
 from .multiplayer import (
+    CASINO_HTML,
     CONTROLLER_HTML,
     PLAYER_COLORS,
     LanGate,
@@ -62,6 +63,7 @@ from .multiplayer import (
     avatar_table,
     clean_cid,
     game_profile,
+    player_pid,
 )
 from .power import start_power_watch
 from .previews import Previews
@@ -262,6 +264,10 @@ def build_device(cfg: Config) -> Device:
         from .device.android import AndroidBleDevice
 
         return AndroidBleDevice(cfg.address, min_frame_interval=interval, packet_gap=cfg.packet_gap_ms / 1000)
+    if cfg.device == "web":
+        from .device.web import WebBleDevice
+
+        return WebBleDevice(cfg.address, min_frame_interval=interval, packet_gap=cfg.packet_gap_ms / 1000)
     from .device.ble import BleDevice
 
     return BleDevice(cfg.address, min_frame_interval=interval, packet_gap=cfg.packet_gap_ms / 1000)
@@ -288,7 +294,7 @@ def create_app(cfg: Config) -> FastAPI:
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         await engine.start()
-        if cfg.device != "sim":
+        if cfg.device not in ("sim", "web"):
             start_power_watch(engine, asyncio.get_running_loop())  # sleep -> hand the panel its clock
         beat = asyncio.create_task(ws_hub.heartbeat())
         log.info(
@@ -371,13 +377,52 @@ def create_app(cfg: Config) -> FastAPI:
         await engine.action(room.app, "lobby", {"url": None, "keep_seats": True})
         return {"ok": True}
 
+    @app.post("/api/play/lobby/switch")
+    async def lobby_switch(app_id: str = Body(..., embed=True, alias="app")) -> dict[str, Any]:
+        """Casino: move the open room to another casino table. Every phone stays connected on its seat (its
+        socket follows `room.app`) and keeps its wallet; the join QR moves along while the lobby still waits."""
+        room = lobby.room
+        if room is None:
+            raise HTTPException(404, "no lobby")
+        cls, old = game_class(app_id), REGISTRY.get(room.app)
+        if cls.category != "casino" or old is None or old.category != "casino":
+            raise HTTPException(422, "only a casino room can switch tables")
+        if app_id != room.app:
+            prev = room.app
+            cur = engine.current
+            waiting = (
+                cur is not None and cur.app.id == prev and getattr(cur.app, "lobby_url", None) is not None
+            )
+            room.app = app_id
+            with contextlib.suppress(Exception):
+                await engine.action(prev, "lobby", {"url": None, "keep_seats": True})
+            engine.activate(app_id)
+            await engine.action(
+                app_id, "lobby", {"url": lobby.url() if waiting else None, "keep_seats": True}
+            )
+            for seat, prof in list(room.seats.items()):
+                await engine.action(
+                    app_id,
+                    "seat",
+                    {
+                        "player": seat,
+                        "joined": True,
+                        **game_profile(prof),
+                        "pid": player_pid(prof.get("cid")),
+                    },
+                )
+        return {"ok": True, **(lobby.snapshot() or {})}
+
     @app.get("/p/{code}")
     async def controller_page(code: str) -> HTMLResponse:
         if not lobby.valid(code):
             return HTMLResponse(
                 "<h2 style='font-family:sans-serif'>This game link has expired.</h2>", status_code=404
             )
-        return HTMLResponse(CONTROLLER_HTML, headers={"Cache-Control": "no-store"})
+        room = lobby.room
+        cls = REGISTRY.get(room.app) if room else None
+        page = CASINO_HTML if cls is not None and cls.category == "casino" else CONTROLLER_HTML
+        return HTMLResponse(page, headers={"Cache-Control": "no-store"})
 
     async def broadcast_roster(room: Room) -> None:
         """Tell every phone in the room who is in the lobby (after a join, leave or profile change)."""
@@ -410,9 +455,13 @@ def create_app(cfg: Config) -> FastAPI:
             with contextlib.suppress(Exception):
                 await old.send_text(json.dumps({"type": "replaced"}))
                 await old.close()
-        app_id = room.app
-        await engine.action(app_id, "seat", {"player": seat, "joined": True, **game_profile(prof)})
-        cls = REGISTRY[app_id]
+        # the room's app is read on every use: a casino room can move to another table (/lobby/switch)
+        await engine.action(
+            room.app,
+            "seat",
+            {"player": seat, "joined": True, **game_profile(prof), "pid": player_pid(prof.get("cid"))},
+        )
+        cls = REGISTRY[room.app]
         await sock.send_text(
             json.dumps(
                 {
@@ -436,14 +485,24 @@ def create_app(cfg: Config) -> FastAPI:
         await broadcast_roster(room)
         engine.changed()
 
+        poke = asyncio.Event()  # set after a casino op so its result reaches the phone at once
+
         async def push_state() -> None:
             # poll fast, send only on change (plus a heartbeat) so turn / flow changes reach the phone quickly
             last, sent_at = "", 0.0
             while True:
-                await asyncio.sleep(0.12)
+                with contextlib.suppress(TimeoutError):
+                    await asyncio.wait_for(poke.wait(), 0.12)
+                poke.clear()
                 cur = engine.current
-                st = cur.app.status() if cur and cur.app.id == app_id else {}
-                txt = json.dumps({"type": "state", "status": st}, default=str)
+                live = cur is not None and cur.app.id == room.app
+                st = cur.app.status() if live and cur else {}
+                out: dict[str, Any] = {"type": "state", "status": st}
+                # this seat's private view (credits, own bets, own cards) — only ever on this socket
+                pv = cur.app.private_status(seat) if live and cur else None
+                if pv is not None:
+                    out["private"] = pv
+                txt = json.dumps(out, default=str)
                 t = time.monotonic()
                 if txt != last or t - sent_at > 2.0:
                     await sock.send_text(txt)
@@ -469,15 +528,31 @@ def create_app(cfg: Config) -> FastAPI:
                     )
                 elif kind == "profile" and lobby.room is room:
                     if room.apply_profile(seat, msg):
+                        prof = room.seats[seat]
                         await engine.action(
-                            app_id, "seat", {"player": seat, "joined": True, **game_profile(room.seats[seat])}
+                            room.app,
+                            "seat",
+                            {
+                                "player": seat,
+                                "joined": True,
+                                **game_profile(prof),
+                                "pid": player_pid(prof.get("cid")),
+                            },
                         )
                         engine.changed()
                     await broadcast_roster(room)  # also corrects a phone whose pick was refused
+                elif kind == "casino" and lobby.room is room:
+                    # a phone's casino op; the seat comes from the socket, never from the message
+                    op = {k: v for k, v in msg.items() if k not in ("type", "player")}
+                    try:
+                        await engine.action(room.app, "casino", {**op, "player": seat})
+                    except (KeyError, ValueError, TypeError) as e:
+                        log.debug("casino op from seat %s refused: %s", seat, e)
+                    poke.set()
                 elif "k" in msg and lobby.room is room:
                     k = str(msg["k"]).lower()[:8]
                     if k in KEYS:  # the press goes straight to the game, no queue
-                        await engine.action(app_id, "input", {"key": k, "player": seat})
+                        await engine.action(room.app, "input", {"key": k, "player": seat})
         except (WebSocketDisconnect, RuntimeError, KeyError):
             pass
         finally:
@@ -487,7 +562,7 @@ def create_app(cfg: Config) -> FastAPI:
                 if lobby.room is room:
                     room.leave(seat)
                     with contextlib.suppress(Exception):
-                        await engine.action(app_id, "seat", {"player": seat, "joined": False})
+                        await engine.action(room.app, "seat", {"player": seat, "joined": False})
                     await broadcast_roster(room)
             engine.changed()
 
@@ -1141,6 +1216,8 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
     async def scan() -> list[dict[str, Any]]:
         if cfg.device == "sim":
             return [{"address": "SIM:00:00:00:00:00", "name": "IDM-Simulator", "rssi": -40}]
+        if cfg.device in ("web", "android"):
+            return []  # the browser's own device chooser / the phone's bridge picks the panel
         from .device.ble import scan as ble_scan
 
         return await ble_scan()

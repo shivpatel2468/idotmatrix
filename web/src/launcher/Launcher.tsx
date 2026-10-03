@@ -1,7 +1,7 @@
 // DeskDot Launcher: a keyboard-first command bar over the engine's HTTP API (docs/LAUNCHERS.md).
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Bell, Bug, ChevronLeft, ChevronRight, Clock, CornerDownLeft, Gamepad2, LayoutGrid, List, ListMusic, Monitor,
+  Bell, Bug, ChevronLeft, ChevronRight, Clock, CornerDownLeft, Dices, Gamepad2, LayoutGrid, List, ListMusic, Monitor,
   Music, Palette, PawPrint, Power, Search, Send, Settings2, SkipBack, SkipForward, Sparkles, Sun, Wifi, Workflow,
   Zap, type LucideIcon,
 } from "lucide-react";
@@ -32,7 +32,7 @@ const MOD = isMac ? "⌘" : "Ctrl";
 
 const CATEGORY_ICON: Record<string, LucideIcon> = {
   time: Clock, data: Zap, media: Music, creative: Palette, ambient: Sparkles, productivity: Workflow,
-  pets: PawPrint, games: Gamepad2, device: Monitor,
+  pets: PawPrint, games: Gamepad2, casino: Dices, device: Monitor,
 };
 const ITEM_ICON: Record<string, LucideIcon> = {
   now: Monitor, brightness: Sun, next: SkipForward, prev: SkipBack, power: Power, playlist: ListMusic, fly: Bug,

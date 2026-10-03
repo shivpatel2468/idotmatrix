@@ -18,6 +18,7 @@ from . import (
     games_platform,
     games_puzzle,
     games_road,
+    games_rps,
     games_world,
 )
 
@@ -42,6 +43,7 @@ GAME_IDS: tuple[str, ...] = (
     games_road.StreetSurge.id,
     games_platform.LeafLeap.id,
     games_connect.FourUp.id,
+    games_rps.RockPaperScissors.id,
     arcade.Arcade.id,
 )
 

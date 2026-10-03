@@ -20,7 +20,7 @@ export type JsonSchemaProp = {
 };
 
 /** The engine's host OS (GET /api/meta `platform`). A Raspberry Pi is "linux". */
-export type Platform = "windows" | "macos" | "linux" | "android";
+export type Platform = "windows" | "macos" | "linux" | "android" | "web";
 
 export type AppSchema = {
   properties?: Record<string, JsonSchemaProp>;
@@ -34,7 +34,7 @@ export type AppMeta = {
   name: string;
   description: string;
   icon: string;
-  category: "time" | "data" | "media" | "creative" | "ambient" | "productivity" | "pets" | "games" | "device";
+  category: "time" | "data" | "media" | "creative" | "ambient" | "productivity" | "pets" | "games" | "casino" | "device";
   schema: AppSchema;
   actions: { id: string; label: string; icon: string }[];
   /** Games: seats (1 = single player) and recommended controllers, best first. Older engines omit both. */
@@ -69,7 +69,7 @@ export type Meta = {
 };
 
 export type DeviceInfo = {
-  kind: "ble" | "sim" | "android";
+  kind: "ble" | "sim" | "android" | "web";
   status: "disconnected" | "scanning" | "connecting" | "connected" | "error";
   address: string | null;
   name: string | null;

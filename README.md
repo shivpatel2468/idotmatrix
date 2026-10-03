@@ -63,6 +63,9 @@ that anyone, including an AI agent, can make a new app in one Python file.
 *   **🎮 25 games, 21 with real multiplayer:** 2–4 players on the same Wi-Fi.
     *   Friends scan a QR code on the panel and their phone becomes the controller.
     *   There's a FIFA-style side select, plus intro screens, results screens and a red damage flash.
+*   **🎰 Casino night:** roulette (European / American, La Partage) and 7 Up 7 Down for the whole party.
+    *   Friends scan the same QR code; their phone shows their credits and the betting table, the panel shows the wheel.
+    *   The host sets everyone's credits. Every round is provably fair (commit–reveal) and phones verify it themselves.
 *   **🎞️ Baked native loops:** deterministic animations are rendered once and stored on the panel as GIFs, so they
     play butter-smooth with no Bluetooth traffic at all.
 *   **🎨 A studio for every screen:**

@@ -47,6 +47,7 @@ def _try(fn: Any, *args: Any) -> Any:
 class SystemProvider(Provider[dict[str, Any]]):
     name = "system"
     interval = 1.0
+    feature = "system"  # not in a browser tab (no psutil there)
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)

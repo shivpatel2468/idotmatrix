@@ -10,6 +10,7 @@ import {
 import { appMeta, toast } from "../../lib/store";
 import { LedPanel } from "../LedPanel";
 import { Slider, Toggle } from "../controls";
+import { RoamSign } from "../FlyToggle";
 
 type SceneKind = "brain" | "keyboard";
 
@@ -490,6 +491,7 @@ export function FlyBar() {
   }, []);
   return (
     <div className="fly-bar relative z-20 flex items-center gap-2">
+      <RoamSign />
       <span className="fly-glass flex items-center gap-2 px-3 py-1.5 text-[12px]">
         <Bug size={14} className="text-ember" />
         <b className="font-[600] text-ink-1">{snap.driving === false ? "You took over" : "A fruit fly is playing"}</b>

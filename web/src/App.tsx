@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AiCreator } from "./components/AiCreator";
 import { Boot } from "./components/Boot";
 import { RoamingFly } from "./components/RoamingFly";
+import { FlyToggle, RoamSign } from "./components/FlyToggle";
 import { Inspector } from "./components/Inspector";
 import { Library } from "./components/Library";
 import { CommandPalette, DropZone, NotifyComposer, Toasts } from "./components/Overlays";
@@ -19,6 +20,7 @@ import { gameKeyDown, isPlayable } from "./lib/gameInput";
 import { connect } from "./lib/ws";
 import { startFlyPolling, useFlyView } from "./lib/fly";
 import { flyPlayingNow, toggleFly } from "./lib/flyControl";
+import { useCasinoView } from "./components/casino/state";
 
 function useShortcuts() {
   useEffect(() => {
@@ -76,6 +78,16 @@ function Drawers() {
         onKeyDown={(e) => e.key === "Escape" && set({ drawer: null })}>
         {drawer === "inspector" ? <Inspector /> : <Library />}
       </div>
+    </div>
+  );
+}
+
+/** Bottom right, under the settings panel: let the fly play / take back, and the flies-allowed sign. */
+function FlyDock() {
+  return (
+    <div className="surface flex shrink-0 items-center justify-between gap-2 px-2.5 py-2">
+      <RoamSign />
+      <FlyToggle picker up className="min-w-0 [&>.flybtn]:max-w-full" />
     </div>
   );
 }
@@ -199,7 +211,9 @@ export default function App() {
   const inspectorWidth = useStore((s) => s.inspectorWidth);
   const prefs = useStore((s) => s.prefs);
   const phone = usePhone();
-  const fly = useFlyView(); // a fruit fly is playing: the side drawers close and its brain fills their space
+  const casino = useCasinoView(); // a casino game is on the panel: the drawers close and the casino wings open
+  const fly = useFlyView() && !casino; // a fruit fly is playing: the side drawers close and its brain fills their space
+  const shut = fly || casino;
 
   return (
     <div className="noise flex h-full flex-col">
@@ -210,18 +224,21 @@ export default function App() {
       ) : (
         <>
           <div className="flex min-h-0 flex-1 px-3 pb-3 md:gap-1">
-            <div className="drawer drawer-l hidden min-h-0 shrink-0 md:flex md:flex-col" data-closed={fly} style={{ width: fly ? 0 : libraryWidth }} aria-hidden={fly}>
+            <div className="drawer drawer-l hidden min-h-0 shrink-0 md:flex md:flex-col" data-closed={shut} style={{ width: shut ? 0 : libraryWidth }} aria-hidden={shut}>
               <div className="flex min-h-0 flex-1 flex-col" style={{ width: libraryWidth }}><Library /></div>
             </div>
-            {!fly && <Splitter title="Library width" onReset={() => prefs({ libraryWidth: 300 })}
+            {!shut && <Splitter title="Library width" onReset={() => prefs({ libraryWidth: 300 })}
               onDrag={(dx) => prefs({ libraryWidth: clamp(useStore.getState().libraryWidth + dx, 220, LIBRARY_MAX) })} />}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Stage fly={fly} />
             </div>
-            {!fly && <Splitter title="Settings panel width" className="hidden xl:block" onReset={() => prefs({ inspectorWidth: 340 })}
+            {!shut && <Splitter title="Settings panel width" className="hidden xl:block" onReset={() => prefs({ inspectorWidth: 340 })}
               onDrag={(dx) => prefs({ inspectorWidth: clamp(useStore.getState().inspectorWidth - dx, 300, INSPECTOR_MAX) })} />}
-            <div className="drawer drawer-r hidden min-h-0 shrink-0 xl:flex xl:flex-col" data-closed={fly} style={{ width: fly ? 0 : inspectorWidth }} aria-hidden={fly}>
-              <div className="flex min-h-0 flex-1 flex-col" style={{ width: inspectorWidth }}><Inspector fill /></div>
+            <div className="drawer drawer-r hidden min-h-0 shrink-0 xl:flex xl:flex-col" data-closed={shut} style={{ width: shut ? 0 : inspectorWidth }} aria-hidden={shut}>
+              <div className="flex min-h-0 flex-1 flex-col gap-2" style={{ width: inspectorWidth }}>
+                <Inspector fill />
+                <FlyDock />
+              </div>
             </div>
           </div>
           <div className="px-3 pb-3">

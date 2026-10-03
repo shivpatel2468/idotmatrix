@@ -47,7 +47,9 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("deskdot.apps")
 
-Category = Literal["time", "data", "media", "creative", "pets", "games", "ambient", "productivity", "device"]
+Category = Literal[
+    "time", "data", "media", "creative", "pets", "games", "casino", "ambient", "productivity", "device"
+]
 Kind = Literal["stream", "clip", "native"]
 
 # A colour field: the UI renders a colour picker with the LED palette as swatches.
@@ -221,6 +223,13 @@ class App:
     def status(self) -> dict[str, Any]:
         """Small JSON blob shown by the studio next to the live preview."""
         return {}
+
+    def private_status(self, seat: int) -> dict[str, Any] | None:
+        """What only the phone in lobby `seat` may see (its credits, bets, hole cards), or None.
+
+        The phone controller socket merges it into its `state` message as `private`; it never reaches the
+        studio, the other phones or `status()` (docs/CASINO.md §4)."""
+        return None
 
     async def action(self, name: str, payload: dict[str, Any]) -> Any:
         raise KeyError(f"{self.id} has no action {name!r}")

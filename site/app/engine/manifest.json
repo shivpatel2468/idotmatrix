@@ -1,0 +1,26 @@
+{
+  "version": "3.2.0",
+  "build": "d57e51e6daf1",
+  "engine": "deskdot-244123e14466.zip",
+  "wheels": [
+    "python_multipart-0.0.32-py3-none-any.whl"
+  ],
+  "packages": [
+    "numpy",
+    "pillow",
+    "pydantic",
+    "fastapi",
+    "httpx",
+    "httpcore",
+    "h11",
+    "certifi",
+    "idna",
+    "tzdata"
+  ],
+  "pyodide": {
+    "version": "0.29.5",
+    "python": "3.13",
+    "indexURL": "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/"
+  },
+  "proxy": "/app/proxy"
+}

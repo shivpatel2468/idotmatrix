@@ -29,7 +29,8 @@ class Config(BaseModel):
         default=False, description="Also allow the studio/API from other devices on the LAN"
     )
     port: int = 8765
-    device: Literal["ble", "sim", "android"] = "ble"  # "android": inside the DeskDot Android app
+    # "android": inside the DeskDot Android app; "web": in a browser tab through Web Bluetooth (docs/WEB_APP.md)
+    device: Literal["ble", "sim", "android", "web"] = "ble"
     address: str | None = Field(
         default=None, description="Panel MAC (`deskdot scan`); empty = first IDM-* found"
     )
