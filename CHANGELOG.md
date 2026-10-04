@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Casino: the panel shows the join QR only while the table is empty. Once someone sits down it shows the table and
+  a row of everyone seated — dim = no chips yet, lit = chips down, capped block = pressed Done.
 - Web app play-with-friends: a relay (TURN) fallback for networks that block direct links (mobile carriers, same
   Wi-Fi without loopback) — Cloudflare Realtime TURN credentials minted per live room by `/app/signal`.
 - Casino previews (studio library and idotmatrix.com) play a whole demo round — chips, no more bets, the spin /

@@ -354,6 +354,8 @@ class View:
     outcome: dict[str, Any] | None = None
     history: list[dict[str, Any]] = field(default_factory=list)  # summaries, newest last
     bettors: list[tuple[int, int, int]] = field(default_factory=list)  # colours of players with chips down
+    #: everyone at the table while bets are open: (colour, 0 = no chips yet, 1 = chips down, 2 = pressed done)
+    seats: list[tuple[tuple[int, int, int], int]] = field(default_factory=list)
     winners: list[tuple[int, int, int]] = field(default_factory=list)  # colours of this round's winners
     paused: bool = False
     nonce: int = 0
@@ -418,11 +420,12 @@ class CasinoApp(App):
             self.game.open_betting()
 
     def lobby_waiting(self) -> bool:
-        """The join QR shows while the lobby is open, seats are free, and the table waits for its first chip."""
+        """The join QR shows while the lobby is open and nobody has sat down yet; once someone has, the panel shows
+        the table and who has bet (the studio and the phones keep the QR for latecomers)."""
         g = self.game
         return (
             self.lobby_url is not None
-            and len(self.seats) < self.max_players - 1
+            and not self.seats
             and g.phase in ("idle", "betting")
             and g.deadline is None
             and not self.session.paused
@@ -590,6 +593,13 @@ class CasinoApp(App):
             outcome=g.outcome if g.phase in ("spinning", "dealing", "action", "result") else None,
             history=hist,
             bettors=[colours.get(p, WHITE) for p, b in g.bets.items() if b],
+            seats=[
+                (colours.get(pid, WHITE), 2 if pid in g.done else 1 if g.bets.get(pid) else 0)
+                for pid, pl in sorted(s.players.items(), key=lambda kv: str(kv[1].seat))
+                if pl.online and not pl.kicked
+            ]
+            if g.phase in ("idle", "betting")
+            else [],
             winners=[colours.get(p, WHITE) for p, v in res.payouts.items() if v["net"] > 0] if res else [],
             paused=s.paused,
             nonce=g.nonce or 0,
@@ -610,6 +620,7 @@ class CasinoApp(App):
         hist = [self.game.summary(self.demo_outcome(i)) for i in range(k - 8, k)]
         colours = [(0, 200, 255), (255, 60, 90), (80, 255, 120), (255, 200, 0)]
         v = View(phase="betting", history=hist, bettors=colours, nonce=k, bet_span=10.0, result_span=res_s)
+        v.seats = [(c, min(2, int(t * 0.8 + i) % 3)) for i, c in enumerate(colours)]
         if view == "demo":
             ph = t % cycle
             if ph < bet_s:
@@ -701,7 +712,10 @@ class CasinoApp(App):
             frac = max(0.0, min(1.0, (v.ends_in or 0) / max(1.0, v.bet_span)))
             f.rect(1, 20, 30, 1, th.felt_dark)
             f.rect(1, 20, round(30 * frac), 1, th.alert if hurry else th.accent)
-        pips(f, 22, v.bettors)
+        if v.seats:
+            seat_row(f, 22, v.seats, now)
+        else:
+            pips(f, 22, v.bettors)
         self.history_strip(f, 25, v.history)
 
     def draw_board(self, f: Frame, v: View, now: float) -> None:
@@ -777,6 +791,24 @@ def pips(f: Frame, y: int, colours: list[tuple[int, int, int]]) -> None:
     x = (32 - w) // 2
     for i, c in enumerate(colours[:n]):
         f.rect(x + 3 * i, y, 2, 1, c)
+
+
+def seat_row(f: Frame, y: int, seats: list[tuple[tuple[int, int, int], int]], now: float) -> None:
+    """Everyone at the table, centred, one 2 px pip each in their colour: dim = no chips yet, lit = chips down,
+    a 2×2 block with a white cap = pressed done (ready). Waiting pips breathe so the row reads as "waiting on you"."""
+    n = min(len(seats), 10)
+    w = n * 3 - 1
+    x = (32 - w) // 2
+    breathe = 0.18 + 0.12 * (0.5 + 0.5 * math.sin(now * 3))
+    for i, (c, state) in enumerate(seats[:n]):
+        px = x + 3 * i
+        if state == 0:
+            f.rect(px, y, 2, 1, scale(c, breathe))
+        elif state == 1:
+            f.rect(px, y, 2, 1, c)
+        else:
+            f.rect(px, y, 2, 2, c)
+            f.rect(px, y, 2, 1, WHITE)
 
 
 def draw_no_more_bets(f: Frame, since: float, th: TableTheme = CLASSIC) -> None:

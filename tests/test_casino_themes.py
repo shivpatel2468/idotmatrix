@@ -157,3 +157,28 @@ async def test_casino_previews_play_a_demo_round(engine) -> None:  # type: ignor
             gif.seek(i)
             frames.add(gif.convert("RGB").tobytes())
         assert len(frames) > 3, f"{app_id}: the preview doesn't move"
+
+
+# ------------------------------------------------------------------ waiting for bets: the table, not the QR
+async def test_qr_only_while_the_table_is_empty(engine) -> None:  # type: ignore[no-untyped-def]
+    app = engine._slot("casino_roulette").app
+    app._live()
+    app.lobby_url = "https://idotmatrix.com/p/ABCD"
+    app.seats = {}
+    assert app.lobby_waiting(), "an empty table shows the join QR"
+    app.seats = {2: {"name": "LUCKY"}}
+    assert not app.lobby_waiting(), "once someone sits down the panel shows the table and who has bet"
+
+
+def test_seat_row_shows_who_has_bet() -> None:
+    from deskdot.apps._casino import WHITE, seat_row
+    from deskdot.gfx import Frame
+
+    f = Frame()
+    red, blue, green = (230, 18, 36), (30, 110, 255), (0, 190, 80)
+    seat_row(f, 22, [(red, 0), (blue, 1), (green, 2)], 0.0)
+    x = (32 - 8) // 2
+    dim, lit, done = f.px[22][x], f.px[22][x + 3], f.px[22][x + 6]
+    assert sum(dim) < sum(red) / 2, "no chips yet: a dim pip"
+    assert tuple(lit) == blue, "chips down: the player's colour"
+    assert tuple(done) == WHITE and tuple(f.px[23][x + 6]) == green, "done: a capped 2x2 block"
