@@ -96,3 +96,12 @@ test("expiry, refresh, limits", async () => {
   assert.equal(await sweep(s, later + 3 * ROOM_TTL_MS), 1);
   assert.equal(s.m.size, 0);
 });
+
+test("ice: relay credentials only for a live room", async () => {
+  const { handle, parseRequest, memoryStore } = await import("../../netlify/lib/signal-core.mjs");
+  const store = memoryStore();
+  const ice = parseRequest(JSON.stringify({ op: "ice", code: "ABCD" }));
+  assert.equal((await handle(ice, store))[0], 404);
+  await handle(parseRequest(JSON.stringify({ op: "poll", code: "ABCD", secret: "a".repeat(32) })), store);
+  assert.equal((await handle(ice, store))[0], 200);
+});

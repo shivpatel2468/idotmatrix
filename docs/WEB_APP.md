@@ -156,8 +156,18 @@ there is no server (the engine is inside the tab), so the lobby works differentl
 - **Cost.** Network traffic only while a lobby is open: the host's poll every 2 s (a read; the room record is
   rewritten every 2 min) and a phone's handful of requests while joining. The game itself is peer-to-peer.
 
-**Limitations.** There is no TURN server: when both sides are behind strict NATs or firewalls (some office, school,
-hotel and carrier networks) no direct path exists and the phone says so ("Couldn't reach the host's computer" — try
+**Relay (TURN).** A direct link fails on many real networks: Indian and other mobile carriers put phones behind
+shared (CGNAT) addresses, and on the same Wi-Fi Chrome hides the computer's local address (mDNS) while most home
+routers won't loop a connection back to themselves. So `/app/signal` also answers `{op:"ice", code}` — only for a
+live room — with short-lived relay credentials, and both sides fall back to the relay when no direct path exists:
+
+- **Cloudflare Realtime TURN** (free up to 1,000 GB a month): Cloudflare dashboard → Realtime → TURN → *Create* a
+  TURN key; put its id and API token in Netlify → Site configuration → Environment variables as
+  `CF_TURN_KEY_ID` and `CF_TURN_API_TOKEN` (scope: Functions), then redeploy. Credentials live 6 h.
+- or any TURN service with static credentials: `TURN_URLS` (comma separated `turn:` / `turns:` URLs),
+  `TURN_USERNAME`, `TURN_CREDENTIAL`.
+
+Without either, only direct links work, and a blocked phone says so ("Couldn't reach the host's computer" — try
 the same Wi-Fi as the host, or switch between Wi-Fi and mobile data). The game runs in the host's tab: if that tab
 closes, phones see "The host's tab isn't answering"; a host tab hidden for a long time may be throttled by the
 browser until a phone has connected (keep it in front while friends join). Room codes are 4 characters, as on the

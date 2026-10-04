@@ -65,6 +65,7 @@ export function parseRequest(text) {
     answer: ["secret", "peer", "sdp"],
     offer: ["peer", "sdp"],
     wait: ["peer"],
+    ice: [], // relay (TURN) credentials for a live room's host or phone — the function adds them
   }[op];
   if (!need) throw new BadRequest("unknown op");
   const code = typeof b.code === "string" ? b.code.toUpperCase() : b.code;
@@ -96,6 +97,8 @@ export async function handle(req, store, now = Date.now()) {
   const room = await store.get(roomKey(code));
   const live = room && room.exp > now;
   if (room && !live) await dropRoom(store, code);
+
+  if (op === "ice") return live ? [200, { ok: true }] : [404, { error: "no-room" }];
 
   if (op === "offer" || op === "wait") {
     if (!live) return [404, { error: "no-room" }];

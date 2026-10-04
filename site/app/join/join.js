@@ -183,7 +183,7 @@
   async function handshake() {
     if (typeof RTCPeerConnection !== "function") throw new Fail("unsupported");
     const peer = W.randomId(20);
-    const pc = new RTCPeerConnection({ iceServers: W.ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: await W.ice(code) });
     const ch = pc.createDataChannel("deskdot", { ordered: true });
     ch.binaryType = "arraybuffer";
     try {

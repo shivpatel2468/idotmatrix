@@ -137,6 +137,21 @@
     }
   }
 
+  /**
+   * ICE servers for a room: STUN, plus a relay (TURN) when the site has one configured — strict networks (mobile
+   * carriers' shared addresses, routers that won't loop a connection back) need it. Cached for an hour per code.
+   */
+  const iceCache = new Map();
+  async function ice(code) {
+    const hit = iceCache.get(code);
+    if (hit && hit.exp > Date.now()) return hit.servers;
+    const r = await signal({ op: "ice", code }, 8000);
+    const servers = r.status === 200 && Array.isArray(r.iceServers) && r.iceServers.length ? r.iceServers : ICE_SERVERS;
+    if (r.status === 200) iceCache.set(code, { servers, exp: Date.now() + 3600e3, relay: r.relay || null });
+    return servers;
+  }
+  const relayOf = (code) => (iceCache.get(code) || {}).relay || null;
+
   const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
   function randomId(n) {
     const a = new Uint8Array(n || 20);
@@ -149,7 +164,7 @@
     return [...a].map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
-  const api = { MAX_MSG, ICE_SERVERS, SIGNAL, b64, unb64, frames, assembler, send, iceGathered, signal, randomId, randomHex, utf8: (b) => dec.decode(b) };
+  const api = { MAX_MSG, ICE_SERVERS, SIGNAL, ice, relayOf, b64, unb64, frames, assembler, send, iceGathered, signal, randomId, randomHex, utf8: (b) => dec.decode(b) };
   root.DeskDotWire = api;
   if (typeof module === "object" && module && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

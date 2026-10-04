@@ -133,13 +133,23 @@
       if (!stale) return;
       stale.close("replaced by a newer phone");
     }
-    const p = new Peer(id, room);
-    peers.set(id, p);
-    p.start(sdp).catch((e) => p.close(String(e)));
+    if (starting.has(id)) return;
+    starting.add(id);
+    const r = room;
+    W.ice(r.code)
+      .then((servers) => {
+        starting.delete(id);
+        if (r !== room || peers.has(id)) return;
+        const p = new Peer(id, r, servers);
+        peers.set(id, p);
+        p.start(sdp).catch((e) => p.close(String(e)));
+      })
+      .catch(() => starting.delete(id));
   }
+  const starting = new Set(); // phones whose relay credentials are being fetched
 
   class Peer {
-    constructor(id, r) {
+    constructor(id, r, servers) {
       this.id = id;
       this.room = r;
       this.client = nextClient();
@@ -149,7 +159,7 @@
       this.closed = false;
       this.ch = null;
       this.asm = W.assembler();
-      this.pc = new RTCPeerConnection({ iceServers: W.ICE_SERVERS });
+      this.pc = new RTCPeerConnection({ iceServers: servers || W.ICE_SERVERS });
       this.pc.ondatachannel = (e) => this.attach(e.channel);
       this.pc.onconnectionstatechange = () => this.onState();
     }
