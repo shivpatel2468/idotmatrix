@@ -166,7 +166,9 @@ and `casino.html`. Where it differs from or sharpens the sections above, this se
   sent as `pid` in the `seat` action. A phone that comes back later — even on another seat — finds its credits.
   The studio is pid `"host"`.
 - Lobbies seat up to 8 phones (`max_players = 9`, seat 1 = host). The panel shows the join QR while the lobby is
-  open **and** the table waits for its first chip; `POST /api/play/lobby/start` hides it for good.
+  open **and** nobody has sat down yet; from the first seated player on, it shows the betting board with a row of
+  everyone at the table (dim = no chips yet, lit = chips down, capped block = pressed Done). The studio's room bar
+  and the phones keep the QR for latecomers. `POST /api/play/lobby/start` hides it for good.
 - **House settings** (base credits, min/max per spot, timers, auto-next) live in the session (`House`, host op
   `settings`), shared by every casino game. **Game rules** are the app's pydantic Settings (studio form), mirrored
   by the game's `Rules` model with the same field names. Every casino app also has a `view` setting (group
