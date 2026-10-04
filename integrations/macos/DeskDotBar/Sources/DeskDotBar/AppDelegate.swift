@@ -47,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func registerHotKey() {
         let choice = HotKeyChoice.current
         hotKey?.unregister()
-        hotKey =HotKey(keyCode: choice.keyCode, modifiers: choice.modifiers) { [weak self] in
+        hotKey = HotKey(keyCode: choice.keyCode, modifiers: choice.modifiers) { [weak self] in
             self?.commandBar.toggle()
         }
         if hotKey?.registered != true {
