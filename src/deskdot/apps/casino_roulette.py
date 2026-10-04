@@ -21,8 +21,7 @@ from ..engine import Choice, register
 from ..gfx import Frame, mix
 from ._casino import (
     BLACKP,
-    GOLD,
-    GOLD_DIM,
+    CLASSIC,
     GREEN,
     INK,
     RED,
@@ -146,12 +145,13 @@ class CasinoRoulette(CasinoApp):
         n = len(self.wheel)
         lut = np.array([POCKET_RGB[colour(num)] for num in self.wheel], np.float32)
         if hit is not None and int(now * 5) % 2 == 0:
-            lut[hit] = mix(lut[hit].astype(int).tolist(), GOLD, 0.75)
+            lut[hit] = mix(lut[hit].astype(int).tolist(), self.th.accent, 0.75)
         idx = np.floor((THETA - rot) / (2 * math.pi) * n + 0.5).astype(np.int64) % n
         px = np.zeros((32, 32, 3), np.float32)
         px[POCKETS] = lut[idx[POCKETS]]
-        px[TRACK] = TRACK_RGB
-        px[RIM] = RIM_RGB * (1.0 + 0.7 * glow)
+        th = self.th
+        px[TRACK] = TRACK_RGB if th is CLASSIC else np.array(th.wood, np.float32)
+        px[RIM] = (RIM_RGB if th is CLASSIC else np.array(th.rim, np.float32)) * (1.0 + 0.7 * glow)
         px[CONE] = CONE_RGB * CONE_SHADE[CONE][:, None]
         f.blit(np.clip(px, 0, 255).astype(np.uint8), 0, 0)
 
@@ -160,8 +160,10 @@ class CasinoRoulette(CasinoApp):
         for k in range(4):
             a = rot + k * math.pi / 2
             for d in (2, 3, 4, 5):
-                f.set(round(16 + d * math.sin(a) - 0.5), round(16 - d * math.cos(a) - 0.5), GOLD_DIM)
-        f.rect(15, 15, 2, 2, GOLD)
+                f.set(
+                    round(16 + d * math.sin(a) - 0.5), round(16 - d * math.cos(a) - 0.5), self.th.accent_dim
+                )
+        f.rect(15, 15, 2, 2, self.th.accent)
 
     def draw_ball(self, f: Frame, a: float, r: float) -> None:
         x = 16 + r * math.sin(a)
@@ -187,7 +189,7 @@ class CasinoRoulette(CasinoApp):
         if b is not None:
             self.draw_ball(f, *b)
         if settled and v.winners:
-            win_flash(f, now, v.winners)
+            win_flash(f, now, v.winners, self.th)
 
     def draw_betting(self, f: Frame, v: View, now: float) -> None:
         self.wheel_angle(v, now)  # keep the wheel's clock running so it doesn't jump at the next spin

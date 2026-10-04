@@ -6,8 +6,11 @@
  *   page → worker   {t:"http", id, method, path, headers, body}      → {t:"http", id, status, headers, body}
  *                   {t:"ws-open", sid, path} {t:"ws-send", sid, data} {t:"ws-close", sid}
  *                   {t:"ble-ev", ev, args}   (Web Bluetooth events from the page)   {t:"ble-picked"}  {t:"sync"}
+ *                   {t:"media-frame", kind, w, h, data: ArrayBuffer RGB}  {t:"media-audio", sr, data: ArrayBuffer f32,
+ *                   source}  {t:"media-state", kind, state, detail}  {t:"media-hello"}   (host-media.js)
  *   worker → page   {t:"status", phase, detail, pct} {t:"ready"} {t:"fatal", error}
  *                   {t:"ws", sid, ev, data}  {t:"ble", op, ...}  (GATT requests for the page to perform)
+ *                   {t:"media", op:"want"|"stop", kind, opts}  (camera / screen / sound the engine needs)
  *
  * The panel's GATT session lives on the page (navigator.bluetooth doesn't exist in workers); `deskdotBle` below is
  * the bridge device/web.py drives — same contract as the Android app's Kotlin BleBridge.
@@ -50,6 +53,24 @@ self.deskdotBle = {
   },
   disconnect() {
     post({ t: "ble", op: "disconnect" });
+  },
+};
+
+// ------------------------------------------------------------------------------------------- media bridge (→ page)
+// providers/webmedia.py asks for a camera / screen / sound stream while an app needs one; host-media.js captures it
+// (getUserMedia / getDisplayMedia need the page) and sends back small frames / samples ("media-*" below)
+self.deskdotMedia = {
+  want(kind, opts) {
+    let o = {};
+    try {
+      o = JSON.parse(String(opts || "{}"));
+    } catch (e) {
+      /* keep {} */
+    }
+    post({ t: "media", op: "want", kind: String(kind), opts: o });
+  },
+  stop(kind) {
+    post({ t: "media", op: "stop", kind: String(kind) });
   },
 };
 
@@ -125,7 +146,7 @@ async function boot() {
 
   status("start", "Starting the engine", 90);
   web = pyodide.pyimport("deskdot.web_main");
-  await web.boot("/deskdot", syncSoon, manifest.proxy || null);
+  await web.boot("/deskdot", syncSoon, manifest.proxy || null, self.location.origin);
   setInterval(syncNow, 15000); // media uploads and app data saved outside the state file
 
   ready = true;
@@ -140,7 +161,8 @@ const sockets = new Map();
 async function http(msg) {
   try {
     // http_js converts its result with to_js: a plain object {status, headers, body: Uint8Array}
-    const res = await web.http_js(msg.method, msg.path, msg.headers || [], msg.body ? new Uint8Array(msg.body) : null);
+    // msg.client: a phone tunnelled in over WebRTC (host-rtc.js) gets its own address, the tab is 127.0.0.1
+    const res = await web.http_js(msg.method, msg.path, msg.headers || [], msg.body ? new Uint8Array(msg.body) : null, msg.client || null);
     const body = res.body instanceof Uint8Array ? res.body.slice() : new Uint8Array(0);
     post({ t: "http", id: msg.id, status: res.status, headers: res.headers, body: body.buffer }, [body.buffer]);
   } catch (e) {
@@ -164,7 +186,7 @@ function handle(msg) {
         post({ t: "ws", sid: msg.sid, ev, data: payload }, transfer);
       };
       sockets.set(msg.sid, emit);
-      return web.ws_open(msg.sid, msg.path, emit);
+      return web.ws_open(msg.sid, msg.path, emit, msg.client || null);
     }
     case "ws-send":
       return web.ws_send(msg.sid, typeof msg.data === "string" ? msg.data : new Uint8Array(msg.data));
@@ -178,6 +200,14 @@ function handle(msg) {
       return;
     case "sync":
       return syncNow();
+    case "media-frame":
+      return web.media_frame(msg.kind, msg.w, msg.h, new Uint8Array(msg.data));
+    case "media-audio":
+      return web.media_audio(msg.sr, new Uint8Array(msg.data), msg.source || "");
+    case "media-state":
+      return web.media_state(msg.kind, msg.state, msg.detail || "");
+    case "media-hello":
+      return web.media_hello();
   }
 }
 
@@ -185,6 +215,7 @@ self.onmessage = (e) => {
   const msg = e.data;
   if (msg.t === "sync") return syncNow();
   if (!ready) {
+    if (msg.t === "media-frame" || msg.t === "media-audio") return; // live data: never queue it
     // BLE events can't wait (a connect may be pending), but nothing BLE happens before the engine runs
     early.push(msg);
     return;

@@ -228,7 +228,10 @@ def test_config_builds_the_web_device() -> None:
     assert dev.packet_gap > 0, "the web link is paced like every real link"
 
 
-def test_web_platform_has_no_host_features() -> None:
+def test_web_platform_has_only_the_browser_media_features() -> None:
     assert platforms.LABELS["web"] == "Browser"
-    assert not any(platforms.supported(f, "web") for f in platforms.FEATURES)
+    # camera / screen / sound come from the page (getUserMedia / getDisplayMedia, providers/webmedia.py);
+    # everything else needs the computer itself (tests/test_web_media.py covers the providers)
+    web = {f for f in platforms.FEATURES if platforms.supported(f, "web")}
+    assert web == {"screen", "camera", "audio", "audio_loopback"}
     assert platforms.supported("system", "android")

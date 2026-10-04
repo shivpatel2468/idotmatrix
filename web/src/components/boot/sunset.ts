@@ -310,7 +310,8 @@ export class SunsetDoors {
       o.globalCompositeOperation = "source-over";
     }
     // the logo: a neon sign in the sky; a gap between LED columns falls exactly on the split
-    const p = Math.max(9, Math.min(28, (w * 0.56) / this.logo.cols));
+    // phones: the sign fills ~86 % of the width (never wider than the screen)
+    const p = w < 640 ? Math.min(28, (w * 0.86) / this.logo.cols) : Math.max(9, Math.min(28, (w * 0.56) / this.logo.cols));
     const cx = w / 2;
     const ly = h * 0.24;
     const ox = Math.round(cx - Math.round(this.logo.cols / 2) * p);

@@ -1,0 +1,12 @@
+{
+  "name": "deskdot-netlify-functions",
+  "private": true,
+  "description": "Dependencies of the idotmatrix.com Netlify Functions (netlify/functions/*.mjs); bundled by the Netlify CLI on deploy.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test ../tests/js/signal_core.test.mjs ../tests/js/wire.test.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.3"
+  }
+}

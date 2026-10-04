@@ -8,6 +8,7 @@ import { isPlayable, openPlay } from "../lib/gameInput";
 import { Icon } from "./Icon";
 import { ComposerOverlay, ComposerToolbar } from "./ComposerEditor";
 import { LedPanel } from "./LedPanel";
+import { MediaPrompt } from "./MediaPrompt";
 import { IndicatorHotspots, PlatformStrip } from "./PlatformStrip";
 import { FlyBar, FlyWing } from "./fly/FlyView";
 import { openFlyView, useFly } from "../lib/fly";
@@ -353,6 +354,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
       </div>
 
       <div className="flex w-full flex-col items-center gap-3" style={{ maxWidth: Math.max(640, side) }}>
+      <MediaPrompt />
       {released && (
         <div className="surface flex w-full items-center gap-3 px-4 py-2.5 text-[12.5px] text-ink-2 animate-rise">
           <span className="led" data-on="ok" />
@@ -374,22 +376,24 @@ function StageBody({ fly = false }: { fly?: boolean }) {
             <span className="md:hidden"> · open Play mode for the game pad</span>
           </span>
           <span className="shrink-0 font-mono text-ink-1">{String(cur?.status?.score ?? 0)} <span className="text-ink-4">/ best {String(cur?.status?.best ?? 0)}</span></span>
-          <FlyToggle className="max-md:w-full [&>.flybtn]:max-md:!h-12 [&>.flybtn]:max-md:w-full [&>.flybtn]:max-md:justify-center" />
-          {playable && (
-            <button className="key key-ember max-md:!h-12 max-md:w-full" onClick={() => openPlay()} title="Full-window game view with big controls (P)">
-              <Gamepad2 size={15} /> Play
-            </button>
-          )}
+          <div className="flex gap-2 max-md:w-full">
+            {playable && (
+              <button className="key key-ember max-md:!h-12 max-md:flex-1" onClick={() => openPlay()} title="Full-window game view with big controls (P)">
+                <Gamepad2 size={15} /> Play
+              </button>
+            )}
+            <FlyToggle className="max-md:min-w-0 max-md:flex-1 [&>.flybtn]:max-md:!h-12 [&>.flybtn]:max-md:w-full [&>.flybtn]:max-md:justify-center" />
+          </div>
         </div>
       )}
 
       <div className="surface flex w-full flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className={clsx("flex min-w-0 flex-1 items-center gap-3", !painting && (meta?.actions.length ?? 0) > 0 && "max-sm:basis-full")}>
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[#7a2a12] bg-ember-deep text-ember">
             <Icon name={meta?.icon ?? "square"} size={17} />
           </span>
           <div className="min-w-0">
-            <div className="engrave flex items-center gap-2 !text-[8.5px]">
+            <div className="engrave flex items-center gap-2 whitespace-nowrap !text-[8.5px]">
               Now showing
               {cur && (
                 <span title={KIND[cur.kind]?.hint} className="rounded-full border border-line px-1.5 py-px !tracking-[0.12em] !text-ink-3">
@@ -400,7 +404,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
             <div className="truncate font-display text-[18px] font-[640] tracking-[-0.015em]">{meta?.name ?? (cur ? cur.app : "Nothing yet")}</div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 max-sm:w-full max-sm:[&>*:last-child]:ml-auto">
           {meta && !painting && meta.actions.map((a) => (
             <button key={a.id} className="key" title={a.label} aria-label={a.label} onClick={() => api.action(meta.id, a.id)}>
               <Icon name={a.icon} size={13} />

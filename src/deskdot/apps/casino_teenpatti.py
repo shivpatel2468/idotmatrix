@@ -16,7 +16,7 @@ from ..casino.games.teenpatti import TP_LABEL, TeenPatti
 from ..engine import register
 from ..gfx import Frame, measure, mix, scale
 from . import _cardart as cards
-from ._casino import GOLD, GOLD_DIM, MUTE, WHITE, _rgb
+from ._casino import GOLD, MUTE, WHITE, _rgb
 from ._pvpapp import (
     PvPCasinoApp,
     PvPSettings,
@@ -102,7 +102,7 @@ class CasinoTeenPatti(PvPCasinoApp):
         if t.get("finished") and t.get("end") in ("show", "limit", "allin"):
             self.draw_showdown(f, snap, now)
             return
-        pot_row(f, 1, t["pot"])
+        pot_row(f, 1, t["pot"], th=self.th)
         stake = int(t.get("stake") or 0)
         txt = f"STAKE {num(stake)}"
         if measure(txt) > 30:
@@ -131,7 +131,7 @@ class CasinoTeenPatti(PvPCasinoApp):
         if turn is not None:
             turn_ring(f, snap, now)
         if t.get("finished"):
-            winner_flash(f, snap, now)
+            winner_flash(f, snap, now, self.th)
 
     def players_row(self, f: Frame, y: int, snap: dict[str, Any], now: float) -> None:
         """Every player in the hand: a colour bar; under it B (blind) or S (seen); packed players fade; the player
@@ -149,7 +149,7 @@ class CasinoTeenPatti(PvPCasinoApp):
             f.rect(x, y + 1, bw, 3, scale(c, 0.22) if packed else c)
             if s["seat"] == t.get("turn_seat") and not packed:
                 pulse = 0.55 + 0.45 * math.sin(now * 6)
-                f.rect(x, y - 1, bw, 1, mix(GOLD_DIM, GOLD, pulse))
+                f.rect(x, y - 1, bw, 1, mix(self.th.accent_dim, self.th.accent, pulse))
             mark = "X" if packed else "S" if s.get("seen") else "B"
             col = (90, 90, 104) if packed else SEEN_RGB if s.get("seen") else BLIND_RGB
             if bw >= 3:
@@ -188,9 +188,9 @@ class CasinoTeenPatti(PvPCasinoApp):
                 crown(f, 22, y + 7)
         w = ws[0] if ws else None
         if w:
-            hand_text(f, 26, TP_LABEL.get(w.get("hand") or "", ""), GOLD, small=False)
+            hand_text(f, 26, TP_LABEL.get(w.get("hand") or "", ""), self.th.accent, small=False)
         if snap["phase"] == "result":
-            winner_flash(f, snap, now)
+            winner_flash(f, snap, now, self.th)
 
     def draw_winner(self, f: Frame, snap: dict[str, Any], now: float) -> None:
         t = snap["table"]
@@ -205,12 +205,12 @@ class CasinoTeenPatti(PvPCasinoApp):
         if shown:
             for i, code in enumerate(shown):
                 cards.card(f, 5 + i * 8, 8, code, hi=True)
-            hand_text(f, 20, TP_LABEL.get(w.get("hand") or "", ""), GOLD, small=False)
+            hand_text(f, 20, TP_LABEL.get(w.get("hand") or "", ""), self.th.accent, small=False)
         else:
-            pot_row(f, 9, int(w.get("won") or 0))
+            pot_row(f, 9, int(w.get("won") or 0), th=self.th)
             f.text_center(19, "ALL PACKED", MUTE)
-        f.text_center(26, f"+{num(int(w.get('amount') or 0))}", GOLD)
-        winner_flash(f, snap, now)
+        f.text_center(26, f"+{num(int(w.get('amount') or 0))}", self.th.accent)
+        winner_flash(f, snap, now, self.th)
 
     def tile(self, summary: dict[str, Any]) -> tuple[str, tuple[int, int, int]]:
         return str(summary.get("label", "?")), (120, 90, 14)

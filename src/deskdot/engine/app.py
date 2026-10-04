@@ -148,6 +148,9 @@ class App:
     #: hosts the app can work on, e.g. ("windows", "macos") — empty = everywhere (see deskdot.platforms).
     #: Elsewhere the studio greys it out, the playlist skips it and render() should show `_kit.unsupported()`.
     platforms: ClassVar[tuple[str, ...]] = ()
+    #: why the app can't work in a browser tab (required when `platforms` leaves out "web"); the web app's studio
+    #: shows it in the "not here" banner and the library tooltip (docs/WEB_APP.md)
+    web_reason: ClassVar[str] = ""
 
     def __init__(self, ctx: AppContext, settings: AppSettings) -> None:
         self.ctx = ctx
@@ -240,6 +243,8 @@ class App:
         schema = cls.Settings.model_json_schema()
         if cls.platforms:
             schema["platforms"] = list(cls.platforms)  # the studio's schema form shows a "not here" banner
+            if cls.web_reason:
+                schema["webReason"] = cls.web_reason
         return AppMeta(
             id=cls.id,
             name=cls.name,

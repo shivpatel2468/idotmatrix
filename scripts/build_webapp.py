@@ -13,6 +13,9 @@ What it produces (docs/WEB_APP.md):
     site/app/engine/*.whl          pure-Python wheels Pyodide doesn't ship (python-multipart)
     site/app/engine/manifest.json  what the worker loads: Pyodide version/CDN, packages, archive names
     site/app/sw.js                 service worker (API routing for <img>, offline cache)
+    site/app/join/…                the phone join page served at /p/<code> (online play with friends, WebRTC):
+                                   index.html + join.{js,css}, and the engine's phone pages (controller.html,
+                                   casino.html) with their inline script moved to <kind>.js (the page's CSP)
 
 Pyodide itself and its packages (numpy, Pillow, pydantic, FastAPI…) load from the official CDN, pinned below.
 The normal desktop build (web/dist) is not touched.
@@ -187,6 +190,36 @@ def inject_host(index: Path, build: str) -> None:
     index.write_text(html, encoding="utf-8")
 
 
+#: the engine's phone pages, rebuilt for the join page (/p/<code> on the website): the script moves to a file
+#: because the website's CSP allows no inline script
+PHONE_PAGES = {"controller": SRC / "controller.html", "casino": SRC / "casino.html"}
+
+
+def split_phone_page(html: str, kind: str, build: str) -> tuple[str, str]:
+    """(page with `<script src=/app/join/<kind>.js>`, the script) from one engine phone page."""
+    scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+    if len(scripts) != 1:
+        raise SystemExit(f"{kind}.html: expected exactly one inline <script>")
+    tag = f'<script src="/app/join/{kind}.js?v={build}"></script>'
+    page = html.replace(f"<script>{scripts[0]}</script>", tag, 1)
+    if re.search(r"<[^>]*\son[a-z]+\s*=", page.replace(tag, "")) or "javascript:" in page:
+        raise SystemExit(f"{kind}.html: inline event handlers can't run under the join page's CSP")
+    return page, scripts[0].strip("\n") + "\n"
+
+
+def build_join(dest: Path, build: str) -> None:
+    """The phone join page (web/webapp/join/) + the engine's phone pages, into site/app/join/."""
+    dest.mkdir(parents=True, exist_ok=True)
+    for src in sorted((HOST_SRC / "join").iterdir()):
+        if src.is_file():
+            data = src.read_text(encoding="utf-8")
+            (dest / src.name).write_text(data.replace("__BUILD__", build), encoding="utf-8")
+    for kind, src in PHONE_PAGES.items():
+        page, script = split_phone_page(src.read_text(encoding="utf-8"), kind, build)
+        (dest / f"{kind}.html").write_text(page, encoding="utf-8")
+        (dest / f"{kind}.js").write_text(script, encoding="utf-8")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--skip-studio", action="store_true", help="keep the studio files already in site/app/")
@@ -230,13 +263,19 @@ def main() -> int:
         "host/host.js": HOST_SRC / "host.js",
         "host/host.css": HOST_SRC / "host.css",
         "engine/worker.js": HOST_SRC / "worker.js",
+        # add-ons host.js loads itself: online play (WebRTC), camera / screen / mic capture
+        **{f"host/{f.name}": f for f in sorted(HOST_SRC.glob("host-*.js"))},
     }
     h = hashlib.sha256(engine)
     for rel, src in host_files.items():
         data = src.read_bytes()
         h.update(data)
         (OUT / rel).write_bytes(data)
+    for src in [*sorted((HOST_SRC / "join").iterdir()), *PHONE_PAGES.values()]:
+        if src.is_file():
+            h.update(src.read_bytes())
     build = h.hexdigest()[:12]
+    build_join(OUT / "join", build)
 
     sw = (HOST_SRC / "sw.js").read_text(encoding="utf-8")
     sw = sw.replace("__BUILD__", build).replace("__PYODIDE_URL__", PYODIDE_URL)

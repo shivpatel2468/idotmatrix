@@ -82,6 +82,7 @@ class ActiveApp(App):
     fps = 8.0
     uses = ("window",)
     platforms = DESKTOP  # Windows, macOS, Linux on X11 with xdotool (see providers/window.py)
+    web_reason = "A browser tab can't see which window is in front or read app icons."
 
     def __init__(self, *a: Any, **kw: Any) -> None:
         super().__init__(*a, **kw)

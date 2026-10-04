@@ -352,7 +352,7 @@ class CasinoSlots(CasinoApp):
                 last = g.recent[-1] if g.recent else None
                 self.draw_idle(f, last.stops if last else None, now, waiting)
             if self.session.paused:
-                draw_paused(f)
+                draw_paused(f, self.th)
             return
         if view == "lobby":
             self.lobby_url = self.lobby_url or "http://192.168.1.20:8765/p/K7QX"
@@ -364,7 +364,7 @@ class CasinoSlots(CasinoApp):
         else:
             self.draw_spin(f, spin, st, t, waiting)
         if view == "paused":
-            draw_paused(f)
+            draw_paused(f, self.th)
 
     def draw_reels(
         self,

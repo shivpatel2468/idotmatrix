@@ -28,7 +28,9 @@ export function SchemaForm({ schema, value, onChange }: Props) {
   const banner = schema.platforms && !supportedOn(schema.platforms, host) && host && (
     <p role="note" className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-[12px] leading-snug text-ink-2">
       <span className="font-[600] text-warn">{platformsLabel(schema.platforms)}.</span>{" "}
-      DeskDot is running on {PLATFORM_LABEL[host] ?? host}, so the panel shows “not on {PLATFORM_LABEL[host] ?? host}”.
+      {host === "web" && schema.webReason
+        ? <>{schema.webReason} Here the panel shows “not on web”.</>
+        : <>DeskDot is running on {PLATFORM_LABEL[host] ?? host}, so the panel shows “not on {PLATFORM_LABEL[host] ?? host}”.</>}
     </p>
   );
   if (!props.length) return banner || <p className="text-[12.5px] text-ink-3">This app has no settings.</p>;

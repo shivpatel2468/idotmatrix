@@ -29,6 +29,8 @@ class Config(BaseModel):
         default=False, description="Also allow the studio/API from other devices on the LAN"
     )
     port: int = 8765
+    # the web app only (docs/WEB_APP.md): phones join over the internet at <public_url>/p/<code> (WebRTC to the tab)
+    public_url: str | None = None
     # "android": inside the DeskDot Android app; "web": in a browser tab through Web Bluetooth (docs/WEB_APP.md)
     device: Literal["ble", "sim", "android", "web"] = "ble"
     address: str | None = Field(

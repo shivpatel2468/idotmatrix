@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from ..casino import HOST, CasinoGame, CasinoSession, fair
+from ..casino.rulebook import guide
 from ..casino.table import LOCK_SECONDS
 from ..engine import App, AppSettings, Choice
 from ..gfx import Frame, measure, mix, scale
@@ -51,6 +52,247 @@ TONES: dict[str, tuple[int, int, int]] = {
     "gold": (200, 150, 0),
 }
 
+
+# ------------------------------------------------------------------ table themes (docs/CASINO.md §11)
+RGB3 = tuple[int, int, int]
+
+
+@dataclass(frozen=True)
+class TableTheme:
+    """One table look, for the panel (LED colours: saturated, dark tones still lit) and the phones / studio (CSS).
+
+    The panel draws on black; a theme recolours the table's own chrome — headers, highlights, the waiting chip,
+    the timer bar, wheel rims, the paused and "no more bets" cards, the win bulbs. Semantic colours (roulette
+    red / black pockets, card suits, under / over tones, players' colours) never change. ``classic`` is exactly
+    the original look.
+    """
+
+    id: str
+    name: str
+    accent: RGB3  # headers, highlights, win bulbs (classic: gold)
+    accent_dim: RGB3
+    text: RGB3  # the countdown digits
+    alert: RGB3  # NO MORE BETS, the last seconds of the countdown
+    chip: RGB3  # the waiting chip's body
+    chip_dark: RGB3
+    rim: RGB3  # wheel rims (roulette)
+    wood: RGB3  # the roulette ball track
+    felt: RGB3  # table felt (mid tone)
+    felt_dark: RGB3  # dark felt: the timer bar's track, the paused band
+    css: dict[str, str] = field(
+        default_factory=dict
+    )  # phone + studio: felt, felt2, felt3, accent, accent_hi, …
+
+    def public(self) -> dict[str, Any]:
+        return {"id": self.id, "name": self.name, "css": dict(self.css)}
+
+
+def _css(felt: str, felt2: str, felt3: str, accent: str, hi: str, lo: str, deep: str, wing: str, wing2: str,
+         wing3: str, ink: str = "#1a1200") -> dict[str, str]:  # fmt: skip
+    a = accent.lstrip("#")
+    rgb = ", ".join(str(int(a[i : i + 2], 16)) for i in (0, 2, 4))
+    return {
+        "felt": felt, "felt2": felt2, "felt3": felt3, "accent": accent, "accent_hi": hi, "accent_lo": lo,
+        "accent_deep": deep, "accent_rgb": rgb, "ink": ink, "wing": wing, "wing2": wing2, "wing3": wing3,
+    }  # fmt: skip
+
+
+TABLE_THEMES: dict[str, TableTheme] = {
+    t.id: t
+    for t in (
+        TableTheme(
+            "classic",
+            "Classic green",
+            accent=GOLD,
+            accent_dim=GOLD_DIM,
+            text=WHITE,
+            alert=RED,
+            chip=RED,
+            chip_dark=(150, 8, 20),
+            rim=(150, 108, 20),
+            wood=(70, 42, 22),
+            felt=FELT,
+            felt_dark=(40, 34, 10),
+            css=_css(
+                "#0d6b45",
+                "#0a5236",
+                "#063823",
+                "#ffcc33",
+                "#ffe08a",
+                "#e2a400",
+                "#3a2c08",
+                "#102a20",
+                "#0b1c16",
+                "#0a1512",
+            ),
+        ),
+        TableTheme(
+            "royal",
+            "Royal blue",
+            accent=(255, 205, 50),
+            accent_dim=(110, 88, 18),
+            text=WHITE,
+            alert=RED,
+            chip=(40, 100, 255),
+            chip_dark=(18, 46, 160),
+            rim=(70, 110, 230),
+            wood=(34, 44, 100),
+            felt=(20, 60, 170),
+            felt_dark=(18, 30, 80),
+            css=_css(
+                "#1b4aa8",
+                "#123680",
+                "#0a1f4d",
+                "#ffcc33",
+                "#ffe08a",
+                "#e2a400",
+                "#3a2c08",
+                "#13214a",
+                "#0d1734",
+                "#0a1128",
+            ),
+        ),
+        TableTheme(
+            "crimson",
+            "Crimson velvet",
+            accent=(235, 175, 60),
+            accent_dim=(112, 78, 22),
+            text=WHITE,
+            alert=(255, 90, 30),
+            chip=(240, 200, 70),
+            chip_dark=(130, 92, 14),
+            rim=(200, 140, 50),
+            wood=(96, 22, 34),
+            felt=(150, 20, 40),
+            felt_dark=(64, 14, 22),
+            css=_css(
+                "#8c1a2e",
+                "#691322",
+                "#3d0a14",
+                "#e8b04a",
+                "#f6d38a",
+                "#c48a24",
+                "#3a2508",
+                "#2c1016",
+                "#200b10",
+                "#170809",
+            ),
+        ),
+        TableTheme(
+            "midnight",
+            "Midnight neon",
+            accent=(190, 90, 255),
+            accent_dim=(84, 40, 128),
+            text=(235, 225, 255),
+            alert=(255, 40, 150),
+            chip=(150, 60, 255),
+            chip_dark=(72, 24, 140),
+            rim=(130, 70, 235),
+            wood=(46, 26, 80),
+            felt=(60, 30, 120),
+            felt_dark=(36, 18, 70),
+            css=_css(
+                "#3a1d72",
+                "#29145a",
+                "#140a33",
+                "#c77dff",
+                "#e2bcff",
+                "#9a4ae0",
+                "#2a1145",
+                "#1a1230",
+                "#120c22",
+                "#0c0818",
+                "#12001f",
+            ),
+        ),
+        TableTheme(
+            "strip",
+            "Neon strip",
+            accent=(255, 50, 170),
+            accent_dim=(120, 22, 80),
+            text=(225, 255, 255),
+            alert=(0, 220, 255),
+            chip=(0, 210, 255),
+            chip_dark=(0, 96, 140),
+            rim=(0, 200, 255),
+            wood=(90, 14, 80),
+            felt=(110, 20, 110),
+            felt_dark=(60, 10, 56),
+            css=_css(
+                "#5a1260",
+                "#410c47",
+                "#22052a",
+                "#ff3fb0",
+                "#ff9ad6",
+                "#d81f8a",
+                "#3d0a2a",
+                "#22102e",
+                "#170b22",
+                "#100717",
+                "#1f0013",
+            ),
+        ),
+        TableTheme(
+            "emerald",
+            "Emerald & champagne",
+            accent=(250, 215, 140),
+            accent_dim=(118, 100, 60),
+            text=WHITE,
+            alert=RED,
+            chip=(0, 200, 130),
+            chip_dark=(0, 100, 64),
+            rim=(210, 180, 110),
+            wood=(24, 66, 48),
+            felt=(0, 110, 76),
+            felt_dark=(16, 56, 40),
+            css=_css(
+                "#0b5a43",
+                "#084431",
+                "#03241a",
+                "#f1dca0",
+                "#fbefcc",
+                "#cdb26a",
+                "#352c12",
+                "#0d2a22",
+                "#091e18",
+                "#071612",
+            ),
+        ),
+        TableTheme(
+            "burgundy",
+            "Burgundy & ivory",
+            accent=(245, 232, 200),
+            accent_dim=(112, 104, 84),
+            text=WHITE,
+            alert=(255, 50, 50),
+            chip=(210, 30, 74),
+            chip_dark=(112, 14, 40),
+            rim=(230, 214, 180),
+            wood=(84, 22, 42),
+            felt=(120, 26, 56),
+            felt_dark=(62, 16, 30),
+            css=_css(
+                "#6b1f36",
+                "#521729",
+                "#2c0b16",
+                "#f4ead2",
+                "#fffaf0",
+                "#d6c8a4",
+                "#3a3020",
+                "#2a121a",
+                "#1e0d13",
+                "#16090e",
+            ),
+        ),
+    )
+}
+CLASSIC = TABLE_THEMES["classic"]
+
+
+def table_theme(tid: object) -> TableTheme:
+    return TABLE_THEMES.get(str(tid), CLASSIC)
+
+
 VIEWS = {
     "live": "Live table",
     "demo": "Demo loop",
@@ -72,6 +314,14 @@ class CasinoSettings(AppSettings):
         group="Preview",
         description="Live plays the real table. The others are a self-playing demo or one frozen phase, "
         "to check the art (no credits move).",
+    )
+    table_theme: str = Choice(
+        "classic",
+        {t.id: t.name for t in TABLE_THEMES.values()},
+        title="Table theme",
+        group="Look",
+        description="The table's colours on the panel, every phone and the studio. Card suits, roulette "
+        "pockets and players' colours never change.",
     )
 
 
@@ -145,6 +395,11 @@ class CasinoApp(App):
 
     def clock(self) -> float:
         return self.session.clock()
+
+    @property
+    def th(self) -> TableTheme:
+        """The table theme (``table_theme`` setting): the panel chrome, the phones' and the studio's felt."""
+        return table_theme(getattr(self.settings, "table_theme", "classic"))
 
     def _live(self) -> None:
         """This table is the one in play; a fresh table opens betting at once."""
@@ -247,7 +502,12 @@ class CasinoApp(App):
 
     def status(self) -> dict[str, Any]:
         if self.settings.view != "live":
-            return {"casino": True, "game": self.Game.id, "view": self.settings.view}
+            return {
+                "casino": True,
+                "game": self.Game.id,
+                "view": self.settings.view,
+                "table_theme": self.th.public(),
+            }
         self._live()
         now = self.clock()
         self.game.tick(now)
@@ -258,6 +518,7 @@ class CasinoApp(App):
             "edges": self.edges(),
             "lobby": self.lobby_waiting(),
             "max_players": self.max_players,
+            "table_theme": self.th.public(),
         }
         st["history"] = [h for h in st["history"] if h.get("game") == self.Game.id][-10:]
         return st
@@ -292,6 +553,8 @@ class CasinoApp(App):
             from ..gfx.avatars import AVATARS
 
             out["spots"] = self.game.spot_table()
+            out["guide"] = guide(self.Game.id)  # the rulebook (casino/rulebook.py), read once per table
+            out["themes"] = [t.public() for t in TABLE_THEMES.values()]  # the studio's theme swatches
             out["avatars"] = {k: {"name": v[0], "px": list(v[1])} for k, v in AVATARS.items()}
         return out
 
@@ -388,13 +651,13 @@ class CasinoApp(App):
         if v.phase in ("idle", "betting"):
             self.draw_betting(f, v, now)
         elif v.phase == "locked":
-            draw_no_more_bets(f, v.since)
+            draw_no_more_bets(f, v.since, self.th)
         elif v.phase == "result" and v.since >= self.table_seconds:
             self.draw_board(f, v, now)
         else:
             self.draw_table(f, v, now)
         if v.paused:
-            draw_paused(f)
+            draw_paused(f, self.th)
 
     def draw_table(self, f: Frame, v: View, now: float) -> None:
         """The game's own animation: spinning / dealing / action and the first part of the result."""
@@ -413,21 +676,22 @@ class CasinoApp(App):
 
     def draw_betting(self, f: Frame, v: View, now: float) -> None:
         """The betting board: header, countdown hero, timer bar, chips-down pips and the history strip."""
+        th = self.th
         f.clear(INK)
         waiting = v.ends_in is None
         head = "BET NOW" if not waiting else "BETS"
         pulse = 0.5 + 0.5 * math.sin(now * 4)
-        f.text_center(1, head, mix(GOLD_DIM, GOLD, pulse) if waiting else GOLD)
+        f.text_center(1, head, mix(th.accent_dim, th.accent, pulse) if waiting else th.accent)
         if waiting:
-            draw_chip(f, 16, 13, now)
+            draw_chip(f, 16, 13, now, th)
         else:
             left = max(0, math.ceil((v.ends_in or 0) - 1e-6))
             hurry = left <= 5
-            col = RED if hurry and int(now * 4) % 2 == 0 else WHITE
+            col = th.alert if hurry and int(now * 4) % 2 == 0 else th.text
             f.text_center(8, str(left), col, font="big")
             frac = max(0.0, min(1.0, (v.ends_in or 0) / max(1.0, v.bet_span)))
-            f.rect(1, 20, 30, 1, (40, 34, 10))
-            f.rect(1, 20, round(30 * frac), 1, RED if hurry else GOLD)
+            f.rect(1, 20, 30, 1, th.felt_dark)
+            f.rect(1, 20, round(30 * frac), 1, th.alert if hurry else th.accent)
         pips(f, 22, v.bettors)
         self.history_strip(f, 25, v.history)
 
@@ -438,8 +702,8 @@ class CasinoApp(App):
         n = len(v.winners)
         if n:
             txt = "WIN" if n == 1 else f"{n} WIN"
-            f.text_center(18, txt, GOLD)
-            win_flash(f, now, v.winners)
+            f.text_center(18, txt, self.th.accent)
+            win_flash(f, now, v.winners, self.th)
         else:
             f.text_center(18, "HOUSE", MUTE)
         self.history_strip(f, 25, v.history)
@@ -455,7 +719,7 @@ class CasinoApp(App):
             f.rect(x, y, w, 7, bg if i == 0 else tuple(max(46, round(c * 0.72)) for c in bg))
             f.text(x + 2, y + 1, lbl, WHITE if i == 0 else (205, 205, 205))
             if i == 0:
-                f.rect(x, y - 1, w, 1, GOLD)
+                f.rect(x, y - 1, w, 1, self.th.accent)
             x += w + 1
 
 
@@ -483,16 +747,16 @@ def big_tile(f: Frame, label: str, bg: tuple[int, int, int], y: int = 2) -> None
     f.text(x + 4, y + 2, label, WHITE, font="big")
 
 
-def draw_chip(f: Frame, cx: int, cy: int, now: float) -> None:
+def draw_chip(f: Frame, cx: int, cy: int, now: float, th: TableTheme = CLASSIC) -> None:
     """A casino chip (waiting for the first bet), bobbing gently."""
     dy = round(math.sin(now * 2.2) * 1.2)
     cy += dy
-    f.circle(cx, cy, 6, RED)
+    f.circle(cx, cy, 6, th.chip)
     for k in range(8):  # edge spots
         a = k * math.pi / 4 + now * 0.8
         f.set(round(cx + 5 * math.cos(a)), round(cy + 5 * math.sin(a)), WHITE)
-    f.circle(cx, cy, 3, (150, 8, 20))
-    f.circle(cx, cy, 2, GOLD)
+    f.circle(cx, cy, 3, th.chip_dark)
+    f.circle(cx, cy, 2, th.accent)
 
 
 def pips(f: Frame, y: int, colours: list[tuple[int, int, int]]) -> None:
@@ -506,32 +770,38 @@ def pips(f: Frame, y: int, colours: list[tuple[int, int, int]]) -> None:
         f.rect(x + 3 * i, y, 2, 1, c)
 
 
-def draw_no_more_bets(f: Frame, since: float) -> None:
-    """The lock beat: NO MORE BETS, in red, with a quick wipe in."""
+def draw_no_more_bets(f: Frame, since: float, th: TableTheme = CLASSIC) -> None:
+    """The lock beat: NO MORE BETS, in the theme's alert colour (classic: red), with a quick wipe in."""
     f.clear(INK)
     k = min(1.0, since / 0.25)
-    col = scale(RED, 0.4 + 0.6 * k)
-    f.rect(0, 7, 32, 1, scale(RED, 0.35 * k))
-    f.rect(0, 24, 32, 1, scale(RED, 0.35 * k))
+    col = scale(th.alert, 0.4 + 0.6 * k)
+    f.rect(0, 7, 32, 1, scale(th.alert, 0.35 * k))
+    f.rect(0, 24, 32, 1, scale(th.alert, 0.35 * k))
     f.text_center(10, "NO MORE", col)
     f.text_center(17, "BETS", col)
 
 
-def draw_paused(f: Frame) -> None:
+def draw_paused(f: Frame, th: TableTheme = CLASSIC) -> None:
+    """The paused card: the table dimmed, PAUSED on a band (a felt band edged in the accent, for a theme)."""
     f.dim(0.3)
-    f.rect(0, 12, 32, 9, (20, 20, 28))
-    f.text_center(14, "PAUSED", GOLD)
+    if th is CLASSIC:
+        f.rect(0, 12, 32, 9, (20, 20, 28))
+    else:
+        f.rect(0, 12, 32, 9, th.felt_dark)
+        f.rect(0, 12, 32, 1, th.accent_dim)
+        f.rect(0, 20, 32, 1, th.accent_dim)
+    f.text_center(14, "PAUSED", th.accent)
 
 
-def win_flash(f: Frame, now: float, colours: list[tuple[int, int, int]]) -> None:
-    """Chasing bulbs around the edge: gold, with every third bulb in a winner's colour."""
+def win_flash(f: Frame, now: float, colours: list[tuple[int, int, int]], th: TableTheme = CLASSIC) -> None:
+    """Chasing bulbs around the edge: the theme's accent (classic: gold), every third bulb a winner's colour."""
     off = int(now * 14)
     for i, (x, y) in enumerate(PERIMETER):
         if (i + off) % 4 == 0:
-            c = colours[(i // 4) % len(colours)] if colours and (i // 4) % 3 == 0 else GOLD
+            c = colours[(i // 4) % len(colours)] if colours and (i // 4) % 3 == 0 else th.accent
             f.set(x, y, c)
         elif (i + off) % 4 == 1:
-            f.set(x, y, GOLD_DIM)
+            f.set(x, y, th.accent_dim)
 
 
 def draw_qr(f: Frame, url: str, seats: dict[int, dict[str, Any]], now: float) -> None:

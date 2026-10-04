@@ -23,6 +23,7 @@ import time
 from typing import Any
 from urllib.parse import urlsplit
 
+from ..platforms import current
 from .base import Provider
 from .radiator import EventLog, safe_error
 
@@ -108,6 +109,21 @@ def _target(item: str) -> dict[str, Any] | None:
     return {"key": f"http:{url}", "kind": "http", "url": url, "label": _host_label(parts.hostname)}
 
 
+def web_unsupported(t: dict[str, Any]) -> str | None:
+    """In the browser app: targets a tab can't check (no raw sockets; an https page may not call plain-http LAN
+    devices). They show the reason and stay neither up nor down, so they never alert."""
+    if current() != "web":
+        return None
+    if t["kind"] == "tcp":
+        return "NO TCP IN BROWSER"
+    if t["kind"] == "http" and t["url"].lower().startswith("http://"):
+        from ..web_main import is_local_host
+
+        if is_local_host(urlsplit(t["url"]).hostname or ""):
+            return "LAN HTTP: NOT IN BROWSER"
+    return None
+
+
 class UptimeProvider(EventLog, Provider[dict[str, Any]]):
     """``value = {"targets": {key: state}, "checked": ts}``; apps call ``configure(targets, …)``.
 
@@ -152,6 +168,8 @@ class UptimeProvider(EventLog, Provider[dict[str, Any]]):
 
     # ------------------------------------------------------------ checks
     async def check_http(self, url: str) -> tuple[bool, int | None, float | None, str | None]:
+        if current() == "web":
+            return await self.check_http_web(url)
         t0 = time.perf_counter()
         try:
             async with self.hub.http.stream(
@@ -161,6 +179,29 @@ class UptimeProvider(EventLog, Provider[dict[str, Any]]):
                 code = r.status_code
         except Exception as e:
             return False, None, None, short_error(e)
+        ok = code < 400 if self.expect == "ok" else code < 500 if self.expect == "any" else 200 <= code < 300
+        return ok, code, ms, None if ok else f"HTTP {code}"
+
+    async def check_http_web(self, url: str) -> tuple[bool, int | None, float | None, str | None]:
+        """In the browser app: a normal request where the site allows web pages (real status code), else an
+        opaque "no-cors" request that only tells whether the server answered (status unknown, still UP)."""
+        import httpx
+
+        from ..web_main import probe
+
+        t0 = time.perf_counter()
+        try:
+            r = await self.hub.http.get(url, timeout=self.timeout, headers={"Accept": "*/*"})
+        except httpx.TimeoutException:
+            return False, None, None, "TIMEOUT"
+        except Exception:
+            try:
+                ms = await probe(url, self.timeout)
+            except Exception as e:
+                return False, None, None, short_error(e)
+            return True, None, ms, None
+        ms = (time.perf_counter() - t0) * 1000
+        code = r.status_code
         ok = code < 400 if self.expect == "ok" else code < 500 if self.expect == "any" else 200 <= code < 300
         return ok, code, ms, None if ok else f"HTTP {code}"
 
@@ -181,6 +222,9 @@ class UptimeProvider(EventLog, Provider[dict[str, Any]]):
         return True, None, ms, None
 
     async def _check(self, t: dict[str, Any]) -> tuple[bool, int | None, float | None, str | None]:
+        why = web_unsupported(t)
+        if why:
+            return False, None, None, why
         if t["kind"] == "http":
             return await self.check_http(t["url"])
         if t["kind"] == "tcp":
@@ -205,8 +249,8 @@ class UptimeProvider(EventLog, Provider[dict[str, Any]]):
         st["status"], st["latency"], st["error"] = code, (round(ms, 1) if ms is not None else None), err
         st["checks"] += 1
         st["history"] = (st["history"] + [st["latency"] if ok else None])[-HISTORY:]
-        if t["kind"] == "ping":
-            st["up"] = None  # unsupported: neither up nor down, never alerts
+        if t["kind"] == "ping" or web_unsupported(t):
+            st["up"] = None  # unsupported here: neither up nor down, never alerts
             self._state[t["key"]] = st
             return st
         prev = st["up"]

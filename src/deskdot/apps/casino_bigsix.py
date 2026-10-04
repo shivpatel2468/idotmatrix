@@ -18,7 +18,7 @@ from ..casino.games.bigsix import WHEEL, BigSix
 from ..casino.table import LOCK_SECONDS
 from ..engine import register
 from ..gfx import Frame, mix, scale
-from ._casino import GOLD, INK, WHITE, CasinoApp, CasinoSettings, View, cosmetic, win_flash
+from ._casino import CLASSIC, GOLD, INK, RGB3, WHITE, CasinoApp, CasinoSettings, View, cosmetic, win_flash
 
 N = len(WHEEL)
 SEG = 2 * math.pi / N
@@ -32,6 +32,7 @@ SYMBOL_RGB: dict[str, tuple[int, int, int]] = {
     "logo": (255, 236, 170),
 }
 HUB_RGB = (52, 40, 64)
+WOOD = (74, 46, 24)
 SPIN_T = BigSix.spin_seconds - 0.6  # the wheel stops, then a short beat before the reveal
 
 _ys, _xs = np.mgrid[0:32, 0:32]
@@ -62,7 +63,7 @@ def under_clapper(phi: float) -> int:
     return int(((-phi) % (2 * math.pi)) // SEG) % N
 
 
-def draw_wheel(f: Frame, phi: float, lit: int | None = None, blink: bool = False) -> None:
+def draw_wheel(f: Frame, phi: float, lit: int | None = None, blink: bool = False, edge: RGB3 = WOOD) -> None:
     idx = (((THETA - phi) % (2 * math.pi)) // SEG).astype(np.int64) % N
     col = _SEG_RGB[idx]
     # thin dark spokes between segments make each one readable
@@ -78,7 +79,7 @@ def draw_wheel(f: Frame, phi: float, lit: int | None = None, blink: bool = False
             dimm = RIM & (idx != lit)
             img[dimm] *= 0.45
     img[spoke] *= 0.25
-    img[EDGE] = (74, 46, 24)  # the wooden rim
+    img[EDGE] = edge  # the wooden rim (or the theme's rim)
     img[HUB] = HUB_RGB
     f.px[:] = np.clip(img, 0, 255).astype(np.uint8)
 
@@ -127,6 +128,11 @@ class CasinoBigSix(CasinoApp):
     Settings = BigSixSettings
     table_seconds = 3.4
 
+    @property
+    def edge(self) -> RGB3:
+        """The wheel's outer rim: wood on the classic table, the theme's rim colour otherwise."""
+        return WOOD if self.th is CLASSIC else self.th.rim
+
     def draw_table(self, f: Frame, v: View, now: float) -> None:
         f.clear(INK)
         if v.outcome is None:
@@ -135,15 +141,15 @@ class CasinoBigSix(CasinoApp):
         if v.phase == "result" or v.since_lock is None:
             phi = wheel_angle(SPIN_T, seg, v.nonce)
             blink = int(now * 4) % 2 == 0
-            draw_wheel(f, phi, lit=seg, blink=blink and v.since < 1.2)
+            draw_wheel(f, phi, lit=seg, blink=blink and v.since < 1.2, edge=self.edge)
             draw_clapper(f, 0)
             hub_symbol(f, WHEEL[seg])
             if v.winners:
-                win_flash(f, now, v.winners)
+                win_flash(f, now, v.winners, self.th)
             return
         ts = v.since_lock - LOCK_SECONDS
         phi = wheel_angle(ts, seg, v.nonce)
-        draw_wheel(f, phi)
+        draw_wheel(f, phi, edge=self.edge)
         # the clapper kicks while a peg (segment edge) is passing under it
         pos = ((-phi) % (2 * math.pi)) / SEG
         kick = 1 if (pos % 1) < 0.3 and ts < SPIN_T else 0

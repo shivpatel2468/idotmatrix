@@ -65,6 +65,7 @@ class AnkiProvider(Provider[dict[str, Any]]):
     """``value = {"state", "new", "learn", "review", "due", "reviewed", "deck", "word"}``."""
 
     name = "anki"
+    feature = "lan"  # plain http / ws on the LAN: not from an https page (platforms.FEATURES)
     interval = 60.0
     retry = 30.0
 

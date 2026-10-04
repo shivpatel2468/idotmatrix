@@ -20,13 +20,15 @@ from ..engine import Choice
 from ..gfx import Frame, measure, mix, scale
 from . import _cardart as cards
 from ._casino import (
+    CLASSIC,
     GOLD,
-    GOLD_DIM,
     INK,
     MUTE,
+    RGB3,
     WHITE,
     CasinoApp,
     CasinoSettings,
+    TableTheme,
     _rgb,
     draw_paused,
     draw_qr,
@@ -234,7 +236,7 @@ class PvPCasinoApp(CasinoApp):
         if ph in ("idle", "betting"):
             self.draw_lobby(f, snap, now)
         elif ph == "locked":
-            draw_shuffle(f, snap["since"], self.title)
+            draw_shuffle(f, snap["since"], self.title, self.th)
         elif ph == "result":
             if snap["since"] < self.table_seconds:
                 self.draw_showdown(f, snap, now)
@@ -243,12 +245,12 @@ class PvPCasinoApp(CasinoApp):
         else:
             self.draw_hand(f, snap, now)
         if snap.get("paused"):
-            draw_paused(f)
+            draw_paused(f, self.th)
 
     # ------------------------------------------------------- shared screens
     def draw_lobby(self, f: Frame, snap: dict[str, Any], now: float) -> None:
         """Between hands: the game's name, the stakes, who's in, and the deal countdown."""
-        f.text_center(1, self.title, GOLD)
+        f.text_center(1, self.title, self.th.accent)
         f.text_center(8, self.stakes_label(snap), MUTE)
         seated = snap.get("players_seated") or []
         sitting = set(snap.get("sitting") or [])
@@ -258,7 +260,7 @@ class PvPCasinoApp(CasinoApp):
         else:
             need = max(0, 2 - len(sitting))
             pulse = 0.5 + 0.5 * math.sin(now * 4)
-            f.text_center(15, "WAITING", mix(GOLD_DIM, GOLD, pulse))
+            f.text_center(15, "WAITING", mix(self.th.accent_dim, self.th.accent, pulse))
             f.text_center(21, f"{need} MORE" if need else "READY", MUTE)
         seat_pips(f, 27, [(_rgb(p["color"]), p["seat"] in sitting) for p in seated])
 
@@ -283,25 +285,27 @@ def seat_colour(snap: dict[str, Any], seat: Any) -> tuple[int, int, int]:
     return WHITE
 
 
-def chip_icon(f: Frame, x: int, y: int) -> None:
-    """A 5×5 gold chip."""
-    f.rect(x + 1, y, 3, 5, GOLD)
-    f.rect(x, y + 1, 5, 3, GOLD)
+def chip_icon(f: Frame, x: int, y: int, th: TableTheme = CLASSIC) -> None:
+    """A 5×5 chip in the table's accent (classic: gold)."""
+    f.rect(x + 1, y, 3, 5, th.accent)
+    f.rect(x, y + 1, 5, 3, th.accent)
     f.set(x + 2, y + 2, (120, 70, 0))
 
 
-def pot_row(f: Frame, y: int, amount: int, pots: int = 1, col: tuple[int, int, int] = GOLD) -> None:
+def pot_row(
+    f: Frame, y: int, amount: int, pots: int = 1, col: RGB3 | None = None, th: TableTheme = CLASSIC
+) -> None:
     """The pot as the screen's hero: a chip and the amount in the small font (compact when long)."""
     txt = num(amount)
     font = "small" if measure(txt, "small") <= 23 else "tiny"
     w = 6 + measure(txt, font)
     x = (32 - w) // 2
-    chip_icon(f, x, y + (1 if font == "small" else 0))
-    f.text(x + 6, y, txt, col, font=font)
+    chip_icon(f, x, y + (1 if font == "small" else 0), th)
+    f.text(x + 6, y, txt, col or th.accent, font=font)
     if pots > 1:  # side pots: one dot per pot under the amount
         x0 = 16 - pots
         for i in range(pots):
-            f.set(x0 + 2 * i, y + 8, GOLD_DIM)
+            f.set(x0 + 2 * i, y + 8, th.accent_dim)
 
 
 def seat_pips(f: Frame, y: int, pips: list[tuple[tuple[int, int, int], bool]]) -> None:
@@ -373,9 +377,9 @@ def flash_text(f: Frame, y: int, text: str, age: float) -> None:
     f.text_center(y, text, mix(WHITE, col, k))
 
 
-def draw_shuffle(f: Frame, since: float, title: str) -> None:
+def draw_shuffle(f: Frame, since: float, title: str, th: TableTheme = CLASSIC) -> None:
     """The lock beat: the dealer riffles the deck."""
-    f.text_center(2, title, GOLD)
+    f.text_center(2, title, th.accent)
     k = min(1.0, since / LOCK_SECONDS)
     sp = round(4 * math.sin(k * math.pi * 3))
     cards.back(f, 8 - abs(sp), 12)
@@ -384,6 +388,6 @@ def draw_shuffle(f: Frame, since: float, title: str) -> None:
     f.text_center(25, "SHUFFLE", MUTE)
 
 
-def winner_flash(f: Frame, snap: dict[str, Any], now: float) -> None:
+def winner_flash(f: Frame, snap: dict[str, Any], now: float, th: TableTheme = CLASSIC) -> None:
     ws = snap["table"].get("winners") or []
-    win_flash(f, now, [seat_colour(snap, w["seat"]) for w in ws])
+    win_flash(f, now, [seat_colour(snap, w["seat"]) for w in ws], th)

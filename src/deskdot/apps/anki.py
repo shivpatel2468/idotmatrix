@@ -14,7 +14,8 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, register
 from ..gfx import PALETTE, Frame, draw_marquee, measure, scale
 from ..gfx.color import RGB
-from ._kit import loading
+from ..platforms import FEATURES
+from ._kit import loading, unsupported
 from ._radiator import WHITE, badge, glyph, offline_screen, provider
 
 ACCENT: RGB = PALETTE["sky"]
@@ -67,6 +68,11 @@ class Anki(App):
     Settings = AnkiSettings
     fps = 8.0  # only moving text changes frames; static screens are deduped
     uses = ("anki",)
+    platforms = FEATURES["lan"]  # AnkiConnect: plain http on 127.0.0.1, browsers' origins refused
+    web_reason = (
+        "AnkiConnect answers plain http on your computer and only lets local pages call it; "
+        "use the desktop, Raspberry Pi or Android app."
+    )
 
     def __init__(self, ctx: Any, settings: AppSettings) -> None:
         super().__init__(ctx, settings)
@@ -87,6 +93,9 @@ class Anki(App):
 
     # ------------------------------------------------------------ render
     def render(self, f: Frame, t: float) -> None:
+        if not self.supported_here():
+            unsupported(f, "ANKI")
+            return
         _p, v = self._value()
         if v is None:
             loading(f, t, "ANKI", ACCENT)

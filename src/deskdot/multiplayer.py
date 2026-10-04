@@ -222,15 +222,17 @@ class Room:
 class Lobby:
     """One room at a time (one panel). Opening a new lobby replaces the old one."""
 
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, public_url: str | None = None) -> None:
         self.bind_host = host
         self.port = port
+        #: the web app: phones join over the internet (idotmatrix.com/p/<code>, a WebRTC tunnel to the tab)
+        self.public_url = public_url.rstrip("/") if public_url else None
         self.room: Room | None = None
 
     @property
     def lan_ready(self) -> bool:
-        """Can phones reach us? Only if the server listens beyond loopback."""
-        return not is_local(self.bind_host)
+        """Can phones reach us? Only if the server listens beyond loopback (or the web app's relay is on)."""
+        return self.public_url is not None or not is_local(self.bind_host)
 
     def open(self, app: str, max_players: int) -> Room:
         code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(4))
@@ -243,6 +245,8 @@ class Lobby:
     def url(self) -> str | None:
         if self.room is None:
             return None
+        if self.public_url:
+            return f"{self.public_url}/p/{self.room.code}"
         return f"http://{lan_ip()}:{self.port}/p/{self.room.code}"
 
     def valid(self, code: str) -> bool:

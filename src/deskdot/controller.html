@@ -403,6 +403,25 @@ canvas.av{display:block;image-rendering:pixelated}
 [aria-checked=true]>.tg{background:var(--c)}[aria-checked=true]>.tg i{transform:translateX(24px);background:#050507}
 .row[aria-disabled=true] .rn,.row[aria-disabled=true] .tg{opacity:.45}
 .act{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--line2);background:var(--s2);font-weight:700}
+.rps-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.rps-help{min-height:44px;min-width:44px;padding:0 16px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);color:var(--amber);font-weight:800}
+/* how to play / rulebook (casino/rulebook.py, sent once in hello) */
+.rbk{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);animation:sh-up .2s var(--ease)}
+.rbk .in{width:100%;max-width:560px;max-height:88%;display:flex;flex-direction:column;background:#111115;border-top:1px solid #2c2c36;border-radius:24px 24px 0 0;
+  box-shadow:0 -20px 60px rgba(0,0,0,.65);padding:0 var(--sr) var(--sb) var(--sl)}
+.rbk .tabs{display:flex;gap:4px;margin:0 16px 10px;padding:4px;border-radius:14px;background:var(--s2);border:1px solid var(--line)}
+.rbk .tabs button{flex:1;min-height:44px;border-radius:10px;border:0;background:none;color:var(--dim);font-weight:800}
+.rbk .tabs button[aria-selected=true]{background:var(--c);color:#050507}
+.rbk .bd{overflow-y:auto;overscroll-behavior:contain;padding:0 16px 22px;touch-action:pan-y}
+.rbk .tg{margin:0 0 12px;color:var(--dim)}
+.rbk ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:st}
+.rbk ol li{position:relative;padding:10px 12px 10px 48px;border-radius:14px;background:var(--s2);border:1px solid var(--line);line-height:1.4;counter-increment:st}
+.rbk ol li::before{content:counter(st);position:absolute;left:10px;top:9px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--c);color:var(--c);font:900 14px/1 var(--mono)}
+.rbk h3{margin:16px 0 6px;font:800 12px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--c)}
+.rbk ul{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;line-height:1.45}
+.rbk b{color:var(--c)}
+.rbk .bt{display:flex;gap:8px;padding:0 16px 16px}.rbk .bt button{flex:1;min-height:48px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);color:var(--ink);font-weight:800}
+.rbk .bt button.hot{background:var(--c);color:#050507;border-color:transparent}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -554,7 +573,7 @@ canvas.av{display:block;image-rendering:pixelated}
       </div>
       <div class="rps-show" id="rps-show" hidden><canvas id="rps-mine" width="64" height="64" aria-hidden="true"></canvas><div class="res" id="rps-res"></div><canvas id="rps-theirs" width="64" height="64" aria-hidden="true"></canvas></div>
       <div class="rps-board scroll" id="rps-board" hidden></div>
-      <button class="rps-rand" id="rps-rand" data-click>Surprise me</button>
+      <div class="rps-row"><button class="rps-help" id="rps-help" data-click aria-label="How to play and rules">? Rules</button><button class="rps-rand" id="rps-rand" data-click>Surprise me</button></div>
     </div>
   </section>
 
@@ -1528,6 +1547,7 @@ function renderRps(s) {
   const c = rpsCtx(s), r = c.r, ph = r.phase, flow = s.flow || "";
   if (r.art && !R.art) R.art = r.art;
   rpsButtons();
+  if (!R.howto && (S.rulebook || {}).rps && !store("deskdot.howto.rps")) { R.howto = true; openRulebook("rps", "how", true); } // once per phone
   if (R.pick && R.pick.key !== c.key) R.pick = null;
   if (c.key !== R.key) { R.key = c.key; if (c.inMatch && ph === "pick" && flow === "play" && !c.locked) buzz([30, 50, 30]); }
   const L = c.inMatch ? S.seat : c.pair[0], RR = c.inMatch ? c.opp : c.pair[1];
@@ -1608,6 +1628,31 @@ for (const b of $$(".rps-b")) {
   b.addEventListener("pointerdown", (e) => { e.preventDefault(); flash(b); rpsPick(b.dataset.k); });
 }
 $("#rps-rand").addEventListener("click", () => rpsPick("down"));
+$("#rps-help").addEventListener("click", () => openRulebook("rps", "how"));
+
+/* ------------------------------------------------ how to play / rulebook (casino/rulebook.py, from hello.rulebook) */
+const mdb = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+function openRulebook(id, tab, first) {
+  const g = (S.rulebook || {})[id];
+  if (!g) return;
+  document.querySelector(".rbk")?.remove();
+  const el = document.createElement("div"); el.className = "rbk"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", g.title + " rules");
+  const draw = (t) => {
+    const body = t === "how"
+      ? `<p class="tg">${mdb(g.tagline)}</p><ol>${g.how.map((s) => `<li>${mdb(s)}</li>`).join("")}</ol>`
+      : g.rules.map((r) => `<h3>${esc(r.h)}</h3><ul>${r.items.map((i) => `<li>${mdb(i)}</li>`).join("")}</ul>`).join("");
+    el.innerHTML = `<div class="in"><div class="sh-head"><h2>${first ? "How to play" : esc(g.title)}</h2><button class="done" data-x>${first ? "Got it" : "Done"}</button></div>
+      <div class="tabs" role="tablist">${[["how", "How to play"], ["rules", "Rulebook"]].map(([k, l]) => `<button role="tab" data-t="${k}" aria-selected="${k === t}">${l}</button>`).join("")}</div>
+      <div class="bd">${body}</div></div>`;
+  };
+  draw(tab);
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-t]");
+    if (b) { draw(b.dataset.t); buzz(6); return; }
+    if (e.target === el || e.target.closest("[data-x]")) { store("deskdot.howto." + id, 1); el.remove(); }
+  });
+  document.body.append(el);
+}
 
 /* ============================== page hygiene ============================== */
 // no zoom, no scroll/bounce, no long-press menus; control surfaces never generate click/mouse emulation
@@ -1653,6 +1698,7 @@ function onHello(m) {
   S.avatars = {}; S.avatarIds = [];
   for (const a of m.avatars || []) { S.avatars[a.id] = a; S.avatarIds.push(a.id); }
   S.modes = Array.isArray(m.modes) ? m.modes : [];
+  if (m.rulebook && typeof m.rulebook === "object") S.rulebook = m.rulebook;
   if (typeof m.cid === "string" && m.cid !== cid) { cid = m.cid; store("deskdot.cid", cid); }
   const p = m.profile || {};
   const wasReady = S.me.ready;

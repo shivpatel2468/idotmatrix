@@ -17,7 +17,7 @@ from ..casino.table import LOCK_SECONDS
 from ..engine import Choice, register
 from ..gfx import Frame, mix, scale
 from . import _cardart as art
-from ._casino import GOLD, INK, WHITE, CasinoApp, CasinoSettings, View, win_flash
+from ._casino import INK, WHITE, CasinoApp, CasinoSettings, View, win_flash
 
 SIDE = {
     "player": (40, 110, 255),
@@ -100,13 +100,13 @@ class CasinoBaccarat(CasinoApp):
                 dx = round((10 if k == 0 else -10) * max(0.0, 1 - age / (SLIDE * 1.4)) ** 2)
                 sideways(f, x0 + 2 + dx, 23, code)
             if done and winner == side:
-                f.rect(x0 + 1, 31, 14, 1, mix(col, GOLD, pulse * 0.5))
+                f.rect(x0 + 1, 31, 14, 1, mix(col, self.th.accent, pulse * 0.5))
         if done and winner == "tie":
             f.rect(1, 31, 30, 1, mix(SIDE["tie"], WHITE, pulse * 0.4))
             if not any(len(shown[s]) == 3 for s in shown):  # the third-card row is free: say it
                 f.text_center(25, "TIE", SIDE["tie"])
         if done and v.winners:
-            win_flash(f, now, v.winners)
+            win_flash(f, now, v.winners, self.th)
 
     def tile(self, summary: dict[str, Any]) -> tuple[str, tuple[int, int, int]]:
         tone = str(summary.get("tone"))

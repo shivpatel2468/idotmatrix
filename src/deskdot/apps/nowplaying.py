@@ -414,6 +414,10 @@ class NowPlaying(App):
     uses = ("media", "lyrics")  # "audio" is acquired on demand (spectrum / beat-synced layouts only)
     # the host's media session: Windows GSMTC, macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl)
     platforms = DESKTOP
+    web_reason = (
+        "A browser tab can't read the computer's media session (Spotify, Music, browser players); "
+        "use the desktop app."
+    )
     actions = (
         Action("prev", "Previous", "skip-back"),
         Action("toggle", "Play/Pause", "play"),

@@ -10,7 +10,7 @@ import { CountdownRing, Credits, Tabs } from "./bits";
 import { LeftWing } from "./LeftWing";
 import { RightWing } from "./RightWing";
 import { closeCasinoLobby, hideCasinoQr, lobbyFor, openCasinoLobby } from "./lobby";
-import { PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
+import { PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, themeVars, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
 import "./casino.css";
 
 const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -179,7 +179,7 @@ function LobbyStrip({ app }: { app: string }) {
   if (!lobby)
     return (
       <div className="cz-lobby">
-        <Smartphone size={16} className="shrink-0 text-[#ffcc33]" />
+        <Smartphone size={16} className="shrink-0 text-[var(--gold)]" />
         <span className="min-w-0 flex-1 text-[12px] leading-snug text-ink-2">Friends join from their phones — up to 8 seats.</span>
         <button className="cz-gold" disabled={busy} onClick={() => run(() => openCasinoLobby(app))}><QrIcon size={14} /> Open the room</button>
       </div>
@@ -200,7 +200,7 @@ function LobbyStrip({ app }: { app: string }) {
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
           <span className="engrave !text-[8px]">Room</span>
-          <b className="font-mono text-[18px] tracking-[0.24em] text-[#ffcc33]">{lobby.code}</b>
+          <b className="font-mono text-[18px] tracking-[0.24em] text-[var(--gold)]">{lobby.code}</b>
           <span className="text-[11px] text-ink-3">{phones}/{lobby.max_players - 1} phones</span>
         </span>
         <button className="block max-w-full truncate font-mono text-[10.5px] text-ink-3 hover:text-ink-1" onClick={copy} title="Copy the join address">
@@ -214,7 +214,7 @@ function LobbyStrip({ app }: { app: string }) {
         <div className="cz-qrbig" role="dialog" aria-label="Join QR code" onClick={() => setBig(false)} onKeyDown={(e) => e.key === "Escape" && setBig(false)}>
           <div onClick={(e) => e.stopPropagation()}>
             <QrCode text={lobby.url} size={280} />
-            <b className="font-mono text-[30px] tracking-[0.3em] text-[#ffcc33]">{lobby.code}</b>
+            <b className="font-mono text-[30px] tracking-[0.3em] text-[var(--gold)]">{lobby.code}</b>
             <span className="text-[12px] text-ink-2">Scan with a phone camera, or open {lobby.url.replace(/^https?:\/\//, "")}</span>
             <button className="key" autoFocus onClick={() => setBig(false)}>Close</button>
           </div>
@@ -311,6 +311,7 @@ export function CasinoStage() {
   const setC = useCasino((s) => s.set);
   const hot = useCasino((s) => s.status?.phase === "result" && !!s.status.result?.winners?.length);
   const me = useCasino((s) => s.me);
+  const theme = useCasino((s) => s.status?.table_theme);
   const root = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState(() => ({ w: window.innerWidth - 24, h: window.innerHeight - 220 }));
   useEffect(() => {
@@ -344,7 +345,7 @@ export function CasinoStage() {
     </div>
   );
   return (
-    <div ref={root} className="cz" data-wide={wide || undefined}>
+    <div ref={root} className="cz" data-wide={wide || undefined} data-theme={theme?.id ?? "classic"} style={themeVars(theme)}>
       <ChipCascade run={entered} />
       {wide ? (
         <div className="cz-row3">

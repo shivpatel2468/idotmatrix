@@ -293,3 +293,33 @@ select {
     transition: none;
   }
 }
+/* phones: the studio has a bottom tab bar (≈ 64 px + the home indicator) — float above it; full-width actions */
+@media (max-width: 767.98px) {
+  .pill {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    padding: 4px 4px 4px 10px;
+  }
+  .pill .txt {
+    max-width: 38vw;
+  }
+  .toast {
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+  .landing {
+    place-items: end center;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .card {
+    border-radius: 20px;
+  }
+  .actions .key {
+    flex: 1 1 100%;
+    min-height: 48px;
+  }
+  .key.small {
+    min-height: 40px;
+  }
+  select {
+    font-size: 16px;
+  }
+}

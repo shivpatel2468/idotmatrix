@@ -22,6 +22,13 @@
   to = "/app/"
   status = 301
 
+# Friends join a game running in someone's browser tab: the QR code points at /p/<code>; the join page connects
+# the phone to that tab over WebRTC (web/webapp/join/, signalling through netlify/functions/signal.mjs).
+[[redirects]]
+  from = "/p/*"
+  to = "/app/join/index.html"
+  status = 200
+
 # Anything else unknown → the styled 404 page (Netlify serves site/404.html automatically; kept explicit).
 [[redirects]]
   from = "/*"
@@ -35,7 +42,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Permissions-Policy = "interest-cohort=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
 
 # Content-Security-Policy for the website's pages. Kept off /app/* on purpose: Netlify combines matching rules, and
@@ -46,25 +53,38 @@
   for = "/"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/:page"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/apps/*"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/media/*"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 
 # The web app (docs/WEB_APP.md): Pyodide from the pinned jsDelivr CDN ('wasm-unsafe-eval' compiles its WebAssembly),
 # the engine in a same-origin worker, and the apps' live-data APIs over https (the engine fetches them from the page).
 [[headers]]
   for = "/app/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    # the web app asks (only when an app needs it): webcam, microphone, screen sharing, location for weather
+    Permissions-Policy = "camera=(self), microphone=(self), display-capture=(self), geolocation=(self)"
+
+# The phone join page (/p/<code> is rewritten to /app/join/; headers follow the requested path).
+[[headers]]
+  for = "/p/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Permissions-Policy = "camera=(self), microphone=(self), display-capture=(self), geolocation=(self)"
 
 # Pages, CSS, JS and data: always revalidate (names don't change between deploys).
 [[headers]]

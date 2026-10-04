@@ -49,16 +49,19 @@ FEATURES: dict[str, tuple[Platform, ...]] = {
     "media": ("windows", "macos", "linux"),
     # foreground window + icon: user32 (Windows), AppKit (macOS), xdotool on X11 (Linux; not Wayland)
     "window": ("windows", "macos", "linux"),
-    # screen capture: Pillow ImageGrab (GDI, CoreGraphics, X11/XCB or gnome-screenshot on Linux)
-    "screen": ("windows", "macos", "linux"),
+    # screen capture: Pillow ImageGrab (GDI, CoreGraphics, X11/XCB or gnome-screenshot on Linux); in a browser tab
+    # getDisplayMedia (desktop Chrome / Edge / Firefox; phones can't share their screen with a page)
+    "screen": ("windows", "macos", "linux", "web"),
     # "active window" / "around cursor" crops need the window rect / cursor position
     "screen_window": ("windows", "macos"),
-    # audio capture through `soundcard` (WASAPI, CoreAudio, PulseAudio/PipeWire)
-    "audio": ("windows", "macos", "linux"),
-    # system-sound loopback: WASAPI loopback, PulseAudio monitor; macOS needs a virtual device (BlackHole)
-    "audio_loopback": ("windows", "linux"),
-    # webcam through OpenCV (DirectShow, AVFoundation, V4L2)
-    "camera": ("windows", "macos", "linux"),
+    # audio capture through `soundcard` (WASAPI, CoreAudio, PulseAudio/PipeWire); in a tab getUserMedia (mic)
+    "audio": ("windows", "macos", "linux", "web"),
+    # system-sound loopback: WASAPI loopback, PulseAudio monitor; macOS needs a virtual device (BlackHole); in a tab
+    # a shared tab's / the screen's sound through getDisplayMedia (Chrome / Edge; whole-system sound on Windows and
+    # ChromeOS; the page falls back to the mic where it can't)
+    "audio_loopback": ("windows", "linux", "web"),
+    # webcam through OpenCV (DirectShow, AVFoundation, V4L2); in a tab getUserMedia (no face tracking)
+    "camera": ("windows", "macos", "linux", "web"),
     # "is the camera / mic in use" from the Windows capability-access registry
     "onair": ("windows",),
     # seconds since the last input: GetLastInputInfo (Windows), IOHIDSystem (macOS)
@@ -72,6 +75,9 @@ FEATURES: dict[str, tuple[Platform, ...]] = {
     # CPU / RAM / disk / network via psutil (Android hides CPU and network counters from apps; a browser tab has
     # no psutil and no access to the computer's counters at all)
     "system": NATIVE,
+    # services on your own network that only speak plain http or raw sockets (OBS's WebSocket, OctoPrint /
+    # Moonraker, AnkiConnect): an https page may not call http LAN addresses (mixed content) and has no sockets
+    "lan": NATIVE,
 }
 
 

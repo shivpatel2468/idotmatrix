@@ -18,6 +18,7 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, Clip, Color, register
 from ..gfx import Frame, measure, mix, scale
 from ..gfx.characters import ACCESSORIES, ANIMS, CHARACTERS, draw_character, foot_gap, step_anim_time
+from ..platforms import current as current_platform
 from ..platforms import only_on
 
 SCENES = {
@@ -238,6 +239,8 @@ class Pet(App):
     category = "pets"
     Settings = PetSettings
     fps = 10.0
+    # desktop: the pet always holds the audio provider. The web app: audio is acquired only while "Dance to music"
+    # is on and the app is visible (like Pet World) — there, holding it asks the browser for the microphone
     uses = ("audio",)
 
     def __init__(self, ctx: Any, settings: AppSettings) -> None:
@@ -246,9 +249,35 @@ class Pet(App):
         self._plan_key: tuple = ()
         self._state: dict[str, Any] = {}
         self._clock: tuple[str, str, float, float] | None = None  # (char, anim, anim t, last t)
+        self._visible = False
+        self._audio_held = False
+        if current_platform() == "web":
+            self.uses = ()  # acquired by _sync_audio instead
+
+    def _sync_audio(self) -> None:
+        if current_platform() != "web":
+            return  # desktop / Android: held for the whole run through `uses`
+        want = self._visible and self.settings.music_sync
+        if want == self._audio_held:
+            return
+        try:
+            p = self.ctx.provider("audio")
+        except Exception:
+            return
+        (p.acquire if want else p.release)()
+        self._audio_held = want
+
+    def on_start(self) -> None:
+        self._visible = True
+        self._sync_audio()
+
+    def on_stop(self) -> None:
+        self._visible = False
+        self._sync_audio()
 
     def on_settings(self) -> None:
         self._plan = None
+        self._sync_audio()
 
     # ------------------------------------------------------------ playback: native loops, live only for music
     def kind(self) -> str:  # type: ignore[override]

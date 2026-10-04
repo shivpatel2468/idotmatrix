@@ -97,6 +97,13 @@ def build_hub(store, on_change) -> Hub:  # type: ignore[no-untyped-def]
     hub = Hub(store, on_change)
     for cls in ALL:
         hub.providers[cls.name] = cls(hub)
+    from ..platforms import current
+
+    if current() == "web":  # a browser tab: camera / screen / sound come from the page (getUserMedia & co.)
+        from .webmedia import WEB
+
+        for web_cls in WEB:
+            hub.providers[web_cls.name] = web_cls(hub)
     return hub
 
 

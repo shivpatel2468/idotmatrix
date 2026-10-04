@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Bot, ChevronDown, ChevronLeft, ChevronRight, Gamepad2, LogOut, Monitor, RotateCcw, X } from "lucide-react";
+import { Bot, ChevronDown, ChevronLeft, ChevronRight, Gamepad2, LogOut, Monitor, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import {
@@ -14,6 +14,7 @@ import { ControlsPanel } from "./ControlsPanel";
 import { FriendsPill, LobbyPanel, ModeChoice, SEAT_COLORS, VersusBoard, closeFriends, useFriends, useLobbyPoll } from "./Multiplayer";
 import { TouchControl } from "./TouchControls";
 import { FlyToggle } from "./FlyToggle";
+import { Sheet } from "./Sheet";
 import { LedPanel } from "./LedPanel";
 import { MatchSetup, Results, SideSelect, useGameStatus } from "./MatchSetup";
 
@@ -252,13 +253,13 @@ function GameMenu({ open, setOpen, cur }: { open: boolean; setOpen: (o: boolean)
   const name = appMeta(cur)?.name ?? "Pick a game";
   return (
     <div className="relative flex min-w-0 items-center gap-1">
-      <button className="key key-icon" title="Previous game ([)" aria-label="Previous game" onMouseDown={(e) => e.preventDefault()} onClick={() => switchGame(-1)}><ChevronLeft size={16} /></button>
+      <button className="key key-icon max-sm:hidden" title="Previous game ([)" aria-label="Previous game" onMouseDown={(e) => e.preventDefault()} onClick={() => switchGame(-1)}><ChevronLeft size={16} /></button>
       <button className="key min-w-0 !px-3" aria-haspopup="menu" aria-expanded={open} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(!open)} title="All games">
         <Icon name={appMeta(cur)?.icon ?? "gamepad-2"} size={15} className="text-ember" />
         <span className="truncate font-display text-[15px] font-[640] normal-case tracking-[-0.01em]">{name}</span>
         <ChevronDown size={13} className={clsx("transition", open && "rotate-180")} />
       </button>
-      <button className="key key-icon" title="Next game (])" aria-label="Next game" onMouseDown={(e) => e.preventDefault()} onClick={() => switchGame(1)}><ChevronRight size={16} /></button>
+      <button className="key key-icon max-sm:hidden" title="Next game (])" aria-label="Next game" onMouseDown={(e) => e.preventDefault()} onClick={() => switchGame(1)}><ChevronRight size={16} /></button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
@@ -370,6 +371,7 @@ function PlayView() {
   const fps = useViewFps();
   const [menu, setMenu] = useState(false);
   const [controls, setControls] = useState(false);
+  const [setup, setSetup] = useState(false); // phones: match setup, mode and actions live in a bottom sheet
   const [display, setDisplay] = useState(false);
   const { flow } = useGameStatus();
   const flowCard = playing && flow === "teams" ? <SideSelect app={playing} />
@@ -443,7 +445,7 @@ function PlayView() {
           <Bot size={14} /> Let AI play
         </button>
       )}
-      <FlyToggle className="[&>.flybtn]:w-full [&>.flybtn]:justify-center" />
+      <FlyToggle className="col-span-2 [&>.flybtn]:w-full [&>.flybtn]:justify-center [&>.flybtn]:max-md:!h-11" />
     </>
   );
 
@@ -506,19 +508,31 @@ function PlayView() {
           {padCount > 0 && <span className="rounded-full bg-chassis-0 px-1.5 font-mono text-[9px] text-ok" title={`${padCount} gamepad(s) connected`}>{padCount}</span>}
         </button>
         {!phone && actions}
+        {phone && (
+          <button className="key key-icon" onMouseDown={(e) => e.preventDefault()} onClick={() => setSetup(true)} aria-haspopup="dialog" aria-label="Match: mode, setup, restart, fruit fly" title="Match">
+            <SlidersHorizontal size={15} />
+          </button>
+        )}
         <button className="key key-icon" onMouseDown={(e) => e.preventDefault()} onClick={exit} title="Leave Play mode (Esc)" aria-label="Leave Play mode"><X size={16} /></button>
       </header>
 
       {phone ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-          {fr.multiplayer && playing && <ModeChoice playing={playing} friends={!!fr.lobby} />}
-          {flowCard ?? (playing && !fr.waiting && <MatchSetup key={playing} app={playing} onControls={() => setControls(true)} collapsible />)}
+        // a handheld console: score strip, the panel as big as fits, the pad in the thumb zone — one screen, no scroll
+        // (unless a match card — sides, results, the lobby — needs the room); everything else is one tap away in the sheet
+        <div className={clsx("flex min-h-0 flex-1 flex-col gap-2.5 px-3 pb-[max(10px,env(safe-area-inset-bottom))]", (flowCard || fr.waiting) && "overflow-y-auto")}>
+          {flowCard}
           {fr.multiplayer ? <VersusBoard maxPlayers={fr.maxPlayers} horizontal /> : <Scoreboard horizontal />}
           {fr.waiting || flowCard ? <div className="aspect-square w-full shrink-0">{panel}</div>
-            : <div className="flex min-h-[min(94vw,56vh)] flex-1 flex-col">{panel}</div>}
-          {fr.waiting && fr.lobby ? <LobbyPanel lobby={fr.lobby} compact /> : <TouchArea app={playing} who={touchWho.length ? touchWho : [1]} />}
-          <div className="grid grid-cols-2 gap-2 [&>.key]:!h-11">{actions}</div>
-          {note}
+            : <div className="flex min-h-[46vw] flex-1 flex-col">{panel}</div>}
+          {fr.waiting && fr.lobby ? <LobbyPanel lobby={fr.lobby} compact /> : <div className="shrink-0"><TouchArea app={playing} who={touchWho.length ? touchWho : [1]} /></div>}
+          <Sheet open={setup} onClose={() => setSetup(false)} title={`${appMeta(playing)?.name ?? "Game"} · match`}>
+            <div className="flex flex-col gap-3">
+              {fr.multiplayer && playing && <ModeChoice playing={playing} friends={!!fr.lobby} />}
+              {!flowCard && playing && !fr.waiting && <MatchSetup key={playing} app={playing} onControls={() => { setSetup(false); setControls(true); }} />}
+              <div className="grid grid-cols-2 gap-2 [&>.key]:!h-11">{actions}</div>
+              {note}
+            </div>
+          </Sheet>
         </div>
       ) : (
         <>

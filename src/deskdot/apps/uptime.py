@@ -315,9 +315,12 @@ class Uptime(App):
                 f"HTTP {st['status']}" if st.get("status") else str(st.get("error") or "NO REPLY").upper()
             )
             draw_marquee(f, detail, tr, 1, 17, 30, PALETTE["mute"], speed=SPEED)
-        elif st and st.get("up") is None and tg["kind"] == "ping":
+        elif st and st.get("up") is None and (tg["kind"] == "ping" or st.get("error")):
             f.text_center(8, "N/A", UNKNOWN, font="small")
-            draw_marquee(f, "ICMP NEEDS ADMIN - USE HOST:PORT", tr, 1, 17, 30, PALETTE["mute"], speed=SPEED)
+            why = "ICMP NEEDS ADMIN - USE HOST:PORT" if tg["kind"] == "ping" else str(st["error"]).upper()
+            draw_marquee(
+                f, why, tr, 1, 17, 30, PALETTE["mute"], speed=SPEED
+            )  # error: the browser app's limits
         else:
             lat = (st or {}).get("latency")
             val = fmt_ms(lat)

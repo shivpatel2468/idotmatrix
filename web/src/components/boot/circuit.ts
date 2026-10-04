@@ -245,7 +245,8 @@ export class CircuitDoors {
       this.lightRing(o, cx, cy, r - 240, r + 10, 1, 0.3);
     }
     // ---- the logo, centred; a gap between LED columns falls exactly on the split
-    const p = Math.max(9, Math.min(30, (w * 0.6) / this.logo.cols));
+    // phones: the sign fills ~86 % of the width (never wider than the screen)
+    const p = w < 640 ? Math.min(30, (w * 0.86) / this.logo.cols) : Math.max(9, Math.min(30, (w * 0.6) / this.logo.cols));
     const ox = Math.round(cx - Math.round(this.logo.cols / 2) * p);
     const oy = cy - (this.logo.rows * p) / 2;
     const plate = o.createRadialGradient(cx, cy, 0, cx, cy, this.logo.cols * p * 0.6);

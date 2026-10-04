@@ -121,7 +121,7 @@ class CasinoSevens(CasinoApp):
         f.text_center(14, str(total), mix(WHITE, mix(col, WHITE, 0.25), pop), font="big")
         self.zones(f, 25, zone, now)
         if v.winners:
-            win_flash(f, now, v.winners)
+            win_flash(f, now, v.winners, self.th)
 
     def zones(self, f: Frame, y: int, lit: str | None, now: float) -> None:
         """▼ 7 ▲ — the three betting zones, the winner lit in its colour."""

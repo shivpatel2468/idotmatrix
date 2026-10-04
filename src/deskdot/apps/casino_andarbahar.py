@@ -129,7 +129,7 @@ class CasinoAndarBahar(CasinoApp):
         # the total dealt, between the piles
         f.text_center(26, str(k) if k else "", MUTE)
         if done and v.winners:
-            win_flash(f, now, v.winners)
+            win_flash(f, now, v.winners, self.th)
 
     def hero_result(self, f: Frame, v: View, now: float) -> None:
         if v.outcome is None:

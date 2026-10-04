@@ -64,9 +64,21 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 - Rails are resizable but clamped (library ≤ 460 px, inspector ≤ 480 px) so the preview always stays the hero.
 - ≥ 1280 px: three columns. 768–1279: Library + Stage; the Inspector opens as a right drawer (“Settings” on the
   now-showing card, or clicking an app).
-- < 768 (phones): a bottom tab bar — **Panel** (stage), **Apps**, **Presets** (transport + preset grid + queue
-  with ↑/↓ reorder), **Settings** (inspector). Every non-panel tab keeps a mini live preview at the top. Games
-  get a big **Play** key on the stage that opens Play mode (the phone game pad). Modals become full-screen sheets; touch screens get 42 px keys.
+- < 768 (phones) — an app shell, not a squeezed desktop (`App.tsx PhoneLayout`, `index.css` "phones" block):
+  - **Header** (52 px + the notch inset): status dot, the logo, Search and one **⋯** key. Brightness, panel
+    power, the fruit-fly toggle + flies-allowed sign, Device / Settings / Message live in the **Quick controls**
+    bottom sheet (`TopBar.tsx QuickSheet`).
+  - **Bottom tab bar** in the thumb zone — **Panel**, **Apps**, **Presets**, **Settings** — with a lit pill behind
+    the active icon; tapping the open tab scrolls it to the top.
+  - **One scroll area per tab** (`.phone-scroll`), never scroll boxes inside cards. `Library flat`: sticky search +
+    category chips, section titles stick under them, a dense 3-up grid (4-up ≥ 520 px) with a visible ▶ per tile.
+    `Inspector flat`: the live panel in its header, the form in one card, **Show / Playlist** docked above the tab
+    bar. Apps and Presets keep a slim "now showing" strip on top (tap = back to the panel).
+  - **Play mode** is a handheld console: score strip, the panel as big as fits, the pad — one screen, no scroll.
+    Mode, match setup, restart / AI / fruit fly sit in the **Match** sheet (header ⚙ key).
+  - Bottom sheets (`components/Sheet.tsx`: drag-to-close handle, ≤ 88 dvh, safe-area padding) replace pop-overs;
+    modals are full-screen with the notch / home-indicator insets. `100dvh`, `viewport-fit=cover`, 16 px inputs (no
+    iOS zoom), `touch-action: manipulation`, no tap flash, `overscroll-behavior` so pages never rubber-band.
 
 ## Play mode (`components/PlayMode.tsx`, `lib/gameInput.ts`)
 

@@ -13,6 +13,7 @@
 
   const BASE = new URL(".", document.currentScript ? document.currentScript.src : location.href);
   const APP = new URL("../", BASE); // …/app/
+  const VERSION = document.currentScript ? new URL(document.currentScript.src).search : ""; // ?v=<build>, for add-ons
   const SERVICE = "000000fa-0000-1000-8000-00805f9b34fb";
   const WRITE = "0000fa02-0000-1000-8000-00805f9b34fb";
   const NOTIFY = "0000fa03-0000-1000-8000-00805f9b34fb";
@@ -106,16 +107,24 @@
       }
       case "ble":
         return ble.request(m);
+      default:
+        for (const fn of addonListeners) {
+          try {
+            fn(m);
+          } catch (e) {
+            console.warn("DeskDot add-on", e);
+          }
+        }
     }
   }
 
   /** One request to the in-browser engine. Returns {status, headers: [[k, v]], body: ArrayBuffer|null}. */
-  async function engineRequest(method, path, headers, body) {
+  async function engineRequest(method, path, headers, body, client) {
     await engineReady;
     const id = ++seq;
     return new Promise((resolve) => {
       pending.set(id, { resolve });
-      worker.postMessage({ t: "http", id, method, path, headers, body }, body ? [body] : []);
+      worker.postMessage({ t: "http", id, method, path, headers, body, client: client || null }, body ? [body] : []);
     });
   }
 
@@ -143,7 +152,7 @@
   const RealWebSocket = window.WebSocket;
   let sidSeq = 0;
   class EngineSocket extends EventTarget {
-    constructor(url) {
+    constructor(url, client) {
       super();
       this.url = url;
       this.readyState = 0;
@@ -154,9 +163,10 @@
       this.onopen = this.onmessage = this.onclose = this.onerror = null;
       this._sid = ++sidSeq;
       sockets.set(this._sid, this);
-      const path = new URL(url).pathname;
+      const u = new URL(url);
+      const path = u.pathname + u.search; // phones reconnect to their seat with /ws/p/<code>?cid=…
       engineReady.then(() => {
-        if (this.readyState === 0) worker.postMessage({ t: "ws-open", sid: this._sid, path });
+        if (this.readyState === 0) worker.postMessage({ t: "ws-open", sid: this._sid, path, client: client || null });
       });
     }
     send(data) {
@@ -205,6 +215,23 @@
     return protocols === undefined ? new RealWebSocket(url) : new RealWebSocket(url, protocols);
   }
   WebSocketShim.prototype = RealWebSocket.prototype;
+
+  /**
+   * For the add-on scripts loaded below (host-*.js): the engine as an API. `client` is the address the engine sees
+   * (a phone tunnelled in over WebRTC must not look like this tab, which is 127.0.0.1).
+   *   request(method, path, headers, body?: ArrayBuffer, client?) -> {status, headers: [[k, v]], body: ArrayBuffer|null}
+   *   socket(path, client?) -> a WebSocket-like object (onopen/onmessage/onclose, send, close)
+   *   post(msg) -> a raw message to the engine worker;  onMessage(fn) -> fn(msg) for worker messages host.js doesn't own
+   */
+  const addonListeners = [];
+  window.DeskDotHost = {
+    ready: engineReady,
+    request: engineRequest,
+    socket: (path, client) => new EngineSocket(new URL(path, location.href).href, client),
+    post: (msg, transfer) => engineReady.then(() => worker.postMessage(msg, transfer || [])),
+    onMessage: (fn) => addonListeners.push(fn),
+    origin: location.origin,
+  };
   Object.assign(WebSocketShim, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 });
   window.WebSocket = WebSocketShim;
 
@@ -434,11 +461,11 @@
           <li>Playlists, presets, autopilot, notifications &amp; text</li>
           <li>Drawing, photo / GIF upload, AI creator, Font Lab</li>
           <li>Calibration, brightness, night mode, all settings</li>
+          <li>Camera &amp; Screen mirror, Visualizer (the browser asks first)</li>
           <li>Settings are saved in this browser</li>
         </ul></div>
         <div><h3>Needs the desktop app</h3><ul>
-          <li>Now Playing, Active App, Screen &amp; Camera mirror</li>
-          <li>Visualizer &amp; dance-to-music (sound capture)</li>
+          <li>Now Playing, Active App, face tracking</li>
           <li>System Monitor, On Air, idle eye-break</li>
           <li>OS notification mirroring, sleep hand-off</li>
           <li>Phone multiplayer over Wi-Fi, Claude Code / MCP</li>
@@ -582,4 +609,12 @@
     state: () => ({ engine: engineState, link: ble.state, detail: ble.detail, packet: ble.size, bluetooth: hasBluetooth }),
     request: engineRequest,
   };
+
+  // add-ons (built next to host.js by scripts/build_webapp.py): online play with friends, camera / screen / mic
+  for (const name of ["host-rtc.js", "host-media.js"]) {
+    const el = document.createElement("script");
+    el.src = new URL(name + VERSION, BASE).href;
+    el.async = true;
+    document.head.appendChild(el);
+  }
 })();

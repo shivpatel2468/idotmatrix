@@ -1,7 +1,11 @@
-import { RefreshCw, Search, Settings2, Sun } from "lucide-react";
+import { Bell, Ellipsis, RefreshCw, Search, Settings2, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { openSettings, useStore } from "../lib/store";
+import { usePhone } from "../lib/useMedia";
+import { useFlyPlaying } from "../lib/flyControl";
+import { useFly } from "../lib/fly";
+import { Sheet } from "./Sheet";
 import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
@@ -16,8 +20,8 @@ function Wordmark() {
   );
 }
 
-/** One pill that answers "is my panel OK?" — click for Device settings. */
-function StatusPill() {
+/** "Is my panel OK?" in one word, a tone and a hint. */
+function usePanelStatus() {
   const dev = useStore((s) => s.state?.device);
   const link = useStore((s) => s.link);
   const released = useStore((s) => s.state?.engine.released ?? false);
@@ -35,6 +39,13 @@ function StatusPill() {
     else if (dev.status === "error") { tone = "bad"; label = "Can't reach panel"; detail = dev.last_error ?? ""; retry = true; }
     else { label = dev.status === "scanning" ? "Looking for panel…" : dev.status === "connecting" ? "Pairing…" : "Not connected"; retry = dev.status === "disconnected"; }
   }
+  return { tone, label, detail, retry, sim: dev?.kind === "sim" };
+}
+
+/** One pill that answers "is my panel OK?" — click for Device settings. */
+function StatusPill() {
+  const { tone, label, detail, retry } = usePanelStatus();
+  const dev = useStore((s) => s.state?.device);
   return (
     <div className="flex min-w-0 items-center">
       <button onClick={() => openSettings("device")} title={detail || "Device settings"}
@@ -105,8 +116,89 @@ function Brightness() {
   );
 }
 
+/** Phones: everything the wide header holds, in a bottom sheet under one "more" key. */
+function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { tone, label, detail, retry, sim } = usePanelStatus();
+  const { v, input } = useBrightness();
+  const roam = useFly((s) => s.gfx.roam);
+  const set = useStore((s) => s.set);
+  const go = (fn: () => void) => () => { onClose(); fn(); };
+  return (
+    <Sheet open={open} onClose={onClose} title="Quick controls">
+      <div className="space-y-3">
+        <section className="qs-card">
+          <div className="flex items-center gap-3">
+            <span className="led shrink-0" data-on={tone} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-[600]">{label}{sim && !/sim/i.test(label) ? " · simulator" : ""}</span>
+              {detail && <span className="block truncate text-[11.5px] text-ink-3">{detail}</span>}
+            </span>
+            {retry && <button className="key key-icon" aria-label="Reconnect" onClick={() => api.reconnect()}><RefreshCw size={14} /></button>}
+            <button className="key" onClick={go(() => openSettings("device"))}>Device</button>
+          </div>
+          <label className="mt-3 flex items-center gap-3" title="Panel brightness">
+            <Sun size={16} className="shrink-0 text-ink-3" />
+            {input("flex-1")}
+            <span className="w-9 text-right font-mono text-[12px] tabular-nums text-ink-1">{v}%</span>
+          </label>
+          <div className="mt-3 flex items-center gap-3 border-t border-line pt-3">
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13.5px] font-[560]">Panel power</span>
+              <span className="block text-[11.5px] text-ink-3">Lift the guard, then press the red button</span>
+            </span>
+            <SafetySwitch />
+          </div>
+        </section>
+        <section className="qs-card">
+          <div className="engrave mb-2.5 !text-[9px] !text-ink-3">Fruit fly</div>
+          <FlyToggle picker up className="[&>.flybtn]:!h-12 [&>.flybtn]:w-full [&>.flybtn]:justify-center" />
+          <div className="mt-3 flex items-center gap-3">
+            <RoamSign />
+            <span className="min-w-0 flex-1 text-[12.5px] text-ink-2">{roam ? "The fly roams your screen — tap the sign to spray it away." : "No flies on screen — tap the sign to let it back."}</span>
+          </div>
+        </section>
+        <div className="grid grid-cols-3 gap-2">
+          <button className="qs-tile" onClick={go(() => set({ palette: true }))}><Search size={18} />Find</button>
+          <button className="qs-tile" onClick={go(() => set({ notifyOpen: true }))}><Bell size={18} />Message</button>
+          <button className="qs-tile" onClick={go(() => openSettings("display"))}><Settings2 size={18} />Settings</button>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** The phone header: status dot, the logo, search and one key for the rest (QuickSheet). */
+function PhoneTopBar() {
+  const { tone, label } = usePanelStatus();
+  const set = useStore((s) => s.set);
+  const flyOn = useFlyPlaying();
+  const power = useStore((s) => s.state?.settings.power ?? true);
+  const [more, setMore] = useState(false);
+  return (
+    <header className="phone-head grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3">
+      <button className="flex min-w-0 items-center gap-2 justify-self-start rounded-full py-2 pr-2" onClick={() => setMore(true)} aria-label={`${label} — quick controls`}>
+        <span className="led shrink-0" data-on={power ? tone : "bad"} />
+        <span className="max-w-[24vw] truncate text-[11.5px] font-medium text-ink-2">{power ? label : "Panel off"}</span>
+      </button>
+      <Wordmark />
+      <div className="flex items-center justify-end gap-1.5">
+        <button onClick={() => set({ palette: true })} className="key key-ghost key-icon" title="Find an app or action" aria-label="Search">
+          <Search size={17} />
+        </button>
+        <button className="key key-icon relative" aria-label="Quick controls: brightness, power, fruit fly, settings" aria-haspopup="dialog" onClick={() => setMore(true)}>
+          <Ellipsis size={18} />
+          {flyOn && <span className="led absolute -right-0.5 -top-0.5 !h-[7px] !w-[7px]" data-on="ember" />}
+        </button>
+      </div>
+      <QuickSheet open={more} onClose={() => setMore(false)} />
+    </header>
+  );
+}
+
 export function TopBar() {
   const set = useStore((s) => s.set);
+  const phone = usePhone();
+  if (phone) return <PhoneTopBar />;
   return (
     <header className="grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
       <div className="flex min-w-0 items-center"><StatusPill /></div>

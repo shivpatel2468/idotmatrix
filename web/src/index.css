@@ -681,3 +681,107 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
   animation: roamsign-mist 0.7s ease-out forwards; }
 @keyframes roamsign-mist { from { transform: scale(0.4); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .roamsign-mist { animation: none; display: none; } }
+
+/* ------------------------------------------------------------- phones (< 768 px): the app shell
+   Mobile tricks used across big app builders (Material 3, iOS HIG, Framer / Webflow mobile templates):
+   - one scroll container per tab, sticky tool rows inside it (no scroll boxes inside cards);
+   - the bottom tab bar in the thumb zone with a lit pill behind the active icon;
+   - dynamic viewport units (dvh) so the browser's own bars never cover content;
+   - safe-area insets (notch, home indicator) on every edge that touches the screen edge;
+   - controls docked above the tab bar (sticky bottom) instead of at the end of a long form;
+   - 16 px inputs (iOS zooms the page into anything smaller), 44 px tap targets, no tap flash, no double-tap delay;
+   - bottom sheets instead of pop-overs and centred dialogs; overscroll that never drags the page. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+#root { height: 100dvh; }
+button, a, [role="button"], input, select, label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior: none; }
+
+@media (max-width: 767.98px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+  .noise { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+}
+
+.phone-head {
+  height: calc(52px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
+  background: linear-gradient(180deg, rgba(12, 12, 15, 0.96), rgba(12, 12, 15, 0.82));
+  border-bottom: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
+  position: relative; z-index: 20;
+}
+.phone-panel { padding-top: 10px; padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+.phone-scroll {
+  min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+  padding: 10px 12px calc(78px + env(safe-area-inset-bottom, 0px)); scrollbar-width: none;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.phone-scroll::-webkit-scrollbar { display: none; }
+
+/* "now showing" strip */
+.mini-now {
+  display: flex; align-items: center; gap: 10px; width: 100%; flex-shrink: 0; text-align: left;
+  padding: 6px 12px 6px 6px; border-radius: 14px;
+  background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1)); border: 1px solid var(--color-line);
+}
+.mini-now:active { transform: scale(0.99); }
+
+/* bottom tab bar */
+.tabbar {
+  position: fixed; inset: auto 0 0 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: rgba(14, 14, 18, 0.9); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 52px; justify-content: center;
+  font-size: 11px; font-weight: 560; letter-spacing: 0.01em; color: var(--color-ink-3); transition: color 0.2s;
+}
+.tabbar-pill {
+  position: relative; display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px;
+  transition: background 0.25s var(--ease-snap), box-shadow 0.25s, transform 0.2s;
+}
+.tabbar-btn[aria-current="page"] { color: var(--color-ink-1); }
+.tabbar-btn[aria-current="page"] .tabbar-pill {
+  color: var(--color-ember); background: color-mix(in oklab, var(--color-ember) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 35%, transparent), 0 0 18px -6px var(--color-ember);
+}
+.tabbar-btn:active .tabbar-pill { transform: scale(0.92); }
+
+/* library on phones: sticky search + chips, dense 3-up grid (4-up on big phones / landscape) */
+.lib-head {
+  position: sticky; top: 0; z-index: 5; margin: 0 -12px; padding: 6px 12px 10px;
+  background: linear-gradient(180deg, var(--color-chassis-0) 78%, color-mix(in oklab, var(--color-chassis-0) 0%, transparent));
+}
+.lib-grid-phone { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 520px) { .lib-grid-phone { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.lib-grid-phone > * { content-visibility: auto; contain-intrinsic-size: auto 150px; padding: 4px !important; border-radius: 12px; }
+.lib-grid-phone .tile-play { opacity: 1; width: 26px; height: 26px; right: 8px; top: 8px; }
+.lib-grid-phone .led-preview { border-radius: 7px; }
+@media (hover: none) { .tile-play { opacity: 0.9; } }
+
+/* inspector on phones: Show / Playlist docked above the tab bar */
+.insp-actions {
+  position: sticky; bottom: -1px; z-index: 5; display: flex; gap: 8px; margin: 10px -12px 0; padding: 10px 12px;
+  background: linear-gradient(0deg, var(--color-chassis-0) 70%, transparent);
+}
+
+/* bottom sheet (components/Sheet.tsx) */
+.sheet-root { position: fixed; inset: 0; z-index: 80; } /* above Play mode (z 65) */
+.sheet-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); animation: sheet-fade 0.25s ease both; }
+.sheet {
+  position: absolute; inset: auto 0 0 0; max-height: 88dvh; display: flex; flex-direction: column;
+  border-radius: 22px 22px 0 0; background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1));
+  border: 1px solid var(--color-line-2); border-bottom: 0; box-shadow: 0 -30px 60px -20px rgba(0, 0, 0, 0.8);
+  animation: sheet-up 0.38s var(--ease-snap) both; transition: transform 0.25s var(--ease-snap); touch-action: pan-y;
+}
+@media (min-width: 640px) { .sheet { left: calc(50% - 260px); right: auto; width: 520px; } }
+.sheet-handle { width: 40px; height: 5px; border-radius: 99px; background: var(--color-chassis-4); margin: 8px auto 10px; flex-shrink: 0; }
+.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.sheet-foot { padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--color-line); }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+@keyframes sheet-fade { from { opacity: 0; } }
+.qs-card { padding: 14px; border-radius: 16px; background: var(--color-chassis-0); border: 1px solid var(--color-line); }
+.qs-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 72px;
+  border-radius: 14px; font-size: 12px; color: var(--color-ink-2); background: var(--color-chassis-0); border: 1px solid var(--color-line);
+}
+.qs-tile:active { background: var(--color-chassis-3); color: var(--color-ink-1); }
+@media (prefers-reduced-motion: reduce) { .sheet, .sheet-scrim { animation: none; } }

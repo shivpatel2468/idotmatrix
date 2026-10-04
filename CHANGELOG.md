@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- 🧭 **Web app: every app audited for the browser** (docs/WEB_APP.md "App support in the browser"). Fixed glitches:
+  ntfy pushes never arrived in a tab (it now polls every 10 s, token as `?auth=`), Uptime marked CORS-less sites
+  and TCP targets DOWN (opaque reachability probe; TCP shows "NO TCP IN BROWSER"), Met / Cleveland artwork and
+  Outlook / iCloud calendars failed (added to the CORS proxy, which now re-checks every redirect against its
+  allowlist), Flight Radar polls every 15 s through the proxy. OBS Status, 3D Printer and Anki (plain-http LAN
+  services, new feature `lan`) and System Monitor now say "NOT ON WEB" with the reason; the library badges them
+  "Not on Browser". Failed requests explain LAN-over-http / no-CORS instead of a bare error; the browser app hides
+  "Find nearby panels" and explains Home Assistant's https + CORS needs. Desktop and Android unchanged.
+- 🌍 **Play with friends over the internet in the web app** (idotmatrix.com/app): the lobby QR now points at
+  `idotmatrix.com/p/<code>`, and a friend's phone joins from anywhere — it connects straight to the host's tab over
+  WebRTC (signalling through the `/app/signal` Netlify Function, STUN only) and runs the usual controller or casino
+  page through the tunnel, with a reconnect overlay and clear errors (room closed, host tab gone, network blocks
+  direct links — no TURN relay). The desktop's Wi-Fi play is unchanged.
+- 📷 **Web app: Camera Mirror, Screen Mirror, Visualizer and dancing pets work in the browser** (idotmatrix.com/app/)
+  through the browser's permission prompts: the camera (`getUserMedia`, phones too), a shared screen / window / tab
+  (`getDisplayMedia`, desktop browsers) and the mic or a shared tab's sound. The engine asks only while such an app
+  is on the panel and releases the device when it leaves; a card under the panel offers Allow / Choose screen /
+  Stop sharing / Try again. Desktop and Android unchanged (docs/WEB_APP.md). Pet now opens the sound device only
+  while "Dance to music" is on (like Pet World).
+- 🎨 **Casino table themes** (`table_theme`, every casino game): Classic, Royal, Crimson, Midnight, Neon strip,
+  Emerald, Burgundy — on the panel (LED-safe palettes), the phones and the studio (a swatch picker in House).
+- 📖 **How to play & Rulebook** for all 9 casino games and Rock Paper Scissors (`casino/rulebook.py`, the one
+  source): a "?" sheet with How to play | Rulebook | Payouts on phones, a first-time card per game, a Guide tab in
+  the studio, and `docs/CASINO_RULES.md` generated from it.
+- 📱 **Phone studio rebuilt as an app shell** (also idotmatrix.com/app on phones): a slim header with a Quick
+  controls sheet, a pill tab bar, one scroll area per tab, a sticky search + 3-up app grid, settings with Show /
+  Playlist docked above the tabs, Play mode as a one-screen console with a Match sheet, bottom sheets, dvh /
+  safe-area / 16 px inputs. Fixed: the Settings modal overflowing phones, the intro logo cut off on phones, the
+  web app's connection pill covering the tab bar.
+- CI: the render-time test forgives one outlier frame (a shared runner stalled for 1.2 s).
 - 🎰 **Casino mode** (docs/CASINO.md): Roulette, 7 Up 7 Down, Blackjack, Baccarat, Slots, Texas Hold'em, Teen Patti,
   Andar Bahar and the Big Six wheel.
   - **Fairness:** a provably fair commit–reveal RNG, with verification on phones and in the studio.

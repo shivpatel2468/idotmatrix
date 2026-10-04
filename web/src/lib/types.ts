@@ -27,6 +27,8 @@ export type AppSchema = {
   title?: string;
   /** The whole app only works on these hosts (App.platforms); absent = everywhere. */
   platforms?: Platform[];
+  /** Why the app can't run in a browser tab (App.web_reason); shown by the web app only. */
+  webReason?: string;
 };
 
 export type AppMeta = {

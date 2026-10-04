@@ -15,8 +15,9 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, register
 from ..gfx import PALETTE, Frame, draw_marquee, measure, mix, scale
 from ..gfx.color import RGB
+from ..platforms import FEATURES
 from ..providers.radiator import panel_text
-from ._kit import loading
+from ._kit import loading, unsupported
 from ._radiator import (
     WHITE,
     Alerts,
@@ -104,6 +105,11 @@ class Printer(App):
     Settings = PrinterSettings
     fps = 8.0  # marquees move 1 px per frame; static screens are deduped, so rest costs nothing
     uses = ("printer",)
+    platforms = FEATURES["lan"]  # OctoPrint / Moonraker answer plain http on the LAN
+    web_reason = (
+        "OctoPrint and Moonraker answer plain http on your network, which an https page may not call; "
+        "use the desktop, Raspberry Pi or Android app."
+    )
 
     def __init__(self, ctx: Any, settings: AppSettings) -> None:
         super().__init__(ctx, settings)
@@ -150,6 +156,9 @@ class Printer(App):
         p, v = self._value()
         self._check_events(p)
         s = self.settings
+        if not self.supported_here():
+            unsupported(f, "PRINTER")
+            return
         if not s.host.strip():
             setup_screen(f, t, "printer", "PRINTER", "SET HOST", ACCENT)
             return

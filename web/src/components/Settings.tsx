@@ -328,9 +328,11 @@ function ConnectionBlock({ st }: { st: St }) {
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button className="key" onClick={() => api.reconnect()}><Bluetooth size={13} /> Reconnect</button>
-        <button className="key" disabled={scanning} onClick={async () => { setScanning(true); try { setFound(await api.scan()); } finally { setScanning(false); } }}>
-          <Search size={13} /> {scanning ? "Scanning…" : "Find nearby panels"}
-        </button>
+        {d.kind !== "web" && ( // the browser app: Chrome's own device chooser ("Connect panel" at the top) finds panels
+          <button className="key" disabled={scanning} onClick={async () => { setScanning(true); try { setFound(await api.scan()); } finally { setScanning(false); } }}>
+            <Search size={13} /> {scanning ? "Scanning…" : "Find nearby panels"}
+          </button>
+        )}
         {d.link_enabled ? (
           confirmOff ? null : <button className="key key-ghost" onClick={() => setConfirmOff(true)}><Icon name="unplug" size={13} /> Disconnect…</button>
         ) : (
@@ -494,14 +496,14 @@ export function SettingsSheet() {
   return (
     <Modal open={open} onClose={close} title="Settings" width={880} bodyRef={body}
       header={
-        <label className="relative ml-auto mr-3 hidden w-56 sm:block">
+        <label className="relative mr-3 hidden w-56 sm:block">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search settings" aria-label="Search settings" className="field !h-8 !pl-8 !text-[12.5px]"
             onKeyDown={(e) => { if (e.key === "Enter" && results?.[0]) go(results[0][2]); }} />
         </label>
       }>
       <div className="flex flex-col gap-5 sm:flex-row">
-        <nav className="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 sm:sticky sm:top-0 sm:w-52 sm:flex-col sm:self-start" aria-label="Settings sections">
+        <nav className="sticky -top-4 z-10 -mx-4 -mt-4 flex shrink-0 gap-1 overflow-x-auto bg-chassis-1/95 px-4 py-2 backdrop-blur [scrollbar-width:none] sm:top-0 sm:mx-0 sm:mt-0 sm:w-52 sm:flex-col sm:self-start sm:bg-transparent sm:p-0 sm:backdrop-blur-none" aria-label="Settings sections">
           <label className="relative mb-1 block shrink-0 sm:hidden">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search settings" className="field !h-10 !w-32 !pl-8" />

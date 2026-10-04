@@ -68,6 +68,7 @@ class OBSProvider(Provider[dict[str, Any]]):
     """``value``: see `_idle` for the fields. Apps call ``configure(host, port, password)``."""
 
     name = "obs"
+    feature = "lan"  # plain http / ws on the LAN: not from an https page (platforms.FEATURES)
     interval = 2.0  # status poll while connected (elapsed time is extrapolated locally between polls)
     retry = 5.0
 

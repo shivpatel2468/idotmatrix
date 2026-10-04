@@ -315,3 +315,33 @@ publicly only as that reel stops, the spin settles and the seed is revealed at t
 be changed or repeated, and bet ops are refused. Closing the machine pays every queued spin. The phone gets the
 same pixel symbols (`machine.sprites`) and lands its reels on the revealed stops; lever = drag down and release
 (≥ 60 %), with a SPIN button.
+
+## 11. Table themes and the rulebook
+
+**Table themes.** Every casino app has a `table_theme` setting (group "Look", default `classic` = the original
+look): `classic` (green felt + gold), `royal` (deep blue + gold), `crimson` (red velvet + brass), `midnight` (purple
+neon), `strip` (neon pink + cyan), `emerald` (dark emerald + champagne), `burgundy` (burgundy + ivory). The palettes
+live in one place, `TABLE_THEMES` in `apps/_casino.py`:
+- **Panel:** `TableTheme` holds LED colours (accent, accent_dim, text, alert, chip, rim, wood, felt, felt_dark; every
+  dark tone ≥ 45 so it stays lit). `CasinoApp.th` is the active theme; the betting board, the waiting chip, the timer
+  bar, NO MORE BETS, the paused card, the win bulbs, the history highlight, the roulette rim / ball track, the Big Six
+  rim and the PvP headers / pot use it. Semantic colours never change (roulette pockets, card suits, under / over
+  tones, Big Six symbols, players' colours, blackjack's BJ gold) and the join QR stays black on white. Slots keeps
+  its own machine `theme` for the reel art.
+- **Phones and studio:** the public status carries `table_theme {id, name, css}`. `casino.html` sets its felt /
+  accent CSS variables from it and the studio's `.cz` root does the same (`themeVars` in `state.ts`); both register
+  the colours with `@property`, so a change cross-fades (instant with reduced motion). Classic sets nothing — the
+  stylesheets are the classic look. The studio's House tab has a theme picker (swatches from the host view's
+  `themes`), optionally applied to every table; the setting is also in the normal schema form.
+
+**Rulebook.** "How to play" (3–6 steps for a first-timer) and the rules of every game — and of Rock Paper Scissors —
+live in **one** place, `casino/rulebook.py` (`GUIDES`; `**bold**` is the only markup). Payouts there are checked
+against the games' real spot tables (`tests/test_casino_themes.py`), and [CASINO_RULES.md](CASINO_RULES.md) is
+generated from it (`uv run python -m deskdot.casino.rulebook > docs/CASINO_RULES.md`; a test fails when it is stale).
+- **Phones** get it once per connection in `hello.rulebook` (never in the 0.12 s state pushes). The casino page has a
+  **?** in the header (and a "How to play & rulebook" button in the Fair play sheet) opening a bottom sheet with
+  *How to play · Rulebook · Payouts* (Payouts = the game's own live `paytable`); the first time a phone sits at a
+  game it shows a dismissible How-to-play card (`localStorage deskdot.casino.howto.<game>`). The RPS controller has
+  a "? Rules" button and the same one-time card (`deskdot.howto.rps`).
+- **Studio:** the host op `view` with `spots: true` also returns `guide` (and `themes`); the left wing's **Guide** tab
+  shows How to play and the Rulebook.

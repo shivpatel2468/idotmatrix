@@ -4,9 +4,13 @@ import { api } from "../lib/api";
 import { appMeta, isPhone, toast, useStore } from "../lib/store";
 import { CATEGORY_LABEL, Icon } from "./Icon";
 import { SchemaForm } from "./SchemaForm";
+import { LedPanel } from "./LedPanel";
 
 /** Settings for the selected app (defaults to whatever is on screen). */
-export function Inspector({ fill = false }: { fill?: boolean }) {
+export function Inspector({ fill = false, flat = false }: {
+  fill?: boolean;
+  flat?: boolean; // phones: no card or inner scroll; the live panel in the header, Show / Playlist pinned above the tab bar
+}) {
   const selected = useStore((s) => s.selected);
   const current = useStore((s) => s.state?.engine.current?.app ?? null);
   const settings = useStore((s) => s.state?.apps);
@@ -20,7 +24,7 @@ export function Inspector({ fill = false }: { fill?: boolean }) {
 
   if (!meta) {
     return (
-      <aside className={`surface inspector-box flex flex-col items-center justify-center gap-3 p-8 text-center ${fill ? "flex-1" : ""}`}>
+      <aside className={`inspector-box flex flex-col items-center justify-center gap-3 p-8 text-center ${flat ? "" : "surface"} ${fill ? "flex-1" : ""}`}>
         {!meta0 ? (
           <div className="w-full space-y-3">
             <div className="skeleton h-10 w-2/3 rounded-lg" />
@@ -70,6 +74,57 @@ export function Inspector({ fill = false }: { fill?: boolean }) {
   };
   const hasSettings = Object.keys(meta.schema.properties ?? {}).length > 0;
 
+  const actions = (
+    <div className={flat ? "insp-actions" : "mt-4 flex gap-2"}>
+      <button className={live ? "key flex-1 !h-10" : "key key-ember flex-1 !h-10"} onClick={() => api.activate(meta.id)}
+        title={live ? "Already on the panel — press to restart it" : "Show this app on the panel now"}>
+        <Play size={12} fill="currentColor" /> {live ? "Showing now" : "Show on panel"}
+      </button>
+      <button className="key !h-10" title="Add to the end of the playlist" onClick={addToPlaylist}>
+        <ListPlus size={14} /> <span className="normal-case tracking-normal">Playlist</span>
+      </button>
+    </div>
+  );
+
+  if (flat)
+    return (
+      <aside className="inspector-box flex flex-col" aria-label={`${meta.name} settings`}>
+        <div className="flex items-center gap-3 pb-3 pt-1">
+          {live ? (
+            <span className="overflow-hidden rounded-[7px] bg-black"><LedPanel size={56} glow={false} /></span>
+          ) : (
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[12px] border border-line-2 bg-chassis-3 text-ink-1"><Icon name={meta.icon} size={22} /></span>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="engrave flex items-center gap-1.5 !text-[8.5px]">
+              {live ? <><span className="led !h-[6px] !w-[6px]" data-on="ember" /> On the panel now</> : CATEGORY_LABEL[meta.category] ?? "App"}
+            </div>
+            <h2 className="truncate font-display text-[20px] font-[660] leading-tight tracking-[-0.02em]">{meta.name}</h2>
+            <p className="line-clamp-2 text-[12px] leading-snug text-ink-3">{meta.description}</p>
+          </div>
+        </div>
+        <div className="surface p-4">
+          <SchemaForm schema={meta.schema} value={value} onChange={change} />
+          {hasSettings ? (
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+              <p className="flex-1 text-[11.5px] text-ink-4">Changes apply as you go.</p>
+              {confirmReset ? (
+                <span className="flex items-center gap-1.5">
+                  <button className="key !h-9 !px-3" onClick={reset}>Reset all</button>
+                  <button className="key key-ghost !h-9 !px-2" onClick={() => setConfirmReset(false)}>Cancel</button>
+                </span>
+              ) : (
+                <button className="key key-ghost !h-9 !px-2.5" onClick={() => setConfirmReset(true)}><RotateCcw size={12} /> Defaults</button>
+              )}
+            </div>
+          ) : (
+            <p className="text-[12.5px] text-ink-3">This app has nothing to set.</p>
+          )}
+        </div>
+        {actions}
+      </aside>
+    );
+
   return (
     <aside className={`surface inspector-box flex min-h-0 flex-col overflow-hidden ${fill ? "flex-1" : ""}`} aria-label={`${meta.name} settings`}>
       <div className="border-b border-line p-4">
@@ -85,15 +140,7 @@ export function Inspector({ fill = false }: { fill?: boolean }) {
             <p className="mt-1 text-[12.5px] leading-snug text-ink-3">{meta.description}</p>
           </div>
         </div>
-        <div className="mt-4 flex gap-2">
-          <button className={live ? "key flex-1 !h-10" : "key key-ember flex-1 !h-10"} onClick={() => api.activate(meta.id)}
-            title={live ? "Already on the panel — press to restart it" : "Show this app on the panel now"}>
-            <Play size={12} fill="currentColor" /> {live ? "Showing now" : "Show on panel"}
-          </button>
-          <button className="key !h-10" title="Add to the end of the playlist" onClick={addToPlaylist}>
-            <ListPlus size={14} /> <span className="normal-case tracking-normal">Playlist</span>
-          </button>
-        </div>
+        {actions}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <SchemaForm schema={meta.schema} value={value} onChange={change} />

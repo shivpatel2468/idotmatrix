@@ -22,7 +22,7 @@ import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 log = logging.getLogger("deskdot.web")
 
@@ -39,7 +39,35 @@ _proxied: set[str] = set()
 _DROP_REQ = {"user-agent", "host", "connection", "content-length", "accept-encoding", "keep-alive"}
 # the browser already decoded the body: don't let httpx decode it again
 _DROP_RESP = {"content-encoding", "content-length", "transfer-encoding"}
-_LOCAL_HOSTS = ("localhost", "127.", "10.", "192.168.", "172.16.", "[::1]")
+# names that only resolve inside a home / office network
+_LAN_SUFFIXES = (".local", ".lan", ".home", ".internal", ".home.arpa", ".localdomain", ".localhost")
+
+
+def is_local_host(host: str) -> bool:
+    """A device on this computer or the LAN (private / loopback / link-local IP, `localhost`, `nas.local`, a bare
+    single-label name like `octopi`): the proxy can't reach it and an https page may not call it over plain http."""
+    import ipaddress
+
+    h = host.strip("[]").lower().rstrip(".")
+    if not h:
+        return False
+    try:
+        ip = ipaddress.ip_address(h)
+    except ValueError:
+        return h == "localhost" or "." not in h or h.endswith(_LAN_SUFFIXES)
+    return ip.is_private or ip.is_loopback or ip.is_link_local
+
+
+def blocked_message(host: str, url: str, local: bool) -> str:
+    """Why a fetch from the tab failed, in words the studio can show (fetch() itself hides the reason)."""
+    if local and url.startswith("http://"):
+        return (
+            f"{host}: the browser app can't reach plain-http devices on your network (an https page may not call "
+            "them); use an https address that allows this site (CORS), or the desktop app"
+        )
+    if local:
+        return f"{host}: not reachable from the browser (it must allow https://idotmatrix.com via CORS) or offline"
+    return f"{host}: blocked by the browser (the API doesn't allow web pages: no CORS) or offline"
 
 
 # ===================================================================== runtime patches
@@ -63,6 +91,36 @@ async def _fetch(url: str, kw: dict[str, Any], wait: float) -> tuple[Any, bytes]
     return resp, data
 
 
+def _refused_by_proxy(resp: Any) -> bool:
+    """The proxy's own "host not allowed" (403 without its marker header), as opposed to an upstream 403."""
+    return int(resp.status) == 403 and "x-deskdot-proxy" not in {k.lower() for k in resp.headers}
+
+
+async def probe(url: str, wait: float = 5.0) -> float:
+    """Is `url` reachable from this tab? Returns the round trip in ms, raises OSError if not.
+
+    An opaque ("no-cors") request: no CORS needed and no proxy, but the status code stays hidden — a resolved
+    fetch means the server answered. Uptime checks use it for sites that don't allow web pages."""
+    import time
+
+    from pyodide.ffi import JsException  # type: ignore[import-not-found]
+    from pyodide.http import pyfetch  # type: ignore[import-not-found]
+
+    if url.startswith("http://") and not is_local_host(urlsplit(url).hostname or ""):
+        url = "https://" + url[len("http://") :]  # an https page may not fetch plain http
+    t0 = time.perf_counter()
+    try:
+        await asyncio.wait_for(pyfetch(url, method="GET", mode="no-cors", cache="no-store"), wait)
+    except TimeoutError:
+        raise OSError("timed out") from None
+    except (
+        JsException,
+        OSError,
+    ) as e:  # pyfetch reports network errors as OSError (older Pyodide: JsException)
+        raise OSError(f"unreachable: {e}") from None
+    return (time.perf_counter() - t0) * 1000
+
+
 def _fetch_transport() -> Any:
     import httpx
 
@@ -74,7 +132,7 @@ def _fetch_transport() -> Any:
 
             url = str(request.url)
             host = request.url.host or ""
-            local = host.startswith(_LOCAL_HOSTS) or host.endswith(".local")
+            local = is_local_host(host)
             headers = {k: v for k, v in request.headers.items() if k.lower() not in _DROP_REQ}
             body = await request.aread()
             kw: dict[str, Any] = {"method": request.method, "headers": headers}
@@ -94,15 +152,18 @@ def _fetch_transport() -> Any:
                         raise
                     # fetch() hides the reason; nearly always CORS (the API doesn't allow browsers)
                     resp, data = await _fetch(_proxied_url(str(request.url)), kw, timeout)
-                    if resp.status != 403:  # 403 = not on the proxy's allowlist
+                    via_proxy = True
+                    if not _refused_by_proxy(resp):
                         _proxied.add(host)
             except TimeoutError:
                 raise httpx.ReadTimeout(f"timed out: {host}", request=request) from None
-            except (JsException, OSError) as e:
+            except (JsException, OSError):
+                raise httpx.ConnectError(blocked_message(host, url, local), request=request) from None
+            if via_proxy and _refused_by_proxy(resp):
                 raise httpx.ConnectError(
-                    f"{host}: blocked by the browser (no CORS, or a LAN address) or offline — {e}",
+                    f"{host}: doesn't allow web pages (no CORS) and isn't on the web app's proxy list",
                     request=request,
-                ) from None
+                )
             out = [(k, v) for k, v in resp.headers.items() if k.lower() not in _DROP_RESP]
             return httpx.Response(resp.status, headers=out, content=data, request=request)
 
@@ -155,7 +216,10 @@ def patch_runtime() -> None:
 
 # ===================================================================== boot
 async def boot(
-    root: str = "/deskdot", sync: Callable[[], None] | None = None, proxy: str | None = None
+    root: str = "/deskdot",
+    sync: Callable[[], None] | None = None,
+    proxy: str | None = None,
+    public_url: str | None = None,
 ) -> dict[str, Any]:
     """Create the engine (device="web") and run the ASGI lifespan startup."""
     global _app, _sync, _proxy
@@ -182,6 +246,8 @@ async def boot(
         data_dir=base / "data",
         plugins_dir=base / "plugins",
         host="127.0.0.1",
+        public_url=public_url
+        or None,  # the site's origin: phones join at <origin>/p/<code> (WebRTC, host-rtc.js)
     )
     _app = create_app(cfg)
     t2 = time.perf_counter()
@@ -231,8 +297,49 @@ def user_picked() -> None:
         dev._user_picked_cb()
 
 
+# ===================================================================== camera / screen / sound
+# The page captures (host-media.js: getUserMedia / getDisplayMedia, downscaled there); the worker forwards here and
+# providers/webmedia.py turns it into the values the apps read. The engine asks for streams through the worker's
+# `deskdotMedia` bridge (want / stop).
+def _raw(data: Any) -> bytes:
+    if data is None:
+        return b""
+    to_bytes = getattr(data, "to_bytes", None)  # a JS Uint8Array (JsProxy)
+    return bytes(to_bytes()) if to_bytes is not None else bytes(data)
+
+
+def media_frame(kind: str, w: int, h: int, data: Any) -> None:
+    """An RGB frame (w*h*3 bytes) from the camera or the shared screen."""
+    from .providers import webmedia
+
+    webmedia.frame(str(kind), int(w), int(h), _raw(data))
+
+
+def media_audio(sample_rate: float, data: Any, source: str = "") -> None:
+    """The newest float32 samples (as bytes) from the mic or a shared tab / screen."""
+    from .providers import webmedia
+
+    webmedia.audio(float(sample_rate), _raw(data), str(source or ""))
+
+
+def media_state(kind: str, state: str, detail: str = "") -> None:
+    """The page's stream state: waiting (needs a click) | live | denied | error | stopped | unsupported."""
+    from .providers import webmedia
+
+    webmedia.state(str(kind), str(state), str(detail or ""))
+
+
+def media_hello() -> None:
+    """The page's capture add-on loaded: repeat the requests still wanted."""
+    from .providers import webmedia
+
+    webmedia.hello()
+
+
 # ===================================================================== HTTP
-def _scope(kind: str, path: str, headers: list[tuple[str, str]], method: str = "GET") -> dict[str, Any]:
+def _scope(
+    kind: str, path: str, headers: list[tuple[str, str]], method: str = "GET", client: str | None = None
+) -> dict[str, Any]:
     path, _, query = path.partition("?")
     scope: dict[str, Any] = {
         "type": kind,
@@ -244,7 +351,8 @@ def _scope(kind: str, path: str, headers: list[tuple[str, str]], method: str = "
         "root_path": "",
         "query_string": query.encode(),
         "headers": [(k.lower().encode("latin-1"), str(v).encode("latin-1")) for k, v in headers],
-        "client": ("127.0.0.1", 0),  # the studio is local by definition: it's the same tab
+        # the studio is local by definition (it's the same tab); a phone tunnelled in over WebRTC (host-rtc.js) is not
+        "client": (client or "127.0.0.1", 0),
         "server": ("127.0.0.1", 8765),
         "state": {},
     }
@@ -256,12 +364,12 @@ def _scope(kind: str, path: str, headers: list[tuple[str, str]], method: str = "
 
 
 async def http(
-    method: str, path: str, headers: list[tuple[str, str]], body: bytes = b""
+    method: str, path: str, headers: list[tuple[str, str]], body: bytes = b"", client: str | None = None
 ) -> tuple[int, list[tuple[str, str]], bytes]:
     """One HTTP request through the ASGI app. `path` includes the query string."""
     if _app is None:
         return 503, [("content-type", "application/json")], b'{"detail":"engine is starting"}'
-    scope = _scope("http", path, headers, method)
+    scope = _scope("http", path, headers, method, client)
     sent = False
 
     async def receive() -> dict[str, Any]:
@@ -292,14 +400,17 @@ async def http(
     return status, out_headers, b"".join(chunks)
 
 
-async def http_js(method: str, path: str, headers: Any, body: Any = None) -> Any:
+async def http_js(method: str, path: str, headers: Any, body: Any = None, client: Any = None) -> Any:
     """`http()` for the worker: JS arrays / Uint8Array in, a plain JS object out."""
-    import js  # type: ignore[import-not-found]
     from pyodide.ffi import to_js  # type: ignore[import-not-found]
+
+    import js  # type: ignore[import-not-found]
 
     hdrs = headers.to_py() if hasattr(headers, "to_py") else headers
     raw = body.to_bytes() if hasattr(body, "to_bytes") else bytes(body or b"")
-    status, out, data = await http(method, path, [(str(k), str(v)) for k, v in hdrs], raw)
+    status, out, data = await http(
+        method, path, [(str(k), str(v)) for k, v in hdrs], raw, str(client) if client else None
+    )
     return to_js(
         {"status": status, "headers": [[k, v] for k, v in out], "body": memoryview(data)},
         dict_converter=js.Object.fromEntries,
@@ -308,8 +419,11 @@ async def http_js(method: str, path: str, headers: Any, body: Any = None) -> Any
 
 # ===================================================================== WebSocket
 class _Socket:
-    def __init__(self, sid: int, path: str, emit: Callable[[str, Any], None]) -> None:
+    def __init__(
+        self, sid: int, path: str, emit: Callable[[str, Any], None], client: str | None = None
+    ) -> None:
         self.sid = sid
+        self.client = client
         self.emit = emit
         self.inbox: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self.closed = False
@@ -334,7 +448,7 @@ class _Socket:
                 self._closed(int(msg.get("code", 1000)))
 
         try:
-            await _app(_scope("websocket", path, []), receive, send)
+            await _app(_scope("websocket", path, [], client=self.client), receive, send)
         except Exception as e:
             log.warning("socket %s ended: %s", path, e)
         self._closed(1000)
@@ -346,7 +460,7 @@ class _Socket:
             _sockets.pop(self.sid, None)
 
 
-def ws_open(sid: int, path: str, emit: Callable[[str, Any], None]) -> None:
+def ws_open(sid: int, path: str, emit: Callable[[str, Any], None], client: Any = None) -> None:
     """Open a socket; `emit(event, data)` gets "open", "text", "bytes" (a JS Uint8Array) and "close"."""
     try:
         from pyodide.ffi import to_js  # type: ignore[import-not-found]
@@ -358,7 +472,7 @@ def ws_open(sid: int, path: str, emit: Callable[[str, Any], None]) -> None:
             data = to_js(memoryview(data))
         emit(ev, data)
 
-    _sockets[sid] = _Socket(sid, path, out)
+    _sockets[sid] = _Socket(sid, path, out, str(client) if client else None)
 
 
 def ws_send(sid: int, data: Any) -> None:

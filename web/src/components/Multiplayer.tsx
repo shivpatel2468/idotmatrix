@@ -168,6 +168,7 @@ function SeatSlots({ lobby, status }: { lobby: LobbyInfo; status: Record<string,
 export function LobbyPanel({ lobby, compact = false }: { lobby: LobbyInfo; compact?: boolean }) {
   const status = useStore((s) => s.state?.engine.current?.status);
   const lanReady = useStore((s) => s.lanReady) && lobby.lan_ready;
+  const web = useStore((s) => s.meta?.platform === "web"); // the web app: phones join over the internet (WebRTC)
   const [copied, setCopied] = useState(false);
   const live = seatsOf(status);
   const joined = Array.from({ length: lobby.max_players - 1 }, (_, i) => i + 2)
@@ -222,7 +223,11 @@ export function LobbyPanel({ lobby, compact = false }: { lobby: LobbyInfo; compa
       </div>
       <p className="flex gap-2 text-[11px] leading-snug text-ink-3">
         <Wifi size={13} className="mt-px shrink-0" />
-        <span>Friends must be on the same Wi-Fi. The first time, Windows may ask to allow DeskDot on the network — choose <b className="font-[600] text-ink-2">Allow</b> (private networks).</span>
+        {web ? (
+          <span>Friends can join from anywhere — their phone links straight to this tab, so keep it open (a direct link: very strict networks may block it).</span>
+        ) : (
+          <span>Friends must be on the same Wi-Fi. The first time, Windows may ask to allow DeskDot on the network — choose <b className="font-[600] text-ink-2">Allow</b> (private networks).</span>
+        )}
       </p>
     </div>
   );

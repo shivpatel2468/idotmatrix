@@ -206,6 +206,10 @@ phone opens a controller page (d-pad + A/B, no install) and gets the next free s
 in the studio); seats without a person are played by the AI. Games declare `max_players` (currently: X and 0 = 2,
 Pong = 2, Light Cycles = 4).
 
+In the web app (engine in a browser tab, `public_url` set) the QR is `https://idotmatrix.com/p/<code>` instead and
+phones reach these same routes over a WebRTC tunnel to the tab; the website's `POST /app/signal` (a Netlify Function,
+not an engine endpoint) does the offer/answer swap — see docs/WEB_APP.md, "Play with friends over the internet".
+
 | Method | Path | Body / notes |
 | --- | --- | --- |
 | GET | `/api/play/lobby` | `{lobby: null | {code, app, url, max_players, lan_ready, seats: [{seat, name, color}]}, lan_ready, games: [{id, name, max_players}]}` |
@@ -214,7 +218,7 @@ Pong = 2, Light Cycles = 4).
 | POST | `/api/play/lobby/switch` | `{"app": "<casino id>"}` — casino rooms only: move the open room to another casino table; phones stay connected on their seats (their socket follows the room's app), wallets carry over, the join QR moves along while the lobby still waits. 404 without a room, 422 for a non-casino app |
 | DELETE | `/api/play/lobby` | close it and disconnect the phones |
 | GET | `/p/{code}` | the phone controller page (reachable from the LAN) |
-| WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes}`, `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
+| WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes, rulebook}` (`rulebook`: `{game id: {id, title, tagline, how: [step], rules: [{h, items}]}}` from `casino/rulebook.py` — every casino game for a casino room, the app's own guide for Rock Paper Scissors, else `{}`; `**bold**` is the only markup), `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
 
 ### Casino tables (`category: "casino"`, docs/CASINO.md)
 
@@ -226,7 +230,7 @@ casino table. Same socket, same `hello` / `profile` / `roster`; in addition:
 | phone → | `{"type": "casino", "op": "bet", "spot": "n:17", "amount": 25}` · `{"op": "unbet", "spot", "amount"?}` (all of it without `amount`) · `{"op": "clear"}` · `{"op": "rebet"}` · `{"op": "done"}` (locks early once everyone with chips is done) · `{"op": "seed", "client_seed": "≤64 printable chars, no ':'"}` · game ops later (`hit`, `fold`, `pull`, …). The server overwrites `player` with the socket's seat; host ops from a phone are refused |
 | → phone | `state {status, private}` — `status` is public (every phone + the studio); `private` (from `App.private_status(seat)`) only ever reaches that seat's socket |
 
-`status` (casino): `{casino, game, name, phase, round, hash (commitment of this round), ends_in (whole s, null =
+`status` (casino): `{casino, game, name, table_theme {id, name, css {felt, felt2, felt3, accent, accent_hi, accent_lo, accent_deep, accent_rgb, ink, wing, wing2, wing3}}, phase, round, hash (commitment of this round), ends_in (whole s, null =
 waiting for the first chip), reveal_in, next_in, paused, rules, totals {spot: credits, all players}, bettors, done
 (seats, the host `"host"` first),
 house {base_credits, min_bet, max_bet, bet_seconds, result_seconds, turn_seconds, auto_next}, edges {bet kind: house
@@ -254,7 +258,7 @@ Host ops: `POST /api/apps/{id}/actions/casino` with `{"op": …}` (local only; `
 | `pause` | `{on?: bool}` | freeze every timer (toggle without `on`) |
 | `reset_session` | `{base_credits?}` | everyone back to base credits, history cleared |
 | `verify` | `{round}` | recompute a past round from its revealed seeds → `{ok, hash_ok, matches, outcome, proof}` |
-| `view` | `{spots?: bool}` | read-only, for the studio's casino mode: `{status (fresh), private (the host seat's own view; `{seated: false}` until the host first plays — looking never seats the host), players (leaderboard + `pid`, `kicked`), spots? [{id, label, kind, pays, numbers}], avatars? {id: {name, px}}}` |
+| `view` | `{spots?: bool}` | read-only, for the studio's casino mode: `{status (fresh), private (the host seat's own view; `{seated: false}` until the host first plays — looking never seats the host), players (leaderboard + `pid`, `kicked`), spots? [{id, label, kind, pays, numbers}], avatars? {id: {name, px}}, guide? (this game's rulebook, with `spots`), themes? [table_theme…] (with `spots`)}` |
 
 The host can also play from the studio with the player ops (`{"op": "bet", …}` → seat `"host"`).
 

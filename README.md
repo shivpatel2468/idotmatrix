@@ -69,7 +69,9 @@ that anyone, including an AI agent, can make a new app in one Python file.
     - Friends join with the QR code; the host sets everyone's credits.
     - The panel shows only the table, while phones show credits, the betting layout and private cards.
     - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
-      See [docs/CASINO.md](docs/CASINO.md).
+    - Seven table themes (classic green, royal blue, crimson, midnight neon, neon strip, emerald, burgundy) recolour
+      the panel, every phone and the studio; a "?" on every phone opens How to play, the rulebook and the payouts.
+      See [docs/CASINO.md](docs/CASINO.md) and the player's rulebook [docs/CASINO_RULES.md](docs/CASINO_RULES.md).
 *   **✊ Rock Paper Scissors:** AI vs AI, you vs AI, 1v1 or a 3–8 player tournament, with pixel-hand pickers on phones.
 *   **🌐 No install:** open [idotmatrix.com/app](https://idotmatrix.com/app/) in Chrome or Edge and connect the panel
     over Web Bluetooth. The same engine runs in your browser. See [docs/WEB_APP.md](docs/WEB_APP.md).

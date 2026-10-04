@@ -7,7 +7,7 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, mix, scale
 from ..platforms import FEATURES
-from ._kit import loading, offline
+from ._kit import loading, offline, unsupported
 
 #: bar tracks and the graph baseline: dim but still lit through the panel's gamma (see DISPLAY_DESIGN §3)
 TRACK_K = 0.3
@@ -41,8 +41,12 @@ class Sysmon(App):
     fps = 1.0
     uses = ("system",)
     platforms = FEATURES["system"]  # psutil: every native host, not the browser app
+    web_reason = "A browser tab can't read the computer's CPU, memory, disk or network counters (no psutil)."
 
     def render(self, f: Frame, t: float) -> None:
+        if not self.supported_here():
+            unsupported(f, "SYSTEM")
+            return
         p = self.ctx.provider("system")
         d = p.value
         if not d:

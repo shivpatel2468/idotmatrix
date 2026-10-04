@@ -40,6 +40,7 @@ from .apps import load_plugins
 from .apps.canvas import frame_from_rows
 from .apps.games_core import KEYS
 from .calibration_api import register as register_calibration
+from .casino.rulebook import rulebook_for
 from .config import Config, Store
 from .device import Device, SimDevice
 from .engine import REGISTRY, Engine, Notice, Playlist, presets
@@ -315,7 +316,7 @@ def create_app(cfg: Config) -> FastAPI:
     app.add_middleware(LanGate, allow_all=cfg.lan_studio)
     app.state.engine = engine
     app.state.library = library
-    lobby = Lobby(cfg.host, cfg.port)
+    lobby = Lobby(cfg.host, cfg.port, cfg.public_url)
     app.state.lobby = lobby
     phones: dict[int, WebSocket] = {}  # seat -> socket (one phone per seat)
 
@@ -479,6 +480,8 @@ def create_app(cfg: Config) -> FastAPI:
                     "modes": [
                         {"id": m.id, "name": m.name, "teams": m.teams} for m in getattr(cls, "modes", ())
                     ],
+                    # "How to play" + rulebook (casino/rulebook.py): once per connection, not per state push
+                    "rulebook": rulebook_for(cls),
                 }
             )
         )

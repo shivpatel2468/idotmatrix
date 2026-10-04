@@ -61,7 +61,7 @@ export class OgIntro {
   }
 
   resize() {
-    this.cell = Math.max(9, Math.min(22, Math.floor((Math.min(window.innerWidth, 900) * 0.8) / COLS)));
+    this.cell = Math.max(window.innerWidth < 640 ? 4 : 9, Math.min(22, Math.floor((Math.min(window.innerWidth, 900) * (window.innerWidth < 640 ? 0.9 : 0.8)) / COLS)));
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = COLS * this.cell;
     const h = ROWS * this.cell * 1.7; // room for the reflection

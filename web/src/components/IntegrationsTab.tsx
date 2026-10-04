@@ -143,11 +143,13 @@ function IndicatorRow({ slot, st }: { slot: number; st: St }) {
 }
 
 function IndicatorsSection({ st }: { st: St }) {
+  const web = useStore((s) => s.meta?.platform === "web");
   return (
     <Section icon="square-dot" id="indicators" title="Status indicators" status={`${Object.keys(st.engine.indicators ?? {}).length} / 3 lit`}>
       <p className="py-2 text-[11.5px] leading-snug text-ink-3">
         Small squares on the right edge, drawn over every app — for build status, a door sensor, unread mail.
-        Scripts set them with <code className="font-mono text-ink-2">POST /api/indicators/1</code> (see docs/API.md).
+        {web ? "In the browser app only this page can set them: scripts and agents need the desktop app's local API."
+          : <>Scripts set them with <code className="font-mono text-ink-2">POST /api/indicators/1</code> (see docs/API.md).</>}
       </p>
       {[1, 2, 3].map((n) => <IndicatorRow key={n} slot={n} st={st} />)}
     </Section>
@@ -160,12 +162,13 @@ function NtfySection({ st, cfg }: { st: St; cfg: Integrations["ntfy"] }) {
   const [token, setToken] = useState("");
   const p = st.providers.ntfy as ({ error: string | null; connected?: boolean } | undefined);
   const first = cfg.topics.split(",")[0]?.trim() || "your-topic";
+  const web = useStore((s) => s.meta?.platform === "web");
   return (
     <Section icon="smartphone" id="ntfy" title="Phone pushes (ntfy)" status={
       <><span className="led" data-on={p?.error ? "bad" : p?.connected ? "ok" : undefined} />
         {p?.error ? "error" : p?.connected ? "subscribed" : cfg.enabled ? "connecting…" : "off"}</>
     }>
-      <Row label="Subscribe" hint="Free, no account: install the ntfy app, pick a hard-to-guess topic name, send to it from anywhere.">
+      <Row label="Subscribe" hint={`Free, no account: install the ntfy app, pick a hard-to-guess topic name, send to it from anywhere.${web ? " The browser app checks for new messages every 10 s while this tab is open." : ""}`}>
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="ntfy" />
       </Row>
       <Row label="Topics" hint="Comma-separated. Anyone who knows a topic name can post to it — make it long and random.">
@@ -203,6 +206,7 @@ function HassSection({ st, cfg }: { st: St; cfg: Integrations["homeassistant"] }
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const p = st.providers.homeassistant;
+  const web = useStore((s) => s.meta?.platform === "web");
   const save = async () => {
     await api.integration("homeassistant", token ? { url, token } : { url });
     setToken("");
@@ -222,10 +226,12 @@ function HassSection({ st, cfg }: { st: St; cfg: Integrations["homeassistant"] }
       <><span className="led" data-on={p?.error ? "bad" : p?.active ? "ok" : cfg.token_set ? "warn" : undefined} />
         {!cfg.url || !cfg.token_set ? "not set up" : p?.error ? "error" : p?.active ? "polling" : "ready"}</>
     }>
-      <Row label="URL" hint="Your Home Assistant, e.g. http://homeassistant.local:8123">
+      <Row label="URL" hint={web
+        ? "The browser app needs an https address (Nabu Casa or your own reverse proxy) that lists https://idotmatrix.com in HA's http: cors_allowed_origins. A plain http://….local address only works from the desktop app."
+        : "Your Home Assistant, e.g. http://homeassistant.local:8123"}>
         <input className="field !h-8 !w-64" value={url} placeholder="http://homeassistant.local:8123" onChange={(e) => setUrl(e.target.value)} />
       </Row>
-      <Row label="Long-lived token" hint="HA → your profile → Security → Long-lived access tokens. Stored only on this computer; never shown again.">
+      <Row label="Long-lived token" hint={`HA → your profile → Security → Long-lived access tokens. Stored only ${web ? "in this browser" : "on this computer"}; never shown again.`}>
         <input type="password" className="field !h-8 !w-64" value={token} placeholder={cfg.token_set ? `saved ${cfg.token}` : "paste token"} onChange={(e) => setToken(e.target.value)} />
       </Row>
       <div className="flex flex-wrap items-center gap-2 py-2.5">

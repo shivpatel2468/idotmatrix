@@ -222,6 +222,8 @@ class FlightsProvider(Provider[dict[str, Any]]):
     ROUTE_HIT_TTL = 6 * 3600.0
     ROUTE_MISS_TTL = 3600.0
     ROUTE_GAP = 1.5  # seconds between adsbdb lookups
+    #: the browser app reaches the ADS-B feeds through the site's CORS proxy (one function call per poll)
+    WEB_INTERVAL = 15.0
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)
@@ -233,6 +235,11 @@ class FlightsProvider(Provider[dict[str, Any]]):
         self._route_tasks: dict[str, asyncio.Task[dict[str, Any] | None]] = {}
         self._route_lock = asyncio.Lock()
         self._route_last = 0.0
+
+    def next_interval(self) -> float:
+        from ..platforms import current
+
+        return self.WEB_INTERVAL if current() == "web" else self.interval
 
     # -------------------------------------------------------------- config
     def configure(self, radius_nm: float) -> None:

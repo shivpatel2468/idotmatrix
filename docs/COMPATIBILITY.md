@@ -37,6 +37,7 @@ Only one central can hold the panel: stop DeskDot on the laptop when the Pi or p
 | OS notifications (`notifications`) | ✅ toast DB | 🟡 Full Disk Access; macOS 15 path + 10.13–14 path | ❌ | ❌ | ❌ | |
 | Sleep hand-off | ✅ WM_POWERBROADCAST | ❌ | ❌ | ❌ | — (service) | exit hand-off works everywhere |
 | System stats (`system`) | ✅ | ✅ | ✅ | ✅ | 🟡 RAM / disk / battery; **CPU, network and uptime hidden** by Android (shown as `--`) | psutil; each metric degrades on its own |
+| LAN services (`lan`: OBS WebSocket, OctoPrint / Moonraker, AnkiConnect) | ✅ | ✅ | ✅ | ✅ | ✅ | plain http / sockets on your network; ❌ in the browser app |
 | Network data (weather, sports, markets, stocks, flights, space/ISS, sky, quakes, rain radar, air quality, holidays, daily, trivia, headlines, currency, photos, pokédex, avatars, chess, game deals, tides, planets, wear, calendar ICS, GitHub, ntfy, Home Assistant, CI, uptime, OBS, printer, media server, Anki, custom apps) | ✅ | ✅ | ✅ | ✅ | ✅ | only need internet / the LAN service; `localhost` services (OBS, AnkiConnect, printer) must be reachable from the host — on a Pi or phone set their LAN address |
 | Font Lab TTFs | ✅ | ✅ | ✅ (any `.ttf/.TTF/.otf` case) | ✅ | 🟡 bitmap fonts; TTFs from `data/fonts` if present | `assets/fonts`, `data/fonts` |
 
@@ -66,10 +67,22 @@ Global settings with host limits: **Audio source "System sound"** (Windows, Linu
 ## Browser host (the web app at idotmatrix.com/app/)
 
 The engine can also run inside a browser tab (Pyodide + Web Bluetooth; `platform: "web"`, label "Browser"). There
-every host feature above is ❌ — the tab can't see the computer — while network data, games, creative apps and all
-settings work. System Monitor is badged "Not on Browser" (psutil). Panel link: Chrome / Edge / Opera on Windows,
+the tab can't see the computer, so most host features above are ❌, while network data, games, creative apps and
+all settings work. System Monitor is badged "Not on Browser" (psutil). Through the browser's permission prompts
+(`providers/webmedia.py` + `web/webapp/host-media.js`):
+
+| Feature | Browser host |
+| --- | --- |
+| Webcam (`camera`) | ✅ `getUserMedia`, computers and phones; no face tracking / hardware controls (no OpenCV) |
+| Screen capture (`screen`) | 🟡 `getDisplayMedia` on desktop Chrome / Edge / Firefox / Safari, from a click; ❌ phones; "Active window" / "Around cursor" = whatever was shared |
+| Mic (`audio`) | ✅ `getUserMedia({audio})` |
+| System sound (`audio_loopback`) | 🟡 a shared tab's sound (Chrome / Edge on a computer; whole system on Windows / ChromeOS); falls back to the mic elsewhere |
+| Idle, media session, window, notifications, On Air, system stats | ❌ |
+| LAN services on plain http / sockets (`lan`: OBS, 3D printer, Anki) | ❌ an https page may not call them (mixed content) and has no sockets |
+| Network data | ✅ direct where the API allows CORS, else through the site's allowlisted `/app/proxy`; Home Assistant / media servers need an https URL that allows CORS; ntfy is polled every 10 s; uptime: no TCP checks |
+ Panel link: Chrome / Edge / Opera on Windows,
 macOS, ChromeOS and Android (Linux behind a flag), Bluefy on iOS; no Firefox or Safari. Packet size is guessed per
-OS and stepped down when refused. Full matrix, CORS notes and test steps: [WEB_APP.md](WEB_APP.md).
+OS and stepped down when refused. Full matrix, CORS notes and test steps: [WEB_APP.md](WEB_APP.md); app by app: [App support in the browser](WEB_APP.md#app-support-in-the-browser).
 
 ## Studio browsers
 

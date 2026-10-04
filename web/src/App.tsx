@@ -21,11 +21,12 @@ import { connect } from "./lib/ws";
 import { startFlyPolling, useFlyView } from "./lib/fly";
 import { flyPlayingNow, toggleFly } from "./lib/flyControl";
 import { useCasinoView } from "./components/casino/state";
+import { usePhone } from "./lib/useMedia";
 
 function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const typing = (e.target as HTMLElement)?.closest("input, textarea, select, [contenteditable]");
+      const typing = (e.target as HTMLElement)?.closest?.("input, textarea, select, [contenteditable]");
       const s = useStore.getState();
       if (s.playMode) return; // Play mode owns the keyboard (components/PlayMode.tsx)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -122,19 +123,7 @@ function Splitter({ onDrag, onReset, title, className = "hidden md:block" }: {
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-function usePhone() {
-  const q = "(max-width: 767.98px)";
-  const [phone, setPhone] = useState(() => window.matchMedia(q).matches);
-  useEffect(() => {
-    const m = window.matchMedia(q);
-    const on = () => setPhone(m.matches);
-    m.addEventListener("change", on);
-    return () => m.removeEventListener("change", on);
-  }, []);
-  return phone;
-}
-
-/** Phones: the live panel stays in view at the top of every tab. */
+/** Phones: a slim "now playing" strip (the live panel + its name) at the top of the Apps and Presets tabs. */
 function MiniPreview() {
   const cur = useStore((s) => s.state?.engine.current?.app);
   const power = useStore((s) => s.state?.settings.power ?? true);
@@ -142,13 +131,13 @@ function MiniPreview() {
   useStore((s) => s.meta);
   const meta = appMeta(cur);
   return (
-    <button onClick={() => set({ mobileTab: "panel" })} className="surface flex w-full shrink-0 items-center gap-3 p-2 pr-4 text-left" aria-label="Back to the panel">
-      <span className={`overflow-hidden rounded-[6px] bg-black transition-opacity ${power ? "" : "opacity-20"}`}><LedPanel size={72} glow={false} /></span>
+    <button onClick={() => set({ mobileTab: "panel" })} className="mini-now" aria-label={`Now showing ${meta?.name ?? "nothing"} — back to the panel`}>
+      <span className={`overflow-hidden rounded-[5px] bg-black transition-opacity ${power ? "" : "opacity-20"}`}><LedPanel size={40} glow={false} /></span>
       <span className="min-w-0 flex-1">
-        <span className="engrave block !text-[8px]">Now showing</span>
-        <span className="block truncate font-display text-[16px] font-[640]">{meta?.name ?? "—"}</span>
+        <span className="engrave block !text-[7.5px] !text-ink-3">Now showing</span>
+        <span className="block truncate text-[14px] font-[620]">{meta?.name ?? "—"}</span>
       </span>
-      <Icon name="maximize-2" size={15} className="text-ink-3" />
+      <Icon name="maximize-2" size={14} className="text-ink-3" />
     </button>
   );
 }
@@ -160,39 +149,55 @@ const TABS: [MobileTab, string, React.ReactNode][] = [
   ["tune", "Settings", <SlidersHorizontal size={20} />],
 ];
 
+/** Phones: the bottom tab bar (thumb zone) — a lit pill behind the active icon, labels always shown. */
 function TabBar() {
   const tab = useStore((s) => s.mobileTab);
   const running = useStore((s) => s.state?.engine.mode === "playlist");
   const set = useStore((s) => s.set);
+  const pick = (id: MobileTab) => {
+    // tapping the open tab again scrolls it back to the top (the iOS / Android convention)
+    if (id === tab) document.querySelector(".phone-scroll")?.scrollTo({ top: 0, behavior: "smooth" });
+    else set({ mobileTab: id });
+  };
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-chassis-1/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Sections">
-      <div className="grid grid-cols-4">
-        {TABS.map(([id, label, icon]) => (
-          <button key={id} onClick={() => set({ mobileTab: id })} aria-current={tab === id ? "page" : undefined}
-            className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] transition ${tab === id ? "text-ember" : "text-ink-3 active:text-ink-1"}`}>
-            {tab === id && <span className="absolute top-0 h-[2px] w-10 rounded-full bg-ember shadow-[0_0_10px_var(--color-ember)]" />}
-            <span className="relative">
-              {icon}
-              {id === "play" && running && <span className="led absolute -right-1.5 -top-1 !h-[6px] !w-[6px]" data-on="ok" />}
-            </span>
-            {label}
-          </button>
-        ))}
-      </div>
+    <nav className="tabbar" aria-label="Sections">
+      {TABS.map(([id, label, icon]) => (
+        <button key={id} onClick={() => pick(id)} aria-current={tab === id ? "page" : undefined} className="tabbar-btn">
+          <span className="tabbar-pill">
+            {icon}
+            {id === "play" && running && <span className="led absolute right-2 top-0.5 !h-[6px] !w-[6px]" data-on="ok" />}
+          </span>
+          {label}
+        </button>
+      ))}
     </nav>
   );
 }
 
+/**
+ * Phones: one scroll area per tab (no scroll boxes inside cards), sticky tool rows inside it, the tab bar and the
+ * home indicator kept clear. The Panel tab sizes the panel to the screen, so it doesn't scroll as a page.
+ */
 function PhoneLayout() {
   const tab = useStore((s) => s.mobileTab);
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 });
+  }, [tab]);
+  if (tab === "panel")
+    return (
+      <>
+        <div className="phone-panel flex min-h-0 flex-1 flex-col px-3"><Stage /></div>
+        <TabBar />
+      </>
+    );
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 px-3 pb-[calc(76px+env(safe-area-inset-bottom))]">
-        {tab !== "panel" && <MiniPreview />}
-        {tab === "panel" && <div className="flex min-h-0 flex-1 flex-col"><Stage /></div>}
-        {tab === "apps" && <Library fill />}
-        {tab === "play" && <div className="min-h-0 flex-1 overflow-y-auto pb-2"><PlaybackSheet /></div>}
-        {tab === "tune" && <Inspector fill />}
+      <div ref={scroller} className="phone-scroll">
+        {tab !== "tune" && <MiniPreview />}
+        {tab === "apps" && <Library flat />}
+        {tab === "play" && <div className="pt-1"><PlaybackSheet /></div>}
+        {tab === "tune" && <Inspector flat />}
       </div>
       <TabBar />
     </>

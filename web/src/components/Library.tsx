@@ -29,17 +29,29 @@ const Preview = memo(function Preview({ id }: { id: string }) {
 
 type CardProps = { a: AppMeta; live: boolean; selected: boolean; fav: boolean; onPick: () => void; onFav: () => void };
 
+/** The web app only: apps that can't run in a browser tab get a badge and the reason as a tooltip. */
+function useOffWeb(a: AppMeta): string | null {
+  const web = useStore((s) => s.meta?.platform === "web");
+  return web && a.supported === false ? a.schema.webReason ?? "Needs the desktop app." : null;
+}
+
+function OffWebBadge({ why }: { why: string }) {
+  return <span title={why} className="engrave shrink-0 rounded-full bg-warn/15 px-1.5 py-0.5 !text-[7.5px] !text-warn">Not on Browser</span>;
+}
+
 function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
+  const offWeb = useOffWeb(a);
   return (
     <div role="button" tabIndex={0} onClick={onPick} onDoubleClick={() => api.activate(a.id)}
       onKeyDown={(e) => { if (e.key === "Enter") api.activate(a.id); if (e.key === " ") { e.preventDefault(); onPick(); } }}
-      title={`${a.description}\n\nClick for settings · double-click to show`} aria-label={`${a.name}${live ? " (on the panel)" : ""}`}
-      className={clsx("group relative cursor-pointer rounded-[12px] border p-1.5 transition",
+      title={`${a.description}${offWeb ? `\n\nNot on Browser: ${offWeb}` : ""}\n\nClick for settings · double-click to show`} aria-label={`${a.name}${live ? " (on the panel)" : ""}`}
+      className={clsx("group relative cursor-pointer rounded-[12px] border p-1.5 transition", offWeb && !live && "opacity-60",
         live ? "border-[#7a2a12] bg-ember-deep/40 shadow-[0_0_24px_-10px_var(--color-ember)]"
           : selected ? "border-line-2 bg-chassis-3" : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2")}>
       <Preview id={a.id} />
       <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
         <span className="min-w-0 flex-1 truncate text-[12px] font-[560] tracking-[-0.01em]">{a.name}</span>
+        {offWeb && <OffWebBadge why={offWeb} />}
         <button onClick={(e) => { e.stopPropagation(); onFav(); }} title={fav ? "Remove from favourites" : "Add to favourites"} aria-label={fav ? `Unstar ${a.name}` : `Star ${a.name}`} aria-pressed={fav}
           className={clsx("shrink-0 rounded p-0.5 transition focus:opacity-100", fav ? "text-gold" : "text-ink-4 opacity-0 hover:text-ink-1 group-hover:opacity-100 [@media(hover:none)]:opacity-60")}>
           <Star size={12} fill={fav ? "currentColor" : "none"} />
@@ -51,7 +63,7 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
         </span>
       ) : (
         <button title="Show on the panel now" aria-label={`Show ${a.name} now`} onClick={(e) => { e.stopPropagation(); api.activate(a.id); }}
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-ink-1 opacity-0 backdrop-blur transition hover:bg-ember hover:text-black focus:opacity-100 group-hover:opacity-100 [@media(hover:none)]:hidden">
+          className="tile-play absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-ink-1 opacity-0 backdrop-blur transition hover:bg-ember hover:text-black focus:opacity-100 group-hover:opacity-100">
           <Icon name="play" size={12} fill="currentColor" />
         </button>
       )}
@@ -60,6 +72,7 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
 }
 
 function ListRow({ a, live, selected, fav, onPick, onFav }: CardProps) {
+  const offWeb = useOffWeb(a);
   return (
     <div role="button" tabIndex={0} onClick={onPick} onDoubleClick={() => api.activate(a.id)}
       onKeyDown={(e) => { if (e.key === "Enter") api.activate(a.id); if (e.key === " ") { e.preventDefault(); onPick(); } }}
@@ -72,6 +85,7 @@ function ListRow({ a, live, selected, fav, onPick, onFav }: CardProps) {
         <span className="flex items-center gap-1.5 truncate text-[13px] font-[560]">
           {a.name}
           {live && <span className="engrave !text-[7.5px] !text-ember">Live</span>}
+          {offWeb && <OffWebBadge why={offWeb} />}
         </span>
         <span className="block truncate text-[11px] text-ink-3">{a.description}</span>
       </span>
@@ -99,7 +113,10 @@ function Skeleton({ view, size }: { view: "grid" | "list"; size: number }) {
 }
 
 /** Every app, grouped by category, with live previews. Click = settings; ▶ / double-click = show on the panel. */
-export function Library({ fill = false }: { fill?: boolean }) {
+export function Library({ fill = false, flat = false }: {
+  fill?: boolean;
+  flat?: boolean; // phones: no card, no inner scroll — the tab scrolls, the search row sticks to its top
+}) {
   const meta = useStore((s) => s.meta);
   const apps = useStore((s) => s.meta?.apps ?? EMPTY_LIST) as AppMeta[];
   const current = useStore((s) => s.state?.engine.current?.app);
@@ -112,6 +129,14 @@ export function Library({ fill = false }: { fill?: boolean }) {
   const [q, setQ] = useState("");
   const scroller = useRef<HTMLDivElement>(null);
   const chipRow = useRef<HTMLDivElement>(null);
+  const head = useRef<HTMLDivElement>(null);
+  const [headH, setHeadH] = useState(0); // flat: section titles stick just under the sticky search row
+  useEffect(() => {
+    if (!flat || !head.current) return;
+    const ro = new ResizeObserver(() => setHeadH(head.current?.offsetHeight ?? 0));
+    ro.observe(head.current);
+    return () => ro.disconnect();
+  }, [flat]);
   // keep the selected category chip visible in its scrolling row
   useEffect(() => {
     const row = chipRow.current;
@@ -144,13 +169,14 @@ export function Library({ fill = false }: { fill?: boolean }) {
   const chips: [string, string][] = [["all", "All"], ["fav", "★ Favourites"], ...cats.map((c) => [c, CATEGORY_LABEL[c] ?? c] as [string, string])];
   const pickChip = (id: string) => {
     prefs({ category: id });
-    scroller.current?.scrollTo({ top: 0 });
+    if (flat) document.querySelector(".phone-scroll")?.scrollTo({ top: 0 });
+    else scroller.current?.scrollTo({ top: 0 });
   };
 
   return (
-    <aside className={clsx("surface flex min-h-0 flex-col overflow-hidden", fill ? "flex-1" : "h-full")} aria-label="App library">
-      <div className="space-y-2.5 border-b border-line p-3">
-        <div className="flex items-center gap-2">
+    <aside className={clsx("flex flex-col", flat ? "" : "surface min-h-0 overflow-hidden", !flat && (fill ? "flex-1" : "h-full"))} aria-label="App library">
+      <div ref={head} className={clsx("space-y-2.5", flat ? "lib-head" : "border-b border-line p-3")}>
+        <div className={clsx("flex items-center gap-2", flat && "hidden")}>
           <h2 className="font-display text-[15px] font-[640] tracking-[-0.01em]">Apps</h2>
           <span className="font-mono text-[10px] text-ink-4">{apps.length || ""}</span>
           <div className="seg ml-auto !p-[2px]" role="group" aria-label="Library view">
@@ -158,7 +184,8 @@ export function Library({ fill = false }: { fill?: boolean }) {
             <button data-active={view === "list"} title="Compact list" aria-label="List view" onClick={() => prefs({ libraryView: "list" })} className="!flex-none !px-2"><List size={13} /></button>
           </div>
         </div>
-        <label className="relative block">
+        <div className="flex items-center gap-2">
+        <label className="relative block min-w-0 flex-1">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${apps.length || ""} apps`} aria-label="Search apps"
             onKeyDown={(e) => e.key === "Escape" && setQ("")}
@@ -169,6 +196,13 @@ export function Library({ fill = false }: { fill?: boolean }) {
             </button>
           )}
         </label>
+        {flat && (
+          <div className="seg !p-[2px]" role="group" aria-label="Library view">
+            <button data-active={view === "grid"} aria-label="Grid view" onClick={() => prefs({ libraryView: "grid" })} className="!flex-none !px-2.5"><LayoutGrid size={15} /></button>
+            <button data-active={view === "list"} aria-label="List view" onClick={() => prefs({ libraryView: "list" })} className="!flex-none !px-2.5"><List size={15} /></button>
+          </div>
+        )}
+        </div>
         <div ref={chipRow} className="relative -mx-3 flex gap-1 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none]" role="tablist" aria-label="Categories">
           {chips.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={category === id} onClick={() => pickChip(id)}
@@ -180,7 +214,7 @@ export function Library({ fill = false }: { fill?: boolean }) {
         </div>
       </div>
 
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-3">
+      <div ref={scroller} className={flat ? "pb-2" : "min-h-0 flex-1 overflow-y-auto px-2.5 pb-3"}>
         {!meta ? (
           <div className="pt-3"><Skeleton view={view} size={cardSize} /></div>
         ) : total === 0 ? (
@@ -204,13 +238,14 @@ export function Library({ fill = false }: { fill?: boolean }) {
         ) : (
           sections.map((s) => (
             <section key={s.id} aria-label={s.label}>
-              <h3 className="sticky top-0 z-[2] -mx-2.5 flex items-center gap-2 bg-chassis-1/92 px-3.5 pb-2 pt-3 backdrop-blur-sm">
+              <h3 className={clsx("sticky z-[2] flex items-center gap-2 pb-2 pt-3 backdrop-blur-sm", flat ? "lib-sec -mx-3 bg-chassis-0/90 px-4" : "top-0 -mx-2.5 bg-chassis-1/92 px-3.5")}
+                style={flat ? { top: headH } : undefined}>
                 {s.id === "fav" && <Star size={11} className="text-gold" fill="currentColor" />}
                 <span className="engrave !text-ink-2">{s.label}</span>
                 <span className="font-mono text-[9px] text-ink-4">{s.apps.length}</span>
               </h3>
               {view === "grid" ? (
-                <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${cardSize}px, 1fr))` }}>
+                <div className={clsx("grid", flat ? "lib-grid-phone" : "gap-2.5")} style={flat ? undefined : { gridTemplateColumns: `repeat(auto-fill, minmax(${cardSize}px, 1fr))` }}>
                   {s.apps.map((a) => (
                     <GridCard key={a.id} a={a} live={a.id === current} selected={selected === a.id} fav={favorites.includes(a.id)}
                       onPick={() => inspect(a.id)} onFav={() => toggleFav(a.id)} />

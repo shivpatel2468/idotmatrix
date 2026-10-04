@@ -17,7 +17,7 @@ from ..casino.games.holdem import HAND_LABEL, Holdem
 from ..engine import register
 from ..gfx import Frame, measure, mix, scale
 from . import _cardart as cards
-from ._casino import GOLD, GOLD_DIM, MUTE, WHITE, _rgb
+from ._casino import MUTE, WHITE, _rgb
 from ._pvpapp import (
     PvPCasinoApp,
     PvPSettings,
@@ -125,7 +125,7 @@ class CasinoHoldem(PvPCasinoApp):
             return
         seats = t["seats"]
         dealing = snap["phase"] == "dealing" and not t.get("board")
-        pot_row(f, 1, t["pot"], len(t.get("pots") or []))
+        pot_row(f, 1, t["pot"], len(t.get("pots") or []), th=self.th)
         if dealing:
             self.draw_deal(f, snap)
             return
@@ -203,16 +203,16 @@ class CasinoHoldem(PvPCasinoApp):
         w = ws[0]
         best = set(w.get("best") or [])
         label = HAND_LABEL.get(w.get("hand") or "", "") if w.get("hand") else "WINS"
-        hand_text(f, 1, label, GOLD)
+        hand_text(f, 1, label, self.th.accent)
         draw_board(f, board, None, hi=best, dim_rest=bool(best))
         c = seat_colour(snap, w["seat"])
         name_tab(f, 21, w["name"], c)
         won = w.get("won", w.get("amount", 0))
         txt = f"+{num(won)}" if len(ws) == 1 else f"SPLIT {len(ws)}"
         pulse = 0.6 + 0.4 * math.sin(now * 6)
-        f.text_center(27, txt, mix(GOLD_DIM, GOLD, pulse))
+        f.text_center(27, txt, mix(self.th.accent_dim, self.th.accent, pulse))
         if snap["phase"] == "result":
-            winner_flash(f, snap, now)
+            winner_flash(f, snap, now, self.th)
 
     def draw_winner(self, f: Frame, snap: dict[str, Any], now: float) -> None:
         """After the showdown: each winner in turn with their two hole cards, hand name and winnings."""
@@ -230,13 +230,13 @@ class CasinoHoldem(PvPCasinoApp):
             best = set(w.get("best") or [])
             cards.card(f, 8, 8, shown[0], hi=shown[0] in best)
             cards.card(f, 17, 8, shown[1], hi=shown[1] in best)
-            hand_text(f, 20, HAND_LABEL.get(w.get("hand") or "", ""), GOLD, small=False)
+            hand_text(f, 20, HAND_LABEL.get(w.get("hand") or "", ""), self.th.accent, small=False)
         else:
             f.text_center(11, "TAKES", MUTE)
             f.text_center(17, "THE POT", MUTE)
         won = w.get("won", 0)
-        f.text_center(26, f"+{num(won)}", GOLD)
-        winner_flash(f, snap, now)
+        f.text_center(26, f"+{num(won)}", self.th.accent)
+        winner_flash(f, snap, now, self.th)
 
     def tile(self, summary: dict[str, Any]) -> tuple[str, tuple[int, int, int]]:
         return str(summary.get("label", "?")), (120, 90, 14)

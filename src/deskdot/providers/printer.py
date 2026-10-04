@@ -125,6 +125,7 @@ class PrinterProvider(EventLog, Provider[dict[str, Any]]):
     """
 
     name = "printer"
+    feature = "lan"  # plain http / ws on the LAN: not from an https page (platforms.FEATURES)
     interval = 10.0
     idle_interval = 30.0
     retry = 30.0

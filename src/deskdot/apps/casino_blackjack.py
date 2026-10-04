@@ -22,7 +22,6 @@ from ..engine import Choice, register
 from ..gfx import Frame, fit, measure, mix, scale
 from . import _cardart as art
 from ._casino import (
-    GOLD,
     INK,
     RED,
     WHITE,
@@ -271,13 +270,13 @@ class CasinoBlackjack(CasinoApp):
         if v.phase in ("idle", "betting"):
             self.draw_betting(f, v, now)
         elif v.phase == "locked" or snap is None:
-            draw_no_more_bets(f, v.since)
+            draw_no_more_bets(f, v.since, self.th)
         elif v.phase == "result" and v.since >= self.table_seconds:
             self.draw_board(f, v, now, snap)
         else:
             self.draw_hand(f, v, snap, left, now)
         if v.paused:
-            draw_paused(f)
+            draw_paused(f, self.th)
 
     def focus(self, snap: dict[str, Any], now: float) -> int:
         seats = snap["seats"]
@@ -316,9 +315,9 @@ class CasinoBlackjack(CasinoApp):
             f.rect(1, 12, 30, 1, scale(col, 0.25))
             f.rect(1, 12, w, 1, RED if left < 0.25 and int(now * 4) % 2 == 0 else col)
         elif snap["stage"] == "insurance":
-            f.rect(1, 12, 30, 1, scale(GOLD, 0.35))
+            f.rect(1, 12, 30, 1, scale(self.th.accent, 0.35))
             if left is not None:
-                f.rect(1, 12, max(0, min(30, round(30 * left))), 1, GOLD)
+                f.rect(1, 12, max(0, min(30, round(30 * left))), 1, self.th.accent)
         else:
             f.rect(1, 12, 30, 1, DIMLINE)
         hands = seat["hands"]
@@ -365,7 +364,7 @@ class CasinoBlackjack(CasinoApp):
             c = _rgb(s["color"])
             f.rect(x0 + 3 * k, 31, 2, 1, c if k == i else scale(c, 0.35))
         if v.phase == "result" and v.winners:
-            win_flash(f, now, v.winners)
+            win_flash(f, now, v.winners, self.th)
 
     def flash(self, f: Frame, word: str, col: tuple[int, int, int], now: float) -> None:
         """A word stamped across the hand: a dark band with the word in small type."""
@@ -389,8 +388,8 @@ class CasinoBlackjack(CasinoApp):
             f.text_center(12, word, col, font="small")
         n = len(v.winners)
         if n:
-            f.text_center(19, "WIN" if n == 1 else f"{n} WIN", GOLD)
-            win_flash(f, now, v.winners)
+            f.text_center(19, "WIN" if n == 1 else f"{n} WIN", self.th.accent)
+            win_flash(f, now, v.winners, self.th)
         else:
             f.text_center(19, "HOUSE", (140, 140, 160))
         self.history_strip(f, 25, v.history)

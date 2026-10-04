@@ -48,7 +48,9 @@ class Visualizer(App):
     Settings = VisualizerSettings
     fps = 12.0
     uses = ("audio",)
-    platforms = DESKTOP  # sound capture (soundcard); the Android app can't capture other apps' audio
+    # sound capture (soundcard); in the web app the page's mic / shared-tab sound (providers/webmedia.py); the
+    # Android app can't capture other apps' audio
+    platforms = (*DESKTOP, "web")
 
     def __init__(self, *a: Any, **kw: Any) -> None:
         super().__init__(*a, **kw)
@@ -201,7 +203,8 @@ class Mirror(App):
     Settings = MirrorSettings
     fps = 10.0
     uses = ("screen",)
-    platforms = DESKTOP  # Linux: X11 (or GNOME's screenshot tool on Wayland); not on a phone
+    # Linux: X11 (or GNOME's screenshot tool on Wayland); the web app: getDisplayMedia; not in the Android app
+    platforms = (*DESKTOP, "web")
 
     def on_start(self) -> None:
         s = self.settings
@@ -271,7 +274,8 @@ class Camera(App):
     Settings = CameraSettings
     fps = 10.0
     uses = ("camera",)
-    platforms = DESKTOP  # OpenCV (DirectShow / AVFoundation / V4L2); not packaged in the Android app
+    # OpenCV (DirectShow / AVFoundation / V4L2); the web app: getUserMedia; not packaged in the Android app
+    platforms = (*DESKTOP, "web")
 
     def on_start(self) -> None:
         s = self.settings

@@ -6,7 +6,7 @@ import { appMeta, toast, useStore } from "../../lib/store";
 import type { JsonSchemaProp } from "../../lib/types";
 import { Slider, Toggle } from "../controls";
 import { NumberInput, Section, Tabs } from "./bits";
-import { type House, casinoApps, casinoOp, fmt, useCasino } from "./state";
+import { type Guide, type House, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
 const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true };
@@ -77,7 +77,7 @@ const PRESETS: Preset[] = [
 
 function ruleFields(app: string | null): [string, JsonSchemaProp][] {
   const props = appMeta(app)?.schema?.properties ?? {};
-  return Object.entries(props).filter(([k, p]) => k !== "view" && p.group !== "Preview");
+  return Object.entries(props).filter(([k, p]) => k !== "view" && k !== "table_theme" && p.group !== "Preview" && p.group !== "Look");
 }
 
 /** Does `p` accept `v`? (enum member, boolean, number in bounds) */
@@ -111,7 +111,7 @@ function Presets({ app, house }: { app: string | null; house: House }) {
             <span>{p.blurb}</span>
             <em>{fmt(p.house.base_credits)} credits · {fmt(p.house.min_bet)}–{fmt(p.house.max_bet)} · {p.house.bet_seconds}s</em>
           </span>
-          {active === p.id && <Check size={15} className="shrink-0 text-[#ffcc33]" />}
+          {active === p.id && <Check size={15} className="shrink-0 text-[var(--gold)]" />}
         </button>
       ))}
     </div>
@@ -164,7 +164,7 @@ function HouseForm({ house }: { house: House }) {
       <div className="mt-2 rounded-[10px] border border-white/[0.06] bg-black/20 p-2.5">
         {confirm ? (
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-ink-2">
-            <span className="min-w-0 flex-1">Everyone back to <b className="text-[#ffcc33]">{fmt(house.base_credits)}</b>, stats and history cleared?</span>
+            <span className="min-w-0 flex-1">Everyone back to <b className="text-[var(--gold)]">{fmt(house.base_credits)}</b>, stats and history cleared?</span>
             <button className="key !h-8 !border-[#ff3f78]/60 !text-[#ff8aa8]" onClick={() => { setConfirm(false); casinoOp("reset_session").then(() => toast("New session: wallets reset", "ok")).catch(() => undefined); }}>Reset</button>
             <button className="key !h-8" onClick={() => setConfirm(false)}>Keep</button>
           </div>
@@ -174,6 +174,78 @@ function HouseForm({ house }: { house: House }) {
           </button>
         )}
       </div>
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ table theme
+/** The table's look (the `table_theme` setting): the panel chrome, every phone and this studio follow it. */
+function ThemePicker({ app }: { app: string | null }) {
+  const themes = useCasino((s) => s.themes);
+  const live = useCasino((s) => s.status?.table_theme?.id) ?? "classic";
+  const stored = useStore((s) => (app ? (s.state?.apps?.[app]?.table_theme as string | undefined) : undefined));
+  const cur = stored ?? live;
+  const [all, setAll] = useState(false);
+  if (!themes.length) return <p className="cz-empty">The themes appear once the table is live.</p>;
+  const pick = async (id: string) => {
+    try {
+      if (all) await Promise.all(casinoApps().map((g) => api.patchSettings(g.id, { table_theme: id })));
+      else if (app) await api.patchSettings(app, { table_theme: id });
+    } catch {
+      /* toasted */
+    }
+  };
+  return (
+    <>
+      <div className="cz-themes" role="radiogroup" aria-label="Table theme">
+        {themes.map((t) => (
+          <button key={t.id} role="radio" aria-checked={t.id === cur} className="cz-theme" data-on={t.id === cur || undefined} onClick={() => pick(t.id)}
+            style={{ ["--sw-felt" as string]: t.css.felt, ["--sw-felt3" as string]: t.css.felt3, ["--sw-acc" as string]: t.css.accent }}>
+            <i aria-hidden />
+            <b>{t.name}</b>
+          </button>
+        ))}
+      </div>
+      <div className="cz-row !border-0">
+        <div className="min-w-[130px] flex-1">
+          <div className="cz-row-label">Every table</div>
+          <div className="cz-row-hint">Apply the pick to all casino games, not just this one.</div>
+        </div>
+        <Toggle on={all} onChange={setAll} label="Apply the theme to every table" />
+      </div>
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ how to play + rulebook
+/** `**bold**` → <b> (the rulebook's only markup; casino/rulebook.py). */
+function Md({ text }: { text: string }) {
+  return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part))}</>;
+}
+
+function GuideView({ guide }: { guide: Guide | null }) {
+  const [part, setPart] = useState<"how" | "rules">("how");
+  if (!guide) return <p className="cz-empty">The rulebook appears once the table is live.</p>;
+  return (
+    <>
+      <div className="seg mb-2.5 w-full">
+        <button className="flex-1" data-active={part === "how"} onClick={() => setPart("how")}>How to play</button>
+        <button className="flex-1" data-active={part === "rules"} onClick={() => setPart("rules")}>Rulebook</button>
+      </div>
+      <p className="cz-guide-tag"><Md text={guide.tagline} /></p>
+      {part === "how" ? (
+        <ol className="cz-steps">{guide.how.map((s, i) => <li key={i}><Md text={s} /></li>)}</ol>
+      ) : (
+        <div className="cz-rules">
+          {guide.rules.map((r) => (
+            <div key={r.h}>
+              <h4>{r.h}</h4>
+              <ul>{r.items.map((it, i) => <li key={i}><Md text={it} /></li>)}</ul>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="cz-foot">The same text every phone shows (the ? button). Payouts and house edges for this table's live rules are under Odds.</p>
     </>
   );
 }
@@ -274,7 +346,7 @@ function Odds() {
     <>
       {rtpPct != null && (
         <div className="cz-rtp">
-          <span className="engrave !text-[#ffcc33]/80">Return to player</span>
+          <span className="engrave !text-[var(--gold)]/80">Return to player</span>
           <b>{rtpPct.toFixed(2)} %</b>
           <span>Computed from this machine's reel strips and pay table.</span>
         </div>
@@ -329,7 +401,7 @@ function GamePicker({ app }: { app: string | null }) {
           </button>
         ))}
       </div>
-      <p className="cz-foot"><Gem size={11} className="mr-1 inline text-[#ffcc33]" />Switching tables keeps every wallet{lobby ? " and every phone in its seat" : ""}. Open bets are refunded; a spinning round is paid first.</p>
+      <p className="cz-foot"><Gem size={11} className="mr-1 inline text-[var(--gold)]" />Switching tables keeps every wallet{lobby ? " and every phone in its seat" : ""}. Open bets are refunded; a spinning round is paid first.</p>
     </>
   );
 }
@@ -340,19 +412,22 @@ export function LeftWing() {
   const tab = useCasino((s) => s.leftTab);
   const set = useCasino((s) => s.set);
   const house = useCasino((s) => s.status?.house) ?? HOUSE_DEFAULT;
+  const guide = useCasino((s) => s.guide);
   const name = appMeta(app)?.name ?? "this game";
   return (
     <div className="cz-wing-body">
       <Tabs label="Casino settings" value={tab} onChange={(t) => set({ leftTab: t })}
-        options={[["tables", "Tables"], ["house", "House"], ["rules", "Rules"], ["odds", "Odds"]]} />
+        options={[["tables", "Tables"], ["house", "House"], ["rules", "Rules"], ["odds", "Odds"], ["guide", "Guide"]]} />
       <div className="cz-scroll">
         {tab === "tables" && <Section title="Casino games" hint="Pick the table on the panel."><GamePicker app={app} /></Section>}
         {tab === "house" && (
           <>
             <Section title="Presets" hint="Set the house and the table rules in one tap."><Presets app={app} house={house} /></Section>
             <Section title="House" hint="Shared by every casino game."><HouseForm house={house} /></Section>
+            <Section title="Table theme" hint="The felt and accent on the panel, every phone and this studio."><ThemePicker app={app} /></Section>
           </>
         )}
+        {tab === "guide" && <Section title={guide?.title ?? name} hint="How to play and the rulebook, as the phones show it."><GuideView key={app ?? ""} guide={guide} /></Section>}
         {tab === "rules" && <Section title={`${name} rules`} hint="Standard rulebook options for this table."><RulesForm app={app} /></Section>}
         {tab === "odds" && <Section title="House edge" hint={`What each ${name} bet costs on average.`}><Odds /></Section>}
       </div>

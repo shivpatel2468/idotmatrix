@@ -15,8 +15,9 @@ from pydantic import Field
 from ..engine.app import App, AppSettings, Choice, register
 from ..gfx import PALETTE, Frame, draw_marquee, measure, mix, scale
 from ..gfx.color import RGB
+from ..platforms import FEATURES
 from ..providers.radiator import panel_text
-from ._kit import loading
+from ._kit import loading, unsupported
 from ._radiator import WHITE, fmt_clock, glyph, offline_screen, provider, setup_screen
 
 LIVE: RGB = PALETTE["red"]
@@ -83,6 +84,11 @@ class OBS(App):
     Settings = OBSSettings
     fps = 8.0  # marquees move 1 px per frame; static screens are deduped, so rest costs nothing
     uses = ("obs",)
+    platforms = FEATURES["lan"]  # obs-websocket is a plain ws:// socket on your computer / LAN
+    web_reason = (
+        "OBS talks over a plain ws:// WebSocket on your computer, which an https page may not open; "
+        "use the desktop, Raspberry Pi or Android app."
+    )
 
     def __init__(self, ctx: Any, settings: AppSettings) -> None:
         super().__init__(ctx, settings)
@@ -115,6 +121,9 @@ class OBS(App):
 
     # ------------------------------------------------------------ render
     def render(self, f: Frame, t: float) -> None:
+        if not self.supported_here():
+            unsupported(f, "OBS")
+            return
         _p, v = self._value()
         if not self.settings.host.strip():
             setup_screen(f, t, "obs", "OBS", "SET HOST", IDLE)

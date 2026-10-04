@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { create } from "zustand";
 import { api } from "../../lib/api";
 import { appMeta, useStore } from "../../lib/store";
@@ -33,9 +33,14 @@ export type CasinoStatus = {
   bettors?: (number | string)[]; done?: (number | string)[];
   paused?: boolean; house?: House; players?: PlayerRow[]; history?: HistoryEntry[];
   edges?: Record<string, number>; rtp?: number; lobby?: boolean; max_players?: number;
+  table_theme?: TableTheme;
   result?: { round: number; outcome: Record<string, unknown>; label?: string; tone?: string; winners?: { seat: number | string | null; name: string; net: number }[] };
   [k: string]: unknown;
 };
+/** A table theme (apps/_casino.py TABLE_THEMES): CSS colours for the felt, the accent and the wings. */
+export type TableTheme = { id: string; name: string; css: Record<string, string> };
+/** "How to play" + rulebook for one game (casino/rulebook.py); `**bold**` is the only markup. */
+export type Guide = { id: string; title: string; tagline: string; how: string[]; rules: { h: string; items: string[] }[] };
 export type Spot = { id: string; label: string; kind: string; pays: string; numbers: number[] };
 export type Avatar = { name: string; px: string[] };
 export type HostPrivate = {
@@ -66,7 +71,9 @@ type CasinoStore = {
   wingL: number;
   wingR: number;
   tab: "table" | "house" | "players"; // phones / tablets
-  leftTab: "tables" | "house" | "rules" | "odds";
+  leftTab: "tables" | "house" | "rules" | "odds" | "guide";
+  guide: Guide | null; // how to play + rulebook for this table (host view, with the spots)
+  themes: TableTheme[]; // every table theme (host view, with the spots): the studio's swatches
   rightTab: "seats" | "ranking" | "rounds" | "play";
   set: (p: Partial<CasinoStore>) => void;
 };
@@ -83,7 +90,7 @@ function loadWings(): { wingL: number; wingR: number } {
 
 export const useCasino = create<CasinoStore>((set) => ({
   status: null, at: 0, app: null, me: { seated: false }, players: null, spots: [], spotsKey: "", avatars: {},
-  verify: {}, dismissedFor: null, entered: 0, ...loadWings(), tab: "table", leftTab: "tables", rightTab: "seats",
+  guide: null, themes: [], verify: {}, dismissedFor: null, entered: 0, ...loadWings(), tab: "table", leftTab: "tables", rightTab: "seats",
   set: (p) => set(p),
 }));
 
@@ -125,7 +132,7 @@ export function enterCasino() {
 export const casinoApps = () => (useStore.getState().meta?.apps ?? []).filter((a) => a.category === "casino");
 
 // ------------------------------------------------------------------ ops
-type ViewReply = { status: CasinoStatus; private: HostPrivate; players: PlayerRow[]; spots?: Spot[]; avatars?: Record<string, Avatar> };
+type ViewReply = { status: CasinoStatus; private: HostPrivate; players: PlayerRow[]; spots?: Spot[]; avatars?: Record<string, Avatar>; guide?: Guide | null; themes?: TableTheme[] };
 
 /** A host op (start_round, lock, settings, credits, kick, pause, reset_session, verify) or a play op as the host. */
 export async function casinoOp<T = Record<string, unknown>>(op: string, payload: Record<string, unknown> = {}, app?: string): Promise<T> {
@@ -158,6 +165,8 @@ export async function refreshView(): Promise<void> {
       patch.spotsKey = `${app}|${JSON.stringify(v.status?.rules ?? null)}`;
     }
     if (v.avatars) patch.avatars = v.avatars;
+    if (v.guide !== undefined) patch.guide = v.guide;
+    if (v.themes) patch.themes = v.themes;
     useCasino.setState(patch);
   } finally {
     inflight = false;
@@ -168,7 +177,7 @@ export async function refreshView(): Promise<void> {
 export function useCasinoFeed(app: string | null) {
   useEffect(() => {
     if (!app) return;
-    useCasino.setState({ app, spots: [], spotsKey: "", me: { seated: false }, players: null, status: null });
+    useCasino.setState({ app, spots: [], spotsKey: "", me: { seated: false }, players: null, status: null, guide: null });
     const off = useStore.subscribe((s, prev) => {
       if (s.state === prev.state) return;
       const cur = s.state?.engine.current;
@@ -248,3 +257,16 @@ export const PHASE: Record<string, { label: string; hint: string; tone: "gold" |
 };
 
 export const seatLabel = (s: PlayerRow["seat"]) => (s === "host" ? "Host" : s ? `Seat ${s}` : "Away");
+
+// ------------------------------------------------------------------ table theme
+/** CSS variables for `.cz` from the status's table theme (nothing for classic: the stylesheet is the classic look). */
+export function themeVars(t: TableTheme | null | undefined): CSSProperties | undefined {
+  if (!t || t.id === "classic" || !t.css) return undefined;
+  const c = t.css;
+  const v: Record<string, string | undefined> = {
+    "--felt": c.felt, "--felt-2": c.felt2, "--felt-deep": c.felt3, "--felt-hi": c.felt,
+    "--gold": c.accent, "--gold-2": c.accent_hi, "--gold-lo": c.accent_lo, "--gold-deep": c.accent_deep,
+    "--gold-rgb": c.accent_rgb, "--gold-ink": c.ink, "--cz-wing": c.wing, "--cz-wing-2": c.wing2, "--cz-wing-3": c.wing3,
+  };
+  return Object.fromEntries(Object.entries(v).filter(([, x]) => !!x)) as CSSProperties;
+}

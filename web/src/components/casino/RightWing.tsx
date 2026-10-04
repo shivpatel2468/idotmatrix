@@ -32,7 +32,7 @@ function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: 
         <span className="min-w-0 flex-1 text-left">
           <span className="flex items-center gap-1.5">
             <b className="truncate">{p.name || "Player"}</b>
-            {p.seat === "host" && <Crown size={11} className="shrink-0 text-[#ffcc33]" />}
+            {p.seat === "host" && <Crown size={11} className="shrink-0 text-[var(--gold)]" />}
           </span>
           <span className="cz-seat-sub">
             <span className="led !h-[6px] !w-[6px]" data-on={p.kicked ? "bad" : p.online ? "ok" : undefined} />
@@ -82,7 +82,7 @@ function Everyone({ base }: { base: number }) {
   const [amt, setAmt] = useState(500);
   return (
     <div className="cz-everyone">
-      <Users size={13} className="shrink-0 text-[#ffcc33]" />
+      <Users size={13} className="shrink-0 text-[var(--gold)]" />
       <span className="text-[11.5px] text-ink-2">Everyone</span>
       <NumberInput value={amt} min={0} max={1_000_000} width={74} onCommit={setAmt} label="Amount for everyone" />
       <button className="cz-pill" onClick={() => casinoOp("credits", { all: true, add: amt }).then(() => toast(`+${fmt(amt)} for everyone`, "ok")).catch(() => undefined)}>Add</button>
@@ -343,7 +343,7 @@ function Play() {
 
   return (
     <Section title="Play from this laptop" hint="You sit in the host seat with your own wallet — the same bets the phones place."
-      right={<span className="text-right"><span className="engrave block !text-[8px]">Your credits</span><Credits value={credits} className="font-display text-[18px] font-[700] text-[#ffcc33]" /></span>}>
+      right={<span className="text-right"><span className="engrave block !text-[8px]">Your credits</span><Credits value={credits} className="font-display text-[18px] font-[700] text-[var(--gold)]" /></span>}>
       {me.result && st?.phase === "result" && (
         <div className={clsx("cz-myresult", me.result.net > 0 ? "cz-win" : me.result.net < 0 && "cz-lose")}>
           {me.result.net > 0 ? `You won ${fmt(me.result.net)}` : me.result.net < 0 ? `You lost ${fmt(-me.result.net)}` : "Push — stake returned"}
@@ -369,7 +369,7 @@ function Play() {
       </div>
       {gameOps.length > 0 && (
         <div className="cz-actions">
-          <Hand size={14} className="text-[#ffcc33]" />
+          <Hand size={14} className="text-[var(--gold)]" />
           {gameOps.map((o) => (
             <button key={o} className="cz-gold !h-8" onClick={() => op(o, o === "raise" || o === "bet_more" ? { amount } : {})}>{o.replace(/_/g, " ")}{o === "raise" ? ` ${short(amount)}` : ""}</button>
           ))}
