@@ -136,3 +136,24 @@ def test_hello_rulebook() -> None:
 def test_rules_doc_is_generated_from_the_rulebook() -> None:
     doc = (ROOT / "docs" / "CASINO_RULES.md").read_text(encoding="utf-8")
     assert doc == markdown(), "run: uv run python -m deskdot.casino.rulebook > docs/CASINO_RULES.md"
+
+
+# ------------------------------------------------------------------ library previews play a round
+async def test_casino_previews_play_a_demo_round(engine) -> None:  # type: ignore[no-untyped-def]
+    from io import BytesIO
+
+    from PIL import Image
+
+    from deskdot.engine.app import REGISTRY
+    from deskdot.previews import Previews
+
+    casino = [i for i, c in REGISTRY.items() if getattr(c, "category", "") == "casino"]
+    assert casino
+    for app_id in casino:
+        gif = Image.open(BytesIO(Previews(engine)._render(app_id)))
+        assert gif.n_frames > 12, f"{app_id}: the preview should show a whole round, not a still"
+        frames = set()
+        for i in range(0, gif.n_frames, 6):
+            gif.seek(i)
+            frames.add(gif.convert("RGB").tobytes())
+        assert len(frames) > 3, f"{app_id}: the preview doesn't move"

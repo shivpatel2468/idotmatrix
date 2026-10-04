@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Casino previews (studio library and idotmatrix.com) play a whole demo round — chips, no more bets, the spin /
+  deal, the result — instead of a still betting board (`App.preview_patch` / `preview_span`).
 - 🧭 **Web app: every app audited for the browser** (docs/WEB_APP.md "App support in the browser"). Fixed glitches:
   ntfy pushes never arrived in a tab (it now polls every 10 s, token as `?auth=`), Uptime marked CORS-less sites
   and TCP targets DOWN (opaque reachability probe; TCP shows "NO TCP IN BROWSER"), Met / Cleveland artwork and

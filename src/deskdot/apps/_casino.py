@@ -370,6 +370,15 @@ class CasinoApp(App):
     controls: ClassVar[tuple[str, ...]] = ("casino",)
     #: the result phase first shows the table (wheel / dice) for this long, then the results board
     table_seconds: ClassVar[float] = 3.4
+    #: previews play the self-running demo: the last chips, no more bets, the spin / deal and the result
+    preview_patch: ClassVar[dict[str, Any]] = {"view": "demo"}
+
+    def __init_subclass__(cls, **kw: Any) -> None:
+        super().__init_subclass__(**kw)
+        game = cls.__dict__.get("Game")
+        if game is not None and "preview_span" not in cls.__dict__:
+            # demo_view(): 6 s of betting, LOCK_SECONDS + spin_seconds of spin / deal, 7 s of result
+            cls.preview_span = (4.0, 2.0 + LOCK_SECONDS + game.spin_seconds + 5.5, 6.0)
 
     def __init__(self, ctx: Any, settings: AppSettings) -> None:
         super().__init__(ctx, settings)

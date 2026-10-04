@@ -57,7 +57,7 @@ class Previews:
         cls = REGISTRY[app_id]
         ctx = PreviewContext(self.engine, app_id)
         try:
-            settings = cls.Settings.model_validate(self.engine.base_settings(app_id))
+            settings = cls.Settings.model_validate({**self.engine.base_settings(app_id), **cls.preview_patch})
         except Exception:
             settings = cls.Settings()
         app = cls(ctx, settings)  # type: ignore[arg-type]
@@ -69,10 +69,14 @@ class Previews:
             picked = clip.frames[::step][:frames]
             ms = max(60, round(sum(clip.durations_ms[: step * len(picked)]) / max(1, len(picked))))
             return encode_gif([self.engine._panel(f) for f in picked], [ms] * len(picked), max_colors=128)
+        t0 = 0.4
+        if cls.preview_span:  # the app picks the stretch worth showing (e.g. a casino round)
+            t0, secs, fps = cls.preview_span
+            frames = max(1, round(secs * fps))
         for i in range(frames):
             f = Frame()
             try:
-                app.render(f, 0.4 + i / fps)
+                app.render(f, t0 + i / fps)
             except Exception:
                 f.text_center(13, "?", (255, 30, 60), font="small")
             frames_out.append(self.engine._panel(f))  # show what the LEDs would show

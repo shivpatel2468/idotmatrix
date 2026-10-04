@@ -151,6 +151,10 @@ class App:
     #: why the app can't work in a browser tab (required when `platforms` leaves out "web"); the web app's studio
     #: shows it in the "not here" banner and the library tooltip (docs/WEB_APP.md)
     web_reason: ClassVar[str] = ""
+    #: library / website previews: settings patched in for the preview only (e.g. a self-playing demo view)
+    preview_patch: ClassVar[dict[str, Any]] = {}
+    #: library / website previews: (first render time s, seconds to show, frames per second); None = the default
+    preview_span: ClassVar[tuple[float, float, float] | None] = None
 
     def __init__(self, ctx: AppContext, settings: AppSettings) -> None:
         self.ctx = ctx

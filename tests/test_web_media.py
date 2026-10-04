@@ -263,7 +263,9 @@ async def test_pet_asks_for_sound_only_when_dancing(engine, monkeypatch: pytest.
 
     audio = Held()
     monkeypatch.setitem(engine.hub.providers, "audio", audio)
-    monkeypatch.setattr("deskdot.apps.pets.current_platform", lambda: "web")  # desktop pets hold audio throughout
+    monkeypatch.setattr(
+        "deskdot.apps.pets.current_platform", lambda: "web"
+    )  # desktop pets hold audio throughout
     slot = engine._slot("pet")
     engine._show(slot)
     try:

@@ -326,6 +326,44 @@
      "group": "Preview"
     },
     {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
+    },
+    {
      "key": "seven_pays",
      "title": "Lucky 7 pays (to 1)",
      "type": "integer",
@@ -407,6 +445,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     },
     {
      "key": "first",
@@ -505,6 +581,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     },
     {
      "key": "commission",
@@ -614,6 +728,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     }
    ],
    "game": {
@@ -688,6 +840,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     },
     {
      "key": "decks",
@@ -873,6 +1063,44 @@
      "group": "Preview"
     },
     {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
+    },
+    {
      "key": "wheel",
      "title": "Wheel",
      "type": "choice",
@@ -969,6 +1197,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     },
     {
      "key": "theme",
@@ -1152,6 +1418,44 @@
      "group": "Preview"
     },
     {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
+    },
+    {
      "key": "boot",
      "title": "Boot (ante)",
      "type": "integer",
@@ -1264,6 +1568,44 @@
       }
      ],
      "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
     },
     {
      "key": "small_blind",

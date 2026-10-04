@@ -70,49 +70,49 @@
   "bytes": 224
  },
  "casino_andarbahar": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 224
+  "frames": 102,
+  "ms": 18670,
+  "bytes": 14571
  },
  "casino_baccarat": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 222
+  "frames": 58,
+  "ms": 14480,
+  "bytes": 10062
  },
  "casino_bigsix": {
-  "frames": 3,
-  "ms": 4000,
-  "bytes": 383
+  "frames": 85,
+  "ms": 14950,
+  "bytes": 31653
  },
  "casino_blackjack": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 225
+  "frames": 29,
+  "ms": 11350,
+  "bytes": 3664
  },
  "casino_holdem": {
-  "frames": 2,
-  "ms": 3990,
-  "bytes": 358
+  "frames": 24,
+  "ms": 8390,
+  "bytes": 3058
  },
  "casino_roulette": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 226
+  "frames": 90,
+  "ms": 15410,
+  "bytes": 27693
  },
  "casino_sevens": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 225
+  "frames": 61,
+  "ms": 10770,
+  "bytes": 12126
  },
  "casino_slots": {
-  "frames": 1,
-  "ms": 4000,
-  "bytes": 415
+  "frames": 67,
+  "ms": 10720,
+  "bytes": 20495
  },
  "casino_teenpatti": {
-  "frames": 2,
-  "ms": 3990,
-  "bytes": 363
+  "frames": 40,
+  "ms": 8240,
+  "bytes": 4744
  },
  "chess": {
   "frames": 70,

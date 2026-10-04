@@ -296,6 +296,9 @@ def _frames_for(engine: Any, app: Any) -> tuple[list[Any], list[int]]:
     )
     if not game and float(getattr(app, "fps", 1.0)) < 2:
         fps = 4.0  # slow apps (clocks, dashboards): fewer, longer frames
+    t0 = 0.4
+    if app.preview_span:  # the app picks the stretch worth showing (e.g. a casino round)
+        t0, seconds, fps = app.preview_span
     n = round(seconds * fps)
     # Apps that animate from the wall clock (games step their simulation from time.monotonic) get a simulated
     # clock that advances exactly one frame per render, so a 6 s preview takes milliseconds, not 6 s.
@@ -312,7 +315,7 @@ def _frames_for(engine: Any, app: Any) -> tuple[list[Any], list[int]]:
             sim[0] = start + i / fps
             f = Frame()
             try:
-                app.render(f, 0.4 + i / fps)
+                app.render(f, t0 + i / fps)
             except Exception as e:
                 log.warning("%s: render failed at frame %d: %s", app.id, i, e)
                 f.text_center(13, "?", (255, 30, 60), font="small")
@@ -366,6 +369,9 @@ async def render_all(only: list[str], network: bool, wait_s: float) -> dict[str,
         store.data["location"] = dict(DEMO_LOCATION)
         for app_id, patch in PREVIEW_SETTINGS.items():
             store.section("apps")[app_id] = dict(patch)
+        for app_id, cls in REGISTRY.items():  # e.g. casino tables play their demo round
+            if cls.preview_patch:
+                store.section("apps")[app_id] = {**cls.preview_patch, **store.section("apps").get(app_id, {})}
         hub = build_hub(store, lambda _n: None)
         engine = Engine(cfg, store, SimDevice(bytes_per_second=1e7, min_frame_interval=0.0), hub)
         _lock_private(hub)
