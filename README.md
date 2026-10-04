@@ -63,7 +63,16 @@ that anyone, including an AI agent, can make a new app in one Python file.
 *   **🎮 25 games, 21 with real multiplayer:** 2–4 players on the same Wi-Fi.
     *   Friends scan a QR code on the panel and their phone becomes the controller.
     *   There's a FIFA-style side select, plus intro screens, results screens and a red damage flash.
-*   **🎰 Casino night:** roulette (European / American, La Partage) and 7 Up 7 Down for the whole party.
+*   **🎰 Casino night:** 9 real casino games for a party around the panel: Roulette (European / American),
+    7 Up 7 Down, Blackjack, Baccarat, Slots (pull the lever on your phone), Texas Hold'em, Teen Patti, Andar Bahar and
+    the Big Six wheel.
+    - Friends join with the QR code; the host sets everyone's credits.
+    - The panel shows only the table, while phones show credits, the betting layout and private cards.
+    - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
+      See [docs/CASINO.md](docs/CASINO.md).
+*   **✊ Rock Paper Scissors:** AI vs AI, you vs AI, 1v1 or a 3–8 player tournament, with pixel-hand pickers on phones.
+*   **🌐 No install:** open [idotmatrix.com/app](https://idotmatrix.com/app/) in Chrome or Edge and connect the panel
+    over Web Bluetooth. The same engine runs in your browser. See [docs/WEB_APP.md](docs/WEB_APP.md).
     *   Friends scan the same QR code; their phone shows their credits and the betting table, the panel shows the wheel.
     *   The host sets everyone's credits. Every round is provably fair (commit–reveal) and phones verify it themselves.
 *   **🎞️ Baked native loops:** deterministic animations are rendered once and stored on the panel as GIFs, so they

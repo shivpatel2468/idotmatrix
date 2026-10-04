@@ -45,9 +45,10 @@ tmp/
 # ---------------------------------------------------------------- not part of the project
 # the v2 code (reference only, never imported) and third-party assets we can't relicense
 legacy/
-assets/
+/assets/
 minecraft/
 *.zip
+!/site/app/engine/*.zip
 *.pdf
 *.winmd
 /*.gif

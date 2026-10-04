@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- 🎰 **Casino mode** (docs/CASINO.md): Roulette, 7 Up 7 Down, Blackjack, Baccarat, Slots, Texas Hold'em, Teen Patti,
+  Andar Bahar and the Big Six wheel.
+  - **Fairness:** a provably fair commit–reveal RNG, with verification on phones and in the studio.
+  - **Credits:** a session bank with escrow (whole credits, never negative) and host-set starting credits.
+  - **Bets** are frozen from "no more bets" until settlement.
+  - **Phones** get a casino page through the same QR; the panel shows only the table.
+  - **Studio casino mode** has its own entrance, house/rules/odds on the left, players/credits/verify/play-from-laptop
+    on the right, and the host bar with the join QR.
+- ✊ **Rock Paper Scissors:** AI vs AI, you vs AI, 1v1 and 3–8 player tournaments, with pixel-hand pickers on phones.
+- **Studio:**
+  - "Let the fly play" and the flies-allowed sign sit under the settings panel (in the top bar on narrow screens).
+  - The 3D views fall back to a simplified view if a GPU can't run the full one.
+  - A page left open across a rebuild reloads itself.
 - **Web app at idotmatrix.com/app/:** the real engine runs in the browser (Pyodide in a Web Worker) and drives the
   panel over Web Bluetooth — no install. Same studio, apps and settings (saved in the browser); OS-level features
   are greyed out as "Not on Browser". New `device = "web"` backend (`device/web.py`), `web` platform, build with
