@@ -13,6 +13,9 @@
  *      engine (DeskDotHost.request / .socket), each phone with its own client address 10.88.0.<n>, so the engine
  *      treats it exactly like a phone on the Wi-Fi (LanGate: /p/ and /ws/p/ only).
  *
+ * The TV view (docs/TV_VIEW.md) rides the same tunnel: while a TV link is open (GET /api/tv) its code is registered
+ * too, and a TV at https://idotmatrix.com/tv/<code> gets GET /tv/… and the read-only socket /ws/tv/<code>.
+ *
  * The wire format is in host-rtc-wire.js (shared with the phone's join page).
  */
 (function () {
@@ -31,10 +34,11 @@
   const MAX_INFLIGHT = 8; // HTTP requests per phone
   const OPEN_TIMEOUT_MS = 30000; // answered but no channel by then: the network blocked it
   const GRACE_MS = 10000; // "disconnected" can recover on its own (a Wi-Fi hand-over)
-  const allowed = (p) => typeof p === "string" && (p.startsWith("/p/") || p.startsWith("/ws/p/")) && p.length < 400;
+  const allowed = (p) =>
+    typeof p === "string" && /^\/(ws\/)?(p|tv)\//.test(p) && !p.includes("..") && p.length < 400;
 
   let W = null; // DeskDotWire
-  let room = null; // {code, secret, timer, state}
+  const rooms = new Map(); // "lobby" | "tv" -> {kind, code, secret, timer, state}
   const peers = new Map(); // peer id -> Peer
   let lastClient = 1;
 
@@ -60,58 +64,63 @@
     return "10.88.0.251";
   }
 
-  // =================================================================================== lobby → room
-  async function lobbyTick() {
-    let lobby = null;
-    let ok = false;
+  // =================================================================================== lobby / TV link → room
+  /** The open code of one engine resource ("lobby": GET /api/play/lobby → lobby, "tv": GET /api/tv → tv), or null;
+   * undefined when the check failed (keep whatever is open). */
+  async function engineCode(path, key) {
     try {
-      const r = await H.request("GET", "/api/play/lobby", [["accept", "application/json"]], null);
-      if (r.status === 200 && r.body) {
-        lobby = JSON.parse(W.utf8(r.body)).lobby || null;
-        ok = true;
-      }
+      const r = await H.request("GET", path, [["accept", "application/json"]], null);
+      if (r.status !== 200 || !r.body) return undefined;
+      const it = JSON.parse(W.utf8(r.body))[key] || null;
+      // only a link whose URL points at this site (public_url) is reachable over the internet
+      if (it && it.url && new URL(it.url).origin === location.origin) return String(it.code || "").toUpperCase();
+      return null;
     } catch (e) {
-      console.debug("DeskDot online play: lobby check failed", e);
+      console.debug(`DeskDot online play: ${path} check failed`, e);
+      return undefined;
     }
-    if (ok) {
-      let code = null;
-      try {
-        // only a lobby whose QR points at this site (public_url) is joinable over the internet
-        if (lobby && lobby.url && new URL(lobby.url).origin === location.origin) code = String(lobby.code || "").toUpperCase();
-      } catch {
-        code = null;
-      }
-      if (room && room.code !== code) closeRoom();
-      if (code && !room) openRoom(code);
+  }
+
+  async function lobbyTick() {
+    for (const [kind, path, key] of [["lobby", "/api/play/lobby", "lobby"], ["tv", "/api/tv", "tv"]]) {
+      const code = await engineCode(path, key);
+      if (code === undefined) continue;
+      const r = rooms.get(kind);
+      if (r && r.code !== code) closeRoom(kind);
+      if (code && !rooms.has(kind)) openRoom(kind, code);
     }
-    const ms = room || !document.hidden ? LOBBY_MS : LOBBY_IDLE_MS;
+    const ms = rooms.size || !document.hidden ? LOBBY_MS : LOBBY_IDLE_MS;
     setTimeout(lobbyTick, ms);
   }
 
-  function openRoom(code) {
-    room = { code, secret: W.randomHex(24), timer: 0, state: "opening" };
-    console.info(`DeskDot online play: room ${code} open — phones join at ${location.origin}/p/${code}`);
-    signalTick(room);
+  function openRoom(kind, code) {
+    const r = { kind, code, secret: W.randomHex(24), timer: 0, state: "opening" };
+    rooms.set(kind, r);
+    const where = kind === "tv" ? `screens watch at ${location.origin}/tv/${code}` : `phones join at ${location.origin}/p/${code}`;
+    console.info(`DeskDot online play: ${kind === "tv" ? "TV link" : "room"} ${code} open — ${where}`);
+    signalTick(r);
   }
 
-  function closeRoom() {
-    const r = room;
-    room = null;
+  function closeRoom(kind) {
+    const r = rooms.get(kind);
     if (!r) return;
+    rooms.delete(kind);
     clearTimeout(r.timer);
     r.state = "closed";
     W.signal({ op: "close", code: r.code, secret: r.secret }).catch(() => {});
-    for (const p of peers.values()) p.bye();
+    for (const p of peers.values()) if (p.room === r) p.bye();
   }
 
+  const live = (r) => rooms.get(r.kind) === r;
+
   async function signalTick(r) {
-    if (room !== r) return;
+    if (!live(r)) return;
     const res = await W.signal({ op: "poll", code: r.code, secret: r.secret });
-    if (room !== r) return;
+    if (!live(r)) return;
     let next = SIGNAL_MS;
     if (res.status === 200) {
       r.state = "open";
-      for (const o of res.offers || []) accept(o.peer, o.sdp);
+      for (const o of res.offers || []) accept(r, o.peer, o.sdp);
     } else if (res.status === 403) {
       // another tab registered this code first (rare: 4 characters): phones would reach it, not us
       r.state = "taken";
@@ -125,7 +134,7 @@
   }
 
   // =================================================================================== one phone
-  function accept(id, sdp) {
+  function accept(r, id, sdp) {
     if (peers.has(id) || typeof sdp !== "string") return;
     if (peers.size >= MAX_PEERS) {
       // drop the oldest phone that never finished connecting, else refuse (it times out and says so)
@@ -135,11 +144,10 @@
     }
     if (starting.has(id)) return;
     starting.add(id);
-    const r = room;
     W.ice(r.code)
       .then((servers) => {
         starting.delete(id);
-        if (r !== room || peers.has(id)) return;
+        if (!live(r) || peers.has(id)) return;
         const p = new Peer(id, r, servers);
         peers.set(id, p);
         p.start(sdp).catch((e) => p.close(String(e)));
@@ -168,7 +176,7 @@
       await this.pc.setRemoteDescription({ type: "offer", sdp });
       await this.pc.setLocalDescription(await this.pc.createAnswer());
       await W.iceGathered(this.pc, 3000);
-      if (this.closed || room !== this.room) return this.close("room closed");
+      if (this.closed || !live(this.room)) return this.close("room closed");
       const r = await W.signal({ op: "answer", code: this.room.code, secret: this.room.secret, peer: this.id, sdp: this.pc.localDescription.sdp });
       if (r.status !== 200) return this.close(`answer refused (${r.status})`);
       this.openTimer = setTimeout(() => !this.open && this.close("no direct connection"), OPEN_TIMEOUT_MS);
@@ -253,7 +261,7 @@
     socketOpen(id, path) {
       const ev = (e, d) => this.send({ t: "ws-ev", id, ev: e, d });
       if (this.sockets.has(id)) return;
-      if (!allowed(path) || !path.startsWith("/ws/p/")) return ev("close", 1008);
+      if (!allowed(path) || !path.startsWith("/ws/")) return ev("close", 1008);
       if (this.sockets.size >= MAX_SOCKETS) return ev("close", 1013);
       const s = H.socket(path, this.client);
       s.binaryType = "arraybuffer";
@@ -306,8 +314,8 @@
   // =================================================================================== start
   window.addEventListener("pagehide", () => {
     // the tab is going away: free the room code at once (it would expire in 10 minutes anyway)
-    const r = room;
-    if (r && navigator.sendBeacon) {
+    for (const r of rooms.values()) {
+      if (!navigator.sendBeacon) break;
       try {
         navigator.sendBeacon(W.SIGNAL, new Blob([JSON.stringify({ op: "close", code: r.code, secret: r.secret })], { type: "application/json" }));
       } catch {
@@ -319,7 +327,8 @@
   // for tests and the curious: window.deskdotRtc.state()
   window.deskdotRtc = {
     state: () => ({
-      room: room && { code: room.code, state: room.state },
+      room: rooms.has("lobby") ? { code: rooms.get("lobby").code, state: rooms.get("lobby").state } : null,
+      tv: rooms.has("tv") ? { code: rooms.get("tv").code, state: rooms.get("tv").state } : null,
       phones: [...peers.values()].map((p) => ({ client: p.client, open: p.open, link: p.pc.connectionState, sockets: p.sockets.size })),
     }),
   };

@@ -315,14 +315,19 @@ function hover(spot) {
   else { for (const z of $$("#board .dd-on")) z.classList.remove("dd-on"); if (spot) { const z = $(spotSel(spot)); if (z) z.classList.add("dd-on"); } }
   if (spot) buzz(4);
 }
-// drag a chip from the rack onto the table (touch and mouse); a tap on a chip still just picks it
+/** pointermove at most once per frame (a mouse can fire hundreds a second): the newest event wins */
+function perFrame(fn) { let ev = null, id = 0; return (e) => { ev = e; if (!id) id = requestAnimationFrame(() => { id = 0; const x = ev; ev = null; if (x) fn(x); }); }; }
+/** a bet gesture starts only with the primary button / a finger / a pen tip — never right- or middle-click */
+const primary = (e) => e.isPrimary !== false && (e.pointerType !== "mouse" || e.button === 0);
+// drag a chip from the rack onto the table (touch and mouse); a tap or click on a chip still just picks it.
+// No setPointerCapture here: with a mouse, capture retargets the click to #rack and the chip under it is never picked.
+// The move / up listeners live on the document instead, so a fast mouse that leaves the rack is still followed.
 let rackDrag = null;
 $("#rack").addEventListener("pointerdown", (e) => {
-  const b = e.target.closest(".chip"); if (!b || b.disabled || e.button > 0) return;
+  const b = e.target.closest(".chip"); if (!b || b.disabled || !primary(e)) return;
   rackDrag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, v: b.dataset.v === "all" ? "all" : Number(b.dataset.v), ghost: null };
-  try { $("#rack").setPointerCapture(e.pointerId); } catch (_) {}
 });
-$("#rack").addEventListener("pointermove", (e) => {
+document.addEventListener("pointermove", perFrame((e) => {
   const d = rackDrag; if (!d || e.pointerId !== d.id) return;
   if (!d.ghost) {
     if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 8 || !ctx.betting) return;
@@ -330,7 +335,7 @@ $("#rack").addEventListener("pointermove", (e) => {
     d.ghost = flyChip(chipAmount() || (d.v === "all" ? 0 : d.v), "ghost"); buzz(6); SFX.tap();
   }
   placeGhost(d.ghost, e.clientX, e.clientY); hover(spotAtPoint(e.clientX, e.clientY - 34));
-});
+}));
 function endRack(e, drop) {
   const d = rackDrag; if (!d || e.pointerId !== d.id) return;
   rackDrag = null; if (!d.ghost) return;
@@ -338,20 +343,21 @@ function endRack(e, drop) {
   if (spot) ctx.bet(spot, { from: [e.clientX, e.clientY - 34] });
   else fly(chipAmount() || 1, [e.clientX, e.clientY - 34], rackPoint(), { s0: 1.45, s1: 1.5, fade: true, ms: 260 });
 }
-$("#rack").addEventListener("pointerup", (e) => endRack(e, true));
-$("#rack").addEventListener("pointercancel", (e) => endRack(e, false));
+document.addEventListener("pointerup", (e) => endRack(e, true));
+document.addEventListener("pointercancel", (e) => endRack(e, false));
 // zones on the board ([data-spot]): pointer events, no click, so rapid taps each place a chip (no 300 ms, no ghost clicks)
-let press = null;
+let press = null, pointerAt = -1e9;
 const board = $("#board");
 board.addEventListener("pointerdown", (e) => {
-  if ((S.mod && S.mod.ownGestures) || e.button > 0) return;
+  pointerAt = now(); // the click that follows a pointer press never bets again (only keyboard clicks do)
+  if ((S.mod && S.mod.ownGestures) || !primary(e)) return;
   const z = e.target.closest("[data-spot]"); if (!z) return;
   const spot = z.dataset.spot, mine = (S.priv.bets || {})[spot] || 0;
   press = { id: e.pointerId, spot, x0: e.clientX, y0: e.clientY, mine, moved: false, long: false, ghost: null, lp: 0 };
   try { board.setPointerCapture(e.pointerId); } catch (_) {} // survives the module re-rendering the zone
   if (mine && ctx.betting) press.lp = setTimeout(() => { if (press && !press.ghost && !press.moved) { press.long = true; ctx.unbet(spot); toast("Chips taken back"); } }, 550);
 });
-board.addEventListener("pointermove", (e) => {
+board.addEventListener("pointermove", perFrame((e) => {
   const p = press; if (!p || e.pointerId !== p.id) return;
   if (!p.ghost && !p.moved && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 10) {
     clearTimeout(p.lp);
@@ -363,7 +369,7 @@ board.addEventListener("pointermove", (e) => {
     const over = spotAtPoint(e.clientX, e.clientY - 34);
     p.ghost.classList.toggle("rm", over !== p.spot); hover(over === p.spot ? p.spot : null);
   }
-});
+}));
 function endPress(e, up) {
   const p = press; if (!p || e.pointerId !== p.id) return;
   press = null; clearTimeout(p.lp);
@@ -379,7 +385,7 @@ function endPress(e, up) {
 board.addEventListener("pointerup", (e) => endPress(e, true));
 board.addEventListener("pointercancel", (e) => endPress(e, false));
 board.addEventListener("click", (e) => { // keyboard (Enter / Space on a focused zone) still bets; pointer taps were handled above
-  if (e.detail !== 0 || (S.mod && S.mod.ownGestures)) return;
+  if (e.detail !== 0 || now() - pointerAt < 800 || (S.mod && S.mod.ownGestures)) return;
   const z = e.target.closest("[data-spot]"); if (z) ctx.bet(z.dataset.spot);
 });
 // no double-tap zoom, no pinch-zoom of the table (the rulebook has its own text zoom), no long-press menu
@@ -537,13 +543,12 @@ function tickCountdown() {
   let left = null;
   if (p.phase === "betting" && S.countdown.left != null && !p.paused) left = Math.max(0, S.countdown.left - (now() - S.countdown.at) / 1000);
   const span = (p.house || {}).bet_seconds || 20;
-  if (left != null) {
-    cd.textContent = Math.ceil(left - 1e-6); pr.style.strokeDashoffset = String(138.2 * (1 - clamp(left / span, 0, 1)));
-    ring.classList.toggle("hurry", left <= 5);
-  } else {
-    ring.classList.remove("hurry");
-    cd.textContent = p.phase === "betting" ? "" : ""; pr.style.strokeDashoffset = p.phase === "betting" ? "0" : "138.2";
-  }
+  let txt = "", off = p.phase === "betting" ? "0" : "138.2", hurry = false;
+  if (left != null) { txt = String(Math.ceil(left - 1e-6)); off = (138.2 * (1 - clamp(left / span, 0, 1))).toFixed(1); hurry = left <= 5; }
+  // only touch the DOM when something changed: an unconditional write every frame kept the page re-laying out
+  if (cd.textContent !== txt) cd.textContent = txt;
+  if (tickCountdown.off !== off) { tickCountdown.off = off; pr.style.strokeDashoffset = off; }
+  if (ring.classList.contains("hurry") !== hurry) ring.classList.toggle("hurry", hurry);
   requestAnimationFrame(tickCountdown);
 }
 function renderActions() {
@@ -577,6 +582,7 @@ function onState(m) {
   const prevPhase = S.pub.phase, prevRound = S.pub.round;
   S.pub = m.status || {}; S.priv = m.private || {};
   applyTheme(S.pub.table_theme);
+  Live.update();
   const p = S.pub;
   if (!p.casino) return;
   if (p.phase === "betting" && p.hash && p.round != null) S.seenHash[p.round] = p.hash; // the commitment we saw before betting
@@ -622,7 +628,7 @@ function showResult(mine, pubRes) {
 }
 function confetti(n) {
   if (REDUCED) return;
-  const box = $("#confetti"), cols = ["#ffcc33", "#d8203a", "#119a54", "#7a35d6", "#ff3f78"];
+  const box = $("#confetti"), cols = [getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#ffcc33", "#d8203a", "#119a54", "#7a35d6", "#ff3f78"];
   for (let i = 0; i < n; i++) {
     const c = document.createElement("i"); c.style.left = Math.random() * 100 + "%"; c.style.setProperty("--cc", cols[i % cols.length]);
     c.style.animationDelay = Math.random() * 0.5 + "s"; c.style.animationDuration = 1.2 + Math.random() * 0.9 + "s"; box.append(c);
@@ -640,15 +646,81 @@ $("#help-btn").addEventListener("click", () => { S.helpTab = "how"; openSheet("h
 
 /* ------------------------------------------------ table theme (status.table_theme: felt + accent, cross-faded) */
 let themeId = "classic";
+/** CSS variable ← status.table_theme.css key: the whole page palette (accent, felt, surfaces) comes from the theme. */
+const THEME_VARS = {
+  "--felt": "felt", "--felt2": "felt2", "--felt3": "felt3", "--felt-ink": "felt_ink",
+  "--gold": "accent", "--gold2": "accent_lo", "--gold-hi": "accent_hi", "--gold-deep": "accent_deep", "--gold-rgb": "accent_rgb",
+  "--gold-ink": "ink", "--gold-text": "accent_text",
+  "--bg": "bg", "--s1": "surface", "--s2": "surface2", "--s3": "surface3", "--s4": "surface4",
+};
 function applyTheme(t) {
   const id = (t && t.id) || "classic";
   if (id === themeId) return;
   themeId = id;
   const st = document.documentElement.style, css = (t && t.css) || {};
-  const map = { "--felt": css.felt, "--felt2": css.felt2, "--felt3": css.felt3, "--gold": css.accent, "--gold2": css.accent_lo, "--gold-hi": css.accent_hi, "--gold-rgb": css.accent_rgb, "--gold-ink": css.ink };
-  for (const [k, v] of Object.entries(map)) { if (id !== "classic" && v) st.setProperty(k, v); else st.removeProperty(k); } // classic = the stylesheet's own look
+  for (const [k, v] of Object.entries(THEME_VARS)) { const x = css[v]; if (id !== "classic" && x) st.setProperty(k, x); else st.removeProperty(k); } // classic = the stylesheet's own look
   document.documentElement.dataset.theme = id;
+  const meta = document.querySelector('meta[name="theme-color"]'); // the phone's browser bar follows the felt
+  if (meta) meta.setAttribute("content", (id !== "classic" && css.felt3) || "#063823");
 }
+
+/* ------------------------------------------------ the live panel: the engine's frames (binary 32×32×3, opt-in, ≤ 10 fps)
+   Big and glowing over the board while the table plays (no more bets, spinning, dealing, the result); back to the
+   betting table when betting reopens, with a small live thumbnail in the phase strip. Games that play on the phone
+   itself (cards in hand, slots reels, Housie tickets) set livePanel: false and keep their own view. */
+const LIVE_PHASES = new Set(["locked", "spinning", "dealing", "reveal", "result"]);
+/** Does this state show the big live panel? (pure: tests/test_casino_phone_input.py) */
+function liveWanted(pub, mod) { return !!(pub && pub.casino && LIVE_PHASES.has(pub.phase) && !(mod && mod.livePanel === false)); }
+const Live = (() => {
+  const ov = $("#livep"), big = $("#live-c"), thumb = $("#live-t"), boardEl = $("#board"), scr = $("#s-table");
+  let px = null, dirty = false, raf = 0, on = false, off = null;
+  function want(v) { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "frames", on: !!v })); }
+  function size(cv, css) {
+    const n = Math.max(32, Math.round(css * Math.min(3, window.devicePixelRatio || 1)));
+    if (cv.width !== n) { cv.width = n; cv.height = n; }
+    cv.style.width = cv.style.height = css + "px";
+  }
+  function place() {
+    if (!on) return;
+    const b = boardEl.getBoundingClientRect(), s = scr.getBoundingClientRect();
+    Object.assign(ov.style, { left: b.left - s.left + "px", top: b.top - s.top + "px", width: b.width + "px", height: b.height + "px" });
+    size(big, Math.max(96, Math.floor(Math.min(b.width - 24, b.height - 50))));
+    dirty = true; kick();
+  }
+  /** round LEDs (dim ones barely there), then the same picture blurred underneath: the glow */
+  function draw(cv, glow) {
+    if (!px || !cv.width || !cv.getContext) return;
+    const g = cv.getContext("2d"), W = cv.width, c = W / 32, r = c * 0.42;
+    if (!off) off = document.createElement("canvas");
+    if (off.width !== W) { off.width = W; off.height = W; }
+    const o = off.getContext("2d"); o.clearRect(0, 0, W, W);
+    o.fillStyle = "rgba(255,255,255,.06)"; o.beginPath();
+    for (let i = 0; i < 1024; i++) { const k = i * 3; if (px[k] + px[k + 1] + px[k + 2] < 24) { const x = (i % 32 + 0.5) * c, y = ((i >> 5) + 0.5) * c; o.moveTo(x + r * 0.5, y); o.arc(x, y, r * 0.5, 0, 6.2832); } }
+    o.fill();
+    for (let i = 0; i < 1024; i++) {
+      const k = i * 3, R = px[k], G = px[k + 1], B = px[k + 2];
+      if (R + G + B < 24) continue;
+      o.fillStyle = `rgb(${R},${G},${B})`; o.beginPath(); o.arc((i % 32 + 0.5) * c, ((i >> 5) + 0.5) * c, r, 0, 6.2832); o.fill();
+    }
+    g.clearRect(0, 0, W, W);
+    if (glow && "filter" in g) { g.save(); g.filter = `blur(${Math.max(1, c * 0.6).toFixed(1)}px)`; g.globalAlpha = 0.85; g.drawImage(off, 0, 0); g.restore(); }
+    g.drawImage(off, 0, 0);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(paint); }
+  function paint() { raf = 0; if (!dirty) return; dirty = false; if (on) draw(big, true); if (!thumb.hidden) draw(thumb, false); }
+  function frame(buf) {
+    const a = new Uint8Array(buf); if (a.length < 3072) return;
+    px = a; dirty = true; if (on || !thumb.hidden) kick(); else update();
+  }
+  function update() {
+    const w = liveWanted(S.pub, S.mod) && S.screen === "table";
+    if (w !== on) { on = w; ov.classList.toggle("on", on); ov.setAttribute("aria-hidden", String(!on)); if (on) place(); }
+    const t = !on && !!px && !!S.pub.casino && S.screen === "table" && !(S.mod && S.mod.livePanel === false);
+    if (thumb.hidden === t) { thumb.hidden = !t; $(".phase").classList.toggle("has-live", t); if (t) { size(thumb, 44); dirty = true; kick(); } }
+  }
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => place()).observe(boardEl);
+  return { frame, update, want };
+})();
 
 /* ------------------------------------------------ how to play / rulebook / payouts (casino/rulebook.py) */
 const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
@@ -945,9 +1017,10 @@ registerGame("roulette", (() => {
   }
   function highlight(spot) { for (const e of $$(".hl", root)) e.classList.remove("hl"); if (spot) for (const e of cellsOf(spot)) e.classList.add("hl"); }
   function showTip(spot, x, y) {
-    if (!spot) { tip.hidden = true; return; }
-    const [n, p] = info(spot); tip.innerHTML = `${esc(n)}<small>${p}</small>`; tip.hidden = false;
-    const r = el.getBoundingClientRect(); tip.style.left = clamp(x, 70, r.width - 70) + "px"; tip.style.top = Math.max(40, y) + "px";
+    if (!spot) { tip.hidden = true; tip._s = ""; return; }
+    if (tip._s !== spot) { tip._s = spot; const [n, p] = info(spot); tip.innerHTML = `${esc(n)}<small>${p}</small>`; }
+    tip.hidden = false;
+    const r = rect || el.getBoundingClientRect(); tip.style.left = clamp(x, 70, r.width - 70) + "px"; tip.style.top = Math.max(40, y) + "px";
   }
   function paint() {
     if (!geo || !chipsEl) return;
@@ -967,9 +1040,11 @@ registerGame("roulette", (() => {
     const hist = (ctxr.pub.history || []).slice(-1)[0], last = cells.last;
     if (last) last.innerHTML = hist ? `<span>LAST</span><i class="t-${hist.tone}">${esc(hist.label)}</i>` : "";
   }
-  function pt(e) { const r = el.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  let rect = null; // the table's box, measured once per gesture (not on every move: no forced layout while dragging)
+  function pt(e) { const r = rect || el.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   function onDown(e) {
-    if (!geo) return;
+    if (!geo || !primary(e) || down) return;
+    rect = el.getBoundingClientRect();
     try { root.setPointerCapture(e.pointerId); } catch (_) {}
     const [x, y] = pt(e), spot = spotAt(...L2(x, y));
     down = { id: e.pointerId, spot, x, y, long: false, origin: spot, mine: !!(spot && (ctxr.priv.bets || {})[spot] && ctxr.betting), ghost: null };
@@ -993,7 +1068,7 @@ registerGame("roulette", (() => {
   function onUp(e) {
     if (!down || e.pointerId !== down.id) return;
     clearTimeout(lpT);
-    const d = down; down = null; highlight(null); showTip(null);
+    const d = down; down = null; rect = null; highlight(null); showTip(null);
     if (d.ghost) {
       d.ghost.remove();
       if (e.type === "pointerup" && d.spot !== d.origin) ctxr.unbet(d.origin, { from: [e.clientX, e.clientY - 34] });
@@ -1015,7 +1090,7 @@ registerGame("roulette", (() => {
     mount(host, c) {
       el = host; ctxr = c; us = ((c.pub.rules || {}).wheel === "american");
       root = document.createElement("div"); root.className = "rt"; el.append(root);
-      root.addEventListener("pointerdown", onDown); root.addEventListener("pointermove", onMove);
+      root.addEventListener("pointerdown", onDown); root.addEventListener("pointermove", perFrame(onMove));
       root.addEventListener("pointerup", onUp); root.addEventListener("pointercancel", onUp);
       ro = new ResizeObserver(() => layout()); ro.observe(el); layout();
     },
@@ -1208,7 +1283,7 @@ registerGame("holdem", (() => {
   }
   function onInput(e) { if (e.target.id !== "he-rng") return; raiseTo = Number(e.target.value); for (const id of ["he-amt", "he-amt2"]) { const x = $("#" + id, root); if (x) x.textContent = fmt(raiseTo); } }
   return {
-    title: "Texas Hold'em",
+    title: "Texas Hold'em", livePanel: false,
     tour: "Tap <b>Deal me in</b> to play the next hand. Your two hole cards (only you see them) and the board show here; when it's your turn Fold, Check / Call and Raise appear, with a timer.",
     resultTitle: (r) => (r.winners && r.winners[0] ? `${r.winners[0].name}${r.winners.length > 1 ? " +" + (r.winners.length - 1) : ""} · ${r.hand ? HAND[r.hand] || r.hand : "uncontested"}` : r.hand ? HAND[r.hand] : "Hand over"),
     mount(host, cx) { c = cx; sig = ""; root = document.createElement("div"); root.className = "pv"; host.append(root); root.addEventListener("click", onClick); root.addEventListener("input", onInput); PC.chrome(true); render(); },
@@ -1264,7 +1339,7 @@ registerGame("teenpatti", (() => {
     buzz(op === "pack" || op === "refuse" ? [8, 30, 8] : 14);
   }
   return {
-    title: "Teen Patti",
+    title: "Teen Patti", livePanel: false,
     tour: "Tap <b>Deal me in</b>. You start blind — see your cards whenever you like (then you pay double). On your turn: pack, chaal, raise, show or sideshow, with a timer.",
     resultTitle: (r) => (r.winners && r.winners[0] ? `${r.winners[0].name} · ${r.hand ? HAND[r.hand] || r.hand : "all others packed"}` : r.hand ? HAND[r.hand] : "Hand over"),
     mount(host, cx) { c = cx; sig = ""; root = document.createElement("div"); root.className = "pv"; host.append(root); root.addEventListener("click", onClick); PC.chrome(true); render(); },
@@ -1504,7 +1579,7 @@ registerGame("blackjack", (() => {
     else if (p.phase === "action" && t.stage === "insurance") $("#ph-title").textContent = "Insurance?";
   }
   return {
-    title: "Blackjack",
+    title: "Blackjack", livePanel: false,
     tour: "Before the deal, tap the big circle to bet your chip (hold or drag the stack off to take it back). Then your cards show here and the moves you may make — hit, stand, double, split — appear as big buttons when it's your turn.",
     spinTitle: "Dealing…",
     resultTitle: (r) => (r.outcome && r.outcome.dealer_bj ? "Dealer blackjack" : r.label === "BUST" ? "Dealer busts!" : `Dealer ${r.label}`),
@@ -1746,7 +1821,7 @@ registerGame("slots", (() => {
     PC.phase(sp ? (sp.t == null ? "In the queue" : "Spinning…") : "Pull the lever", sp ? `${fmt(sp.stake)} credits in play — locked until the reels stop` : `${m.name || "Slots"} · ${m.volatility || ""} volatility · RTP ${((m.rtp || 0) * 100).toFixed(2)} %`);
   }
   return {
-    title: "Slots",
+    title: "Slots", livePanel: false,
     tour: "Your own machine: pick a bet per line, then <b>drag the lever down</b> and let go — or tap SPIN. The reels stop in time with the panel.",
     resultTitle: (r) => r.label,
     mount(host, cc) { c = cc; root = document.createElement("div"); root.className = "sl"; host.append(root); PC.chrome(true); themeKey = ""; spinId = null; build(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); },
@@ -1964,7 +2039,7 @@ registerGame("housie", (() => {
     }
   }
   return {
-    title: "Housie",
+    title: "Housie", livePanel: false,
     spinTitle: "Calling…",
     resultTitle: (r) => `Full House on call ${r.label}${r.winners && r.winners.length ? " · " + r.winners.slice(0, 2).map((w) => w.name).join(", ") : ""}`,
     mount(host, cx) {
@@ -2017,6 +2092,7 @@ function onHello(m) {
   let last = ""; try { last = sessionStorage.getItem("deskdot.casino.scr:" + code) || ""; } catch (_) {}
   if (first) { if (m.resumed || last === "table") { sendProfile({ ready: true }, true); go("table"); toast(`Welcome back, ${S.me.name}`); } else go("seat"); }
   else { toast("Reconnected"); if (S.screen === "table") sendProfile({ ready: true }, true); }
+  Live.want(document.visibilityState !== "hidden"); // the live panel: frames from now on (this socket)
   paintMe();
 }
 function onRoster(players) {
@@ -2030,10 +2106,11 @@ function connect() {
   let sock;
   try { sock = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/p/${code}?cid=${encodeURIComponent(cid)}`); }
   catch (_) { retryT = setTimeout(connect, backoff); return; }
-  ws = sock;
+  ws = sock; sock.binaryType = "arraybuffer";
   sock.onopen = () => { backoff = 300; lastMsg = now(); net(true); S.lastSeq = 0; }; // acks are per socket
   sock.onmessage = (ev) => {
     if (sock !== ws) return; lastMsg = now(); net(true);
+    if (typeof ev.data !== "string") { Live.frame(ev.data); return; } // the live panel (opted in after hello)
     let m; try { m = JSON.parse(ev.data); } catch (_) { return; }
     if (m.type === "hello") onHello(m);
     else if (m.type === "state") onState(m);
@@ -2048,6 +2125,7 @@ setInterval(() => {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "ping", t: now() }));
   if (ws && ws.readyState === 1 && now() - lastMsg > 5000 && !ended) { const dead = ws; ws = null; try { dead.close(); } catch (_) {} net(false); clearTimeout(retryT); connect(); }
 }, 1500);
+document.addEventListener("visibilitychange", () => Live.want(document.visibilityState !== "hidden")); // no frames in the background
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !ended && (!ws || ws.readyState > 1)) { clearTimeout(retryT); connect(); } });
 
 /* ------------------------------------------------ boot */
