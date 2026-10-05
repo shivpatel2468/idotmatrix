@@ -58,6 +58,8 @@ const DELAY = [0, 0.28, 0.12];
 
 /** A warm neon-sign palette: rose, tangerine, gold. */
 export const NEON: [string, string, string] = ["#ff3f78", "#ff7419", "#ffcc33"];
+/** The DeskDot wordmark's colours: two shades, "Desk" rose and "Dot" gold (the logo still builds in three parts). */
+export const LOGO: [string, string, string] = ["#ff3f78", "#ff3f78", "#ffcc33"];
 
 function strike(part: Part, t: number): number {
   if (t < 0) return 0;
@@ -109,7 +111,7 @@ export class NeonLogo {
   private glitchLetter = 5; // the "o" of Dot: the tube that's a little loose
   colors: string[];
 
-  constructor(colors: string[] = NEON, gap = 1) {
+  constructor(colors: string[] = LOGO, gap = 1) {
     const l = layout(TUBES, gap);
     this.dots = l.dots;
     this.cols = l.cols;

@@ -13,7 +13,7 @@
   };
 
   /* ===================================================================== 1. neon logo
-   * The "DeskDot" wordmark as LEDs in three neon tubes ("D" rose, "esk" tangerine, "Dot" gold). The dots build in
+   * The "DeskDot" wordmark as LEDs in three neon tubes ("Desk" rose, "Dot" gold: two shades). The dots build in
    * (the D drops, "esk" types in, "Dot" rains down), then each tube is struck like real neon: a stutter of flashes,
    * then a steady hum, with one loose letter that blinks now and then. Same idea as web/src/lib/logo.ts. */
   const GLYPHS = {
@@ -27,7 +27,7 @@
   const WORDS = ["D", "esk", "Dot"];
   const LOOSE = 5; // the "o" of Dot
   const ROWS = 7;
-  const NEON = ["#ff3f78", "#ff7419", "#ffcc33"];
+  const NEON = ["#ff3f78", "#ff3f78", "#ffcc33"]; // two shades: "Desk" rose, "Dot" gold
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],

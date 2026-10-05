@@ -891,7 +891,7 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
 # =============================================================================================== static extras
 # The DeskDot mark: an LED "D" (rose → tangerine by column) and the gold "dot" beside it, on the panel's black.
 _D = ["###.", "#..#", "#..#", "#..#", "###."]
-_D_COLS = ["#ff3f78", "#ff5a4c", "#ff7419", "#ff9a2a"]
+_D_COLS = ["#ff3f78", "#ff3f78", "#ff3f78", "#ff3f78"]  # two shades: the "D" rose, the dot gold
 ICON_DOTS: list[tuple[float, float, float, str]] = [
     (5 + 5.6 * cx, 5 + 5.5 * cy, 2.3, _D_COLS[cx])
     for cy, row in enumerate(_D)
