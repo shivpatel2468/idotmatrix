@@ -29,6 +29,12 @@
   to = "/app/join/index.html"
   status = 200
 
+# The TV view (docs/TV_VIEW.md): a TV opens /tv/<code>; the same join page links it to the tab and shows tv.html.
+[[redirects]]
+  from = "/tv/*"
+  to = "/app/join/index.html"
+  status = 200
+
 # Anything else unknown → the styled 404 page (Netlify serves site/404.html automatically; kept explicit).
 [[redirects]]
   from = "/*"
@@ -82,6 +88,13 @@
 # The phone join page (/p/<code> is rewritten to /app/join/; headers follow the requested path).
 [[headers]]
   for = "/p/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Permissions-Policy = "camera=(self), microphone=(self), display-capture=(self), geolocation=(self)"
+
+# The TV view (/tv/<code>, rewritten to /app/join/ like /p/).
+[[headers]]
+  for = "/tv/*"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self' https:; img-src 'self' data: blob: https:; media-src 'self' blob: mediastream:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     Permissions-Policy = "camera=(self), microphone=(self), display-capture=(self), geolocation=(self)"

@@ -170,7 +170,7 @@ class LeafLeap(GameApp):
         self.levels_done = 0
         self.seat_order = sorted(self.roster) if self.roster else [1]
         self.heroes: dict[int, dict[str, Any]] = {}
-        self._seat = 1
+        self._cur_seat = 1
         self._build()
 
     @property
@@ -278,7 +278,7 @@ class LeafLeap(GameApp):
     def _load(self, seat: int) -> None:
         for a, v in self.heroes[seat].items():
             setattr(self, a, v)
-        self._seat = seat
+        self._cur_seat = seat
 
     def _spawn(self, screen: int, lane: int = 0) -> None:
         self.x = float(screen * 32 + 2 + 4 * lane)
@@ -353,7 +353,7 @@ class LeafLeap(GameApp):
                 self.move_dir = 0
 
     def key_p(self, k: str, player: int) -> None:
-        if player == self._seat:
+        if player == self._cur_seat:
             self.key(k)
             return
         h = self.heroes.get(player)
@@ -371,7 +371,7 @@ class LeafLeap(GameApp):
     # ------------------------------------------------------------- the fruit-fly pilot
     def pilot_anchor(self) -> tuple[float, float] | None:
         """The fruit-fly pilot's eye follows seat 1's hero (on screen)."""
-        if self._seat != 1:
+        if self._cur_seat != 1:
             h = self.heroes.get(1)
             return None if h is None else (h["x"] - self.screen * 32 + 1.5, h["y"] + 1.5)
         return self.x - self.screen * 32 + 1.5, self.y + 1.5
@@ -379,7 +379,7 @@ class LeafLeap(GameApp):
     def fly_lure(self) -> list[tuple[float, float, float]]:
         """The way on: ahead (or back, to let a beetle pass), and up-ahead when the next stretch needs a jump.
         Planned with the game's own physics look-ahead, refreshed ~7 times a second."""
-        if self._seat != 1 or self.dead_t > 0 or self.win_t > 0:
+        if self._cur_seat != 1 or self.dead_t > 0 or self.win_t > 0:
             return []
         now = self._clock()
         cache = getattr(self, "_fly_plan", None)
@@ -456,7 +456,7 @@ class LeafLeap(GameApp):
         """Is the loaded hero driven by a person?"""
         if not self.roster:
             return self.human
-        return self.is_human(self._seat)
+        return self.is_human(self._cur_seat)
 
     def update(self, dt: float) -> None:
         if self.win_t > 0:
@@ -476,7 +476,7 @@ class LeafLeap(GameApp):
             if self.over:
                 return
         else:
-            self._save(self._seat)
+            self._save(self._cur_seat)
             for seat in self.seat_order:
                 self._load(seat)
                 self._hero_step(dt)
@@ -492,7 +492,7 @@ class LeafLeap(GameApp):
         if not self.multi:
             self.screen = int(clamp((self.x + 1.5) // 32, 0, SCREENS - 1))
             return
-        self._save(self._seat)
+        self._save(self._cur_seat)
         alive = [s for s in self.seat_order if self.heroes[s]["dead_t"] <= 0]
         if not alive:
             return
@@ -500,7 +500,7 @@ class LeafLeap(GameApp):
         scr = int(clamp((self.heroes[lead]["x"] + 1.5) // 32, 0, SCREENS - 1))
         self.screen = scr
         # a straggler is pulled onto the leader's screen (the camera never scrolls back)
-        cur = self._seat
+        cur = self._cur_seat
         for s in alive:
             if (self.heroes[s]["x"] + 1.5) // 32 < scr:
                 self._load(s)
@@ -563,12 +563,12 @@ class LeafLeap(GameApp):
             self.wins += 1
             self.win_t = 2.0
             self.flash = 0.3
-            self.winner = self._seat
+            self.winner = self._cur_seat
             self.fx.burst(self.rng, self.flag_x - self.screen * 32, 10, (120, 255, 90), 16, 12, 0.8)
 
     def _gain(self, n: int) -> None:
         self.pts += n
-        if self.play_mode.id != "race" or self._seat == 1:
+        if self.play_mode.id != "race" or self._cur_seat == 1:
             self.score += n
 
     def _die(self) -> None:
@@ -586,7 +586,7 @@ class LeafLeap(GameApp):
 
     def _respawn(self) -> None:
         if self.lives <= 0:
-            others = [s for s in self.seat_order if s != self._seat and self.heroes[s]["dead_t"] <= 0]
+            others = [s for s in self.seat_order if s != self._cur_seat and self.heroes[s]["dead_t"] <= 0]
             if not others or not self.multi:
                 self.dead_t = 0.0
                 self._out()
@@ -594,7 +594,11 @@ class LeafLeap(GameApp):
             self.dead_t = 0.5  # co-op: out of lives — this sprout waits while the partner plays on
             return
         partner = next(
-            (s for s in self.seat_order if s != self._seat and self.heroes.get(s, {}).get("dead_t", 1) <= 0),
+            (
+                s
+                for s in self.seat_order
+                if s != self._cur_seat and self.heroes.get(s, {}).get("dead_t", 1) <= 0
+            ),
             None,
         )
         if partner is not None and self.play_mode.id == "coop":
@@ -619,7 +623,7 @@ class LeafLeap(GameApp):
             self.game_over()
 
     def _race_result(self) -> None:
-        self._save(self._seat)
+        self._save(self._cur_seat)
         scores = {s: int(h["wins"]) for s, h in self.heroes.items()}
         pts = {s: int(h["pts"]) for s, h in self.heroes.items()}
         win = max(self.seat_order, key=lambda s: (scores[s], pts[s]))
@@ -707,7 +711,7 @@ class LeafLeap(GameApp):
             leg = int(now * 6 + bx) % 2
             f.set(x + leg, y + 2, scale(pal["beetle"], 0.6))
             f.set(x + 2 + leg, y + 2, scale(pal["beetle"], 0.6))
-        self._save(self._seat)
+        self._save(self._cur_seat)
         for seat in reversed(self.seat_order):
             body = self.colour_of(seat) if self.multi else pal["hero"]
             self._hero(f, self.heroes[seat], body, pal, now, ox)

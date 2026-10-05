@@ -1,18 +1,33 @@
 /* ---------------------------------------------------------------- Casino mode (components/casino, docs/CASINO.md §6)
- * Felt green, gold and red with the brand's warm trio: rose #ff3f78, tangerine #ff7419, gold #ffcc33.
- * Inside `.cz` the studio's ember accent becomes gold, so shared controls (faders, toggles, focus) match.
- * Table themes (status.table_theme, apps/_casino.py TABLE_THEMES): CasinoStage sets these variables inline for
- * any theme but classic (= the values below); the registered colours cross-fade.
+ * Every colour here comes from the table theme (status.table_theme, apps/_casino.py TABLE_THEMES): CasinoStage sets
+ * the theme's variables inline on `.cz` (themeVars) for any theme but classic (= the values below), and the registered
+ * colours cross-fade. Derived tones (text, surfaces, lines) are color-mix()es of those tokens — never a literal accent.
+ * Inside `.cz` the studio's own tokens (ember, chassis, ink, line) are remapped to the theme, so shared controls
+ * (keys, faders, toggles, segmented, fields, focus rings) match. While the casino view is on screen, CasinoStage also
+ * stamps `html[data-cz]` + the --cz-page-* variables (pageVars), so the page around it (body, top bar keys, toasts)
+ * follows the theme too. The top bar's gold "Casino" key only shows when the casino view is closed: it stays classic.
+ * Semantic colours never change: win green / loss red, suits and playing cards, roulette pockets, chip values,
+ * players' colours, warnings.
  */
 @property --gold { syntax: "<color>"; inherits: true; initial-value: #ffcc33; }
 @property --gold-2 { syntax: "<color>"; inherits: true; initial-value: #ffe08a; }
+@property --gold-lo { syntax: "<color>"; inherits: true; initial-value: #e0a91c; }
+@property --gold-deep { syntax: "<color>"; inherits: true; initial-value: #3a2c08; }
+@property --gold-ink { syntax: "<color>"; inherits: true; initial-value: #1d1402; }
+@property --gold-text { syntax: "<color>"; inherits: true; initial-value: #ffcc33; }
 @property --felt { syntax: "<color>"; inherits: true; initial-value: #0d5c3c; }
 @property --felt-2 { syntax: "<color>"; inherits: true; initial-value: #0a4a30; }
 @property --felt-deep { syntax: "<color>"; inherits: true; initial-value: #062a1c; }
 @property --felt-hi { syntax: "<color>"; inherits: true; initial-value: #13744b; }
+@property --felt-ink { syntax: "<color>"; inherits: true; initial-value: #e7f0ec; }
 @property --cz-wing { syntax: "<color>"; inherits: true; initial-value: #102a20; }
 @property --cz-wing-2 { syntax: "<color>"; inherits: true; initial-value: #0b1c16; }
 @property --cz-wing-3 { syntax: "<color>"; inherits: true; initial-value: #0a1512; }
+@property --cz-bg { syntax: "<color>"; inherits: true; initial-value: #060c0a; }
+@property --cz-s1 { syntax: "<color>"; inherits: true; initial-value: #0f1a17; }
+@property --cz-s2 { syntax: "<color>"; inherits: true; initial-value: #172722; }
+@property --cz-s3 { syntax: "<color>"; inherits: true; initial-value: #1c352b; }
+@property --cz-s4 { syntax: "<color>"; inherits: true; initial-value: #2a4139; }
 .cz {
   --gold: #ffcc33;
   --gold-2: #ffe08a;
@@ -20,20 +35,52 @@
   --gold-deep: #3a2c08;
   --gold-ink: #1d1402;
   --gold-rgb: 255, 204, 51;
-  --rose: #ff3f78;
-  --tang: #ff7419;
+  --gold-text: #ffcc33;
   --felt: #0d5c3c;
   --felt-2: #0a4a30;
   --felt-deep: #062a1c;
   --felt-hi: #13744b;
+  --felt-ink: #e7f0ec;
   --cz-wing: #102a20;
   --cz-wing-2: #0b1c16;
   --cz-wing-3: #0a1512;
+  --cz-bg: #060c0a;
+  --cz-s1: #0f1a17;
+  --cz-s2: #172722;
+  --cz-s3: #1c352b;
+  --cz-s4: #2a4139;
+  /* derived once: text tones (tinted by the theme; AA on the wings, tests/test_casino_themes.py) and lines */
+  --cz-ink-1: color-mix(in srgb, #fff 75%, var(--gold-2));
+  --cz-ink-2: color-mix(in srgb, var(--felt-ink) 80%, var(--gold-2));
+  --cz-ink-3: color-mix(in srgb, var(--felt-ink) 80%, var(--cz-wing));
+  --cz-dim: color-mix(in srgb, var(--felt-ink) 64%, var(--cz-wing));
+  --cz-mute: color-mix(in srgb, var(--felt-ink) 56%, var(--cz-wing));
+  --cz-line: color-mix(in srgb, var(--gold) 14%, var(--cz-s2));
+  --cz-line-2: color-mix(in srgb, var(--gold) 24%, var(--cz-s3));
+  --cz-edge: color-mix(in srgb, var(--gold-lo) 45%, #000);
+  --cz-warn: #ff7419; /* semantic: a warning, not the theme */
+  --cz-bad: #ff3f78; /* semantic: closed / hurry / failed */
+  /* the studio's own tokens, re-pointed at the theme for every shared control inside the casino view */
   --color-ember: var(--gold);
   --color-ember-2: var(--gold-2);
   --color-ember-deep: var(--gold-deep);
-  transition: --gold 0.7s ease, --gold-2 0.7s ease, --felt 0.7s ease, --felt-2 0.7s ease, --felt-deep 0.7s ease,
-    --felt-hi 0.7s ease, --cz-wing 0.7s ease, --cz-wing-2 0.7s ease, --cz-wing-3 0.7s ease;
+  --color-chassis-0: var(--cz-bg);
+  --color-chassis-1: var(--cz-s1);
+  --color-chassis-2: var(--cz-s2);
+  --color-chassis-3: var(--cz-s3);
+  --color-chassis-4: var(--cz-s4);
+  --color-line: var(--cz-line);
+  --color-line-2: var(--cz-line-2);
+  --color-ink-1: var(--cz-ink-2);
+  --color-ink-2: var(--cz-ink-3);
+  --color-ink-3: var(--cz-dim);
+  --color-ink-4: var(--cz-mute);
+  transition: --gold 0.7s ease, --gold-2 0.7s ease, --gold-lo 0.7s ease, --gold-deep 0.7s ease, --gold-ink 0.7s ease,
+    --gold-text 0.7s ease, --felt 0.7s ease, --felt-2 0.7s ease, --felt-deep 0.7s ease, --felt-hi 0.7s ease,
+    --felt-ink 0.7s ease, --cz-wing 0.7s ease, --cz-wing-2 0.7s ease, --cz-wing-3 0.7s ease, --cz-bg 0.7s ease,
+    --cz-s1 0.7s ease, --cz-s2 0.7s ease, --cz-s3 0.7s ease, --cz-s4 0.7s ease;
+  scrollbar-color: rgba(var(--gold-rgb), 0.35) transparent;
+  accent-color: var(--gold);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -57,7 +104,7 @@
   background:
     radial-gradient(120% 80% at 50% 0%, rgba(var(--gold-rgb), 0.06), transparent 60%),
     linear-gradient(180deg, var(--cz-wing), var(--cz-wing-2) 55%, var(--cz-wing-3));
-  box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.07), inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 1px 0 rgba(var(--gold-rgb), 0.07), inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
   overflow: hidden;
 }
 .cz-wing::before { /* felt grain */
@@ -83,7 +130,7 @@
 }
 .cz-tabs > button {
   flex: 1; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9fb3a8;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cz-dim);
   transition: background 0.15s, color 0.15s; white-space: nowrap; padding: 0 6px;
 }
 .cz-tabs > button:hover { color: #fff; }
@@ -100,28 +147,28 @@
 .cz-section { padding: 10px 0 6px; }
 .cz-section + .cz-section { border-top: 1px solid rgba(var(--gold-rgb), 0.08); margin-top: 6px; }
 .cz-section > header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-.cz-section h3 { font-family: var(--font-display); font-size: 15px; font-weight: 650; letter-spacing: -0.01em; color: #fff5d6; }
-.cz-section header p { font-size: 11px; line-height: 1.35; color: #8ea398; margin-top: 1px; }
-.cz-empty { font-size: 12px; line-height: 1.45; color: #9fb3a8; padding: 14px 12px; border-radius: 10px; border: 1px dashed rgba(var(--gold-rgb), 0.18); background: rgba(0, 0, 0, 0.18); }
-.cz-foot { font-size: 10.5px; line-height: 1.4; color: #7f958a; margin-top: 10px; }
+.cz-section h3 { font-family: var(--font-display); font-size: 15px; font-weight: 650; letter-spacing: -0.01em; color: var(--cz-ink-1); }
+.cz-section header p { font-size: 11px; line-height: 1.35; color: var(--cz-dim); margin-top: 1px; }
+.cz-empty { font-size: 12px; line-height: 1.45; color: var(--cz-dim); padding: 14px 12px; border-radius: 10px; border: 1px dashed rgba(var(--gold-rgb), 0.18); background: rgba(0, 0, 0, 0.18); }
+.cz-foot { font-size: 10.5px; line-height: 1.4; color: var(--cz-mute); margin-top: 10px; }
 .cz-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
-.cz-row-label { font-size: 12.5px; font-weight: 560; color: #f3ecd8; display: flex; align-items: center; gap: 6px; }
-.cz-row-hint { font-size: 10.5px; line-height: 1.35; color: #86998f; margin-top: 1px; }
+.cz-row-label { font-size: 12.5px; font-weight: 560; color: var(--cz-ink-2); display: flex; align-items: center; gap: 6px; }
+.cz-row-hint { font-size: 10.5px; line-height: 1.35; color: var(--cz-mute); margin-top: 1px; }
 .cz-tag {
   margin-left: 6px; padding: 1px 6px; border-radius: 99px; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--tang); border: 1px solid rgba(255, 116, 25, 0.45); background: rgba(255, 116, 25, 0.08);
+  text-transform: uppercase; color: var(--gold-text); border: 1px solid rgba(var(--gold-rgb), 0.45); background: rgba(var(--gold-rgb), 0.08);
 }
 .cz .seg { background: rgba(0, 0, 0, 0.4); border-color: rgba(var(--gold-rgb), 0.14); }
 .cz .seg > button[data-active="true"] { color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-2), var(--gold)); }
 .cz .field { background: rgba(0, 0, 0, 0.45); border-color: rgba(var(--gold-rgb), 0.16); }
 .cz-num {
-  height: 30px; padding: 0 8px; border-radius: 8px; text-align: right; font-family: var(--font-mono); font-size: 12px; color: #fff5d6;
+  height: 30px; padding: 0 8px; border-radius: 8px; text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--cz-ink-1);
   background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(var(--gold-rgb), 0.18); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .cz-num:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(var(--gold-rgb), 0.18); }
 .cz-pill {
   display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 9px; border-radius: 99px;
-  font-family: var(--font-mono); font-size: 10.5px; color: #e9dfc0; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(var(--gold-rgb), 0.2);
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--cz-ink-2); background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(var(--gold-rgb), 0.2);
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .cz-pill:hover { border-color: var(--gold); color: #fff; background: rgba(var(--gold-rgb), 0.08); }
@@ -134,14 +181,19 @@
   font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
   /* the fallbacks let the gold key work outside the casino view too (top bar "Casino") */
   color: var(--gold-ink, #1d1402); background: linear-gradient(180deg, var(--gold-2, #ffe08a), var(--gold, #ffcc33) 55%, var(--gold-lo, #e0a91c));
-  border: 1px solid #ffe7a3;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 0 #6b4d05, 0 0 26px -8px rgba(var(--gold-rgb, 255, 204, 51), 0.85);
+  border: 1px solid var(--gold-2, #ffe7a3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 0 var(--cz-edge, #6b4d05), 0 0 26px -8px rgba(var(--gold-rgb, 255, 204, 51), 0.85);
   transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
 }
 .cz-gold:hover { filter: brightness(1.06); }
-.cz-gold:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 #6b4d05; }
+.cz-gold:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 var(--cz-edge, #6b4d05); }
 .cz-gold:disabled { opacity: 0.38; pointer-events: none; filter: saturate(0.5); }
-.cz .key[data-on="true"] { border-color: var(--tang); color: var(--tang); }
+.cz .key[data-on="true"] { border-color: var(--gold); color: var(--gold-text); }
+.cz .key-ember { color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-2), var(--gold)); border-color: var(--gold-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 var(--cz-edge), 0 0 24px -6px rgba(var(--gold-rgb), 0.7); }
+.cz .key-ember:hover { border-color: #fff; }
+.cz .toggle[aria-checked="true"] { border-color: color-mix(in srgb, var(--gold) 45%, var(--gold-deep)); }
+.cz ::selection { background: var(--gold); color: var(--gold-ink); }
 
 /* presets */
 .cz-preset {
@@ -151,26 +203,26 @@
 }
 .cz-preset:hover { border-color: rgba(var(--gold-rgb), 0.45); transform: translateY(-1px); }
 .cz-preset[data-on="true"] { border-color: var(--gold); background: linear-gradient(180deg, rgba(var(--gold-rgb), 0.12), rgba(0, 0, 0, 0.25)); box-shadow: 0 0 24px -12px var(--gold); }
-.cz-preset b { display: block; font-size: 13px; font-weight: 640; color: #fff5d6; }
-.cz-preset span span, .cz-preset > span > span { display: block; font-size: 11px; line-height: 1.35; color: #9fb3a8; }
+.cz-preset b { display: block; font-size: 13px; font-weight: 640; color: var(--cz-ink-1); }
+.cz-preset span span, .cz-preset > span > span { display: block; font-size: 11px; line-height: 1.35; color: var(--cz-dim); }
 .cz-preset em { display: block; margin-top: 3px; font-style: normal; font-family: var(--font-mono); font-size: 9.5px; color: var(--gold); opacity: 0.85; }
 .cz-preset-ic {
   display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 9px; color: var(--gold);
-  background: radial-gradient(circle at 35% 30%, rgba(var(--gold-rgb), 0.25), rgba(255, 63, 120, 0.12)); border: 1px solid rgba(var(--gold-rgb), 0.3);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--gold-rgb), 0.25), color-mix(in srgb, var(--felt-hi) 30%, transparent)); border: 1px solid rgba(var(--gold-rgb), 0.3);
 }
 
 /* odds */
 .cz-odds { display: flex; flex-direction: column; gap: 2px; }
 .cz-odds-head, .cz-odds-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(48px, 0.55fr) minmax(90px, 1fr); gap: 8px; align-items: center; }
-.cz-odds-head { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #7f958a; padding: 0 6px 4px; }
-.cz-odds-row { font-size: 12px; color: #f3ecd8; padding: 6px; border-radius: 8px; background: rgba(0, 0, 0, 0.18); }
+.cz-odds-head { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cz-mute); padding: 0 6px 4px; }
+.cz-odds-row { font-size: 12px; color: var(--cz-ink-2); padding: 6px; border-radius: 8px; background: rgba(0, 0, 0, 0.18); }
 .cz-odds-row > span:nth-child(2) { font-size: 11px; color: var(--gold); }
 .cz-edge { position: relative; height: 20px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); overflow: hidden; display: flex; align-items: center; }
 .cz-edge > i { position: absolute; left: 0; top: 0; bottom: 0; opacity: 0.35; border-radius: 6px; }
 .cz-edge > b { position: relative; padding-left: 7px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; }
 .cz-rtp { display: flex; flex-direction: column; gap: 2px; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid rgba(var(--gold-rgb), 0.3); background: rgba(var(--gold-rgb), 0.06); }
-.cz-rtp b { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--gold); line-height: 1.1; }
-.cz-rtp span:last-child { font-size: 11px; color: #9fb3a8; }
+.cz-rtp b { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--gold-text); line-height: 1.1; }
+.cz-rtp span:last-child { font-size: 11px; color: var(--cz-dim); }
 
 /* game picker */
 .cz-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
@@ -180,9 +232,9 @@
 }
 .cz-game:hover { border-color: rgba(var(--gold-rgb), 0.45); transform: translateY(-1px); }
 .cz-game[data-on="true"] { border-color: var(--gold); box-shadow: 0 0 26px -10px var(--gold); background: rgba(var(--gold-rgb), 0.07); }
-.cz-game b { font-size: 12.5px; font-weight: 620; color: #fff5d6; padding: 0 2px; }
+.cz-game b { font-size: 12.5px; font-weight: 620; color: var(--cz-ink-1); padding: 0 2px; }
 .cz-game span:not(.led-mask):not(.led-preview), .cz-game em {
-  font-size: 10.5px; line-height: 1.3; color: #86998f; padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 10.5px; line-height: 1.3; color: var(--cz-mute); padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .cz-game em { font-style: normal; color: var(--gold); font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -199,13 +251,13 @@
 .cz-seat-away { opacity: 0.55; border-style: dashed; }
 .cz-seat-kicked { opacity: 0.5; filter: grayscale(0.7); }
 .cz-seat-main { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; }
-.cz-seat-main b { font-size: 13px; font-weight: 620; color: #fff5d6; }
-.cz-seat-sub { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; color: #86998f; margin-top: 2px; }
-.cz-seat-credits { display: block; font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--gold); line-height: 1.05; }
+.cz-seat-main b { font-size: 13px; font-weight: 620; color: var(--cz-ink-1); }
+.cz-seat-sub { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--cz-mute); margin-top: 2px; }
+.cz-seat-credits { display: block; font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--gold-text); line-height: 1.05; }
 .cz-seat-tools { display: flex; flex-direction: column; gap: 7px; padding: 0 10px 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 8px; }
 .cz-avatar {
   display: grid; place-items: center; flex: none; border-radius: 9px;
-  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 22%, #0a0d0b), #07090a);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 22%, var(--cz-s1)), var(--cz-bg));
   border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); box-shadow: 0 0 14px -5px var(--c);
 }
 .cz-avatar b { color: var(--c); font-family: var(--font-display); font-weight: 700; }
@@ -215,21 +267,21 @@
 
 .cz-rank { display: flex; align-items: center; gap: 9px; padding: 6px 9px; border-radius: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid transparent; }
 .cz-rank[data-top="true"] { border-color: color-mix(in srgb, var(--m) 35%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--m) 10%, transparent), rgba(0, 0, 0, 0.2) 60%); }
-.cz-rank-n { width: 18px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: #86998f; }
-.cz-rank .cz-credits { color: #fff5d6; }
+.cz-rank-n { width: 18px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--cz-mute); }
+.cz-rank .cz-credits { color: var(--cz-ink-1); }
 
 .cz-round { border-radius: 10px; padding: 7px 9px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.04); }
-.cz-round-n { font-family: var(--font-mono); font-size: 10px; color: #86998f; width: 34px; }
+.cz-round-n { font-family: var(--font-mono); font-size: 10px; color: var(--cz-mute); width: 34px; }
 .cz-round-tile {
   min-width: 30px; height: 22px; padding: 0 6px; border-radius: 6px; display: grid; place-items: center;
   font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #fff; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
 }
 .cz-proof { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 .cz-proof dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 10px; font-size: 10.5px; }
-.cz-proof dt { color: #86998f; white-space: nowrap; }
-.cz-proof dd { font-family: var(--font-mono); font-size: 9.5px; color: #e9dfc0; word-break: break-all; }
-.cz-checks { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #c9d6cf; }
-.cz-checks li { padding-left: 8px; border-left: 2px solid #ff3f78; }
+.cz-proof dt { color: var(--cz-mute); white-space: nowrap; }
+.cz-proof dd { font-family: var(--font-mono); font-size: 9.5px; color: var(--cz-ink-2); word-break: break-all; }
+.cz-checks { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--cz-ink-3); }
+.cz-checks li { padding-left: 8px; border-left: 2px solid var(--cz-bad); }
 .cz-checks li[data-ok="true"] { border-left-color: #3ddc97; }
 
 .cz-rack { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 0 10px; }
@@ -256,7 +308,7 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-spots-big .cz-spot { min-height: 64px; }
 .cz-spot {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 42px; padding: 4px;
-  border-radius: 8px; border: 1px solid rgba(255, 245, 214, 0.35); background: rgba(0, 0, 0, 0.14); color: #fff; transition: background 0.12s, transform 0.08s;
+  border-radius: 8px; border: 1px solid rgba(var(--gold-rgb), 0.3); background: rgba(0, 0, 0, 0.14); color: #fff; transition: background 0.12s, transform 0.08s;
 }
 .cz-spot:hover { background: rgba(var(--gold-rgb), 0.16); }
 .cz-spot:active { transform: scale(0.96); }
@@ -268,7 +320,7 @@ button.cz-chip:hover { transform: translateY(-2px); }
   font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--gold-ink); background: var(--gold); border: 1.5px dashed #fff;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); z-index: 1;
 }
-.cz-spot-total { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 6px var(--rose); }
+.cz-spot-total { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-2); box-shadow: 0 0 6px var(--gold-2); }
 /* who is on the spot (status.spot_bets): one dot per player in their colour, the table total when others bet too */
 .cz-spot-who { position: absolute; left: 2px; right: 2px; bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 2px; pointer-events: none; }
 .cz-spot-who i { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55); flex: none; }
@@ -288,11 +340,11 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-outside { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; margin-top: 4px; }
 .cz-out { min-height: 34px; }
 .cz-group { margin-top: 5px; border-radius: 8px; background: rgba(0, 0, 0, 0.16); }
-.cz-group summary { cursor: pointer; list-style: none; padding: 6px 9px; font-size: 11.5px; color: #fff5d6; text-transform: capitalize; display: flex; justify-content: space-between; }
+.cz-group summary { cursor: pointer; list-style: none; padding: 6px 9px; font-size: 11.5px; color: var(--cz-ink-1); text-transform: capitalize; display: flex; justify-content: space-between; }
 .cz-group summary span { font-family: var(--font-mono); font-size: 9.5px; color: var(--gold-2); text-transform: none; }
 .cz-group .cz-spots { padding: 0 6px 6px; }
 .cz-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
-.cz-myresult { margin-bottom: 8px; padding: 9px 12px; border-radius: 10px; font-family: var(--font-display); font-weight: 650; font-size: 15px; background: rgba(255, 255, 255, 0.05); color: #fff5d6; }
+.cz-myresult { margin-bottom: 8px; padding: 9px 12px; border-radius: 10px; font-family: var(--font-display); font-weight: 650; font-size: 15px; background: rgba(255, 255, 255, 0.05); color: var(--cz-ink-1); }
 .cz-myresult.cz-win { background: linear-gradient(90deg, rgba(61, 220, 151, 0.22), transparent); color: #7dffbf; }
 .cz-myresult.cz-lose { background: linear-gradient(90deg, rgba(255, 63, 120, 0.18), transparent); color: #ff8aa8; }
 .cz-mycards { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
@@ -305,65 +357,65 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-title { display: flex; align-items: center; gap: 10px; min-height: 30px; }
 .cz-title-name {
   font-family: var(--font-display); font-size: 19px; font-weight: 720; letter-spacing: -0.02em;
-  background: linear-gradient(90deg, var(--gold-2), var(--gold) 40%, var(--tang) 80%, var(--rose)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  background: linear-gradient(90deg, var(--gold-2), var(--gold) 45%, var(--gold-lo) 80%, var(--felt-ink)); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 14px rgba(var(--gold-rgb), 0.25));
 }
-.cz-title-me { font-family: var(--font-mono); font-size: 10px; color: #9fb3a8; display: inline-flex; gap: 5px; align-items: baseline; }
-.cz-title-me .cz-credits { color: var(--gold); font-size: 12px; }
+.cz-title-me { font-family: var(--font-mono); font-size: 10px; color: var(--cz-dim); display: inline-flex; gap: 5px; align-items: baseline; }
+.cz-title-me .cz-credits { color: var(--gold-text); font-size: 12px; }
 .cz-fly { margin-left: auto; align-items: center; }
 .cz-fly + .cz-leave { margin-left: 6px; }
 .cz-leave { margin-left: auto; height: 2rem; padding: 0 0.8rem; } /* the gold key (.cz-gold), a touch smaller in the title row */
 
 .cz-hostbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; border-radius: 14px;
-  background: linear-gradient(180deg, #13281f, #0b1813); border: 1px solid rgba(var(--gold-rgb), 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.08), 0 16px 40px -24px rgba(0, 0, 0, 0.9);
+  background: linear-gradient(180deg, var(--cz-s2), var(--cz-s1)); border: 1px solid rgba(var(--gold-rgb), 0.22);
+  box-shadow: inset 0 1px 0 rgba(var(--gold-rgb), 0.08), 0 16px 40px -24px rgba(0, 0, 0, 0.9);
 }
 .cz-phase { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1 1 180px; }
-.cz-phase b { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 680; color: #fff5d6; line-height: 1.15; }
-.cz-phase span span, .cz-phase > span > span { display: block; font-size: 10.5px; color: #8ea398; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-phase b { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 680; color: var(--cz-ink-1); line-height: 1.15; }
+.cz-phase span span, .cz-phase > span > span { display: block; font-size: 10.5px; color: var(--cz-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cz-phase-dot { width: 12px; height: 12px; border-radius: 50%; margin: 0 6px; flex: none; background: #555; }
 .cz-phase[data-tone="green"] .cz-phase-dot, .cz-phase[data-tone="green"] .cz-ring-fill { background: #3ddc97; stroke: #3ddc97; }
 .cz-phase[data-tone="gold"] .cz-phase-dot { background: var(--gold); box-shadow: 0 0 12px var(--gold); animation: pulse-dot 1s ease-in-out infinite; }
-.cz-phase[data-tone="red"] .cz-phase-dot { background: var(--rose); box-shadow: 0 0 12px var(--rose); }
+.cz-phase[data-tone="red"] .cz-phase-dot { background: var(--cz-bad); box-shadow: 0 0 12px var(--cz-bad); }
 .cz-phase[data-tone="red"] b { color: #ff8aa8; }
 .cz-ring { position: relative; display: grid; place-items: center; flex: none; }
 .cz-ring svg { position: absolute; inset: 0; }
 .cz-ring-track { fill: rgba(0, 0, 0, 0.35); stroke: rgba(255, 255, 255, 0.08); stroke-width: 4; }
 .cz-ring-fill { fill: none; stroke: var(--gold); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.25s linear, stroke 0.2s; }
-.cz-ring[data-hurry="true"] .cz-ring-fill { stroke: var(--rose) !important; }
+.cz-ring[data-hurry="true"] .cz-ring-fill { stroke: var(--cz-bad) !important; }
 .cz-ring b { position: relative; font-family: var(--font-display); font-weight: 720; font-size: 15px; color: #fff; }
 .cz-ring[data-hurry="true"] b { color: #ff8aa8; }
 .cz-roundinfo { display: flex; align-items: baseline; gap: 6px; padding-left: 10px; margin-left: 2px; border-left: 1px solid rgba(var(--gold-rgb), 0.18); min-width: 0; }
-.cz-roundinfo b { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--gold); line-height: 1.1; }
-.cz-roundinfo button { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 9.5px; color: #86998f; }
-.cz-roundinfo button:hover { color: #e9dfc0; }
+.cz-roundinfo b { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--gold-text); line-height: 1.1; }
+.cz-roundinfo button { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 9.5px; color: var(--cz-mute); }
+.cz-roundinfo button:hover { color: var(--cz-ink-2); }
 .cz-hostkeys { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 .cz-pace { display: inline-flex; align-items: center; gap: 4px; }
 .cz-pace .key { min-width: 2.1rem; padding: 0 0.5rem; font-weight: 800; }
-.cz-pace-v { min-width: 2.2rem; text-align: center; font: 700 11.5px/1 ui-monospace, monospace; color: var(--gold, #ffcc33); }
+.cz-pace-v { min-width: 2.2rem; text-align: center; font: 700 11.5px/1 ui-monospace, monospace; color: var(--gold-text, #ffcc33); }
 
 .cz-table {
   position: relative; border-radius: 30px;
   background: radial-gradient(90% 90% at 50% 40%, var(--felt-hi), var(--felt) 50%, var(--felt-deep));
-  box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.55), inset 0 0 0 7px #2a1a0b, inset 0 0 0 9px rgba(var(--gold-rgb), 0.25), inset 0 10px 40px rgba(0, 0, 0, 0.55), 0 40px 90px -40px rgba(0, 0, 0, 0.95);
+  box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.55), inset 0 0 0 7px color-mix(in srgb, var(--gold-deep) 70%, #000), inset 0 0 0 9px rgba(var(--gold-rgb), 0.25), inset 0 10px 40px rgba(0, 0, 0, 0.55), 0 40px 90px -40px rgba(0, 0, 0, 0.95);
 }
 .cz-bezel { position: relative; z-index: 1; }
 .cz-marquee { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .cz-bulb {
   position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
-  background: #5a4310; box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+  background: var(--gold-deep); box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.5);
   animation: cz-bulb-on 0.35s calc(0.25s + var(--i) * 14ms) both, cz-chase 1.05s calc(1.4s + var(--k) * 0.35s) steps(1) infinite;
 }
 @keyframes cz-bulb-on {
-  from { background: #5a4310; box-shadow: none; }
-  60% { background: #fff6cf; box-shadow: 0 0 16px 4px rgba(255, 220, 120, 0.95); }
-  to { background: #ffd65a; box-shadow: 0 0 8px 1px rgba(var(--gold-rgb), 0.85); }
+  from { background: var(--gold-deep); box-shadow: none; }
+  60% { background: color-mix(in srgb, #fff 70%, var(--gold-2)); box-shadow: 0 0 16px 4px rgba(var(--gold-rgb), 0.95); }
+  to { background: var(--gold); box-shadow: 0 0 8px 1px rgba(var(--gold-rgb), 0.85); }
 }
 @keyframes cz-chase {
-  0% { background: #fff1b8; box-shadow: 0 0 10px 2px rgba(255, 214, 90, 0.95), 0 0 2px #fff; }
-  33.33% { background: #8a6614; box-shadow: 0 0 3px rgba(var(--gold-rgb), 0.35); }
-  66.66% { background: #c99a22; box-shadow: 0 0 5px rgba(var(--gold-rgb), 0.55); }
+  0% { background: color-mix(in srgb, #fff 55%, var(--gold-2)); box-shadow: 0 0 10px 2px rgba(var(--gold-rgb), 0.95), 0 0 2px #fff; }
+  33.33% { background: color-mix(in srgb, var(--gold-lo) 60%, #000); box-shadow: 0 0 3px rgba(var(--gold-rgb), 0.35); }
+  66.66% { background: var(--gold-lo); box-shadow: 0 0 5px rgba(var(--gold-rgb), 0.55); }
 }
 .cz-marquee[data-hot] .cz-bulb { animation-duration: 0.35s, 0.36s; animation-delay: 0s, calc(var(--k) * 0.12s); }
 
@@ -371,8 +423,8 @@ button.cz-chip:hover { transform: translateY(-2px); }
   display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 200px; padding: 2px 10px 2px 2px; border-radius: 12px;
   background: linear-gradient(90deg, rgba(var(--gold-rgb), 0.16), transparent); animation: cz-pop 0.5s var(--ease-snap) both;
 }
-.cz-result b { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff5d6; }
-.cz-result span span, .cz-result > span > span { display: block; font-size: 11.5px; color: #c9d6cf; }
+.cz-result b { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--cz-ink-1); }
+.cz-result span span, .cz-result > span > span { display: block; font-size: 11.5px; color: var(--cz-ink-3); }
 .cz-result-tile { min-width: 42px; height: 42px; padding: 0 8px; border-radius: 10px; display: grid; place-items: center; font-family: var(--font-display); font-size: 21px; flex: none; font-weight: 760; color: #fff; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 0 22px -4px rgba(255, 255, 255, 0.4); }
 @keyframes cz-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
 
@@ -383,9 +435,9 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-qr { flex: none; border-radius: 8px; transition: transform 0.15s; }
 .cz-qr:hover { transform: scale(1.05); }
 .cz-qrbig { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); animation: rise 0.3s both; }
-.cz-qrbig > div { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px; border-radius: 20px; background: #0f1d17; border: 1px solid rgba(var(--gold-rgb), 0.4); box-shadow: 0 0 60px -20px var(--gold); text-align: center; max-width: 92vw; }
+.cz-qrbig > div { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px; border-radius: 20px; background: var(--cz-s2); border: 1px solid rgba(var(--gold-rgb), 0.4); box-shadow: 0 0 60px -20px var(--gold); text-align: center; max-width: 92vw; }
 
-.cz-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px; font-size: 12px; color: #ffd9a8; background: rgba(255, 116, 25, 0.1); border: 1px solid rgba(255, 116, 25, 0.4); }
+.cz-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px; font-size: 12px; color: #ffd9a8; background: color-mix(in srgb, var(--cz-warn) 10%, transparent); border: 1px solid color-mix(in srgb, var(--cz-warn) 40%, transparent); }
 
 /* resize bars between the wings and the table */
 .cz-split { position: relative; align-self: stretch; width: 12px; margin: 0 -12px; flex: none; cursor: col-resize; touch-action: none; z-index: 5; outline: none; }
@@ -423,8 +475,8 @@ button.cz-chip:hover { transform: translateY(-2px); }
 
 @media (prefers-reduced-motion: reduce) {
   .cz-wing-l, .cz-wing-r, .cz-centre, .cz-result, .cz-qrbig { animation: none; }
-  .cz-bulb { animation: none; background: #ffd65a; box-shadow: 0 0 6px rgba(var(--gold-rgb), 0.7); }
-  .cz-bulb:nth-child(3n) { background: #c99a22; box-shadow: none; }
+  .cz-bulb { animation: none; background: var(--gold); box-shadow: 0 0 6px rgba(var(--gold-rgb), 0.7); }
+  .cz-bulb:nth-child(3n) { background: var(--gold-lo); box-shadow: none; }
   .cz-cascade { display: none; }
   .cz-credits, .cz-ring-fill, .cz-split > span { transition: none; }
 }
@@ -444,21 +496,90 @@ button.cz-chip:hover { transform: translateY(-2px); }
   background: radial-gradient(120% 100% at 50% 20%, var(--sw-felt), var(--sw-felt3)); box-shadow: inset 0 0 0 2px var(--sw-acc);
 }
 .cz-theme > i::after { content: ""; position: absolute; right: 6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--sw-acc); box-shadow: 0 0 8px var(--sw-acc); }
-.cz-theme > b { font-size: 10.5px; font-weight: 600; color: #f3ecd8; line-height: 1.2; }
-.cz-guide-tag { font-size: 12px; line-height: 1.45; color: #cfc6ad; margin-bottom: 8px; }
+.cz-theme > b { font-size: 10.5px; font-weight: 600; color: var(--cz-ink-2); line-height: 1.2; }
+.cz-guide-tag { font-size: 12px; line-height: 1.45; color: var(--cz-ink-3); margin-bottom: 8px; }
 .cz-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; counter-reset: st; }
 .cz-steps li {
-  position: relative; padding: 7px 9px 7px 36px; border-radius: 9px; font-size: 12px; line-height: 1.45; color: #f3ecd8;
+  position: relative; padding: 7px 9px 7px 36px; border-radius: 9px; font-size: 12px; line-height: 1.45; color: var(--cz-ink-2);
   background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(var(--gold-rgb), 0.1); counter-increment: st;
 }
 .cz-steps li::before {
   content: counter(st); position: absolute; left: 8px; top: 7px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--gold); border: 1.5px solid var(--gold); background: var(--felt-deep);
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--gold-text); border: 1.5px solid var(--gold); background: var(--felt-deep);
 }
-.cz-rules h4 { margin: 12px 0 5px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.cz-rules h4 { margin: 12px 0 5px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-text); }
 .cz-rules ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; list-style: disc; }
-.cz-rules li { font-size: 12px; line-height: 1.45; color: #e9e1c8; }
+.cz-rules li { font-size: 12px; line-height: 1.45; color: var(--cz-ink-2); }
 .cz-rules li::marker { color: var(--gold); }
 .cz-steps b, .cz-rules b { color: var(--gold-2); font-weight: 650; }
 .cz-tabs > button { min-width: 0; }
 .cz-tabs:has(> button:nth-child(5)) > button { letter-spacing: 0.02em; padding: 0 3px; }
+
+/* ------------------------------------------------------------- the page around the casino view (html[data-cz], pageVars) */
+@property --cz-page-bg { syntax: "<color>"; inherits: true; initial-value: #060c0a; }
+@property --cz-page-s1 { syntax: "<color>"; inherits: true; initial-value: #0f1a17; }
+@property --cz-page-s2 { syntax: "<color>"; inherits: true; initial-value: #172722; }
+@property --cz-page-s3 { syntax: "<color>"; inherits: true; initial-value: #1c352b; }
+@property --cz-page-s4 { syntax: "<color>"; inherits: true; initial-value: #2a4139; }
+@property --cz-page-felt { syntax: "<color>"; inherits: true; initial-value: #0d6b45; }
+@property --cz-page-accent { syntax: "<color>"; inherits: true; initial-value: #ffcc33; }
+@property --cz-page-accent-2 { syntax: "<color>"; inherits: true; initial-value: #ffe08a; }
+@property --cz-page-deep { syntax: "<color>"; inherits: true; initial-value: #3a2c08; }
+@property --cz-page-ink { syntax: "<color>"; inherits: true; initial-value: #1a1200; }
+@property --cz-page-text { syntax: "<color>"; inherits: true; initial-value: #e7f0ec; }
+html[data-cz] {
+  --cz-page-bg: #060c0a; --cz-page-s1: #0f1a17; --cz-page-s2: #172722; --cz-page-s3: #1c352b; --cz-page-s4: #2a4139;
+  --cz-page-felt: #0d6b45; --cz-page-accent: #ffcc33; --cz-page-accent-2: #ffe08a; --cz-page-deep: #3a2c08;
+  --cz-page-ink: #1a1200; --cz-page-text: #e7f0ec;
+  --color-chassis-0: var(--cz-page-bg);
+  --color-chassis-1: var(--cz-page-s1);
+  --color-chassis-2: var(--cz-page-s2);
+  --color-chassis-3: var(--cz-page-s3);
+  --color-chassis-4: var(--cz-page-s4);
+  --color-line: color-mix(in srgb, var(--cz-page-accent) 14%, var(--cz-page-s2));
+  --color-line-2: color-mix(in srgb, var(--cz-page-accent) 24%, var(--cz-page-s3));
+  --color-ink-1: color-mix(in srgb, var(--cz-page-text) 80%, var(--cz-page-accent-2));
+  --color-ink-2: color-mix(in srgb, var(--cz-page-text) 80%, var(--cz-page-s3));
+  --color-ink-3: color-mix(in srgb, var(--cz-page-text) 64%, var(--cz-page-s3));
+  --color-ink-4: color-mix(in srgb, var(--cz-page-text) 56%, var(--cz-page-s3));
+  --color-ember: var(--cz-page-accent);
+  --color-ember-2: var(--cz-page-accent-2);
+  --color-ember-deep: var(--cz-page-deep);
+  transition: --cz-page-bg 0.7s ease, --cz-page-s1 0.7s ease, --cz-page-s2 0.7s ease, --cz-page-s3 0.7s ease, --cz-page-s4 0.7s ease,
+    --cz-page-felt 0.7s ease, --cz-page-accent 0.7s ease, --cz-page-accent-2 0.7s ease, --cz-page-deep 0.7s ease,
+    --cz-page-ink 0.7s ease, --cz-page-text 0.7s ease;
+}
+html[data-cz] body {
+  background-image:
+    radial-gradient(1200px 700px at 50% 38%, color-mix(in srgb, var(--cz-page-felt) 24%, transparent), transparent 60%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
+}
+html[data-cz] ::selection { background: var(--cz-page-accent); color: var(--cz-page-ink); }
+html[data-cz] .key-ember {
+  color: var(--cz-page-ink); background: linear-gradient(180deg, var(--cz-page-accent-2), var(--cz-page-accent)); border-color: var(--cz-page-accent-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 var(--cz-page-deep), 0 0 24px -6px var(--cz-page-accent);
+}
+html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, var(--cz-page-accent) 45%, var(--cz-page-deep)); }
+@media (prefers-reduced-motion: reduce) { html[data-cz] { transition: none; } }
+
+/* ------------------------------------------------------------- chip flights (chipfx.ts): a fixed layer on <body> */
+.cz-fx { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.cz-flychip {
+  position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; display: grid; place-items: center;
+  will-change: transform, opacity;
+  background: repeating-conic-gradient(from 0deg, var(--chip) 0 22.5deg, #f6f1e3 22.5deg 30deg, var(--chip) 30deg 45deg);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+.cz-flychip::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--chip); border: 1.5px dashed rgba(255, 255, 255, 0.6); }
+.cz-flychip b { position: relative; font: 700 10px/1 var(--font-mono); color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7); letter-spacing: -0.03em; }
+.cz-flychip-ghost { width: 44px; height: 44px; margin: -22px 0 0 -22px; box-shadow: 0 14px 0 rgba(0, 0, 0, 0.28), 0 0 0 3px var(--ring), 0 0 26px var(--ring); }
+.cz-flychip-ghost b { font-size: 12px; }
+.cz-flychip-ghost.rm { box-shadow: 0 14px 0 rgba(0, 0, 0, 0.28), 0 0 0 3px #ff3f78, 0 0 26px rgba(255, 63, 120, 0.5); }
+.cz-flychip-ghost.rm::after {
+  content: "\2715"; position: absolute; right: -6px; top: -6px; width: 18px; height: 18px; border-radius: 50%;
+  background: #ff3f78; color: #fff; font: 700 11px/18px var(--font-sans); text-align: center;
+}
+.cz-spot.cz-dd-on { outline: 2px solid var(--gold); outline-offset: -2px; filter: brightness(1.2); }
+.cz-rack .cz-chip { touch-action: none; }
+.cz-spot-mine { transition: box-shadow 0.2s; }
+.cz-flychip[data-light] b { color: #222; text-shadow: none; }

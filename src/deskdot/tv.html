@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>DeskDot TV</title>
+<!-- DeskDotTV: the read-only TV view (docs/TV_VIEW.md). No inline script: the web app's CSP forbids it. -->
+<style>
+:root {
+  --chassis-0: #08080a; --chassis-1: #0f0f13; --chassis-2: #16161b; --chassis-3: #1e1e25; --chassis-4: #27272f;
+  --line: #25252d; --line-2: #33333d;
+  --ink-1: #efece4; --ink-2: #b6b2a8; --ink-3: #7a7783; --ink-4: #484651;
+  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --pink: #ff3f78;
+  --ok: #3ddc84; --warn: #ffb020; --bad: #ff4757; --info: #36c5f0;
+  --font: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "SF Pro Display", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: var(--ink-1); font-family: var(--font); }
+body { -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+body.nocursor, body.nocursor * { cursor: none !important; }
+#viewport { position: fixed; inset: 0; overflow: hidden; background: #000; }
+#stage {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
+  background:
+    radial-gradient(1400px 900px at 50% 40%, #121218 0%, #0a0a0e 55%, #050507 100%);
+  /* the casino table theme (status.table_theme.css); classic green + gold until a table says otherwise */
+  --felt: #0d5a34; --felt2: #0a4528; --felt3: #06301c; --accent: #f2c14e; --accent-hi: #ffe08a; --accent-lo: #b8862b;
+  --accent-deep: #5a3d0c; --accent-rgb: 242, 193, 78; --ink: #1a1200;
+}
+
+/* ------------------------------------------------------------------ top bar */
+#bar {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 96px; z-index: 5;
+  display: flex; align-items: center; gap: 28px; padding: 0 48px;
+  background: linear-gradient(180deg, rgba(22, 22, 28, .96), rgba(12, 12, 16, .9));
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .45);
+}
+.wordmark { font-size: 44px; font-weight: 800; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+.wordmark .desk { color: var(--pink); text-shadow: 0 0 18px rgba(255, 63, 120, .55); }
+.wordmark .dot { color: var(--gold); text-shadow: 0 0 18px rgba(255, 204, 51, .5); }
+.wordmark small { font-size: 20px; font-weight: 600; color: var(--ink-3); letter-spacing: .3em; margin-left: 14px; vertical-align: middle; }
+.bar-sep { width: 1px; height: 46px; background: var(--line-2); }
+#bar-app { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+#bar-name { font-size: 34px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#bar-cat { font: 600 17px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink-3); }
+#bar-join { display: flex; align-items: center; gap: 16px; padding: 8px 16px 8px 8px; border-radius: 14px;
+  background: var(--chassis-2); border: 1px solid var(--line-2); }
+#bar-join canvas { width: 72px; height: 72px; border-radius: 6px; background: #fff; }
+#bar-join .jt { display: flex; flex-direction: column; gap: 4px; }
+#bar-join .jl { font: 600 15px/1 var(--mono); letter-spacing: .2em; color: var(--ink-3); text-transform: uppercase; }
+#bar-join .jc { font: 700 34px/1 var(--mono); letter-spacing: .14em; color: var(--gold); }
+#bar-clock { font: 600 36px/1 var(--mono); color: var(--ink-1); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+#bar-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--ink-4); box-shadow: 0 0 0 3px rgba(255,255,255,.04); transition: background .3s, box-shadow .3s; }
+#bar-dot[data-on="ok"] { background: var(--ok); box-shadow: 0 0 14px var(--ok); }
+#bar-dot[data-on="warn"] { background: var(--warn); box-shadow: 0 0 14px var(--warn); animation: blink 1s infinite; }
+#bar-dot[data-on="bad"] { background: var(--bad); box-shadow: 0 0 14px var(--bad); }
+@keyframes blink { 50% { opacity: .35; } }
+
+/* ------------------------------------------------------------------ scene area */
+#scene { position: absolute; left: 0; top: 96px; width: 1920px; height: 984px; overflow: hidden; }
+.tv-scene { position: absolute; inset: 0; overflow: hidden; }
+
+/* shared pieces scenes may use (docs/TV_VIEW.md §4) */
+.tv-bezel {
+  position: relative; padding: 34px; border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 38%),
+    linear-gradient(180deg, #2b2b33 0%, #1a1a20 48%, #111115 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -2px 0 rgba(0, 0, 0, .65), inset 0 0 0 1px rgba(255, 255, 255, .03),
+    0 0 0 1px #000, 0 50px 90px rgba(0, 0, 0, .7), 0 18px 30px rgba(0, 0, 0, .5);
+}
+.tv-well {
+  position: relative; padding: 12px; border-radius: 12px; background: #030304;
+  box-shadow: inset 0 6px 18px rgba(0, 0, 0, .95), inset 0 0 0 1px rgba(0, 0, 0, .9), 0 1px 0 rgba(255, 255, 255, .07);
+}
+.tv-well canvas { display: block; }
+.tv-well::after { /* diffuser sheen */
+  content: ""; position: absolute; inset: 12px; border-radius: 4px; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255, 255, 255, .06) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, .025) 100%);
+}
+.tv-screw {
+  position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6a6a74, #2a2a30 60%, #141418);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .25), 0 1px 1px rgba(0, 0, 0, .8);
+}
+.tv-screw::after { content: ""; position: absolute; left: 3px; right: 3px; top: 7px; height: 2px; background: #0c0c0f; border-radius: 1px; transform: rotate(var(--r, 35deg)); }
+.tv-screw.tl { left: 10px; top: 10px; } .tv-screw.tr { right: 10px; top: 10px; --r: -20deg; }
+.tv-screw.bl { left: 10px; bottom: 10px; --r: 70deg; } .tv-screw.br { right: 10px; bottom: 10px; --r: 10deg; }
+.tv-card {
+  border-radius: 22px; padding: 26px 30px;
+  background: linear-gradient(180deg, rgba(39, 39, 47, .78), rgba(22, 22, 27, .82));
+  border: 1px solid var(--line-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 20px 50px rgba(0, 0, 0, .45);
+}
+.tv-label { font: 600 22px/1.1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+.tv-big { font: 800 96px/1 var(--font); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tv-chip {
+  display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border-radius: 999px;
+  font: 600 26px/1.15 var(--font); background: var(--chassis-3); border: 1px solid var(--line-2); color: var(--ink-1);
+}
+.tv-chip::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--ink-3); flex: none; }
+.tv-chip[data-tone="ok"]::before { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.tv-chip[data-tone="warn"]::before { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+.tv-chip[data-tone="bad"]::before { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+.tv-chip[data-tone="ember"]::before { background: var(--ember); box-shadow: 0 0 10px var(--ember); }
+.tv-chip[data-tone="gold"]::before { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.tv-avatar { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* ------------------------------------------------------------------ generic scene */
+.g-ambient { position: absolute; left: -300px; top: -300px; width: 1700px; height: 1584px; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(var(--amb, 255, 72, 24), var(--amb-a, .16)), rgba(var(--amb, 255, 72, 24), 0)); }
+.g-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 260px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .55)); }
+.g-panel { position: absolute; left: 112px; top: 62px; }
+.g-side { position: absolute; left: 1080px; top: 64px; width: 760px; bottom: 56px; display: flex; flex-direction: column; gap: 30px; }
+.g-cat { display: flex; align-items: center; gap: 16px; }
+.g-cat i { width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 14px var(--ember); }
+.g-name { font: 800 92px/1.02 var(--font); letter-spacing: -.025em; overflow-wrap: anywhere; text-wrap: balance;
+  max-height: 2.1em; overflow: hidden; }
+.g-desc { font-size: 30px; color: var(--ink-2); line-height: 1.35; }
+.g-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.g-stat { padding: 20px 24px; border-radius: 18px; background: linear-gradient(180deg, rgba(39,39,47,.7), rgba(22,22,27,.75));
+  border: 1px solid var(--line-2); min-width: 0; }
+.g-stat b { display: block; font: 700 46px/1.1 var(--font); margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.g-stat .tv-label { font-size: 19px; }
+.g-players { display: flex; flex-direction: column; gap: 14px; }
+.g-player { display: flex; align-items: center; gap: 18px; padding: 12px 20px 12px 12px; border-radius: 16px;
+  background: rgba(30, 30, 37, .75); border: 1px solid var(--line-2); border-left: 8px solid var(--c, #888); }
+.g-player canvas { width: 56px; height: 56px; border-radius: 10px; background: #050506; }
+.g-player span { font: 700 34px/1 var(--font); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-player em { font: 600 20px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); font-style: normal; text-transform: uppercase; }
+.g-player em.ready { color: var(--ok); }
+.g-hint { margin-top: auto; font: 500 24px/1.4 var(--font); color: var(--ink-3); }
+
+/* ------------------------------------------------------------------ veil (waiting / closed) */
+#veil { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(1200px 800px at 50% 45%, #15151b, #050506 70%); transition: opacity .6s; }
+#veil[hidden] { display: none; }
+#veil.fade { opacity: 0; pointer-events: none; }
+.veil-card { display: flex; flex-direction: column; align-items: center; gap: 34px; text-align: center; max-width: 1200px; }
+.veil-dots { display: flex; gap: 22px; }
+.veil-dots i { width: 34px; height: 34px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 26px var(--ember), 0 0 60px rgba(255,72,24,.5);
+  animation: pulse 1.4s ease-in-out infinite; }
+.veil-dots i:nth-child(2) { animation-delay: .18s; background: var(--pink); box-shadow: 0 0 26px var(--pink); }
+.veil-dots i:nth-child(3) { animation-delay: .36s; background: var(--gold); box-shadow: 0 0 26px var(--gold); }
+.veil-dots i:nth-child(4) { animation-delay: .54s; background: var(--info); box-shadow: 0 0 26px var(--info); }
+#veil[data-tone="bad"] .veil-dots i { animation: none; opacity: .25; box-shadow: none; }
+@keyframes pulse { 0%, 100% { transform: scale(.7); opacity: .35; } 50% { transform: scale(1); opacity: 1; } }
+#veil h1 { margin: 0; font: 800 76px/1.1 var(--font); letter-spacing: -.02em; }
+#veil p { margin: 0; font: 400 34px/1.45 var(--font); color: var(--ink-2); }
+#veil .veil-code { font: 700 30px/1 var(--mono); letter-spacing: .3em; color: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { .veil-dots i { animation: none; opacity: .8; } }
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+    <header id="bar">
+      <div class="wordmark"><span class="desk">Desk</span><span class="dot">Dot</span><small>TV</small></div>
+      <div class="bar-sep"></div>
+      <div id="bar-app"><div id="bar-name">Connecting…</div><div id="bar-cat"></div></div>
+      <div id="bar-join" hidden><canvas id="bar-qr" width="72" height="72"></canvas><div class="jt"><div class="jl">Scan to join</div><div class="jc" id="bar-code"></div></div></div>
+      <div id="bar-clock">--:--</div>
+      <div id="bar-dot" title="connection"></div>
+    </header>
+    <main id="scene"></main>
+    <div id="veil" data-tone="busy">
+      <div class="veil-card">
+        <div class="veil-dots"><i></i><i></i><i></i><i></i></div>
+        <h1 id="veil-title">Waiting for DeskDot…</h1>
+        <p id="veil-text">Connecting to the computer running DeskDot.</p>
+        <div class="veil-code" id="veil-code"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<noscript><p style="position:fixed;inset:0;margin:0;padding:40px;font:24px system-ui;color:#efece4;background:#000">Turn on JavaScript to watch DeskDot on this screen.</p></noscript>
+<script src="/tv/static/tv.js"></script>
+<script src="/tv/static/tv-games.js"></script>
+<script src="/tv/static/tv-casino.js"></script>
+</body>
+</html>

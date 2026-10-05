@@ -275,8 +275,9 @@ uv run python -m http.server 8799 --directory site   # local test: http://localh
 `site/app/` is committed like the rest of `site/`; Netlify publishes it with no build step. Deploy = commit and
 push (or `netlify deploy --prod --dir site`). `netlify.toml` gives `/app/*` its own Content-Security-Policy
 (Pyodide CDN, `'wasm-unsafe-eval'`, a same-origin worker, https data APIs) and keeps the website's stricter policy
-off it; `/app/proxy` and `/app/signal` are routed to their functions by their own `config.path`, and `/p/*` is
-rewritten to the join page `/app/join/` (same policy). The functions' one dependency (`@netlify/blobs`, for
+off it; `/app/proxy` and `/app/signal` are routed to their functions by their own `config.path`, and `/p/*` and
+`/tv/*` (the TV view, docs/TV_VIEW.md — `host-rtc.js` registers the open TV code too; the join page shows
+`/app/join/tv.html` with its scripts in `/app/join/tv/`) are rewritten to the join page `/app/join/` (same policy). The functions' one dependency (`@netlify/blobs`, for
 `/app/signal`) is in `netlify/package.json`: run `npm install` in `netlify/` once before `netlify deploy`, which
 bundles it. The normal desktop build (`web/dist`) is
 untouched: the web build only happens with `DESKDOT_WEBAPP=1`.

@@ -15,7 +15,8 @@ What it produces (docs/WEB_APP.md):
     site/app/sw.js                 service worker (API routing for <img>, offline cache)
     site/app/join/…                the phone join page served at /p/<code> (online play with friends, WebRTC):
                                    index.html + join.{js,css}, and the engine's phone pages (controller.html,
-                                   casino.html) with their inline script moved to <kind>.js (the page's CSP)
+                                   casino.html) with their inline script moved to <kind>.js (the page's CSP);
+                                   the TV view (/tv/<code>, docs/TV_VIEW.md): tv.html + tv/*.js
 
 Pyodide itself and its packages (numpy, Pillow, pydantic, FastAPI…) load from the official CDN, pinned below.
 The normal desktop build (web/dist) is not touched.
@@ -207,6 +208,23 @@ def split_phone_page(html: str, kind: str, build: str) -> tuple[str, str]:
     return page, scripts[0].strip("\n") + "\n"
 
 
+#: the TV view (docs/TV_VIEW.md): the page and its scripts (served by the engine at /tv/static/<name>)
+TV_PAGE = SRC / "tv.html"
+TV_SCRIPTS = SRC / "tv"
+
+
+def tv_page_for_join(html: str, build: str) -> str:
+    """tv.html for the join page: its scripts load from /app/join/tv/ (copied there) instead of the engine."""
+    if re.search(r"<script>", html) or re.search(r"<[^>]*\son[a-z]+\s*=", html):
+        raise SystemExit("tv.html: inline script / event handlers can't run under the join page's CSP")
+    page, n = re.subn(
+        r'src="/tv/static/([a-z0-9-]+\.js)"', lambda m: f'src="/app/join/tv/{m.group(1)}?v={build}"', html
+    )
+    if n == 0:
+        raise SystemExit("tv.html: no /tv/static/ scripts found")
+    return page
+
+
 def build_join(dest: Path, build: str) -> None:
     """The phone join page (web/webapp/join/) + the engine's phone pages, into site/app/join/."""
     dest.mkdir(parents=True, exist_ok=True)
@@ -218,6 +236,12 @@ def build_join(dest: Path, build: str) -> None:
         page, script = split_phone_page(src.read_text(encoding="utf-8"), kind, build)
         (dest / f"{kind}.html").write_text(page, encoding="utf-8")
         (dest / f"{kind}.js").write_text(script, encoding="utf-8")
+    (dest / "tv.html").write_text(
+        tv_page_for_join(TV_PAGE.read_text(encoding="utf-8"), build), encoding="utf-8"
+    )
+    (dest / "tv").mkdir(exist_ok=True)
+    for src in sorted(TV_SCRIPTS.glob("*.js")):
+        shutil.copy2(src, dest / "tv" / src.name)
 
 
 def main() -> int:
@@ -271,7 +295,12 @@ def main() -> int:
         data = src.read_bytes()
         h.update(data)
         (OUT / rel).write_bytes(data)
-    for src in [*sorted((HOST_SRC / "join").iterdir()), *PHONE_PAGES.values()]:
+    for src in [
+        *sorted((HOST_SRC / "join").iterdir()),
+        *PHONE_PAGES.values(),
+        TV_PAGE,
+        *sorted(TV_SCRIPTS.glob("*.js")),
+    ]:
         if src.is_file():
             h.update(src.read_bytes())
     build = h.hexdigest()[:12]

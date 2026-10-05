@@ -218,7 +218,7 @@ not an engine endpoint) does the offer/answer swap — see docs/WEB_APP.md, "Pla
 | POST | `/api/play/lobby/switch` | `{"app": "<casino id>"}` — casino rooms only: move the open room to another casino table; phones stay connected on their seats (their socket follows the room's app), wallets carry over, the join QR moves along while the lobby still waits. 404 without a room, 422 for a non-casino app |
 | DELETE | `/api/play/lobby` | close it and disconnect the phones |
 | GET | `/p/{code}` | the phone controller page (reachable from the LAN) |
-| WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes, rulebook}` (`rulebook`: `{game id: {id, title, tagline, how: [step], rules: [{h, items}]}}` from `casino/rulebook.py` — every casino game for a casino room, the app's own guide for Rock Paper Scissors, else `{}`; `**bold**` is the only markup), `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
+| WS | `/ws/p/{code}?cid=<client id>` | phone → `{"k": "up|down|left|right|a|b"}`, `{"type": "ping", "t"}`, `{"type": "frames", "on": bool}` (opt in to the live panel: the server then sends binary 32×32×3 RGB frames, newest only, ≤ 10 fps), `{"type": "profile", name?, color?, avatar?, team?, ready?}` (sanitised: name ≤ 10 drawable chars, colour from the palette and not used by another seat, known avatar id, team 0/1/null, boolean ready); server → `hello {seat, color, game, controls, cid, resumed, profile, max_players, palette, avatars, modes, rulebook}` (`rulebook`: `{game id: {id, title, tagline, how: [step], rules: [{h, items}]}}` from `casino/rulebook.py` — every casino game for a casino room, the app's own guide for Rock Paper Scissors, else `{}`; `**bold**` is the only markup), `state {status}` (on change, ≥ every 2 s), `roster {players: [{seat, name, color, avatar, team, ready, host}]}` (after every join / leave / profile change), `pong`, `full`, `closed`, `replaced`. A dropped phone keeps its seat and profile for 20 s for a reconnect with the same `cid` |
 
 ### Casino tables (`category: "casino"`, docs/CASINO.md)
 
@@ -272,6 +272,22 @@ devices. Windows asks once to allow Python on private networks — allow it, or 
 in-process exactly like the host's keyboard, waking the engine immediately; the studio preview shows the result at
 once. The panel itself is bounded by BLE flow control (~100–200 ms per full frame), so multiplayer games keep
 frames small (dark arenas, few changing pixels) to stream at ~9 fps.
+
+## TV view (docs/TV_VIEW.md)
+
+A read-only, full-screen view of the panel (and bespoke game / casino scenes) for any screen on the network.
+
+| Method | Path | Body / result |
+| --- | --- | --- |
+| GET | `/api/tv` | `{tv: null \| {code, url, lan_ready, viewers}}` |
+| POST | `/api/tv` | `{"renew": false}` — open the TV link, or return the open one (`renew: true` replaces the code and disconnects screens on the old one) → `{ok, code, url, lan_ready, viewers}` |
+| DELETE | `/api/tv` | close it; every TV is sent `{"type":"closed"}` |
+| GET | `/tv/{code}` | the TV page (`tv.html`; 404 with the same page for an unknown code) |
+| GET | `/tv/static/{name}` | the TV scripts (`tv.js`, `tv-games.js`, `tv-casino.js`) from `src/deskdot/tv/` |
+| WS | `/ws/tv/{code}` | server → TV: `hello` `{app, meta, avatars, server_time}`, `state` `{app, status, lobby, server_time}` (~5 Hz on change, 2 s heartbeat; `status` = the app's public `status()`, never `private_status()`), binary 3072-byte frames (≤ 12 fps, latest wins), `closed`. TV → server: `{"type":"ping","t"}` → `pong` |
+
+LAN clients may reach `/tv/` and `/ws/tv/` (code-checked, read-only) like `/p/` and `/ws/p/`; everything else stays
+local. The TV code is never the same as the lobby code.
 
 ## Presets (one-tap playlists)
 

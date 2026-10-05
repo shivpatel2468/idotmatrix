@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { sfx, stopSfx } from "../../lib/sound";
+import { localChipAt } from "./chipfx";
 import { type CasinoStatus, secondsLeft, useCasino } from "./state";
 
 /**
@@ -32,8 +33,9 @@ export function useCasinoSounds(app: string | null) {
       // chips placed (anyone's): the table's totals going up
       if (st.phase === "betting" && was.phase === "betting") {
         const d = sum(st.totals) - sum(was.totals);
-        if (d > 0) sfx(d >= minBet * 5 ? "chips-stack" : "chip", { pan: Math.random() * 0.8 - 0.4 });
-        else if (d < 0) sfx("chip", { volume: 0.5 });
+        const mine = performance.now() - localChipAt < 900; // the host's own chips clack when their flight lands (chipfx)
+        if (d > 0 && !mine) sfx(d >= minBet * 5 ? "chips-stack" : "chip", { pan: Math.random() * 0.8 - 0.4 });
+        else if (d < 0 && !mine) sfx("chip", { volume: 0.5 });
       }
       if (st.phase === was.phase && st.round === was.round) return;
       const ph = st.phase;

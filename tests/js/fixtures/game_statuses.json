@@ -1,0 +1,9476 @@
+{
+ "arcade": {
+  "meta": {
+   "id": "arcade",
+   "name": "Snake",
+   "category": "games",
+   "icon": "gamepad-2",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "battle",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "play_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "battle",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "outro_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "battle",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "start_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "teams",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "play_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "teams",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "outro_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "teams",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "time_left": 90
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "apples": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  }
+ },
+ "invaders": {
+  "meta": {
+   "id": "invaders",
+   "name": "Invaders",
+   "category": "games",
+   "icon": "rocket",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "maze": {
+  "meta": {
+   "id": "maze",
+   "name": "Maze Chase",
+   "category": "games",
+   "icon": "ghost",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "random",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_hunt": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "hunt",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_hunt": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "hunt",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_hunt": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "hunt",
+   "map": "random",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "asteroids": {
+  "meta": {
+   "id": "asteroids",
+   "name": "Asteroids",
+   "category": "games",
+   "icon": "orbit",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "field",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "battle",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "battle",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_battle": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "battle",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "teams",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "teams",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "teams",
+   "map": "field",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "infinity": {
+  "meta": {
+   "id": "infinity",
+   "name": "Infinity",
+   "category": "games",
+   "icon": "infinity",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "cave",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_survive": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "survive",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_survive": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "survive",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_survive": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "survive",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "cave",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "tictactoe": {
+  "meta": {
+   "id": "tictactoe",
+   "name": "X and 0",
+   "category": "games",
+   "icon": "hash",
+   "max_players": 2
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "x": 0,
+    "o": 0,
+    "draws": 0
+   }
+  },
+  "start_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "x": 0,
+    "o": 0,
+    "draws": 0
+   }
+  },
+  "play_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "x": 0,
+    "o": 0,
+    "draws": 0
+   }
+  },
+  "outro_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "x": 0,
+    "o": 0,
+    "draws": 0
+   }
+  }
+ },
+ "mines": {
+  "meta": {
+   "id": "mines",
+   "name": "Mines",
+   "category": "games",
+   "icon": "bomb",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "square",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "square",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cells": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  }
+ },
+ "starship": {
+  "meta": {
+   "id": "starship",
+   "name": "Starship",
+   "category": "games",
+   "icon": "plane",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "deep",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_ace": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "ace",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_ace": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "ace",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_ace": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "ace",
+   "map": "deep",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "neonheat": {
+  "meta": {
+   "id": "neonheat",
+   "name": "Neon Heat",
+   "category": "games",
+   "icon": "siren",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "downtown",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3
+   }
+  },
+  "start_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "rush",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  },
+  "play_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "rush",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  },
+  "outro_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "rush",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  },
+  "start_cops": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "cops",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  },
+  "play_cops": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "cops",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  },
+  "outro_cops": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "cops",
+   "map": "downtown",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "cash": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "lives": {
+    "1": 3,
+    "2": 3,
+    "3": 3
+   },
+   "time_left": 150
+  }
+ },
+ "pong": {
+  "meta": {
+   "id": "pong",
+   "name": "Pong",
+   "category": "games",
+   "icon": "circle-dot",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "classic",
+   "map": "open",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_classic": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "classic",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_classic": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "classic",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_classic": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "classic",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_doubles": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "doubles",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "4": {
+     "team": null,
+     "human": false,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_doubles": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "doubles",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "4": {
+     "team": 1,
+     "human": false,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_doubles": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "doubles",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "4": {
+     "team": 1,
+     "human": false,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_fourway": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "fourway",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_fourway": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "fourway",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_fourway": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "fourway",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "breakout": {
+  "meta": {
+   "id": "breakout",
+   "name": "Breakout",
+   "category": "games",
+   "icon": "brick-wall",
+   "max_players": 2
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "start_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "play_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "outro_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "flappy": {
+  "meta": {
+   "id": "flappy",
+   "name": "Flappy",
+   "category": "games",
+   "icon": "bird",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "pipes",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "pipes",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "pipes",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "pipes",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "dino": {
+  "meta": {
+   "id": "dino",
+   "name": "Dino Runner",
+   "category": "games",
+   "icon": "footprints",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "desert",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "desert",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "desert",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "desert",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "racer": {
+  "meta": {
+   "id": "racer",
+   "name": "Racer",
+   "category": "games",
+   "icon": "car",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "highway",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "highway",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "highway",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "highway",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  }
+ },
+ "fourup": {
+  "meta": {
+   "id": "fourup",
+   "name": "Four Up",
+   "category": "games",
+   "icon": "grid-3x3",
+   "max_players": 2
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "draws": 0
+   }
+  },
+  "start_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "draws": 0
+   }
+  },
+  "play_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "draws": 0
+   }
+  },
+  "outro_duel": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "duel",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "turn": 1,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "draws": 0
+   }
+  }
+ },
+ "cycles": {
+  "meta": {
+   "id": "cycles",
+   "name": "Light Cycles",
+   "category": "games",
+   "icon": "zap",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "open",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0
+   },
+   "alive": [
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  "start_party": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "party",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  },
+  "play_party": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "party",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  },
+  "outro_party": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "party",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  },
+  "start_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "teams",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  },
+  "play_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "teams",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  },
+  "outro_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "teams",
+   "map": "open",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "wins": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   },
+   "alive": [
+    1,
+    2,
+    3
+   ]
+  }
+ },
+ "penguin": {
+  "meta": {
+   "id": "penguin",
+   "name": "Penguin Escape",
+   "category": "games",
+   "icon": "snowflake",
+   "max_players": 1
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "level": 1,
+   "levels": 16,
+   "fish": 0,
+   "moves": 0,
+   "stage": "level",
+   "stars_total": 0
+  }
+ },
+ "leafleap": {
+  "meta": {
+   "id": "leafleap",
+   "name": "Leaf Leap",
+   "category": "games",
+   "icon": "sprout",
+   "max_players": 2
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "meadow",
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "level": 1,
+   "lives": 3,
+   "screen": 1
+  }
+ },
+ "tetris": {
+  "meta": {
+   "id": "tetris",
+   "name": "Tetris",
+   "category": "games",
+   "icon": "blocks",
+   "max_players": 2
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false
+  },
+  "play_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "lines": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "outro_versus": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "versus",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "lines": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "lines": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "lines": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "coop",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    }
+   ],
+   "lobby": false,
+   "lines": {
+    "1": 0,
+    "2": 0
+   }
+  }
+ },
+ "g2048": {
+  "meta": {
+   "id": "g2048",
+   "name": "2048",
+   "category": "games",
+   "icon": "grid-2x2",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "classic",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "tops": {
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "tops": {
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "tops": {
+    "1": 2,
+    "2": 2,
+    "3": 2
+   }
+  },
+  "start_relay": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "relay",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "turn": 1
+  },
+  "play_relay": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "relay",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "turn": 1
+  },
+  "outro_relay": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "relay",
+   "map": "classic",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "turn": 1
+  }
+ },
+ "streetsurge": {
+  "meta": {
+   "id": "streetsurge",
+   "name": "Street Surge",
+   "category": "games",
+   "icon": "gauge",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "solo",
+   "map": "city",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6
+   },
+   "lap": 1
+  },
+  "start_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "race",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  },
+  "play_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "race",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  },
+  "outro_race": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "race",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  },
+  "start_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "teams",
+   "mode": "teams",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  },
+  "play_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "teams",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  },
+  "outro_teams": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "teams",
+   "map": "city",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    },
+    "2": {
+     "team": 1,
+     "human": true,
+     "ready": true
+    },
+    "3": {
+     "team": 0,
+     "human": true,
+     "ready": true
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": 1,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "places": {
+    "1": 6,
+    "2": 6,
+    "3": 8
+   },
+   "lap": 1
+  }
+ },
+ "rps": {
+  "meta": {
+   "id": "rps",
+   "name": "Rock Paper Scissors",
+   "category": "games",
+   "icon": "hand",
+   "max_players": 8
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "cpu",
+   "map": "knockout",
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "vs",
+    "kind": "attract",
+    "match": 1,
+    "round": 0,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "1": {
+      "name": "REX",
+      "color": "#00c8ff",
+      "human": false
+     },
+     "2": {
+      "name": "ZAP",
+      "color": "#ff3c5a",
+      "human": false
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "art": {
+     "rock": [
+      "....hhhhhh....",
+      "cc.hlllhhhhh..",
+      "cchhhhhhhhhhh.",
+      "cchhhhhhllllhh",
+      "cchhhhhhhhhhsh",
+      "cchhhhhhhsssss",
+      "cchhhhhhhhhhhh",
+      "cchhhhhhhsssss",
+      "cchhhhhhhhhhhh",
+      "cc.hhhhhhssss.",
+      "....hhhhhhhh.."
+     ],
+     "paper": [
+      "......hh.......",
+      ".....hhh.......",
+      "....hhh........",
+      "cc.hhhhhhhhhhh.",
+      "cchlllhhhhhhhhh",
+      "cchhhhhh.......",
+      "cchhhhhhhhhhhhh",
+      "cchhhhhhhhhhhhh",
+      "cchhhhhh.......",
+      "cchhhhhhhhhhhh.",
+      "cchhhhhhhhhhhh.",
+      "cc.hhhhh.......",
+      "....hhhhhhhhh..",
+      ".....hhhhhhh..."
+     ],
+     "scissors": [
+      ".............hh",
+      "...........hhhh",
+      ".........hhhhh.",
+      "...hhhhhhhhh...",
+      "cc.hlllhhhh....",
+      "cchhhhhhhh.....",
+      "cchhhhhhhhh....",
+      "cchhhhhhhhhhhhh",
+      "cchhhhhhhhhhhhh",
+      "cchhhhhhhsssss.",
+      "cc.hhhhhhhhhh..",
+      "....hhhhhhh...."
+     ]
+    }
+   }
+  },
+  "start_pvp": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "pvp",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "pick",
+    "kind": "pvp",
+    "match": 1,
+    "round": 1,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "left": 8,
+    "timer": 8
+   }
+  },
+  "play_pvp": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "pvp",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "pick",
+    "kind": "pvp",
+    "match": 1,
+    "round": 1,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "left": 8,
+    "timer": 8
+   }
+  },
+  "outro_pvp": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "pvp",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "pick",
+    "kind": "pvp",
+    "match": 1,
+    "round": 1,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "left": 8,
+    "timer": 8,
+    "champion": 2
+   }
+  },
+  "start_tour": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "tour",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "bracket",
+    "kind": "tour",
+    "match": 1,
+    "round": 0,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "3": {
+      "name": "LEO",
+      "color": "#c864ff",
+      "human": true
+     },
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "tour": {
+     "format": "knockout",
+     "size": 4,
+     "rounds": [
+      [
+       [
+        3,
+        null,
+        3
+       ],
+       [
+        1,
+        2,
+        null
+       ]
+      ]
+     ]
+    }
+   }
+  },
+  "play_tour": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "tour",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "bracket",
+    "kind": "tour",
+    "match": 1,
+    "round": 0,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "3": {
+      "name": "LEO",
+      "color": "#c864ff",
+      "human": true
+     },
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "tour": {
+     "format": "knockout",
+     "size": 4,
+     "rounds": [
+      [
+       [
+        3,
+        null,
+        3
+       ],
+       [
+        1,
+        2,
+        null
+       ]
+      ]
+     ]
+    }
+   }
+  },
+  "outro_tour": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "tour",
+   "map": "knockout",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 8,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff7419",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#c864ff",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 5,
+     "human": false,
+     "name": "AI",
+     "color": "#ff2d78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 6,
+     "human": false,
+     "name": "AI",
+     "color": "#ff7814",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 7,
+     "human": false,
+     "name": "AI",
+     "color": "#9650ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 8,
+     "human": false,
+     "name": "AI",
+     "color": "#3264ff",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "rps": {
+    "phase": "bracket",
+    "kind": "tour",
+    "match": 1,
+    "round": 0,
+    "pair": [
+     1,
+     2
+    ],
+    "wins": {
+     "1": 0,
+     "2": 0
+    },
+    "first_to": 2,
+    "locked": [],
+    "players": {
+     "3": {
+      "name": "LEO",
+      "color": "#c864ff",
+      "human": true
+     },
+     "1": {
+      "name": "P1",
+      "color": "#00c8ff",
+      "human": true
+     },
+     "2": {
+      "name": "MAYA",
+      "color": "#ff7419",
+      "human": true
+     }
+    },
+    "keys": {
+     "rock": "left",
+     "paper": "up",
+     "scissors": "right",
+     "random": "down"
+    },
+    "champion": 2,
+    "tour": {
+     "format": "knockout",
+     "size": 4,
+     "rounds": [
+      [
+       [
+        3,
+        null,
+        3
+       ],
+       [
+        1,
+        2,
+        null
+       ]
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "digworld": {
+  "meta": {
+   "id": "digworld",
+   "name": "Dig World",
+   "category": "games",
+   "icon": "pickaxe",
+   "max_players": 4
+  },
+  "attract": {
+   "score": 0,
+   "best": 0,
+   "player": "ai",
+   "flow": "attract",
+   "mode": "work",
+   "map": "meadow",
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": false,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": false,
+     "name": "AI",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "solo"
+  },
+  "start_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "coop",
+   "ore": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "play_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "coop",
+   "ore": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "outro_coop": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": 0,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": null,
+    "team": null,
+    "text": "CLEARED"
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": false,
+     "name": "AI",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "coop",
+   "ore": {
+    "1": 0,
+    "2": 0
+   }
+  },
+  "start_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "intro",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "rush",
+   "ore": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "play_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "play",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "rush",
+   "ore": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  },
+  "outro_rush": {
+   "score": 0,
+   "best": 0,
+   "player": "you",
+   "flow": "outro",
+   "mode": "dig",
+   "map": "meadow",
+   "roster": {
+    "1": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "2": {
+     "team": null,
+     "human": true,
+     "ready": false
+    },
+    "3": {
+     "team": null,
+     "human": true,
+     "ready": false
+    }
+   },
+   "outcome": {
+    "seat": 2,
+    "team": null,
+    "text": null
+   },
+   "max_players": 4,
+   "seats": [
+    {
+     "seat": 1,
+     "human": true,
+     "name": "YOU",
+     "color": "#00c8ff",
+     "avatar": null,
+     "ready": false
+    },
+    {
+     "seat": 2,
+     "human": true,
+     "name": "MAYA",
+     "color": "#ff3c5a",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 3,
+     "human": true,
+     "name": "LEO",
+     "color": "#50ff78",
+     "avatar": null,
+     "ready": true
+    },
+    {
+     "seat": 4,
+     "human": false,
+     "name": "AI",
+     "color": "#ffc800",
+     "avatar": null,
+     "ready": false
+    }
+   ],
+   "lobby": false,
+   "day": 1,
+   "time": "day",
+   "blocks": 14,
+   "hearts": 3,
+   "play_mode": "rush",
+   "ore": {
+    "1": 0,
+    "2": 0,
+    "3": 0
+   }
+  }
+ },
+ "chess": {
+  "meta": {
+   "id": "chess",
+   "name": "Chess Puzzle",
+   "category": "games",
+   "icon": "crown",
+   "max_players": 1
+  },
+  "attract": {
+   "loaded": false
+  }
+ },
+ "trivia": {
+  "meta": {
+   "id": "trivia",
+   "name": "Trivia",
+   "category": "games",
+   "icon": "circle-question-mark",
+   "max_players": 1
+  },
+  "attract": {
+   "phase": "idle",
+   "question": null,
+   "options": null,
+   "selected": 0,
+   "category": null,
+   "difficulty": null,
+   "score": 0,
+   "answered": 0,
+   "streak": 0,
+   "player": "auto"
+  }
+ },
+ "pet": {
+  "meta": {
+   "id": "pet",
+   "name": "Pet",
+   "category": "pets",
+   "icon": "paw-print",
+   "max_players": 1
+  },
+  "attract": {
+   "character": "Clawd",
+   "animation": "sit",
+   "music": false
+  }
+ },
+ "petworld": {
+  "meta": {
+   "id": "petworld",
+   "name": "Pet World",
+   "category": "pets",
+   "icon": "trees",
+   "max_players": 1
+  },
+  "attract": {
+   "world": "Cosy room",
+   "doing": "sleeping",
+   "period": "night",
+   "x": 108
+  }
+ }
+}

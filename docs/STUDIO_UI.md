@@ -51,7 +51,8 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 - **Top bar = five controls, no more.** Status pill (panel OK? → Device settings; a retry key appears when the
   link is down), Find anything (command palette), brightness, settings, the eject-seat power guard. Everything
   else lives in the command palette or a menu: *Send a message*, *Make with AI*, *Show a picture*, *Draw* and
-  *Write text* are in the Stage's **Create** menu; the Bluetooth link switch is in Settings → Device (with a
+  *Write text* and *Show on TV* (`components/TvSheet.tsx`: QR, address, TV code, screens watching, New code, Stop TV
+  link — docs/TV_VIEW.md) are in the Stage's **Create** menu; the Bluetooth link switch is in Settings → Device (with a
   warning, because the panel shows its pairing screen while disconnected).
 - **One "what's playing" area.** The playback dock is the only place for rotation state: preset name or
   "Your playlist", current app + countdown + progress, *Next: …*, prev / stop / next, shuffle. Preset cards
