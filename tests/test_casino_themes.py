@@ -182,3 +182,17 @@ def test_seat_row_shows_who_has_bet() -> None:
     assert sum(dim) < sum(red) / 2, "no chips yet: a dim pip"
     assert tuple(lit) == blue, "chips down: the player's colour"
     assert tuple(done) == WHITE and tuple(f.px[23][x + 6]) == green, "done: a capped 2x2 block"
+
+
+def test_studio_theme_list_mirrors_the_engine() -> None:
+    """web/src/components/casino/state.ts TABLE_THEMES shows the swatches before a table is live; keep it in sync."""
+    import json
+    import re
+    from pathlib import Path
+
+    from deskdot.apps._casino import TABLE_THEMES
+
+    ts = (Path(__file__).parents[1] / "web/src/components/casino/state.ts").read_text(encoding="utf-8")
+    rows = re.findall(r'\{ id: ("[^"]+"), name: ("[^"]+"), css: (\{[^}]*\}) \}', ts)
+    studio = {json.loads(i): (json.loads(n), json.loads(c)) for i, n, c in rows}
+    assert studio == {k: (t.name, t.css) for k, t in TABLE_THEMES.items()}
