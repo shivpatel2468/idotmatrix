@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { openCasino } from "./casino/state";
 import { LayoutGrid, List, Search, Star, X } from "lucide-react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../lib/api";
@@ -168,6 +169,7 @@ export function Library({ fill = false, flat = false }: {
     prefs({ favorites: favorites.includes(id) ? favorites.filter((x) => x !== id) : [...favorites, id] });
   const chips: [string, string][] = [["all", "All"], ["fav", "★ Favourites"], ...cats.map((c) => [c, CATEGORY_LABEL[c] ?? c] as [string, string])];
   const pickChip = (id: string) => {
+    if (id === "casino") void openCasino(); // the Casino category is a door: it enters casino mode
     prefs({ category: id });
     if (flat) document.querySelector(".phone-scroll")?.scrollTo({ top: 0 });
     else scroller.current?.scrollTo({ top: 0 });
