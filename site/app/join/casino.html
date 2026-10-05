@@ -80,6 +80,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .stack i:nth-child(3){--cc:var(--felt);transform:translate(0,-12px);animation-delay:.5s}
 @keyframes flip{0%,70%,100%{filter:none}35%{filter:brightness(1.35) drop-shadow(0 0 14px var(--gold))}}
 .h1{margin:0;font:900 clamp(26px,8vw,36px)/1.05 var(--disp);letter-spacing:-.01em}
+.ddlogo{display:block;margin:-12px auto -10px;max-width:100%}/* the DeskDot logo in LEDs (DeskDotLogo); the canvas has glow room */
 .h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold-hi),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{margin:0;color:var(--dim);max-width:32ch}
 .code{font:800 15px/1 var(--mono);letter-spacing:.3em;padding:8px 14px;border-radius:10px;background:var(--s2);border:1px solid rgba(var(--gold-rgb),.35);color:var(--gold-text)}
@@ -692,7 +693,7 @@ html,body,.board,.dock{touch-action:manipulation}
 <section class="scr on" id="s-join" aria-labelledby="j-t">
   <div class="center">
     <div class="stack" aria-hidden="true"><i></i><i></i><i></i></div>
-    <h1 class="h1" id="j-t">DeskDot <em>Casino</em></h1>
+    <h1 class="h1" id="j-t"><canvas class="ddlogo" id="j-logo" role="img" aria-label="DeskDot"></canvas><em>Casino</em></h1>
     <p class="sub" id="j-sub">Finding your seat at the table…</p>
     <span class="code" id="j-code"></span>
   </div>
@@ -775,8 +776,8 @@ html,body,.board,.dock{touch-action:manipulation}
     <div class="gate-b"><button class="pill" id="gate-back">Back</button></div>
   </div>
 </div></div>
-<div class="end" id="end" hidden><div class="endcard"><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
+<div class="end" id="end" hidden><div class="endcard"><canvas class="ddlogo" id="end-logo" role="img" aria-label="DeskDot"></canvas><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
-<script src="/app/join/casino.js?v=2921ee0ea7eb"></script>
+<script src="/app/join/casino.js?v=e485b4c6d674"></script>
 </body></html>
