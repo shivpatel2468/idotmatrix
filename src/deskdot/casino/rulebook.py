@@ -291,6 +291,10 @@ GUIDES: dict[str, dict[str, Any]] = {
                     "A match is by **value only — the suit never matters**: with a 7♥ joker the first 7♠, 7♦ or 7♣ "
                     "wins (and K matches K, A matches A). That is the standard Andar Bahar rule: 3 of the 51 cards "
                     "left can end the game.",
+                    "Host option **Winning card: exact card** — only the joker's identical twin (same value **and** "
+                    "suit) wins. One deck has no second 7♥, so the cards are dealt from a second, fresh shuffled deck; "
+                    "the twin is equally likely anywhere in it, so each side wins exactly half the time, both pay "
+                    "**0.95:1** (house edge 2.5 %) and the card-count bands run to 52.",
                 ),
             ),
             (

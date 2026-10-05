@@ -2002,7 +2002,10 @@ function hzMark(root, c, winning) {
 /* GAME: Andar Bahar — the joker, Andar / Bahar zones and the card-count side bets. */
 registerGame("andarbahar", (() => {
   let root, c, sig = "";
-  const BANDS = [[1, 5], [6, 10], [11, 15], [16, 25], [26, 30], [31, 35], [36, 40], [41, 49]];
+  const BANDS_V = [[1, 5], [6, 10], [11, 15], [16, 25], [26, 30], [31, 35], [36, 40], [41, 49]];
+  const BANDS_X = [[1, 5], [6, 10], [11, 15], [16, 25], [26, 30], [31, 35], [36, 40], [41, 52]];
+  let BANDS = BANDS_V;
+  const exactOf = (r) => (r || {}).match === "card"; // host option: only the identical card (rank + suit) wins
   const RANKW = { A: "ace", K: "king", Q: "queen", J: "jack", T: "10" };
   const rankOf = (code) => (code[0] === "T" ? "10" : code[0]);
   const rankWord = (code) => RANKW[code[0]] || code[0];
@@ -2014,17 +2017,22 @@ registerGame("andarbahar", (() => {
     const piles = { andar: [], bahar: [] }; cards.forEach((x, i) => piles[i % 2 ? other : first].push(x));
     const matched = done || !!d.matched, hit = matched ? cards[cards.length - 1] : null, wside = matched ? ((cards.length - 1) % 2 ? other : first) : "";
     const pile = (side) => `<div class="ab-pile ${side} ${wside === side ? "won" : ""}"><b>${side.toUpperCase()} · ${piles[side].length}</b><div class="ab-row">${piles[side].slice(-5).map((x) => PC.card(x, x === hit ? "hi" : x === cards[cards.length - 1] ? "flip" : "")).join("")}</div></div>`;
-    const any = `${rankOf(d.joker)}`;
-    const msg = hit ? `<b>${name(hit)}</b> matches the joker's <b>${rankWord(d.joker)}</b> — same value, the suit doesn't matter. <b>${wside.toUpperCase()}</b> wins.`
+    const any = `${rankOf(d.joker)}`, exact = d.match === "card";
+    const msg = exact
+      ? (hit ? `<b>${name(hit)}</b> — the joker's exact twin from the second deck. <b>${wside.toUpperCase()}</b> wins.`
+        : `Looking for the exact card <b>${name(d.joker)}</b> — same value <b>and</b> suit (dealt from a second deck).`)
+      : hit ? `<b>${name(hit)}</b> matches the joker's <b>${rankWord(d.joker)}</b> — same value, the suit doesn't matter. <b>${wside.toUpperCase()}</b> wins.`
       : `Looking for <b>any ${rankWord(d.joker)}</b> — ${["S", "H", "D", "C"].filter((x) => x !== d.joker[1]).map((x) => any + SUITC[x]).join(" · ")} all match.`;
-    return `<div class="ab"><div class="ab-j"><span class="k">JOKER</span>${PC.card(d.joker, matched ? "hi" : "")}<span class="ab-any">any<b>${any}</b></span></div><div class="ab-piles">${pile("andar")}${pile("bahar")}</div><div class="ab-msg">${msg}</div></div>`;
+    return `<div class="ab"><div class="ab-j"><span class="k">JOKER</span>${PC.card(d.joker, matched ? "hi" : "")}<span class="ab-any">${exact ? "exact" : "any"}<b>${exact ? name(d.joker) : any}</b></span></div><div class="ab-piles">${pile("andar")}${pile("bahar")}</div><div class="ab-msg">${msg}</div></div>`;
   }
   function render() {
     const p = c.pub, r = p.rules || {}, res = p.phase === "result" ? p.result : null, o = res && res.outcome;
     const last = (p.history || []).slice(-1)[0], prev = last && last.outcome;
+    BANDS = exactOf(r) ? BANDS_X : BANDS_V;
+    const rule = exactOf(r) ? "Only the <b>exact card</b> wins — same value <b>and</b> suit (dealt from a second deck)." : "A card of the same <b>value</b> wins — any suit.";
     const top = o ? dealView(o, true) : p.deal ? dealView(p.deal, false)
-      : prev ? `${PC.card(prev.joker)}<div class="lbl">Last joker · ${prev.count} card${prev.count > 1 ? "s" : ""} · <b style="color:${prev.winner === "andar" ? "#5aa8ff" : "#ff5a8a"}">${prev.winner.toUpperCase()}</b><br>A card of the same <b>value</b> wins — any suit.</div>`
-      : `${PC.card(null)}<div class="lbl">The joker is turned when betting closes.<br>A card of the same <b>value</b> wins — <b>any suit</b><br>(a 7♥ joker is matched by any 7).</div>`;
+      : prev ? `${PC.card(prev.joker)}<div class="lbl">Last joker · ${prev.count} card${prev.count > 1 ? "s" : ""} · <b style="color:${prev.winner === "andar" ? "#5aa8ff" : "#ff5a8a"}">${prev.winner.toUpperCase()}</b><br>${rule}</div>`
+      : `${PC.card(null)}<div class="lbl">The joker is turned when betting closes.<br>${exactOf(r) ? rule + "<br>(a 7♥ joker is matched only by the other 7♥)" : "A card of the same <b>value</b> wins — <b>any suit</b><br>(a 7♥ joker is matched by any 7)."}</div>`;
     const first = r.first || "andar";
     let html = `<div class="hz-top">${top}</div><div class="hz-grid" style="grid-template-columns:1fr 1fr">${hzZone(c, "andar", "#1b5bd8", "A", "Andar" + (first === "andar" ? " · first card" : ""))}${hzZone(c, "bahar", "#c81f53", "B", "Bahar" + (first === "bahar" ? " · first card" : ""))}</div>`;
     if (r.side_bets !== false) html += `<div class="hz-h">How many cards are dealt?</div><div class="hz-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">${BANDS.map(([a, b]) => hzZone(c, `c:${a}-${b}`, "#5b3a8c", `${a}–${b}`, "cards")).join("")}</div>`;
@@ -2043,15 +2051,19 @@ registerGame("andarbahar", (() => {
     update(cx) { c = cx; render(); },
     unmount() { root = null; sig = ""; },
     replay(rng, rules) {
-      const d = PC.deck(rng), joker = d[0], dealt = [];
-      for (const x of d.slice(1)) { dealt.push(x); if (x[0] === joker[0]) break; }
+      const d = PC.deck(rng), joker = d[0], dealt = [], exact = exactOf(rules);
+      const rest = exact ? PC.deck(rng) : d.slice(1); // exact card: a second deck holds the joker's twin
+      for (const x of rest) { dealt.push(x); if (exact ? x === joker : x[0] === joker[0]) break; }
       const first = rules.first || "andar", other = first === "andar" ? "bahar" : "andar";
-      return { joker, cards: dealt, first, winner: dealt.length % 2 ? first : other, count: dealt.length };
+      return { joker, cards: dealt, first, winner: dealt.length % 2 ? first : other, count: dealt.length, match: exact ? "card" : "value" };
     },
     describe: (o) => `joker ${o.joker} · ${o.winner} after ${o.count} cards`,
     paytable(cx) {
       const e = cx.pub.edges || {}, pct = (k) => (e[k] != null ? (e[k] * 100).toFixed(2) + " %" : ""), f = (cx.pub.rules || {}).first || "andar";
-      return `<table class="pays"><tr><td>${PC.cap(f)} (gets the first card, wins 51.5 %)<br><small class="note">house edge ${pct(f)}</small></td><td>0.9:1</td></tr><tr><td>${PC.cap(f === "andar" ? "bahar" : "andar")}<br><small class="note">house edge ${pct(f === "andar" ? "bahar" : "andar")}</small></td><td>1:1</td></tr>
+      const ex = exactOf(cx.pub.rules);
+      return `<table class="pays">${ex
+        ? `<tr><td>Andar or Bahar (exact card: each wins 50 %)<br><small class="note">house edge ${pct("andar")}</small></td><td>0.95:1</td></tr>`
+        : `<tr><td>${PC.cap(f)} (gets the first card, wins 51.5 %)<br><small class="note">house edge ${pct(f)}</small></td><td>0.9:1</td></tr><tr><td>${PC.cap(f === "andar" ? "bahar" : "andar")}<br><small class="note">house edge ${pct(f === "andar" ? "bahar" : "andar")}</small></td><td>1:1</td></tr>`}
         ${(cx.pub.spots || []).filter((s) => s.kind === "count").map((s) => `<tr><td>${s.label}</td><td>${s.pays}</td></tr>`).join("")}</table><p class="note">Card-count bets: fair odds less about 5–7 % (worst band ${pct("count")}).</p>`;
     },
   };

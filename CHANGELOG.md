@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Andar Bahar: host option **Winning card** — Value (standard, any suit) or Exact card (same value and suit, dealt
+  from a second deck; both sides 0.95:1, bands to 52). Phones replay and explain both.
 - 🎱 **Housie (Tambola), the 10th casino table.** Players buy 1–N tickets into a pot (host: price, max tickets,
   rake); the caller draws 1–90 at a host-set pace (live − / + in the studio host bar, pausable); phones show 3×9
   tickets with auto-daub (or manual) and a stamp animation, the 1–90 board, traditional call names and claim buttons

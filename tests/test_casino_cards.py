@@ -667,3 +667,29 @@ def test_replay_vectors_shared_with_the_phone() -> None:
     ab = GAMES["andarbahar"].replay({"first": "bahar"}, fair.Rng(seed, "alice.bob", 7))
     assert (ab["joker"], ab["count"], ab["winner"], ab["cards"][-1]) == ("KS", 19, "bahar", "KC")
     assert GAMES["bigsix"].replay({}, fair.Rng(seed, "alice.bob", 7)) == {"segment": 53, "symbol": "1"}
+
+
+def test_andar_bahar_exact_card_option() -> None:
+    """Host option match="card": only the joker's identical twin wins, dealt from a second shuffled deck."""
+    from deskdot.casino.games.andarbahar import BANDS_EXACT
+
+    s, _ = _session()
+    g = AndarBahar(s, AndarBaharRules(match="card"))
+    ev = g.expected_values()
+    assert ev["andar"] == ev["bahar"] == Fraction(-1, 40)  # each side wins 1/2 and pays 0.95:1 → 2.5 %
+    assert sum(b[3] for b in BANDS_EXACT) == 1 and BANDS_EXACT[-1][2] == 52
+    for sid, _a, _b, p, pay in BANDS_EXACT:
+        assert Fraction(5, 100) <= -ev[sid] < Fraction(8, 100), sid
+        assert -ev[sid] == 1 - p * (pay + 1)
+    for n in range(1, 40):
+        rng = fair.Rng(b"x" * 32, "c", n)
+        o = g.draw(rng)
+        r2 = fair.Rng(b"x" * 32, "c", n)
+        joker = _pvp.shuffled_deck(r2)[0]
+        second = _pvp.shuffled_deck(r2)
+        assert o["joker"] == joker.code and o["match"] == "card"
+        assert o["cards"] == [c.code for c in second[: o["count"]]]
+        assert o["cards"][-1] == joker.code and joker.code not in o["cards"][:-1]
+        assert o["winner"] == ("andar" if o["count"] % 2 else "bahar")
+        assert g.returns(o)[o["winner"]] == Fraction(195, 100)
+    assert AndarBahar(s).draw(fair.Rng(b"x" * 32, "c", 1))["match"] == "value"  # the default is unchanged
