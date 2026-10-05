@@ -38,6 +38,7 @@ from ..engine.app import Action, App, AppSettings, Choice, Color, register
 from ..gfx import Frame, calibrate, mix, scale, to_rgb
 from ..gfx.font import FONTS, draw_marquee, measure
 from ..platforms import DESKTOP
+from ..platforms import current as current_platform
 from ..providers.lyrics import normalize_track
 from ..providers.media import decode_art, extract_palette
 from ._kit import loading, offline, unsupported
@@ -326,6 +327,14 @@ def layout_line(line: Any, idx: int, font: str, width: int = 30) -> list[Row]:
 
 
 # ------------------------------------------------------------------------------------------------ settings
+#: the lyrics credit the studio shows with the layouts (legal review L16): the web app uses LRCLIB only
+LYRICS_CREDIT = (
+    "Lyrics from LRCLIB, a community database."
+    if current_platform() == "web"
+    else "Lyrics from LRCLIB, a community database (other lyric sites as a fallback)."
+)
+
+
 class NowPlayingSettings(AppSettings):
     layout: str = Choice(
         "karaoke",
@@ -343,6 +352,7 @@ class NowPlayingSettings(AppSettings):
             "spectrum_art": "Spectrum",
         },
         title="Layout",
+        description=LYRICS_CREDIT,
     )
     take_over: bool = Field(True, title="Take over while music plays", description="In the playlist")
     offset: float = Field(

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>All 102 DeskDot apps for the iDotMatrix panel</title>
+<title>All 102 DeskDot apps for 32×32 LED panels</title>
 <meta name="description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <link rel="canonical" href="https://idotmatrix.com/apps.html" />
 <meta name="theme-color" content="#08070a" />
@@ -12,14 +12,14 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/apps.html" />
-<meta property="og:title" content="All 102 DeskDot apps for the iDotMatrix panel" />
+<meta property="og:title" content="All 102 DeskDot apps for 32×32 LED panels" />
 <meta property="og:description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="All 102 DeskDot apps for the iDotMatrix panel" />
+<meta name="twitter:title" content="All 102 DeskDot apps for 32×32 LED panels" />
 <meta name="twitter:description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
@@ -27,11 +27,9 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
 <script src="/main.js" defer></script>
 </head>
 <body class="page-apps">
@@ -47,7 +45,7 @@
 </svg>
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">DeskDot</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       <a href="/setup.html">AI setup</a>
       <a href="/guide.html">Run it</a>
@@ -59,9 +57,13 @@
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
   </div>
 </header>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>
 
 <main id="main" tabindex="-1">
 <!-- page:start -->
@@ -120,12 +122,13 @@
     <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
+<div class="casino-note" role="note"><span class="chip-ico" aria-hidden="true"></span><div><p><b>Play money only.</b> No purchases, no cash-out, no prizes, no real-money betting. 18+. Credits reset with the session.</p><p>Casino games are free in every plan. Paid plans never add, refill or change casino chips. House-edge and RTP figures are shown as educational statistics (play chips; for learning how house edge works).</p></div></div>
 <a class="card app-card" href="/apps/casino_sevens.html" style="--glow:#ffcc33;--i:2" data-cat="casino" data-flags="multiplayer" data-search="7 up down casino_sevens the dice party game: bet under 7, over or lucky from your phone; panel rolls. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory pays (to 1) seven 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_sevens.png" /><img src="/media/apps/casino_sevens.gif" width="32" height="32" loading="lazy" decoding="async" alt="7 Up 7 Down running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>7 Up 7 Down</h3>
-    <p>The dice party game: bet under 7, over 7 or lucky 7 from your phone; the panel rolls.</p>
+    <p>The dice party game: place chips on under 7, over 7 or lucky 7 from your phone; the panel rolls.</p>
     <div class="foot"><span>3 settings</span><span>9 players</span></div>
   </div>
 </a>
@@ -134,7 +137,7 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Andar Bahar</h3>
-    <p>The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall.</p>
+    <p>The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall.</p>
     <div class="foot"><span>4 settings</span><span>9 players</span></div>
   </div>
 </a>
@@ -143,7 +146,7 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Baccarat</h3>
-    <p>Punto Banco for parties: bet Player, Banker or Tie from your phone; the panel deals the coup.</p>
+    <p>Punto Banco for parties: place chips on Player, Banker or Tie from your phone; the panel deals the coup.</p>
     <div class="foot"><span>5 settings</span><span>9 players</span></div>
   </div>
 </a>
@@ -152,7 +155,7 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Big Six</h3>
-    <p>The money wheel: bet on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.</p>
+    <p>The big wheel: place chips on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.</p>
     <div class="foot"><span>2 settings</span><span>9 players</span></div>
   </div>
 </a>
@@ -165,13 +168,13 @@
     <div class="foot"><span>12 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_housie.html" style="--glow:#ffcc33;--i:7" data-cat="casino" data-flags="multiplayer" data-search="housie casino_housie tambola / bingo, the indian way: buy tickets, caller draws 1-90, claim lines and full house. casino live panel view preview table demo game preview: buy-in tickets dealt calling a house winners board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory ticket price (credits) max per player time seconds between calls call rake (%) false (bogey) bogey just rejected that can't win prize is out for everyone automatically auto early five early5 share top line middle bottom four corners 9 players">
+<a class="card app-card" href="/apps/casino_housie.html" style="--glow:#ffcc33;--i:7" data-cat="casino" data-flags="multiplayer" data-search="housie casino_housie tambola / bingo, the indian way: pick tickets with play chips, caller draws 1-90, claim lines and full house. casino live panel view preview table demo game preview: ticket dealt calling a house winners board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory chips per price max player time buy seconds between calls call false (bogey) bogey just rejected that can't win prize is out for everyone automatically auto early five early5 share (%) top line middle bottom four corners 9 players">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_housie.png" /><img src="/media/apps/casino_housie.gif" width="32" height="32" loading="lazy" decoding="async" alt="Housie running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Housie</h3>
-    <p>Tambola / bingo, the Indian way: buy tickets, the caller draws 1-90, claim lines and Full House.</p>
-    <div class="foot"><span>21 settings</span><span>9 players</span></div>
+    <p>Tambola / bingo, the Indian way: pick tickets with play chips, the caller draws 1-90, claim lines and Full House.</p>
+    <div class="foot"><span>20 settings</span><span>9 players</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/casino_roulette.html" style="--glow:#ffcc33;--i:8" data-cat="casino" data-flags="multiplayer" data-search="roulette casino_roulette casino for parties: friends bet from their phones, the panel spins wheel. live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory wheel european (single 0) american (0 and 00) la partage 9 players game">
@@ -179,7 +182,7 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Roulette</h3>
-    <p>Casino roulette for parties: friends bet from their phones, the panel spins the wheel.</p>
+    <p>Play-money roulette for parties: friends place chips from their phones, the panel spins the wheel.</p>
     <div class="foot"><span>4 settings</span><span>9 players</span></div>
   </div>
 </a>
@@ -228,12 +231,12 @@
     <div class="foot"><span>0 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/emotes.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="emotes full-screen animated emotes: laughing king, crying, gg, fire, 100, rage quit… creative baked loop emote crying angry thumbs up heart eyes wow cool wink sleepy thinking skull on fire gg party clap 100 quit face style smiley arena king goblin cat cycle through all background black sun rays burst hearts skin use custom speed">
+<a class="card app-card" href="/apps/emotes.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="emotes full-screen animated emotes: laughing jester, crying, gg, fire, 100, rage quit… creative baked loop emote crying angry thumbs up heart eyes wow cool wink sleepy thinking skull on fire gg party clap 100 quit face style smiley jester goblin cat cycle through all background black sun rays burst hearts skin use custom speed">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/emotes.png" /><img src="/media/apps/emotes.gif" width="32" height="32" loading="lazy" decoding="async" alt="Emotes running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Emotes</h3>
-    <p>Full-screen animated emotes: laughing King, crying, GG, fire, 100, rage quit…</p>
+    <p>Full-screen animated emotes: laughing jester, crying, GG, fire, 100, rage quit…</p>
     <div class="foot"><span>7 settings</span></div>
   </div>
 </a>
@@ -255,21 +258,21 @@
     <div class="foot"><span>4 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/flybrain.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="fly brain flybrain a fruit driven by model of its real visual circuit (flywire connectome): it hunts fruit, dodges looming swatter. neurons firing and the keys presses play in studio's 3d view. creative baked loop swatter danger calm (no swatter) normal hectic arena seed">
+<a class="card app-card" href="/apps/flybrain.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="fly brain flybrain a fruit whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by neuroscience (flywire). it hunts and dodges looming swatter. neurons firing keys presses play in studio's 3d view. creative baked loop swatter danger calm (no swatter) normal hectic arena seed">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flybrain.png" /><img src="/media/apps/flybrain.gif" width="32" height="32" loading="lazy" decoding="async" alt="Fly Brain running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Fly Brain</h3>
-    <p>A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
+    <p>A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
     <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/fontlab.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="font lab fontlab every (built-in and pixel ttfs like minecraft / vcr osd), styles, fills text animations. creative baked loop live built-in tiny (5px) small (7px) big digits (10px) osd mono 1.001 ttf size (px) letter spacing uppercase style plain bold outline shadow italic double (2x) neon glow align left centre right vertical valign top middle bottom colour color second color2 fill solid gradient rainbow stripes fire animation none scroll typewriter wave bounce flicker pulse speed background">
+<a class="card app-card" href="/apps/fontlab.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="font lab fontlab every (built-in and your own pixel fonts), styles, fills text animations. creative baked loop live built-in tiny (5px) small (7px) big digits (10px) ttf size (px) letter spacing uppercase style plain bold outline shadow italic double (2x) neon glow align left centre right vertical valign top middle bottom colour color second color2 fill solid gradient rainbow stripes fire animation none scroll typewriter wave bounce flicker pulse speed background">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/fontlab.png" /><img src="/media/apps/fontlab.gif" width="32" height="32" loading="lazy" decoding="async" alt="Font Lab running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Font Lab</h3>
-    <p>Every font (built-in and pixel TTFs like Minecraft / VCR OSD), styles, fills and text animations.</p>
+    <p>Every font (built-in and your own pixel fonts), styles, fills and text animations.</p>
     <div class="foot"><span>14 settings</span></div>
   </div>
 </a>
@@ -291,21 +294,21 @@
     <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/avatar.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="" data-search="pixel avatar minecraft faces, github identicons and dicebear characters — pixel-exact, with a name tag. creative live names default source face identicon art layout + tag full screen off flash on change always animation none bob blink seconds per background black tint grid">
+<a class="card app-card" href="/apps/avatar.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="" data-search="pixel avatar block-game player heads (by username), github identicons and dicebear characters — pixel-exact, with a name tag. creative live names default source head identicon art layout face + tag full screen off flash on change always animation none bob blink seconds per background black tint grid">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/avatar.png" /><img src="/media/apps/avatar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pixel Avatar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Pixel Avatar</h3>
-    <p>Minecraft faces, GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag.</p>
+    <p>Block-game player heads (by username), GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag.</p>
     <div class="foot"><span>7 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/playercard.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="player card playercard your own rated football — tiers, portrait, nation, six stats, shine and flip. creative baked loop name overall rating position gk cb lb rb cdm cm cam lw rw cf st tier gold silver bronze icon team of the week hero special pace pac stats shooting sho passing pas dribbling dri defending physical phy skin look hair colour style short buzz curly long mohawk bald man bun kit flag stripe 1 nation 2 3 sweep flip to page seconds per side">
+<a class="card app-card" href="/apps/playercard.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="player card playercard your own football — portrait, flag, name, six skills, shine and a flip. creative baked loop name overall rating position gk cb lb rb cdm cm cam lw rw cf st tier gold silver bronze legend night neon special speed pac stats shooting sho passing pas skill dri defending strength phy skin look hair colour style short buzz curly long mohawk bald man bun kit flag stripe 1 nation 2 3 sweep flip to skills page seconds per side">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/playercard.png" /><img src="/media/apps/playercard.gif" width="32" height="32" loading="lazy" decoding="async" alt="Player Card running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Player Card</h3>
-    <p>Your own rated football card — tiers, portrait, nation, six stats, shine and flip.</p>
+    <p>Your own football player card — portrait, flag, name, six skills, shine and a flip.</p>
     <div class="foot"><span>20 settings</span></div>
   </div>
 </a>
@@ -525,20 +528,29 @@
     <div class="foot"><span>4 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/asteroids.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="asteroids pilot a tiny ship through field of splitting space rocks. ←/→ turn, ↑ thrust, fire, b warp. games live speed theme classic neon retro mono nebula red planet ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) rocks per wave solid filled lives battle time (s) limit mode solo co-op dogfight squads map rock dense belt gravity well open players 4 free-for-all teams gamepad d-pad analog stick keyboard">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroids.png" /><img src="/media/apps/asteroids.gif" width="32" height="32" loading="lazy" decoding="async" alt="Asteroids running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+<a class="card app-card" href="/apps/invaders.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="alien wave invaders hold the line against a marching fleet behind crumbling shields. ←/→ move, fires. games live speed theme classic neon retro mono deep space sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) rows shields lives fire duel waves mode solo co-op map bunkers long wall open sky players 4 free-for-all d-pad analog stick gamepad keyboard">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/invaders.png" /><img src="/media/apps/invaders.gif" width="32" height="32" loading="lazy" decoding="async" alt="Alien Wave running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Asteroids</h3>
-    <p>Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.</p>
-    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
+    <h3>Alien Wave</h3>
+    <p>Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.</p>
+    <div class="foot"><span>16 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/breakout.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="breakout smash a colourful brick wall; new patterns every level. left/right moves the paddle. co-op: two paddles and balls on one wall. versus: split field, first to clear their half wins. games live speed theme classic neon retro mono arcade candy lava ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives rows paddle width wall drop (s) mode solo co-op versus map fortress descend players 2 teams analog stick d-pad tilt gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/breakout.png" /><img src="/media/apps/breakout.gif" width="32" height="32" loading="lazy" decoding="async" alt="Breakout running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+<a class="card app-card" href="/apps/tetris.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="block drop tetris stack falling blocks in a narrow well; the glows warmer as it climbs. ai stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, hard b rotate back. demo opens menu: versus (clear lines to send garbage) co-op (one wide well). games live speed theme classic neon retro mono sunset candy deep sea skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) start level garbage sent attack (2 → 1) mirror (every line) rising floor every (s) rise mode solo map empty mound players 2 teams d-pad gamepad keyboard analog stick">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tetris.png" /><img src="/media/apps/tetris.gif" width="32" height="32" loading="lazy" decoding="async" alt="Block Drop running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Breakout</h3>
+    <h3>Block Drop</h3>
+    <p>Stack falling blocks in a narrow well; the stack glows warmer as it climbs. The AI stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus (clear lines to send garbage) and Co-op (one wide well).</p>
+    <div class="foot"><span>14 settings</span><span>2 players</span><span>3 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/breakout.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="brick smash breakout a colourful wall; new patterns every level. left/right moves the paddle. co-op: two paddles and balls on one wall. versus: split field, first to clear their half wins. games live speed theme classic neon retro mono arcade candy lava ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives rows paddle width wall drop (s) mode solo co-op versus map fortress descend players 2 teams analog stick d-pad tilt gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/breakout.png" /><img src="/media/apps/breakout.gif" width="32" height="32" loading="lazy" decoding="async" alt="Brick Smash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Brick Smash</h3>
     <p>Smash a colourful brick wall; new patterns every level. Left/right moves the paddle. Co-op: two paddles and two balls on one wall. Versus: a split field, first to clear their half wins.</p>
     <div class="foot"><span>15 settings</span><span>2 players</span><span>3 maps</span></div>
   </div>
@@ -552,6 +564,15 @@
     <div class="foot"><span>8 settings</span></div>
   </div>
 </a>
+<a class="card app-card" href="/apps/dino.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="desert dash dino an endless with a long-eared hopper: jump cacti, duck birds, day turns to night. up/a jumps, down ducks. race: up four runners on one track, last running wins. games live speed theme classic neon retro mono tundra volcano ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays pilot built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) birds length (s) cycle start mode solo race map canyon rush players 4 free-for-all tap zones d-pad gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/dino.png" /><img src="/media/apps/dino.gif" width="32" height="32" loading="lazy" decoding="async" alt="Desert Dash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Desert Dash</h3>
+    <p>An endless desert dash with a long-eared hopper: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
 <a class="card app-card" href="/apps/digworld.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="dig world digworld a block-world sandbox: the miner digs for ore, builds house at dusk and hides from night creatures. arrows walk/dig, jumps (or places in build mode), b toggles dig/build. two miners play co-op, up to four race ore. games live speed theme classic neon retro mono overworld frost dune ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) creatures day length (s) hearts match (days) days mode solo co-op ore rush map meadow caverns peaks lakes players 4 free-for-all d-pad gamepad analog stick keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/digworld.png" /><img src="/media/apps/digworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dig World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
@@ -561,22 +582,13 @@
     <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/dino.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="dino runner an endless desert run: jump cacti, duck birds, day turns to night. up/a jumps, down ducks. race: up four runners on one track, last running wins. games live speed theme classic neon retro mono tundra volcano ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) birds length (s) cycle start mode solo race map canyon rush players 4 free-for-all tap zones d-pad gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/dino.png" /><img src="/media/apps/dino.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dino Runner running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+<a class="card app-card" href="/apps/maze.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="dot dash maze collect every in a fresh wrap-around while robots give chase; charge orbs turn the tables. games live speed theme classic neon retro mono circuit hedge ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) ghosts lives hunt round (s) time orb fright mode solo co-op map random mirror open boxed players 4 free-for-all d-pad swipe analog stick gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/maze.png" /><img src="/media/apps/maze.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dot Dash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Dino Runner</h3>
-    <p>An endless desert run: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.</p>
-    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
-  </div>
-</a>
-<a class="card app-card" href="/apps/flappy.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="flappy a little bird threading between pipes. plays itself; up or flaps. race: to four birds through the same pipes, last one flying wins. games live speed theme classic neon retro mono meadow dusk abyss ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) gap size gravity gaps shrink (sudden death) mode solo race map pipes moving cave players 4 free-for-all tap zones d-pad gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flappy.png" /><img src="/media/apps/flappy.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flappy running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
-  <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Flappy</h3>
-    <p>A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.</p>
-    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
+    <h3>Dot Dash</h3>
+    <p>Collect every dot in a fresh wrap-around maze while robots give chase; charge orbs turn the tables.</p>
+    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/fourup.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="four up fourup four-in-a-row. two ais play until someone takes a seat: left/right aim, or down drops your disc. phone can join as the second player. variants: pop out (up pops bottom disc) and stones. games live speed theme classic neon retro mono tavern ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) match: first to stones (stones map) mode vs friend map players 2 solo free-for-all d-pad tap zones gamepad">
@@ -606,15 +618,6 @@
     <div class="foot"><span>16 settings</span><span>4 players</span><span>3 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/invaders.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="invaders hold the line against a marching alien fleet behind crumbling shields. ←/→ move, fires. games live speed theme classic neon retro mono deep space sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) rows shields lives fire duel waves mode solo co-op map bunkers long wall open sky players 4 free-for-all d-pad analog stick gamepad keyboard">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/invaders.png" /><img src="/media/apps/invaders.gif" width="32" height="32" loading="lazy" decoding="async" alt="Invaders running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
-  <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Invaders</h3>
-    <p>Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.</p>
-    <div class="foot"><span>16 settings</span><span>4 players</span><span>4 maps</span></div>
-  </div>
-</a>
 <a class="card app-card" href="/apps/leafleap.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="leaf leap leafleap a flip-screen platformer: sprig runs, jumps pits, stomps beetles and grabs coins on the way to flag. left/right run, up/a jumps. two sprouts play co-op (shared lives) or race games live speed theme classic neon retro mono meadow autumn crystal cave ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) enemies lives length (levels) levels mode solo map caves sky isles castle players 2 free-for-all d-pad gamepad analog stick keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/leafleap.png" /><img src="/media/apps/leafleap.gif" width="32" height="32" loading="lazy" decoding="async" alt="Leaf Leap running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
@@ -624,30 +627,12 @@
     <div class="foot"><span>14 settings</span><span>2 players</span><span>4 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="light cycles up to four glowing bikes, walls behind them — box the others in, don't crash. plays itself; arrows steer blue bike, and three friends can join from their phones on your wi-fi. party, 2v2 teams arenas. games live speed theme classic neon retro mono grid sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) bikes in arena riders steps per second pace match: first mode solo party map open pillars core wrap players 4 free-for-all swipe d-pad analog stick gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Light Cycles running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
-  <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Light Cycles</h3>
-    <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
-    <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
-  </div>
-</a>
-<a class="card app-card" href="/apps/maze.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="maze chase eat every dot in a fresh wrap-around while ghosts give chase; power pills turn the tables. games live speed theme classic neon retro mono haunted hedge ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives hunt round (s) time pill fright mode solo co-op map random mirror open boxed players 4 free-for-all d-pad swipe analog stick gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/maze.png" /><img src="/media/apps/maze.gif" width="32" height="32" loading="lazy" decoding="async" alt="Maze Chase running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
-  <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Maze Chase</h3>
-    <p>Eat every dot in a fresh wrap-around maze while ghosts give chase; power pills turn the tables.</p>
-    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
-  </div>
-</a>
-<a class="card app-card" href="/apps/mines.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="mines minesweeper that solves itself with logic (and the odd guess). arrows move cursor, a reveals, b flags. up to four players sweep one field together (co-op) or race for cells. games live speed theme classic neon retro mono frost ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play when idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) co-op lives race: stun after mine (s) mode solo map square donut cross 4 free-for-all d-pad gamepad keyboard">
+<a class="card app-card" href="/apps/mines.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="mines a mine-field puzzle that solves itself with logic (and the odd guess). arrows move cursor, reveals, b flags. up to four players sweep one field together (co-op) or race for cells. games live speed theme classic neon retro mono frost ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play when idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) co-op lives race: stun after mine (s) mode solo map square donut cross 4 free-for-all d-pad gamepad keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/mines.png" /><img src="/media/apps/mines.gif" width="32" height="32" loading="lazy" decoding="async" alt="Mines running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
     <h3>Mines</h3>
-    <p>Minesweeper that solves itself with logic (and the odd guess). Arrows move the cursor, A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells.</p>
+    <p>A mine-field puzzle that solves itself with logic (and the odd guess). Arrows move the cursor, A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
   </div>
 </a>
@@ -660,6 +645,24 @@
     <div class="foot"><span>15 settings</span><span>4 players</span><span>3 maps</span></div>
   </div>
 </a>
+<a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="neon trails cycles up to four glowing bikes, walls behind them — box the others in, don't crash. plays itself; arrows steer blue bike, and three friends can join from their phones on your wi-fi. party, 2v2 teams arenas. games live speed theme classic retro mono grid sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) bikes in arena riders steps per second pace match: first mode solo party map open pillars core wrap players 4 free-for-all swipe d-pad analog stick gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neon Trails running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Neon Trails</h3>
+    <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/pong.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="paddle duel pong two paddles, one ball that speeds up every hit. plays itself; up/down steers the left paddle. modes: 1 v 1, doubles (2 2, front and back paddles) 4 way (a on wall). friends join from their phones (local wi-fi). games live speed theme classic neon retro mono arcade court ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) size points to win lives (4 way) mode map open block portals players teams free-for-all analog stick d-pad gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pong.png" /><img src="/media/apps/pong.gif" width="32" height="32" loading="lazy" decoding="async" alt="Paddle Duel running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Paddle Duel</h3>
+    <p>Two paddles, one ball that speeds up every hit. Plays itself; up/down steers the left paddle. Modes: 1 v 1, Doubles (2 v 2, front and back paddles) and 4 Way (a paddle on every wall). Friends join from their phones (local Wi-Fi).</p>
+    <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
 <a class="card app-card" href="/apps/penguin.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="penguin escape a sliding-ice puzzle: guide out of the zoo through 16 levels. ice slides you until something stops you; shove blocks (into water to bridge it), grab keys for doors and three fish stars, stay keepers' torch beams. arrows move, undoes, b restarts / picks level. games live speed theme classic neon retro mono night aurora ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) starting level start 1 players solo d-pad swipe gamepad analog stick">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/penguin.png" /><img src="/media/apps/penguin.gif" width="32" height="32" loading="lazy" decoding="async" alt="Penguin Escape running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
@@ -669,12 +672,12 @@
     <div class="foot"><span>9 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/pong.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="pong two paddles, one ball that speeds up every hit. plays itself; up/down steers the left paddle. modes: 1 v 1, doubles (2 2, front and back paddles) 4 way (a paddle on wall). friends join from their phones (local wi-fi). games live speed theme classic neon retro mono arcade court ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) size points to win lives (4 way) mode map open block portals players teams free-for-all analog stick d-pad gamepad">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pong.png" /><img src="/media/apps/pong.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pong running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+<a class="card app-card" href="/apps/flappy.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="pipe hopper flappy a little bird threading between pipes. plays itself; up or flaps. race: to four birds through the same pipes, last one flying wins. games live speed theme classic neon retro mono meadow dusk abyss ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) gap size gravity gaps shrink (sudden death) mode solo race map pipes moving cave players 4 free-for-all tap zones d-pad gamepad">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flappy.png" /><img src="/media/apps/flappy.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pipe Hopper running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Pong</h3>
-    <p>Two paddles, one ball that speeds up every hit. Plays itself; up/down steers the left paddle. Modes: 1 v 1, Doubles (2 v 2, front and back paddles) and 4 Way (a paddle on every wall). Friends join from their phones (local Wi-Fi).</p>
+    <h3>Pipe Hopper</h3>
+    <p>A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
   </div>
 </a>
@@ -685,6 +688,15 @@
     <h3>Racer</h3>
     <p>Top-down three-lane highway dash through traffic. Left/right changes lanes. Race: 2-4 cars on one road, last car running wins.</p>
     <div class="foot"><span>13 settings</span><span>4 players</span><span>3 maps</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/asteroids.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="rock field asteroids pilot a tiny ship through of splitting space rocks. ←/→ turn, ↑ thrust, fire, b warp. games live speed theme classic neon retro mono nebula red planet ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) rocks per wave solid filled lives battle time (s) limit mode solo co-op dogfight squads map dense belt gravity well open players 4 free-for-all teams gamepad d-pad analog stick keyboard">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroids.png" /><img src="/media/apps/asteroids.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rock Field running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="color:#ff7419">Games</span>
+    <h3>Rock Field</h3>
+    <p>Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.</p>
+    <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/rps.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="rock paper scissors rps the party classic, 1 v 1: two pixel hands pump rock… paper… scissors… shoot! play ai, a friend (keyboard + phone, or phones) run 3–8 player tournament — friends join by scanning panel's qr code and pick their hand on big buttons. plays ai vs when idle. games live speed theme classic neon retro mono arena skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) match length best of 3 5 7 seconds to round timer style random (truly uniform unbeatable in long run) pattern hunter (punishes your habits) cheeky (gives away tells… mostly honest) reveal rock, paper, scissors, 3-2-1 countdown instant mode you map knockout robin players 8 solo free-for-all d-pad gamepad">
@@ -705,7 +717,7 @@
     <div class="foot"><span>17 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/starship.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="starship a vertical space shooter: weave through swooping enemy waves. ←/→ move, auto-fire, bomb. fly with up to three wingmen (co-op, downed ship is revived when the wave cleared) or dogfight for points (ace). arenas: deep space, an asteroid belt and narrow canyon. games live speed theme classic neon retro mono void solar ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives ace duel length (s) time mode solo map asteroids canyon players 4 co-op free-for-all analog stick d-pad tilt gamepad">
+<a class="card app-card" href="/apps/starship.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="starship a vertical space shooter: weave through swooping enemy waves. ←/→ move, auto-fire, bomb. fly with up to three wingmen (co-op, downed ship is revived when the wave cleared) or dogfight for points (ace). arenas: deep space, an asteroid belt and narrow canyon. games live speed theme classic neon retro mono void solar ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives ace duel length (s) time mode solo map rock canyon players 4 co-op free-for-all analog stick d-pad tilt gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/starship.png" /><img src="/media/apps/starship.gif" width="32" height="32" loading="lazy" decoding="async" alt="Starship running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
@@ -721,15 +733,6 @@
     <h3>Street Surge</h3>
     <p>Pseudo-3D night street race: laps of curves and hills against rival cars on four tracks. Left/right steer, A fires nitro, down/B brakes. Up to four players race each other or in two teams; the camera follows whoever is behind.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
-  </div>
-</a>
-<a class="card app-card" href="/apps/tetris.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="tetris falling blocks with a next-piece preview. the ai stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, hard b rotate back. in demo opens menu: versus (clear lines to send garbage) co-op (one wide well). games live speed theme classic neon retro mono prism candy deep sea skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) landing shadow ghost start level garbage sent attack (2 → 1) mirror (every line) rising floor every (s) rise mode solo map empty mound players 2 teams d-pad gamepad keyboard analog stick">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tetris.png" /><img src="/media/apps/tetris.gif" width="32" height="32" loading="lazy" decoding="async" alt="Tetris running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
-  <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Tetris</h3>
-    <p>Falling blocks with a next-piece preview. The AI stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus (clear lines to send garbage) and Co-op (one wide well).</p>
-    <div class="foot"><span>15 settings</span><span>2 players</span><span>3 maps</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/trivia.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="trivia open db quiz: question, options a–d, countdown ring, reveal. play with the arrow keys. games live category questions any general knowledge books film music musicals &amp; theatre television video board science nature computers mathematics mythology sports geography history politics art celebrities animals vehicles comics gadgets anime manga cartoons difficulty easy medium hard type qtype multiple choice true / false mixed seconds to answer reveal read out preview auto-play auto reading pace slow normal fast score card after answers show accent colours correct wrong 1 players game">
@@ -813,7 +816,7 @@
     <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/pet.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet a pixel or character that lives on the panel: wanders, naps, snacks and dances to music. pets baked loop clawd mini shiba pug husky dachshund golden retriever corgi orange tabby black cat calico siamese grey kitten bunny hamster panda penguin frog duckling axolotl fox capybara volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake knight archer barbarian giant goblin wizard skeleton mech king princess br soldier ct operator terrorist agent duelist sniper mad scientist nervous teen crayon kid chem teacher hazmat partner masked vigilante kung-fu chauffeur footballer goalkeeper animation alive (auto behaviour) idle walk run jump dance sleep sit eat happy sad wave kick work think shoot reload crouch attack cast size scale small large (2x) scene none meadow cosy room night sky beach space stage snow accessory cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa speed face left flip music sync name tag custom colours use colors primary secondary accent">
+<a class="card app-card" href="/apps/pet.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet a pixel or character that lives on the panel: wanders, naps, snacks and dances to music. pets baked loop clawd mini shiba pug husky dachshund golden retriever corgi orange tabby black cat calico siamese grey kitten bunny hamster panda penguin frog duckling axolotl fox capybara volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake knight archer barbarian giant goblin wizard skeleton iron king princess br soldier tac operator raider neon duelist sniper lab coat inventor sidekick kid little prankster science teacher partner night detective city driver footballer goalkeeper animation alive (auto behaviour) idle walk run jump dance sleep sit eat happy sad wave kick work think shoot reload crouch attack cast size scale small large (2x) scene none meadow cosy room sky beach space stage snow accessory cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa speed face left flip music sync name tag custom colours use colors primary secondary accent">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pet.png" /><img src="/media/apps/pet.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
     <span class="tag" style="color:#5cf2a0">Pets</span>
@@ -822,7 +825,7 @@
     <div class="foot"><span>13 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/petworld.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet world petworld lofi pets living in a scrolling little — working, snacking, football, naps, dancing. baked loop character claude · clawd mini dogs shiba pug husky dachshund golden retriever corgi cats orange tabby black cat calico siamese grey kitten critters bunny hamster panda penguin frog duckling axolotl fox capybara monsters volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake troops knight archer barbarian giant goblin wizard skeleton mech king princess shooters br soldier ct operator terrorist agent duelist sniper tv &amp; cartoons mad scientist nervous teen crayon kid chem teacher hazmat partner masked vigilante kung-fu chauffeur sports footballer goalkeeper buddy nobody cosy room park pitch beach space station city street café accessory none cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa pace speed time of day mood follow the clock always sunset night sleep at weather live clear rain snow warmth dance to music sync show wall colour outline characters camera screens (scenery stays still) (scrolls)">
+<a class="card app-card" href="/apps/petworld.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet world petworld lofi pets living in a scrolling little — working, snacking, football, naps, dancing. baked loop character claude · clawd mini dogs shiba pug husky dachshund golden retriever corgi cats orange tabby black cat calico siamese grey kitten critters bunny hamster panda penguin frog duckling axolotl fox capybara monsters volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake troops knight archer barbarian giant goblin wizard skeleton iron king princess shooters br soldier tac operator raider neon duelist sniper everyday folks lab coat inventor sidekick kid prankster science teacher partner night detective city driver sports footballer goalkeeper buddy nobody cosy room park &amp; pitch beach space station street café accessory none cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa pace speed time of day mood follow the clock always sunset sleep at weather live clear rain snow warmth dance to music sync show wall colour outline characters camera screens (scenery stays still) (scrolls)">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/petworld.png" /><img src="/media/apps/petworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
     <span class="tag" style="color:#5cf2a0">Pets</span>
@@ -894,7 +897,7 @@
     <div class="foot"><span>1 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/daily.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="daily dose quotes, dad jokes, useless facts, advice, cat pun jokes and on-this-day, in rotation. productivity live random quote sources of the day qotd joke fact today advice programming &amp; chuck norris kanye on this history order turn shuffle style layout pages spotify lyrics marquee font auto fit small tiny seconds per item rotate reading pace slow normal fast speed (px/s) source icon show author line tag colours colors custom accent text color punchline punch">
+<a class="card app-card" href="/apps/daily.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="daily dose quotes, dad jokes, useless facts, advice, cat pun jokes and on-this-day, in rotation. productivity live random quote sources of the day qotd joke fact today advice programming &amp; tough-guy chuck celebrity quotes kanye on this history order turn shuffle style layout pages spotify lyrics marquee font auto fit small tiny seconds per item rotate reading pace slow normal fast speed (px/s) source icon show author line tag colours colors custom accent text color punchline punch">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/daily.png" /><img src="/media/apps/daily.gif" width="32" height="32" loading="lazy" decoding="async" alt="Daily Dose running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ffe27a">Productivity</span>
@@ -1035,13 +1038,14 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas>
+        <p>DeskDot™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>, India.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -1062,17 +1066,28 @@
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p><b>DeskDot™</b> is an independent product by Shiv Patel, India. <b>Unofficial:</b> not made, endorsed or supported by Shenzhen Heaton Technology Co., Ltd. or the iDotMatrix brand. “iDotMatrix” is a trademark of its owner and is used only to describe compatible panels. All other trademarks belong to their owners.</p>
+      <p>DeskDot versions up to v3.2 were published under the MIT licence and remain so. Future versions will be proprietary software licensed under the DeskDot EULA.</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="https://github.com/shivpatel2468/idotmatrix">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
+      <span>1,024 pixels.</span>
     </div>
   </div>
 </footer>

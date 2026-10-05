@@ -8,6 +8,11 @@
   <url><loc>https://idotmatrix.com/studio.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
   <url><loc>https://idotmatrix.com/specs.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
   <url><loc>https://idotmatrix.com/faq.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
+  <url><loc>https://idotmatrix.com/download.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
+  <url><loc>https://idotmatrix.com/privacy.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
+  <url><loc>https://idotmatrix.com/terms.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
+  <url><loc>https://idotmatrix.com/license.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
+  <url><loc>https://idotmatrix.com/licenses.html</loc><lastmod>2026-10-05</lastmod><priority>0.8</priority></url>
   <url><loc>https://idotmatrix.com/apps/ambient.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/loops.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/casino_sevens.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
@@ -55,29 +60,29 @@
   <url><loc>https://idotmatrix.com/apps/native.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/g2048.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/raycaster.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/asteroids.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/invaders.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/tetris.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/breakout.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/chess.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/digworld.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/dino.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/flappy.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/digworld.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/maze.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/fourup.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/gamedeals.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/infinity.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/invaders.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/leafleap.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/cycles.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/maze.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/mines.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/neonheat.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/penguin.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/cycles.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/pong.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/penguin.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/flappy.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/racer.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
+  <url><loc>https://idotmatrix.com/apps/asteroids.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/rps.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/arcade.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/starship.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/streetsurge.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
-  <url><loc>https://idotmatrix.com/apps/tetris.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/trivia.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/tictactoe.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>
   <url><loc>https://idotmatrix.com/apps/camera.html</loc><lastmod>2026-10-05</lastmod><priority>0.6</priority></url>

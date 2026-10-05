@@ -1004,7 +1004,7 @@
    "name": "Housie",
    "category": "casino",
    "icon": "grid",
-   "description": "Tambola / bingo, the Indian way: buy tickets, the caller draws 1-90, claim lines and Full House.",
+   "description": "Tambola / bingo, the Indian way: pick tickets with play chips, the caller draws 1-90, claim lines and Full House.",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -1033,7 +1033,7 @@
       },
       {
        "value": "betting",
-       "label": "Preview: buy-in"
+       "label": "Preview: ticket pick"
       },
       {
        "value": "locked",
@@ -1106,7 +1106,7 @@
     },
     {
      "key": "ticket_price",
-     "title": "Ticket price (credits)",
+     "title": "Chips per ticket",
      "type": "integer",
      "default": 10,
      "min": 1,
@@ -1122,9 +1122,9 @@
     },
     {
      "key": "buy_seconds",
-     "title": "Buy-in time",
+     "title": "Ticket pick time",
      "type": "integer",
-     "description": "Seconds to buy tickets, from the first ticket.",
+     "description": "Seconds to pick tickets, from the first ticket.",
      "default": 45,
      "min": 10,
      "max": 300
@@ -1136,15 +1136,6 @@
      "description": "The caller's pace (also live from the host bar).",
      "default": 6,
      "min": 3,
-     "max": 20
-    },
-    {
-     "key": "rake",
-     "title": "House rake (%)",
-     "type": "integer",
-     "description": "The house's cut of the pot (0 = friendly).",
-     "default": 0,
-     "min": 0,
      "max": 20
     },
     {
@@ -2053,7 +2044,7 @@
    "name": "Emotes",
    "category": "creative",
    "icon": "face-slightly-smiling-plus",
-   "description": "Full-screen animated emotes: laughing King, crying, GG, fire, 100, rage quit…",
+   "description": "Full-screen animated emotes: laughing jester, crying, GG, fire, 100, rage quit…",
    "kind": "clip",
    "kinds": [
     "clip"
@@ -2153,7 +2144,7 @@
       },
       {
        "value": "king",
-       "label": "Arena King"
+       "label": "Laughing Jester"
       },
       {
        "value": "goblin",
@@ -2385,7 +2376,7 @@
    "name": "Fly Brain",
    "category": "creative",
    "icon": "bug",
-   "description": "A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.",
+   "description": "A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.",
    "kind": "clip",
    "kinds": [
     "clip"
@@ -2441,7 +2432,7 @@
    "name": "Font Lab",
    "category": "creative",
    "icon": "case-sensitive",
-   "description": "Every font (built-in and pixel TTFs like Minecraft / VCR OSD), styles, fills and text animations.",
+   "description": "Every font (built-in and your own pixel fonts), styles, fills and text animations.",
    "kind": "stream",
    "kinds": [
     "clip",
@@ -2478,14 +2469,6 @@
       {
        "value": "big",
        "label": "Built-in big digits (10px)"
-      },
-      {
-       "value": "ttf:Minecraft.ttf",
-       "label": "Minecraft"
-      },
-      {
-       "value": "ttf:VCR_OSD_MONO_1.001.ttf",
-       "label": "VCR OSD MONO 1.001"
       }
      ]
     },
@@ -2888,7 +2871,7 @@
    "name": "Pixel Avatar",
    "category": "creative",
    "icon": "user-round",
-   "description": "Minecraft faces, GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag.",
+   "description": "Block-game player heads (by username), GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag.",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -2904,7 +2887,7 @@
      "key": "names",
      "title": "Names",
      "type": "text",
-     "description": "Comma-separated. Prefix gh: for a GitHub identicon, db: for a DiceBear character, mc: for a Minecraft face; unprefixed names use the default source",
+     "description": "Comma-separated. Prefix gh: for a GitHub identicon, db: for a DiceBear character, mc: for a block-game player head (by username); unprefixed names use the default source",
      "default": "Notch, jeb_, gh:torvalds, db:deskdot",
      "max_length": 400
     },
@@ -2916,7 +2899,7 @@
      "options": [
       {
        "value": "minecraft",
-       "label": "Minecraft face"
+       "label": "Block-game player head"
       },
       {
        "value": "github",
@@ -3023,7 +3006,7 @@
    "name": "Player Card",
    "category": "creative",
    "icon": "id-card",
-   "description": "Your own rated football card — tiers, portrait, nation, six stats, shine and flip.",
+   "description": "Your own football player card — portrait, flag, name, six skills, shine and a flip.",
    "kind": "clip",
    "kinds": [
     "clip"
@@ -3122,15 +3105,15 @@
       },
       {
        "value": "icon",
-       "label": "Icon"
+       "label": "Legend"
       },
       {
        "value": "totw",
-       "label": "Team of the week"
+       "label": "Night"
       },
       {
        "value": "hero",
-       "label": "Hero"
+       "label": "Neon"
       },
       {
        "value": "special",
@@ -3140,7 +3123,7 @@
     },
     {
      "key": "pac",
-     "title": "Pace",
+     "title": "Speed",
      "type": "integer",
      "default": 92,
      "min": 1,
@@ -3167,7 +3150,7 @@
     },
     {
      "key": "dri",
-     "title": "Dribbling",
+     "title": "Skill",
      "type": "integer",
      "default": 90,
      "min": 1,
@@ -3185,7 +3168,7 @@
     },
     {
      "key": "phy",
-     "title": "Physical",
+     "title": "Strength",
      "type": "integer",
      "default": 78,
      "min": 1,
@@ -3279,7 +3262,7 @@
     },
     {
      "key": "flip_to_stats",
-     "title": "Flip to stats page",
+     "title": "Flip to skills page",
      "type": "toggle",
      "default": true
     },
@@ -6667,19 +6650,19 @@
    }
   },
   {
-   "id": "asteroids",
-   "name": "Asteroids",
+   "id": "invaders",
+   "name": "Alien Wave",
    "category": "games",
-   "icon": "orbit",
-   "description": "Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.",
+   "icon": "rocket",
+   "description": "Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.",
    "kind": "stream",
    "kinds": [
     "stream"
    ],
-   "page": "apps/asteroids.html",
-   "preview": "media/apps/asteroids.gif",
-   "poster": "media/apps/asteroids.png",
-   "og_image": "media/apps/og/asteroids.png",
+   "page": "apps/invaders.html",
+   "preview": "media/apps/invaders.gif",
+   "poster": "media/apps/invaders.png",
+   "og_image": "media/apps/og/invaders.png",
    "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
@@ -6704,7 +6687,7 @@
      "key": "theme",
      "title": "Theme",
      "type": "choice",
-     "default": "nebula",
+     "default": "deep",
      "options": [
       {
        "value": "classic",
@@ -6723,12 +6706,12 @@
        "label": "Mono"
       },
       {
-       "value": "nebula",
-       "label": "Nebula"
+       "value": "deep",
+       "label": "Deep Space"
       },
       {
-       "value": "mars",
-       "label": "Red Planet"
+       "value": "sunset",
+       "label": "Sunset"
       }
      ]
     },
@@ -6801,20 +6784,20 @@
      "group": "Game flow"
     },
     {
-     "key": "rocks",
-     "title": "Rocks per wave",
+     "key": "rows",
+     "title": "Alien rows",
      "type": "integer",
      "default": 3,
-     "min": 1,
-     "max": 6,
+     "min": 2,
+     "max": 4,
      "group": "Game"
     },
     {
-     "key": "filled",
-     "title": "Solid rocks",
+     "key": "shields",
+     "title": "Shields",
      "type": "toggle",
      "default": true,
-     "group": "Graphics"
+     "group": "Game"
     },
     {
      "key": "lives",
@@ -6826,13 +6809,23 @@
      "group": "Game"
     },
     {
-     "key": "time_limit",
-     "title": "Battle time (s)",
+     "key": "fire",
+     "title": "Alien fire",
      "type": "integer",
-     "description": "Dogfights end after this; most lives left wins",
-     "default": 120,
-     "min": 30,
-     "max": 300,
+     "description": "How often the fleet shoots back",
+     "default": 3,
+     "min": 1,
+     "max": 5,
+     "group": "Game"
+    },
+    {
+     "key": "duel_waves",
+     "title": "Duel waves",
+     "type": "integer",
+     "description": "Waves in a Duel match",
+     "default": 2,
+     "min": 1,
+     "max": 5,
      "group": "Game"
     },
     {
@@ -6850,12 +6843,8 @@
        "label": "Co-op"
       },
       {
-       "value": "battle",
-       "label": "Dogfight"
-      },
-      {
-       "value": "teams",
-       "label": "Squads"
+       "value": "duel",
+       "label": "Duel"
       }
      ],
      "group": "Game"
@@ -6864,23 +6853,23 @@
      "key": "map",
      "title": "Map",
      "type": "choice",
-     "default": "field",
+     "default": "classic",
      "options": [
       {
-       "value": "field",
-       "label": "Rock Field"
+       "value": "classic",
+       "label": "Classic"
       },
       {
-       "value": "dense",
-       "label": "Dense Belt"
+       "value": "bunkers",
+       "label": "Bunkers"
       },
       {
-       "value": "well",
-       "label": "Gravity Well"
+       "value": "wall",
+       "label": "Long Wall"
       },
       {
        "value": "open",
-       "label": "Open Space"
+       "label": "Open Sky"
       }
      ],
      "group": "Game"
@@ -6898,9 +6887,9 @@
    "game": {
     "max_players": 4,
     "controls": [
-     "gamepad",
      "dpad",
      "joystick",
+     "gamepad",
      "keyboard"
     ],
     "modes": [
@@ -6919,36 +6908,29 @@
       "teams": "coop"
      },
      {
-      "id": "battle",
-      "name": "Dogfight",
+      "id": "duel",
+      "name": "Duel",
       "min_players": 2,
       "max_players": 4,
       "teams": "ffa"
-     },
-     {
-      "id": "teams",
-      "name": "Squads",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "versus"
      }
     ],
     "maps": [
      {
-      "id": "field",
-      "label": "Rock Field"
+      "id": "classic",
+      "label": "Classic"
      },
      {
-      "id": "dense",
-      "label": "Dense Belt"
+      "id": "bunkers",
+      "label": "Bunkers"
      },
      {
-      "id": "well",
-      "label": "Gravity Well"
+      "id": "wall",
+      "label": "Long Wall"
      },
      {
       "id": "open",
-      "label": "Open Space"
+      "label": "Open Sky"
      }
     ],
     "themes": [
@@ -6969,19 +6951,320 @@
       "label": "Mono"
      },
      {
-      "value": "nebula",
-      "label": "Nebula"
+      "value": "deep",
+      "label": "Deep Space"
      },
      {
-      "value": "mars",
-      "label": "Red Planet"
+      "value": "sunset",
+      "label": "Sunset"
+     }
+    ]
+   }
+  },
+  {
+   "id": "tetris",
+   "name": "Block Drop",
+   "category": "games",
+   "icon": "blocks",
+   "description": "Stack falling blocks in a narrow well; the stack glows warmer as it climbs. The AI stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus (clear lines to send garbage) and Co-op (one wide well).",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/tetris.html",
+   "preview": "media/apps/tetris.gif",
+   "poster": "media/apps/tetris.png",
+   "og_image": "media/apps/og/tetris.png",
+   "source": "src/deskdot/apps/games_puzzle.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "prism",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "prism",
+       "label": "Sunset"
+      },
+      {
+       "value": "candy",
+       "label": "Candy"
+      },
+      {
+       "value": "deep",
+       "label": "Deep sea"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "start_level",
+     "title": "Start level",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "attack",
+     "title": "Garbage sent",
+     "type": "choice",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic (2 lines → 1)"
+      },
+      {
+       "value": "mirror",
+       "label": "Mirror (every line)"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "rise_every",
+     "title": "Rising floor every (s)",
+     "type": "integer",
+     "default": 15,
+     "min": 5,
+     "max": 60,
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "solo",
+     "options": [
+      {
+       "value": "solo",
+       "label": "Solo"
+      },
+      {
+       "value": "versus",
+       "label": "Versus"
+      },
+      {
+       "value": "coop",
+       "label": "Co-op"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Empty"
+      },
+      {
+       "value": "mound",
+       "label": "Mound"
+      },
+      {
+       "value": "rising",
+       "label": "Rising"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 2,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 2,
+    "controls": [
+     "dpad",
+     "gamepad",
+     "keyboard",
+     "joystick"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     },
+     {
+      "id": "versus",
+      "name": "Versus",
+      "min_players": 2,
+      "max_players": 2,
+      "teams": "versus"
+     },
+     {
+      "id": "coop",
+      "name": "Co-op",
+      "min_players": 2,
+      "max_players": 2,
+      "teams": "coop"
+     }
+    ],
+    "maps": [
+     {
+      "id": "classic",
+      "label": "Empty"
+     },
+     {
+      "id": "mound",
+      "label": "Mound"
+     },
+     {
+      "id": "rising",
+      "label": "Rising"
+     }
+    ],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "prism",
+      "label": "Sunset"
+     },
+     {
+      "value": "candy",
+      "label": "Candy"
+     },
+     {
+      "value": "deep",
+      "label": "Deep sea"
      }
     ]
    }
   },
   {
    "id": "breakout",
-   "name": "Breakout",
+   "name": "Brick Smash",
    "category": "games",
    "icon": "brick-wall",
    "description": "Smash a colourful brick wall; new patterns every level. Left/right moves the paddle. Co-op: two paddles and two balls on one wall. Versus: a split field, first to clear their half wins.",
@@ -7436,6 +7719,284 @@
    }
   },
   {
+   "id": "dino",
+   "name": "Desert Dash",
+   "category": "games",
+   "icon": "footprints",
+   "description": "An endless desert dash with a long-eared hopper: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/dino.html",
+   "preview": "media/apps/dino.gif",
+   "poster": "media/apps/dino.png",
+   "og_image": "media/apps/og/dino.png",
+   "source": "src/deskdot/apps/games_classic.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "desert",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "desert",
+       "label": "Desert"
+      },
+      {
+       "value": "tundra",
+       "label": "Tundra"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "birds",
+     "title": "Birds",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "cycle",
+     "title": "Day length (s)",
+     "type": "integer",
+     "default": 40,
+     "min": 10,
+     "max": 120
+    },
+    {
+     "key": "start_speed",
+     "title": "Start speed",
+     "type": "integer",
+     "default": 24,
+     "min": 16,
+     "max": 40,
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "solo",
+     "options": [
+      {
+       "value": "solo",
+       "label": "Solo"
+      },
+      {
+       "value": "race",
+       "label": "Race"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "desert",
+     "options": [
+      {
+       "value": "desert",
+       "label": "Desert"
+      },
+      {
+       "value": "canyon",
+       "label": "Canyon"
+      },
+      {
+       "value": "rush",
+       "label": "Rush"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 4,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 4,
+    "controls": [
+     "tap",
+     "dpad",
+     "gamepad"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     },
+     {
+      "id": "race",
+      "name": "Race",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "ffa"
+     }
+    ],
+    "maps": [
+     {
+      "id": "desert",
+      "label": "Desert"
+     },
+     {
+      "id": "canyon",
+      "label": "Canyon"
+     },
+     {
+      "id": "rush",
+      "label": "Rush"
+     }
+    ],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "desert",
+      "label": "Desert"
+     },
+     {
+      "value": "tundra",
+      "label": "Tundra"
+     },
+     {
+      "value": "volcano",
+      "label": "Volcano"
+     }
+    ]
+   }
+  },
+  {
    "id": "digworld",
    "name": "Dig World",
    "category": "games",
@@ -7746,20 +8307,20 @@
    }
   },
   {
-   "id": "dino",
-   "name": "Dino Runner",
+   "id": "maze",
+   "name": "Dot Dash",
    "category": "games",
-   "icon": "footprints",
-   "description": "An endless desert run: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.",
+   "icon": "bot",
+   "description": "Collect every dot in a fresh wrap-around maze while robots give chase; charge orbs turn the tables.",
    "kind": "stream",
    "kinds": [
     "stream"
    ],
-   "page": "apps/dino.html",
-   "preview": "media/apps/dino.gif",
-   "poster": "media/apps/dino.png",
-   "og_image": "media/apps/og/dino.png",
-   "source": "src/deskdot/apps/games_classic.py",
+   "page": "apps/maze.html",
+   "preview": "media/apps/maze.gif",
+   "poster": "media/apps/maze.png",
+   "og_image": "media/apps/og/maze.png",
+   "source": "src/deskdot/apps/games_action.py",
    "actions": [
     {
      "id": "restart",
@@ -7783,7 +8344,7 @@
      "key": "theme",
      "title": "Theme",
      "type": "choice",
-     "default": "desert",
+     "default": "haunted",
      "options": [
       {
        "value": "classic",
@@ -7802,16 +8363,12 @@
        "label": "Mono"
       },
       {
-       "value": "desert",
-       "label": "Desert"
+       "value": "haunted",
+       "label": "Circuit"
       },
       {
-       "value": "tundra",
-       "label": "Tundra"
-      },
-      {
-       "value": "volcano",
-       "label": "Volcano"
+       "value": "hedge",
+       "label": "Hedge Maze"
       }
      ]
     },
@@ -7884,305 +8441,40 @@
      "group": "Game flow"
     },
     {
-     "key": "birds",
-     "title": "Birds",
-     "type": "toggle",
-     "default": true
+     "key": "ghosts",
+     "title": "Robots",
+     "type": "integer",
+     "default": 3,
+     "min": 1,
+     "max": 4,
+     "group": "Game"
     },
     {
-     "key": "cycle",
-     "title": "Day length (s)",
+     "key": "lives",
+     "title": "Lives",
      "type": "integer",
+     "default": 3,
+     "min": 1,
+     "max": 5,
+     "group": "Game"
+    },
+    {
+     "key": "hunt_time",
+     "title": "Hunt round (s)",
+     "type": "integer",
+     "description": "Seconds the runner must survive in Hunt mode",
      "default": 40,
-     "min": 10,
-     "max": 120
-    },
-    {
-     "key": "start_speed",
-     "title": "Start speed",
-     "type": "integer",
-     "default": 24,
-     "min": 16,
-     "max": 40,
+     "min": 15,
+     "max": 90,
      "group": "Game"
     },
     {
-     "key": "mode",
-     "title": "Mode",
-     "type": "choice",
-     "default": "solo",
-     "options": [
-      {
-       "value": "solo",
-       "label": "Solo"
-      },
-      {
-       "value": "race",
-       "label": "Race"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "map",
-     "title": "Map",
-     "type": "choice",
-     "default": "desert",
-     "options": [
-      {
-       "value": "desert",
-       "label": "Desert"
-      },
-      {
-       "value": "canyon",
-       "label": "Canyon"
-      },
-      {
-       "value": "rush",
-       "label": "Rush"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "players",
-     "title": "Players",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 4,
-     "group": "Game"
-    }
-   ],
-   "game": {
-    "max_players": 4,
-    "controls": [
-     "tap",
-     "dpad",
-     "gamepad"
-    ],
-    "modes": [
-     {
-      "id": "solo",
-      "name": "Solo",
-      "min_players": 1,
-      "max_players": 1,
-      "teams": "solo"
-     },
-     {
-      "id": "race",
-      "name": "Race",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "ffa"
-     }
-    ],
-    "maps": [
-     {
-      "id": "desert",
-      "label": "Desert"
-     },
-     {
-      "id": "canyon",
-      "label": "Canyon"
-     },
-     {
-      "id": "rush",
-      "label": "Rush"
-     }
-    ],
-    "themes": [
-     {
-      "value": "classic",
-      "label": "Classic"
-     },
-     {
-      "value": "neon",
-      "label": "Neon"
-     },
-     {
-      "value": "retro",
-      "label": "Retro"
-     },
-     {
-      "value": "mono",
-      "label": "Mono"
-     },
-     {
-      "value": "desert",
-      "label": "Desert"
-     },
-     {
-      "value": "tundra",
-      "label": "Tundra"
-     },
-     {
-      "value": "volcano",
-      "label": "Volcano"
-     }
-    ]
-   }
-  },
-  {
-   "id": "flappy",
-   "name": "Flappy",
-   "category": "games",
-   "icon": "bird",
-   "description": "A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.",
-   "kind": "stream",
-   "kinds": [
-    "stream"
-   ],
-   "page": "apps/flappy.html",
-   "preview": "media/apps/flappy.gif",
-   "poster": "media/apps/flappy.png",
-   "og_image": "media/apps/og/flappy.png",
-   "source": "src/deskdot/apps/games_classic.py",
-   "actions": [
-    {
-     "id": "restart",
-     "label": "Restart"
-    },
-    {
-     "id": "demo",
-     "label": "Autoplay"
-    }
-   ],
-   "settings": [
-    {
-     "key": "speed",
-     "title": "Speed",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "theme",
-     "title": "Theme",
-     "type": "choice",
-     "default": "meadow",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "neon",
-       "label": "Neon"
-      },
-      {
-       "value": "retro",
-       "label": "Retro"
-      },
-      {
-       "value": "mono",
-       "label": "Mono"
-      },
-      {
-       "value": "meadow",
-       "label": "Meadow"
-      },
-      {
-       "value": "dusk",
-       "label": "Dusk"
-      },
-      {
-       "value": "abyss",
-       "label": "Abyss"
-      }
-     ]
-    },
-    {
-     "key": "skill",
-     "title": "AI skill",
+     "key": "fright",
+     "title": "Charge orb (s)",
      "type": "number",
-     "description": "How well the demo AI plays",
-     "default": 0.8,
-     "min": 0.0,
-     "max": 1.0
-    },
-    {
-     "key": "show_score",
-     "title": "Show score",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "effects",
-     "title": "Effects",
-     "type": "choice",
-     "default": "full",
-     "options": [
-      {
-       "value": "full",
-       "label": "Full (particles, shake, flashes)"
-      },
-      {
-       "value": "calm",
-       "label": "Calm (no shake or flashes)"
-      },
-      {
-       "value": "minimal",
-       "label": "Minimal"
-      }
-     ],
-     "group": "Graphics"
-    },
-    {
-     "key": "intro_outro",
-     "title": "Intro & results screens",
-     "type": "toggle",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "attract",
-     "title": "Play itself when idle",
-     "type": "toggle",
-     "description": "The AI plays while nobody does (great in a playlist)",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "pilot",
-     "title": "Plays itself with",
-     "type": "choice",
-     "default": "ai",
-     "options": [
-      {
-       "value": "ai",
-       "label": "Built-in AI"
-      },
-      {
-       "value": "fly",
-       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
-      }
-     ],
-     "group": "Game flow"
-    },
-    {
-     "key": "gap",
-     "title": "Gap size",
-     "type": "integer",
-     "default": 11,
-     "min": 8,
-     "max": 15
-    },
-    {
-     "key": "gravity",
-     "title": "Gravity",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10,
-     "group": "Game"
-    },
-    {
-     "key": "shrink",
-     "title": "Race: gaps shrink (sudden death)",
-     "type": "toggle",
-     "default": true,
+     "default": 6.0,
+     "min": 2.0,
+     "max": 10.0,
      "group": "Game"
     },
     {
@@ -8196,8 +8488,12 @@
        "label": "Solo"
       },
       {
-       "value": "race",
-       "label": "Race"
+       "value": "coop",
+       "label": "Co-op"
+      },
+      {
+       "value": "hunt",
+       "label": "Hunt"
       }
      ],
      "group": "Game"
@@ -8206,19 +8502,23 @@
      "key": "map",
      "title": "Map",
      "type": "choice",
-     "default": "pipes",
+     "default": "random",
      "options": [
       {
-       "value": "pipes",
-       "label": "Pipes"
+       "value": "random",
+       "label": "Random"
       },
       {
-       "value": "moving",
-       "label": "Moving"
+       "value": "mirror",
+       "label": "Mirror"
       },
       {
-       "value": "cave",
-       "label": "Cave"
+       "value": "open",
+       "label": "Open"
+      },
+      {
+       "value": "boxed",
+       "label": "Boxed"
       }
      ],
      "group": "Game"
@@ -8236,8 +8536,9 @@
    "game": {
     "max_players": 4,
     "controls": [
-     "tap",
      "dpad",
+     "swipe",
+     "joystick",
      "gamepad"
     ],
     "modes": [
@@ -8249,8 +8550,15 @@
       "teams": "solo"
      },
      {
-      "id": "race",
-      "name": "Race",
+      "id": "coop",
+      "name": "Co-op",
+      "min_players": 2,
+      "max_players": 2,
+      "teams": "coop"
+     },
+     {
+      "id": "hunt",
+      "name": "Hunt",
       "min_players": 2,
       "max_players": 4,
       "teams": "ffa"
@@ -8258,16 +8566,20 @@
     ],
     "maps": [
      {
-      "id": "pipes",
-      "label": "Pipes"
+      "id": "random",
+      "label": "Random"
      },
      {
-      "id": "moving",
-      "label": "Moving"
+      "id": "mirror",
+      "label": "Mirror"
      },
      {
-      "id": "cave",
-      "label": "Cave"
+      "id": "open",
+      "label": "Open"
+     },
+     {
+      "id": "boxed",
+      "label": "Boxed"
      }
     ],
     "themes": [
@@ -8288,16 +8600,12 @@
       "label": "Mono"
      },
      {
-      "value": "meadow",
-      "label": "Meadow"
+      "value": "haunted",
+      "label": "Circuit"
      },
      {
-      "value": "dusk",
-      "label": "Dusk"
-     },
-     {
-      "value": "abyss",
-      "label": "Abyss"
+      "value": "hedge",
+      "label": "Hedge Maze"
      }
     ]
    }
@@ -9087,318 +9395,6 @@
    }
   },
   {
-   "id": "invaders",
-   "name": "Invaders",
-   "category": "games",
-   "icon": "rocket",
-   "description": "Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.",
-   "kind": "stream",
-   "kinds": [
-    "stream"
-   ],
-   "page": "apps/invaders.html",
-   "preview": "media/apps/invaders.gif",
-   "poster": "media/apps/invaders.png",
-   "og_image": "media/apps/og/invaders.png",
-   "source": "src/deskdot/apps/games_action.py",
-   "actions": [
-    {
-     "id": "restart",
-     "label": "Restart"
-    },
-    {
-     "id": "demo",
-     "label": "Autoplay"
-    }
-   ],
-   "settings": [
-    {
-     "key": "speed",
-     "title": "Speed",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "theme",
-     "title": "Theme",
-     "type": "choice",
-     "default": "deep",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "neon",
-       "label": "Neon"
-      },
-      {
-       "value": "retro",
-       "label": "Retro"
-      },
-      {
-       "value": "mono",
-       "label": "Mono"
-      },
-      {
-       "value": "deep",
-       "label": "Deep Space"
-      },
-      {
-       "value": "sunset",
-       "label": "Sunset"
-      }
-     ]
-    },
-    {
-     "key": "skill",
-     "title": "AI skill",
-     "type": "number",
-     "description": "How well the demo AI plays",
-     "default": 0.8,
-     "min": 0.0,
-     "max": 1.0
-    },
-    {
-     "key": "show_score",
-     "title": "Show score",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "effects",
-     "title": "Effects",
-     "type": "choice",
-     "default": "full",
-     "options": [
-      {
-       "value": "full",
-       "label": "Full (particles, shake, flashes)"
-      },
-      {
-       "value": "calm",
-       "label": "Calm (no shake or flashes)"
-      },
-      {
-       "value": "minimal",
-       "label": "Minimal"
-      }
-     ],
-     "group": "Graphics"
-    },
-    {
-     "key": "intro_outro",
-     "title": "Intro & results screens",
-     "type": "toggle",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "attract",
-     "title": "Play itself when idle",
-     "type": "toggle",
-     "description": "The AI plays while nobody does (great in a playlist)",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "pilot",
-     "title": "Plays itself with",
-     "type": "choice",
-     "default": "ai",
-     "options": [
-      {
-       "value": "ai",
-       "label": "Built-in AI"
-      },
-      {
-       "value": "fly",
-       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
-      }
-     ],
-     "group": "Game flow"
-    },
-    {
-     "key": "rows",
-     "title": "Alien rows",
-     "type": "integer",
-     "default": 3,
-     "min": 2,
-     "max": 4,
-     "group": "Game"
-    },
-    {
-     "key": "shields",
-     "title": "Shields",
-     "type": "toggle",
-     "default": true,
-     "group": "Game"
-    },
-    {
-     "key": "lives",
-     "title": "Lives",
-     "type": "integer",
-     "default": 3,
-     "min": 1,
-     "max": 5,
-     "group": "Game"
-    },
-    {
-     "key": "fire",
-     "title": "Alien fire",
-     "type": "integer",
-     "description": "How often the fleet shoots back",
-     "default": 3,
-     "min": 1,
-     "max": 5,
-     "group": "Game"
-    },
-    {
-     "key": "duel_waves",
-     "title": "Duel waves",
-     "type": "integer",
-     "description": "Waves in a Duel match",
-     "default": 2,
-     "min": 1,
-     "max": 5,
-     "group": "Game"
-    },
-    {
-     "key": "mode",
-     "title": "Mode",
-     "type": "choice",
-     "default": "solo",
-     "options": [
-      {
-       "value": "solo",
-       "label": "Solo"
-      },
-      {
-       "value": "coop",
-       "label": "Co-op"
-      },
-      {
-       "value": "duel",
-       "label": "Duel"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "map",
-     "title": "Map",
-     "type": "choice",
-     "default": "classic",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "bunkers",
-       "label": "Bunkers"
-      },
-      {
-       "value": "wall",
-       "label": "Long Wall"
-      },
-      {
-       "value": "open",
-       "label": "Open Sky"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "players",
-     "title": "Players",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 4,
-     "group": "Game"
-    }
-   ],
-   "game": {
-    "max_players": 4,
-    "controls": [
-     "dpad",
-     "joystick",
-     "gamepad",
-     "keyboard"
-    ],
-    "modes": [
-     {
-      "id": "solo",
-      "name": "Solo",
-      "min_players": 1,
-      "max_players": 1,
-      "teams": "solo"
-     },
-     {
-      "id": "coop",
-      "name": "Co-op",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "coop"
-     },
-     {
-      "id": "duel",
-      "name": "Duel",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "ffa"
-     }
-    ],
-    "maps": [
-     {
-      "id": "classic",
-      "label": "Classic"
-     },
-     {
-      "id": "bunkers",
-      "label": "Bunkers"
-     },
-     {
-      "id": "wall",
-      "label": "Long Wall"
-     },
-     {
-      "id": "open",
-      "label": "Open Sky"
-     }
-    ],
-    "themes": [
-     {
-      "value": "classic",
-      "label": "Classic"
-     },
-     {
-      "value": "neon",
-      "label": "Neon"
-     },
-     {
-      "value": "retro",
-      "label": "Retro"
-     },
-     {
-      "value": "mono",
-      "label": "Mono"
-     },
-     {
-      "value": "deep",
-      "label": "Deep Space"
-     },
-     {
-      "value": "sunset",
-      "label": "Sunset"
-     }
-    ]
-   }
-  },
-  {
    "id": "leafleap",
    "name": "Leaf Leap",
    "category": "games",
@@ -9699,609 +9695,11 @@
    }
   },
   {
-   "id": "cycles",
-   "name": "Light Cycles",
-   "category": "games",
-   "icon": "zap",
-   "description": "Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.",
-   "kind": "stream",
-   "kinds": [
-    "stream"
-   ],
-   "page": "apps/cycles.html",
-   "preview": "media/apps/cycles.gif",
-   "poster": "media/apps/cycles.png",
-   "og_image": "media/apps/og/cycles.png",
-   "source": "src/deskdot/apps/games_party.py",
-   "actions": [
-    {
-     "id": "restart",
-     "label": "Restart"
-    },
-    {
-     "id": "demo",
-     "label": "Autoplay"
-    }
-   ],
-   "settings": [
-    {
-     "key": "speed",
-     "title": "Speed",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "theme",
-     "title": "Theme",
-     "type": "choice",
-     "default": "grid",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "neon",
-       "label": "Neon"
-      },
-      {
-       "value": "retro",
-       "label": "Retro"
-      },
-      {
-       "value": "mono",
-       "label": "Mono"
-      },
-      {
-       "value": "grid",
-       "label": "Grid"
-      },
-      {
-       "value": "sunset",
-       "label": "Sunset"
-      }
-     ]
-    },
-    {
-     "key": "skill",
-     "title": "AI skill",
-     "type": "number",
-     "description": "How well the demo AI plays",
-     "default": 0.8,
-     "min": 0.0,
-     "max": 1.0
-    },
-    {
-     "key": "show_score",
-     "title": "Show score",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "effects",
-     "title": "Effects",
-     "type": "choice",
-     "default": "full",
-     "options": [
-      {
-       "value": "full",
-       "label": "Full (particles, shake, flashes)"
-      },
-      {
-       "value": "calm",
-       "label": "Calm (no shake or flashes)"
-      },
-      {
-       "value": "minimal",
-       "label": "Minimal"
-      }
-     ],
-     "group": "Graphics"
-    },
-    {
-     "key": "intro_outro",
-     "title": "Intro & results screens",
-     "type": "toggle",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "attract",
-     "title": "Play itself when idle",
-     "type": "toggle",
-     "description": "The AI plays while nobody does (great in a playlist)",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "pilot",
-     "title": "Plays itself with",
-     "type": "choice",
-     "default": "ai",
-     "options": [
-      {
-       "value": "ai",
-       "label": "Built-in AI"
-      },
-      {
-       "value": "fly",
-       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
-      }
-     ],
-     "group": "Game flow"
-    },
-    {
-     "key": "riders",
-     "title": "Bikes in the arena",
-     "type": "integer",
-     "description": "Empty seats are ridden by the AI",
-     "default": 4,
-     "min": 2,
-     "max": 4
-    },
-    {
-     "key": "pace",
-     "title": "Steps per second",
-     "type": "number",
-     "default": 9.0,
-     "min": 5.0,
-     "max": 14.0
-    },
-    {
-     "key": "first_to",
-     "title": "Match: first to",
-     "type": "integer",
-     "description": "Round wins needed to take the match",
-     "default": 5,
-     "min": 1,
-     "max": 9,
-     "group": "Game"
-    },
-    {
-     "key": "mode",
-     "title": "Mode",
-     "type": "choice",
-     "default": "solo",
-     "options": [
-      {
-       "value": "solo",
-       "label": "Solo"
-      },
-      {
-       "value": "party",
-       "label": "Party"
-      },
-      {
-       "value": "teams",
-       "label": "Teams"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "map",
-     "title": "Map",
-     "type": "choice",
-     "default": "open",
-     "options": [
-      {
-       "value": "open",
-       "label": "Open"
-      },
-      {
-       "value": "pillars",
-       "label": "Pillars"
-      },
-      {
-       "value": "core",
-       "label": "Core"
-      },
-      {
-       "value": "wrap",
-       "label": "Wrap"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "players",
-     "title": "Players",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 4,
-     "group": "Game"
-    }
-   ],
-   "game": {
-    "max_players": 4,
-    "controls": [
-     "swipe",
-     "dpad",
-     "joystick",
-     "gamepad"
-    ],
-    "modes": [
-     {
-      "id": "solo",
-      "name": "Solo",
-      "min_players": 1,
-      "max_players": 1,
-      "teams": "solo"
-     },
-     {
-      "id": "party",
-      "name": "Party",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "ffa"
-     },
-     {
-      "id": "teams",
-      "name": "Teams",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "versus"
-     }
-    ],
-    "maps": [
-     {
-      "id": "open",
-      "label": "Open"
-     },
-     {
-      "id": "pillars",
-      "label": "Pillars"
-     },
-     {
-      "id": "core",
-      "label": "Core"
-     },
-     {
-      "id": "wrap",
-      "label": "Wrap"
-     }
-    ],
-    "themes": [
-     {
-      "value": "classic",
-      "label": "Classic"
-     },
-     {
-      "value": "neon",
-      "label": "Neon"
-     },
-     {
-      "value": "retro",
-      "label": "Retro"
-     },
-     {
-      "value": "mono",
-      "label": "Mono"
-     },
-     {
-      "value": "grid",
-      "label": "Grid"
-     },
-     {
-      "value": "sunset",
-      "label": "Sunset"
-     }
-    ]
-   }
-  },
-  {
-   "id": "maze",
-   "name": "Maze Chase",
-   "category": "games",
-   "icon": "ghost",
-   "description": "Eat every dot in a fresh wrap-around maze while ghosts give chase; power pills turn the tables.",
-   "kind": "stream",
-   "kinds": [
-    "stream"
-   ],
-   "page": "apps/maze.html",
-   "preview": "media/apps/maze.gif",
-   "poster": "media/apps/maze.png",
-   "og_image": "media/apps/og/maze.png",
-   "source": "src/deskdot/apps/games_action.py",
-   "actions": [
-    {
-     "id": "restart",
-     "label": "Restart"
-    },
-    {
-     "id": "demo",
-     "label": "Autoplay"
-    }
-   ],
-   "settings": [
-    {
-     "key": "speed",
-     "title": "Speed",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "theme",
-     "title": "Theme",
-     "type": "choice",
-     "default": "haunted",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "neon",
-       "label": "Neon"
-      },
-      {
-       "value": "retro",
-       "label": "Retro"
-      },
-      {
-       "value": "mono",
-       "label": "Mono"
-      },
-      {
-       "value": "haunted",
-       "label": "Haunted"
-      },
-      {
-       "value": "hedge",
-       "label": "Hedge Maze"
-      }
-     ]
-    },
-    {
-     "key": "skill",
-     "title": "AI skill",
-     "type": "number",
-     "description": "How well the demo AI plays",
-     "default": 0.8,
-     "min": 0.0,
-     "max": 1.0
-    },
-    {
-     "key": "show_score",
-     "title": "Show score",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "effects",
-     "title": "Effects",
-     "type": "choice",
-     "default": "full",
-     "options": [
-      {
-       "value": "full",
-       "label": "Full (particles, shake, flashes)"
-      },
-      {
-       "value": "calm",
-       "label": "Calm (no shake or flashes)"
-      },
-      {
-       "value": "minimal",
-       "label": "Minimal"
-      }
-     ],
-     "group": "Graphics"
-    },
-    {
-     "key": "intro_outro",
-     "title": "Intro & results screens",
-     "type": "toggle",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "attract",
-     "title": "Play itself when idle",
-     "type": "toggle",
-     "description": "The AI plays while nobody does (great in a playlist)",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "pilot",
-     "title": "Plays itself with",
-     "type": "choice",
-     "default": "ai",
-     "options": [
-      {
-       "value": "ai",
-       "label": "Built-in AI"
-      },
-      {
-       "value": "fly",
-       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
-      }
-     ],
-     "group": "Game flow"
-    },
-    {
-     "key": "ghosts",
-     "title": "Ghosts",
-     "type": "integer",
-     "default": 3,
-     "min": 1,
-     "max": 4,
-     "group": "Game"
-    },
-    {
-     "key": "lives",
-     "title": "Lives",
-     "type": "integer",
-     "default": 3,
-     "min": 1,
-     "max": 5,
-     "group": "Game"
-    },
-    {
-     "key": "hunt_time",
-     "title": "Hunt round (s)",
-     "type": "integer",
-     "description": "Seconds the runner must survive in Hunt mode",
-     "default": 40,
-     "min": 15,
-     "max": 90,
-     "group": "Game"
-    },
-    {
-     "key": "fright",
-     "title": "Power pill (s)",
-     "type": "number",
-     "default": 6.0,
-     "min": 2.0,
-     "max": 10.0,
-     "group": "Game"
-    },
-    {
-     "key": "mode",
-     "title": "Mode",
-     "type": "choice",
-     "default": "solo",
-     "options": [
-      {
-       "value": "solo",
-       "label": "Solo"
-      },
-      {
-       "value": "coop",
-       "label": "Co-op"
-      },
-      {
-       "value": "hunt",
-       "label": "Hunt"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "map",
-     "title": "Map",
-     "type": "choice",
-     "default": "random",
-     "options": [
-      {
-       "value": "random",
-       "label": "Random"
-      },
-      {
-       "value": "mirror",
-       "label": "Mirror"
-      },
-      {
-       "value": "open",
-       "label": "Open"
-      },
-      {
-       "value": "boxed",
-       "label": "Boxed"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "players",
-     "title": "Players",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 4,
-     "group": "Game"
-    }
-   ],
-   "game": {
-    "max_players": 4,
-    "controls": [
-     "dpad",
-     "swipe",
-     "joystick",
-     "gamepad"
-    ],
-    "modes": [
-     {
-      "id": "solo",
-      "name": "Solo",
-      "min_players": 1,
-      "max_players": 1,
-      "teams": "solo"
-     },
-     {
-      "id": "coop",
-      "name": "Co-op",
-      "min_players": 2,
-      "max_players": 2,
-      "teams": "coop"
-     },
-     {
-      "id": "hunt",
-      "name": "Hunt",
-      "min_players": 2,
-      "max_players": 4,
-      "teams": "ffa"
-     }
-    ],
-    "maps": [
-     {
-      "id": "random",
-      "label": "Random"
-     },
-     {
-      "id": "mirror",
-      "label": "Mirror"
-     },
-     {
-      "id": "open",
-      "label": "Open"
-     },
-     {
-      "id": "boxed",
-      "label": "Boxed"
-     }
-    ],
-    "themes": [
-     {
-      "value": "classic",
-      "label": "Classic"
-     },
-     {
-      "value": "neon",
-      "label": "Neon"
-     },
-     {
-      "value": "retro",
-      "label": "Retro"
-     },
-     {
-      "value": "mono",
-      "label": "Mono"
-     },
-     {
-      "value": "haunted",
-      "label": "Haunted"
-     },
-     {
-      "value": "hedge",
-      "label": "Hedge Maze"
-     }
-    ]
-   }
-  },
-  {
    "id": "mines",
    "name": "Mines",
    "category": "games",
    "icon": "bomb",
-   "description": "Minesweeper that solves itself with logic (and the odd guess). Arrows move the cursor, A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells.",
+   "description": "A mine-field puzzle that solves itself with logic (and the odd guess). Arrows move the cursor, A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells.",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -10887,20 +10285,20 @@
    }
   },
   {
-   "id": "penguin",
-   "name": "Penguin Escape",
+   "id": "cycles",
+   "name": "Neon Trails",
    "category": "games",
-   "icon": "snowflake",
-   "description": "A sliding-ice puzzle: guide a penguin out of the zoo through 16 levels. Ice slides you until something stops you; shove ice blocks (into water to bridge it), grab keys for doors and three fish for stars, and stay out of the keepers' torch beams. Arrows move, A undoes, B restarts / picks a level.",
+   "icon": "zap",
+   "description": "Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.",
    "kind": "stream",
    "kinds": [
     "stream"
    ],
-   "page": "apps/penguin.html",
-   "preview": "media/apps/penguin.gif",
-   "poster": "media/apps/penguin.png",
-   "og_image": "media/apps/og/penguin.png",
-   "source": "src/deskdot/apps/games_penguin.py",
+   "page": "apps/cycles.html",
+   "preview": "media/apps/cycles.gif",
+   "poster": "media/apps/cycles.png",
+   "og_image": "media/apps/og/cycles.png",
+   "source": "src/deskdot/apps/games_party.py",
    "actions": [
     {
      "id": "restart",
@@ -10924,7 +10322,7 @@
      "key": "theme",
      "title": "Theme",
      "type": "choice",
-     "default": "ice",
+     "default": "grid",
      "options": [
       {
        "value": "classic",
@@ -10943,16 +10341,12 @@
        "label": "Mono"
       },
       {
-       "value": "ice",
-       "label": "Ice"
+       "value": "grid",
+       "label": "Grid"
       },
       {
-       "value": "night",
-       "label": "Night"
-      },
-      {
-       "value": "aurora",
-       "label": "Aurora"
+       "value": "sunset",
+       "label": "Sunset"
       }
      ]
     },
@@ -11025,23 +10419,95 @@
      "group": "Game flow"
     },
     {
-     "key": "start_level",
-     "title": "Starting level",
+     "key": "riders",
+     "title": "Bikes in the arena",
      "type": "integer",
-     "description": "Where the demo starts, and the lowest level you can always pick",
+     "description": "Empty seats are ridden by the AI",
+     "default": 4,
+     "min": 2,
+     "max": 4
+    },
+    {
+     "key": "pace",
+     "title": "Steps per second",
+     "type": "number",
+     "default": 9.0,
+     "min": 5.0,
+     "max": 14.0
+    },
+    {
+     "key": "first_to",
+     "title": "Match: first to",
+     "type": "integer",
+     "description": "Round wins needed to take the match",
+     "default": 5,
+     "min": 1,
+     "max": 9,
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "solo",
+     "options": [
+      {
+       "value": "solo",
+       "label": "Solo"
+      },
+      {
+       "value": "party",
+       "label": "Party"
+      },
+      {
+       "value": "teams",
+       "label": "Teams"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "open",
+     "options": [
+      {
+       "value": "open",
+       "label": "Open"
+      },
+      {
+       "value": "pillars",
+       "label": "Pillars"
+      },
+      {
+       "value": "core",
+       "label": "Core"
+      },
+      {
+       "value": "wrap",
+       "label": "Wrap"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
      "default": 1,
      "min": 1,
-     "max": 16,
+     "max": 4,
      "group": "Game"
     }
    ],
    "game": {
-    "max_players": 1,
+    "max_players": 4,
     "controls": [
-     "dpad",
      "swipe",
-     "gamepad",
-     "joystick"
+     "dpad",
+     "joystick",
+     "gamepad"
     ],
     "modes": [
      {
@@ -11050,9 +10516,40 @@
       "min_players": 1,
       "max_players": 1,
       "teams": "solo"
+     },
+     {
+      "id": "party",
+      "name": "Party",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "ffa"
+     },
+     {
+      "id": "teams",
+      "name": "Teams",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "versus"
      }
     ],
-    "maps": [],
+    "maps": [
+     {
+      "id": "open",
+      "label": "Open"
+     },
+     {
+      "id": "pillars",
+      "label": "Pillars"
+     },
+     {
+      "id": "core",
+      "label": "Core"
+     },
+     {
+      "id": "wrap",
+      "label": "Wrap"
+     }
+    ],
     "themes": [
      {
       "value": "classic",
@@ -11071,23 +10568,19 @@
       "label": "Mono"
      },
      {
-      "value": "ice",
-      "label": "Ice"
+      "value": "grid",
+      "label": "Grid"
      },
      {
-      "value": "night",
-      "label": "Night"
-     },
-     {
-      "value": "aurora",
-      "label": "Aurora"
+      "value": "sunset",
+      "label": "Sunset"
      }
     ]
    }
   },
   {
    "id": "pong",
-   "name": "Pong",
+   "name": "Paddle Duel",
    "category": "games",
    "icon": "circle-dot",
    "description": "Two paddles, one ball that speeds up every hit. Plays itself; up/down steers the left paddle. Modes: 1 v 1, Doubles (2 v 2, front and back paddles) and 4 Way (a paddle on every wall). Friends join from their phones (local Wi-Fi).",
@@ -11377,6 +10870,484 @@
    }
   },
   {
+   "id": "penguin",
+   "name": "Penguin Escape",
+   "category": "games",
+   "icon": "snowflake",
+   "description": "A sliding-ice puzzle: guide a penguin out of the zoo through 16 levels. Ice slides you until something stops you; shove ice blocks (into water to bridge it), grab keys for doors and three fish for stars, and stay out of the keepers' torch beams. Arrows move, A undoes, B restarts / picks a level.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/penguin.html",
+   "preview": "media/apps/penguin.gif",
+   "poster": "media/apps/penguin.png",
+   "og_image": "media/apps/og/penguin.png",
+   "source": "src/deskdot/apps/games_penguin.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "ice",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "ice",
+       "label": "Ice"
+      },
+      {
+       "value": "night",
+       "label": "Night"
+      },
+      {
+       "value": "aurora",
+       "label": "Aurora"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "start_level",
+     "title": "Starting level",
+     "type": "integer",
+     "description": "Where the demo starts, and the lowest level you can always pick",
+     "default": 1,
+     "min": 1,
+     "max": 16,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 1,
+    "controls": [
+     "dpad",
+     "swipe",
+     "gamepad",
+     "joystick"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     }
+    ],
+    "maps": [],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "ice",
+      "label": "Ice"
+     },
+     {
+      "value": "night",
+      "label": "Night"
+     },
+     {
+      "value": "aurora",
+      "label": "Aurora"
+     }
+    ]
+   }
+  },
+  {
+   "id": "flappy",
+   "name": "Pipe Hopper",
+   "category": "games",
+   "icon": "bird",
+   "description": "A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/flappy.html",
+   "preview": "media/apps/flappy.gif",
+   "poster": "media/apps/flappy.png",
+   "og_image": "media/apps/og/flappy.png",
+   "source": "src/deskdot/apps/games_classic.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "meadow",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "meadow",
+       "label": "Meadow"
+      },
+      {
+       "value": "dusk",
+       "label": "Dusk"
+      },
+      {
+       "value": "abyss",
+       "label": "Abyss"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "gap",
+     "title": "Gap size",
+     "type": "integer",
+     "default": 11,
+     "min": 8,
+     "max": 15
+    },
+    {
+     "key": "gravity",
+     "title": "Gravity",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10,
+     "group": "Game"
+    },
+    {
+     "key": "shrink",
+     "title": "Race: gaps shrink (sudden death)",
+     "type": "toggle",
+     "default": true,
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "solo",
+     "options": [
+      {
+       "value": "solo",
+       "label": "Solo"
+      },
+      {
+       "value": "race",
+       "label": "Race"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "pipes",
+     "options": [
+      {
+       "value": "pipes",
+       "label": "Pipes"
+      },
+      {
+       "value": "moving",
+       "label": "Moving"
+      },
+      {
+       "value": "cave",
+       "label": "Cave"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 4,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 4,
+    "controls": [
+     "tap",
+     "dpad",
+     "gamepad"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     },
+     {
+      "id": "race",
+      "name": "Race",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "ffa"
+     }
+    ],
+    "maps": [
+     {
+      "id": "pipes",
+      "label": "Pipes"
+     },
+     {
+      "id": "moving",
+      "label": "Moving"
+     },
+     {
+      "id": "cave",
+      "label": "Cave"
+     }
+    ],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "meadow",
+      "label": "Meadow"
+     },
+     {
+      "value": "dusk",
+      "label": "Dusk"
+     },
+     {
+      "value": "abyss",
+      "label": "Abyss"
+     }
+    ]
+   }
+  },
+  {
    "id": "racer",
    "name": "Racer",
    "category": "games",
@@ -11645,6 +11616,319 @@
      {
       "value": "dunes",
       "label": "Dunes"
+     }
+    ]
+   }
+  },
+  {
+   "id": "asteroids",
+   "name": "Rock Field",
+   "category": "games",
+   "icon": "orbit",
+   "description": "Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/asteroids.html",
+   "preview": "media/apps/asteroids.gif",
+   "poster": "media/apps/asteroids.png",
+   "og_image": "media/apps/og/asteroids.png",
+   "source": "src/deskdot/apps/games_action.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "nebula",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "nebula",
+       "label": "Nebula"
+      },
+      {
+       "value": "mars",
+       "label": "Red Planet"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "rocks",
+     "title": "Rocks per wave",
+     "type": "integer",
+     "default": 3,
+     "min": 1,
+     "max": 6,
+     "group": "Game"
+    },
+    {
+     "key": "filled",
+     "title": "Solid rocks",
+     "type": "toggle",
+     "default": true,
+     "group": "Graphics"
+    },
+    {
+     "key": "lives",
+     "title": "Lives",
+     "type": "integer",
+     "default": 3,
+     "min": 1,
+     "max": 5,
+     "group": "Game"
+    },
+    {
+     "key": "time_limit",
+     "title": "Battle time (s)",
+     "type": "integer",
+     "description": "Dogfights end after this; most lives left wins",
+     "default": 120,
+     "min": 30,
+     "max": 300,
+     "group": "Game"
+    },
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "solo",
+     "options": [
+      {
+       "value": "solo",
+       "label": "Solo"
+      },
+      {
+       "value": "coop",
+       "label": "Co-op"
+      },
+      {
+       "value": "battle",
+       "label": "Dogfight"
+      },
+      {
+       "value": "teams",
+       "label": "Squads"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "map",
+     "title": "Map",
+     "type": "choice",
+     "default": "field",
+     "options": [
+      {
+       "value": "field",
+       "label": "Rock Field"
+      },
+      {
+       "value": "dense",
+       "label": "Dense Belt"
+      },
+      {
+       "value": "well",
+       "label": "Gravity Well"
+      },
+      {
+       "value": "open",
+       "label": "Open Space"
+      }
+     ],
+     "group": "Game"
+    },
+    {
+     "key": "players",
+     "title": "Players",
+     "type": "integer",
+     "default": 1,
+     "min": 1,
+     "max": 4,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 4,
+    "controls": [
+     "gamepad",
+     "dpad",
+     "joystick",
+     "keyboard"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     },
+     {
+      "id": "coop",
+      "name": "Co-op",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "coop"
+     },
+     {
+      "id": "battle",
+      "name": "Dogfight",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "ffa"
+     },
+     {
+      "id": "teams",
+      "name": "Squads",
+      "min_players": 2,
+      "max_players": 4,
+      "teams": "versus"
+     }
+    ],
+    "maps": [
+     {
+      "id": "field",
+      "label": "Rock Field"
+     },
+     {
+      "id": "dense",
+      "label": "Dense Belt"
+     },
+     {
+      "id": "well",
+      "label": "Gravity Well"
+     },
+     {
+      "id": "open",
+      "label": "Open Space"
+     }
+    ],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "nebula",
+      "label": "Nebula"
+     },
+     {
+      "value": "mars",
+      "label": "Red Planet"
      }
     ]
    }
@@ -12514,7 +12798,7 @@
       },
       {
        "value": "rocks",
-       "label": "Asteroids"
+       "label": "Rock Belt"
       },
       {
        "value": "canyon",
@@ -12571,7 +12855,7 @@
      },
      {
       "id": "rocks",
-      "label": "Asteroids"
+      "label": "Rock Belt"
      },
      {
       "id": "canyon",
@@ -12903,313 +13187,6 @@
      {
       "value": "frost",
       "label": "Frost"
-     }
-    ]
-   }
-  },
-  {
-   "id": "tetris",
-   "name": "Tetris",
-   "category": "games",
-   "icon": "blocks",
-   "description": "Falling blocks with a next-piece preview. The AI stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus (clear lines to send garbage) and Co-op (one wide well).",
-   "kind": "stream",
-   "kinds": [
-    "stream"
-   ],
-   "page": "apps/tetris.html",
-   "preview": "media/apps/tetris.gif",
-   "poster": "media/apps/tetris.png",
-   "og_image": "media/apps/og/tetris.png",
-   "source": "src/deskdot/apps/games_puzzle.py",
-   "actions": [
-    {
-     "id": "restart",
-     "label": "Restart"
-    },
-    {
-     "id": "demo",
-     "label": "Autoplay"
-    }
-   ],
-   "settings": [
-    {
-     "key": "speed",
-     "title": "Speed",
-     "type": "integer",
-     "default": 5,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "theme",
-     "title": "Theme",
-     "type": "choice",
-     "default": "prism",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic"
-      },
-      {
-       "value": "neon",
-       "label": "Neon"
-      },
-      {
-       "value": "retro",
-       "label": "Retro"
-      },
-      {
-       "value": "mono",
-       "label": "Mono"
-      },
-      {
-       "value": "prism",
-       "label": "Prism"
-      },
-      {
-       "value": "candy",
-       "label": "Candy"
-      },
-      {
-       "value": "deep",
-       "label": "Deep sea"
-      }
-     ]
-    },
-    {
-     "key": "skill",
-     "title": "AI skill",
-     "type": "number",
-     "description": "How well the demo AI plays",
-     "default": 0.8,
-     "min": 0.0,
-     "max": 1.0
-    },
-    {
-     "key": "show_score",
-     "title": "Show score",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "effects",
-     "title": "Effects",
-     "type": "choice",
-     "default": "full",
-     "options": [
-      {
-       "value": "full",
-       "label": "Full (particles, shake, flashes)"
-      },
-      {
-       "value": "calm",
-       "label": "Calm (no shake or flashes)"
-      },
-      {
-       "value": "minimal",
-       "label": "Minimal"
-      }
-     ],
-     "group": "Graphics"
-    },
-    {
-     "key": "intro_outro",
-     "title": "Intro & results screens",
-     "type": "toggle",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "attract",
-     "title": "Play itself when idle",
-     "type": "toggle",
-     "description": "The AI plays while nobody does (great in a playlist)",
-     "default": true,
-     "group": "Game flow"
-    },
-    {
-     "key": "pilot",
-     "title": "Plays itself with",
-     "type": "choice",
-     "default": "ai",
-     "options": [
-      {
-       "value": "ai",
-       "label": "Built-in AI"
-      },
-      {
-       "value": "fly",
-       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
-      }
-     ],
-     "group": "Game flow"
-    },
-    {
-     "key": "ghost",
-     "title": "Landing shadow",
-     "type": "toggle",
-     "default": true
-    },
-    {
-     "key": "start_level",
-     "title": "Start level",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 10
-    },
-    {
-     "key": "attack",
-     "title": "Garbage sent",
-     "type": "choice",
-     "default": "classic",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Classic (2 lines → 1)"
-      },
-      {
-       "value": "mirror",
-       "label": "Mirror (every line)"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "rise_every",
-     "title": "Rising floor every (s)",
-     "type": "integer",
-     "default": 15,
-     "min": 5,
-     "max": 60,
-     "group": "Game"
-    },
-    {
-     "key": "mode",
-     "title": "Mode",
-     "type": "choice",
-     "default": "solo",
-     "options": [
-      {
-       "value": "solo",
-       "label": "Solo"
-      },
-      {
-       "value": "versus",
-       "label": "Versus"
-      },
-      {
-       "value": "coop",
-       "label": "Co-op"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "map",
-     "title": "Map",
-     "type": "choice",
-     "default": "classic",
-     "options": [
-      {
-       "value": "classic",
-       "label": "Empty"
-      },
-      {
-       "value": "mound",
-       "label": "Mound"
-      },
-      {
-       "value": "rising",
-       "label": "Rising"
-      }
-     ],
-     "group": "Game"
-    },
-    {
-     "key": "players",
-     "title": "Players",
-     "type": "integer",
-     "default": 1,
-     "min": 1,
-     "max": 2,
-     "group": "Game"
-    }
-   ],
-   "game": {
-    "max_players": 2,
-    "controls": [
-     "dpad",
-     "gamepad",
-     "keyboard",
-     "joystick"
-    ],
-    "modes": [
-     {
-      "id": "solo",
-      "name": "Solo",
-      "min_players": 1,
-      "max_players": 1,
-      "teams": "solo"
-     },
-     {
-      "id": "versus",
-      "name": "Versus",
-      "min_players": 2,
-      "max_players": 2,
-      "teams": "versus"
-     },
-     {
-      "id": "coop",
-      "name": "Co-op",
-      "min_players": 2,
-      "max_players": 2,
-      "teams": "coop"
-     }
-    ],
-    "maps": [
-     {
-      "id": "classic",
-      "label": "Empty"
-     },
-     {
-      "id": "mound",
-      "label": "Mound"
-     },
-     {
-      "id": "rising",
-      "label": "Rising"
-     }
-    ],
-    "themes": [
-     {
-      "value": "classic",
-      "label": "Classic"
-     },
-     {
-      "value": "neon",
-      "label": "Neon"
-     },
-     {
-      "value": "retro",
-      "label": "Retro"
-     },
-     {
-      "value": "mono",
-      "label": "Mono"
-     },
-     {
-      "value": "prism",
-      "label": "Prism"
-     },
-     {
-      "value": "candy",
-      "label": "Candy"
-     },
-     {
-      "value": "deep",
-      "label": "Deep sea"
      }
     ]
    }
@@ -14283,6 +14260,7 @@
      "key": "layout",
      "title": "Layout",
      "type": "choice",
+     "description": "Lyrics from LRCLIB, a community database (other lyric sites as a fallback).",
      "default": "karaoke",
      "options": [
       {
@@ -15228,7 +15206,7 @@
       },
       {
        "value": "mech_knight",
-       "label": "Mech Knight"
+       "label": "Iron Knight"
       },
       {
        "value": "king",
@@ -15244,15 +15222,15 @@
       },
       {
        "value": "ct_operator",
-       "label": "CT Operator"
+       "label": "Tac Operator"
       },
       {
-       "value": "terrorist",
-       "label": "Terrorist"
+       "value": "raider",
+       "label": "Raider"
       },
       {
        "value": "agent",
-       "label": "Agent Duelist"
+       "label": "Neon Duelist"
       },
       {
        "value": "sniper",
@@ -15260,31 +15238,31 @@
       },
       {
        "value": "mad_scientist",
-       "label": "Mad Scientist"
+       "label": "Lab Coat Inventor"
       },
       {
        "value": "nervous_teen",
-       "label": "Nervous Teen"
+       "label": "Sidekick Kid"
       },
       {
        "value": "crayon_kid",
-       "label": "Crayon Kid"
+       "label": "Little Prankster"
       },
       {
        "value": "chem_teacher",
-       "label": "Chem Teacher"
+       "label": "Science Teacher"
       },
       {
        "value": "hazmat",
-       "label": "Hazmat Partner"
+       "label": "Lab Partner"
       },
       {
        "value": "vigilante",
-       "label": "Masked Vigilante"
+       "label": "Night Detective"
       },
       {
        "value": "chauffeur",
-       "label": "Kung-Fu Chauffeur"
+       "label": "City Driver"
       },
       {
        "value": "footballer",
@@ -15727,7 +15705,7 @@
       },
       {
        "value": "mech_knight",
-       "label": "Troops · Mech Knight"
+       "label": "Troops · Iron Knight"
       },
       {
        "value": "king",
@@ -15743,15 +15721,15 @@
       },
       {
        "value": "ct_operator",
-       "label": "Shooters · CT Operator"
+       "label": "Shooters · Tac Operator"
       },
       {
-       "value": "terrorist",
-       "label": "Shooters · Terrorist"
+       "value": "raider",
+       "label": "Shooters · Raider"
       },
       {
        "value": "agent",
-       "label": "Shooters · Agent Duelist"
+       "label": "Shooters · Neon Duelist"
       },
       {
        "value": "sniper",
@@ -15759,31 +15737,31 @@
       },
       {
        "value": "mad_scientist",
-       "label": "TV & Cartoons · Mad Scientist"
+       "label": "Everyday Folks · Lab Coat Inventor"
       },
       {
        "value": "nervous_teen",
-       "label": "TV & Cartoons · Nervous Teen"
+       "label": "Everyday Folks · Sidekick Kid"
       },
       {
        "value": "crayon_kid",
-       "label": "TV & Cartoons · Crayon Kid"
+       "label": "Everyday Folks · Little Prankster"
       },
       {
        "value": "chem_teacher",
-       "label": "TV & Cartoons · Chem Teacher"
+       "label": "Everyday Folks · Science Teacher"
       },
       {
        "value": "hazmat",
-       "label": "TV & Cartoons · Hazmat Partner"
+       "label": "Everyday Folks · Lab Partner"
       },
       {
        "value": "vigilante",
-       "label": "TV & Cartoons · Masked Vigilante"
+       "label": "Everyday Folks · Night Detective"
       },
       {
        "value": "chauffeur",
-       "label": "TV & Cartoons · Kung-Fu Chauffeur"
+       "label": "Everyday Folks · City Driver"
       },
       {
        "value": "footballer",
@@ -15952,7 +15930,7 @@
       },
       {
        "value": "mech_knight",
-       "label": "Troops · Mech Knight"
+       "label": "Troops · Iron Knight"
       },
       {
        "value": "king",
@@ -15968,15 +15946,15 @@
       },
       {
        "value": "ct_operator",
-       "label": "Shooters · CT Operator"
+       "label": "Shooters · Tac Operator"
       },
       {
-       "value": "terrorist",
-       "label": "Shooters · Terrorist"
+       "value": "raider",
+       "label": "Shooters · Raider"
       },
       {
        "value": "agent",
-       "label": "Shooters · Agent Duelist"
+       "label": "Shooters · Neon Duelist"
       },
       {
        "value": "sniper",
@@ -15984,31 +15962,31 @@
       },
       {
        "value": "mad_scientist",
-       "label": "TV & Cartoons · Mad Scientist"
+       "label": "Everyday Folks · Lab Coat Inventor"
       },
       {
        "value": "nervous_teen",
-       "label": "TV & Cartoons · Nervous Teen"
+       "label": "Everyday Folks · Sidekick Kid"
       },
       {
        "value": "crayon_kid",
-       "label": "TV & Cartoons · Crayon Kid"
+       "label": "Everyday Folks · Little Prankster"
       },
       {
        "value": "chem_teacher",
-       "label": "TV & Cartoons · Chem Teacher"
+       "label": "Everyday Folks · Science Teacher"
       },
       {
        "value": "hazmat",
-       "label": "TV & Cartoons · Hazmat Partner"
+       "label": "Everyday Folks · Lab Partner"
       },
       {
        "value": "vigilante",
-       "label": "TV & Cartoons · Masked Vigilante"
+       "label": "Everyday Folks · Night Detective"
       },
       {
        "value": "chauffeur",
-       "label": "TV & Cartoons · Kung-Fu Chauffeur"
+       "label": "Everyday Folks · City Driver"
       },
       {
        "value": "footballer",
@@ -16958,14 +16936,14 @@
     },
     {
      "key": "chuck",
-     "title": "Chuck Norris",
+     "title": "Tough-guy jokes",
      "type": "toggle",
      "default": false,
      "group": "Sources"
     },
     {
      "key": "kanye",
-     "title": "Kanye",
+     "title": "Celebrity quotes",
      "type": "toggle",
      "default": false,
      "group": "Sources"

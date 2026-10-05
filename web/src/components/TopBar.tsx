@@ -10,11 +10,11 @@ import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
 
-/** The idotmatrix logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
+/** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
-    <div className="flex shrink-0 justify-center" title="idotmatrix · DeskDot studio">
+    <div className="flex shrink-0 justify-center" title="DeskDot studio · unofficial · for iDotMatrix panels">
       <NeonMark pitch={phone ? 2.6 : 3.8} />
     </div>
   );

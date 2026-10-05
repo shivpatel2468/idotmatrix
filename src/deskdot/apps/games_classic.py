@@ -1,14 +1,15 @@
-"""Paddle, runner and racing games: Pong, Breakout, Flappy, Dino Runner, Racer. Original code and art.
+"""Paddle, runner and racing games: Paddle Duel, Brick Smash, Pipe Hopper, Desert Dash, Racer. Original code
+and art.
 
 Every game here keeps its classic solo self-play in attract mode (empty roster) and adds multiplayer modes, maps
 and genre themes on top of the shared game flow in `games_core`:
 
-- Pong: 1 v 1, Doubles (front + back paddle per side, 2 v 2) and 4 Way (a paddle per wall, last one standing);
+- Paddle Duel: 1 v 1, Doubles (front + back paddle per side, 2 v 2) and 4 Way (a paddle per wall, last one standing);
   maps Open / Block (centre bumper) / Portals.
-- Breakout: Solo, Co-op (two paddles, two balls, one wall) and Versus (split field, mirrored walls);
+- Brick Smash: Solo, Co-op (two paddles, two balls, one wall) and Versus (split field, mirrored walls);
   maps Classic / Fortress (steel bricks) / Descend (the wall creeps down).
-- Flappy: Solo and Race (up to 4 birds through the same pipes, gaps shrink); maps Pipes / Moving / Cave.
-- Dino Runner: Solo and Race (up to 4 runners on one track); maps Desert / Canyon (pits) / Rush.
+- Pipe Hopper: Solo and Race (up to 4 birds through the same pipes, gaps shrink); maps Pipes / Moving / Cave.
+- Desert Dash: Solo and Race (up to 4 long-eared hoppers on one track); maps Desert / Canyon (pits) / Rush.
 - Racer: Solo and Race (2-4 cars on one road); maps Highway / Roadworks (lane closures) / Rush hour.
 """
 
@@ -59,7 +60,7 @@ def _pips(f: Frame, racers: list[dict[str, Any]], app: GameApp, y: int = 1) -> N
 
 
 # =====================================================================================================
-# Pong
+# Paddle Duel
 # =====================================================================================================
 PONG_THEMES = {
     "arcade": Theme(
@@ -91,7 +92,7 @@ SERVE_FROM = {"L": (10.0, 15.0), "R": (20.0, 15.0), "T": (15.0, 10.0), "B": (15.
 @register
 class Pong(GameApp):
     id = "pong"
-    name = "Pong"
+    name = "Paddle Duel"
     description = (
         "Two paddles, one ball that speeds up every hit. Plays itself; up/down steers the left paddle. "
         "Modes: 1 v 1, Doubles (2 v 2, front and back paddles) and 4 Way (a paddle on every wall). "
@@ -455,7 +456,7 @@ class Pong(GameApp):
 
 
 # =====================================================================================================
-# Breakout
+# Brick Smash
 # =====================================================================================================
 BREAKOUT_THEMES = {
     "arcade": Theme(
@@ -493,7 +494,7 @@ STEEL = 9  # unbreakable brick
 @register
 class Breakout(GameApp):
     id = "breakout"
-    name = "Breakout"
+    name = "Brick Smash"
     description = (
         "Smash a colourful brick wall; new patterns every level. Left/right moves the paddle. "
         "Co-op: two paddles and two balls on one wall. Versus: a split field, first to clear their half wins."
@@ -848,7 +849,7 @@ class Breakout(GameApp):
 
 
 # =====================================================================================================
-# Flappy
+# Pipe Hopper
 # =====================================================================================================
 FLAPPY_THEMES = {
     "meadow": Theme(
@@ -881,7 +882,7 @@ FLAP_SPEED = 11.0
 @register
 class Flappy(GameApp):
     id = "flappy"
-    name = "Flappy"
+    name = "Pipe Hopper"
     description = (
         "A little bird threading between pipes. Plays itself; up or A flaps. "
         "Race: up to four birds through the same pipes, last one flying wins."
@@ -1147,7 +1148,7 @@ class Flappy(GameApp):
 
 
 # =====================================================================================================
-# Dino Runner
+# Desert Dash (the runner is an original long-eared desert hopper)
 # =====================================================================================================
 DINO_THEMES = {
     "desert": Theme(
@@ -1171,12 +1172,13 @@ class DinoSettings(GameSettings):
     start_speed: int = Field(24, ge=16, le=40, title="Start speed", json_schema_extra=GAME)
 
 
+# A long-eared desert hopper: two tall ears, a head with an eye, a tail held out behind
 DINO_RUN = [
-    ["....####", "....#.##", "....####", "#..###..", "######..", ".#####..", "..#..#..", "..##...."],
-    ["....####", "....#.##", "....####", "#..###..", "######..", ".#####..", "..#..#..", ".....##."],
+    ["....#.#.", "....####", "....#.##", "#..####.", "######..", ".#####..", "..#..#..", "..##...."],
+    ["....#.#.", "....####", "....#.##", "#..####.", "######..", ".#####..", "..#..#..", ".....##."],
 ]
-DINO_JUMP = ["....####", "....#.##", "....####", "#..###..", "######..", ".#####..", "..#..#..", "..##.##."]
-DINO_DUCK = ["..........", "#....#####", "#####.#.##", ".#########", "..#..#....", "..##.##..."]
+DINO_JUMP = ["....#.#.", "....####", "....#.##", "#..####.", "######..", ".#####..", "..#..#..", "..##.##."]
+DINO_DUCK = ["........#.", "#.....####", ".#.####.##", "..#######.", "...#..#...", "...##.##.."]
 CACTI = [
     [".##.", ".###", "###.", ".##.", ".##."],
     ["..##..", "..##.#", "#.##.#", "#.####", "####..", "..##..", "..##.."],
@@ -1193,9 +1195,10 @@ DINO_X = {1: [2], 2: [2, 12], 3: [1, 8, 15], 4: [1, 7, 13, 19]}
 @register
 class Dino(GameApp):
     id = "dino"
-    name = "Dino Runner"
+    name = "Desert Dash"
     description = (
-        "An endless desert run: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. "
+        "An endless desert dash with a long-eared hopper: jump cacti, duck birds, day turns to night. "
+        "Up/A jumps, down ducks. "
         "Race: up to four runners on one track, last one running wins."
     )
     icon = "footprints"

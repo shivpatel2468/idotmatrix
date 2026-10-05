@@ -1,5 +1,6 @@
 /* DeskDot — idotmatrix.com. Plain JS, no dependencies, shared by every page.
- * 1. the neon LED logo (canvas)   2. page chrome (menu, reveal, LED hovers, tabs, copy, stars)   3. the Apps explorer */
+ * 1. the neon LED logo (canvas)   2. page chrome (notice, menu, reveal, LED hovers, tabs, copy, download)
+ * 3. the Apps explorer. No third-party requests: the GitHub star count is baked in at build time. */
 (() => {
   "use strict";
 
@@ -12,19 +13,19 @@
   };
 
   /* ===================================================================== 1. neon logo
-   * The "idotmatrix" wordmark as LEDs in three neon tubes ("i" rose, "dot" tangerine, "matrix" gold). The dots
-   * build in (the i drops, "dot" types in, "matrix" rains down), then each tube is struck like real neon: a stutter
-   * of flashes, then a steady hum, with one loose letter that blinks now and then. Same idea as web/src/lib/logo.ts. */
+   * The "DeskDot" wordmark as LEDs in three neon tubes ("D" rose, "esk" tangerine, "Dot" gold). The dots build in
+   * (the D drops, "esk" types in, "Dot" rains down), then each tube is struck like real neon: a stutter of flashes,
+   * then a steady hum, with one loose letter that blinks now and then. Same idea as web/src/lib/logo.ts. */
   const GLYPHS = {
-    i: ["#", ".", "#", "#", "#", "#", "#"],
-    d: ["...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"],
+    D: ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+    e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
+    s: ["....", "....", ".###", "#...", ".##.", "...#", "###."],
+    k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
     o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
     t: ["...", ".#.", "###", ".#.", ".#.", ".#.", "..#"],
-    m: [".....", ".....", "####.", "#.#.#", "#.#.#", "#.#.#", "#.#.#"],
-    a: ["....", "....", ".###", "...#", ".###", "#..#", ".###"],
-    r: ["....", "....", "#.##", "##..", "#...", "#...", "#..."],
-    x: [".....", ".....", "#...#", ".#.#.", "..#..", ".#.#.", "#...#"],
   };
+  const WORDS = ["D", "esk", "Dot"];
+  const LOOSE = 5; // the "o" of Dot
   const ROWS = 7;
   const NEON = ["#ff3f78", "#ff7419", "#ffcc33"];
   const STRIKE = [
@@ -64,7 +65,7 @@
   function layoutLogo() {
     const dots = [], parts = [];
     let x = 0, letter = 0;
-    ["i", "dot", "matrix"].forEach((w, part) => {
+    WORDS.forEach((w, part) => {
       if (part) x += 1;
       const from = x;
       [...w].forEach((ch, i) => {
@@ -123,8 +124,8 @@
         }
         if (k <= 0) continue;
         let lv = level;
-        if (lit && !still && d.letter === 7) {
-          // the loose tube: the "r" of matrix blinks out for a beat now and then
+        if (lit && !still && d.letter === LOOSE) {
+          // the loose tube: one letter blinks out for a beat now and then
           const g = (lt * 0.37) % 1;
           if (g > 0.62 && g < 0.645) lv *= 0.1;
           else if (g > 0.66 && g < 0.672) lv *= 0.3;
@@ -206,6 +207,28 @@
   store.set("dd-logo", "1");
 
   /* ===================================================================== 2. page chrome */
+  // the "unofficial" notice strip under the header: dismissible, remembered in this browser
+  const notice = $("#notice");
+  if (notice) {
+    $("button", notice)?.addEventListener("click", () => {
+      document.documentElement.classList.add("no-notice");
+      try { localStorage.setItem("dd-notice", "1"); } catch { /* storage blocked: hidden for this page only */ }
+    });
+  }
+
+  // download page: the source links stay disabled until the Terms and Privacy box is ticked (clickwrap, unticked)
+  $$("[data-agree]").forEach((box) => {
+    const targets = box.dataset.agree.split(/\s+/).map((id) => $("#" + id)).filter(Boolean);
+    const sync = () => targets.forEach((t) => {
+      t.setAttribute("aria-disabled", String(!box.checked));
+      t.tabIndex = box.checked ? 0 : -1;
+    });
+    targets.forEach((t) => t.addEventListener("click", (e) => { if (!box.checked) e.preventDefault(); }));
+    box.checked = false;
+    box.addEventListener("change", sync);
+    sync();
+  });
+
   const bar = $("#bar");
   const onScroll = () => bar && bar.classList.toggle("scrolled", scrollY > 8);
   addEventListener("scroll", onScroll, { passive: true });
@@ -347,30 +370,12 @@
   });
   $$("[data-copy-target]").forEach((b) => b.addEventListener("click", () => copy(textOf($("#" + b.dataset.copyTarget)), b)));
 
-  // GitHub stars (best effort; cached for the session)
-  (async () => {
-    const slots = $$("[data-stars]");
-    if (!slots.length) return;
-    let n = store.get("dd-stars");
-    if (n === null) {
-      try {
-        const r = await fetch("https://api.github.com/repos/shivpatel2468/idotmatrix", { headers: { Accept: "application/vnd.github+json" } });
-        if (r.ok) n = String((await r.json()).stargazers_count ?? "");
-      } catch { /* offline or rate-limited: the buttons just say GitHub */ }
-      store.set("dd-stars", n ?? "");
-    }
-    if (n && Number(n) > 0) {
-      const v = Number(n);
-      const label = v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(v);
-      slots.forEach((s) => { s.textContent = "★ " + label; s.setAttribute("aria-label", `${v} stars`); });
-    }
-  })();
-
   /* ===================================================================== 3. apps explorer (apps.html)
    * The cards are static HTML (generated by scripts/build_site_pages.py); this only filters them. */
   const grid = $("#app-grid");
   if (grid) {
     const cards = $$(".app-card", grid);
+    const casinoNote = $(".casino-note", grid);
     const search = $("#app-search"), chipsEl = $("#cat-chips"), countEl = $("#result-count"), none = $("#no-results");
     const hay = new Map(cards.map((c) => [c, (c.dataset.search || c.textContent).toLowerCase()]));
     const state = { q: "", cat: "all", flags: new Set() };
@@ -388,6 +393,7 @@
         shown += ok ? 1 : 0;
       }
       none.hidden = shown > 0;
+      if (casinoNote) casinoNote.hidden = !cards.some((c) => !c.hidden && c.dataset.cat === "casino");
       countEl.textContent = shown === cards.length ? `Showing all ${cards.length} apps` : `Showing ${shown} of ${cards.length} apps`;
     };
     const syncChips = () => $$("button", chipsEl).forEach((b) => {

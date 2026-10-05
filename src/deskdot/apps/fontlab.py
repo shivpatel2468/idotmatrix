@@ -136,9 +136,7 @@ class FontLabSettings(AppSettings):
 class FontLab(App):
     id = "fontlab"
     name = "Font Lab"
-    description = (
-        "Every font (built-in and pixel TTFs like Minecraft / VCR OSD), styles, fills and text animations."
-    )
+    description = "Every font (built-in and your own pixel fonts), styles, fills and text animations."
     icon = "case-sensitive"
     category = "creative"
     Settings = FontLabSettings

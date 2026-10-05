@@ -1,4 +1,4 @@
-"""Housie (Tambola) on the panel: the buy-in (countdown, the pot, a column of ticket pips per player), then the
+"""Housie (Tambola) on the panel: the ticket pick (countdown, the prize pool, a column of ticket pips per player), then the
 caller — the current number big on a ball coloured by its decade, the last three calls under it, the called
 count / 90 as a bar, and the prizes still open as pips — and every verified claim flashes in the winner's colour
 with chasing bulbs. The result: HOUSIE! for the Full House, then the winners board. Tickets live on the phones.
@@ -21,7 +21,7 @@ from ._casino import INK, MUTE, RGB3, WHITE, CasinoApp, CasinoSettings, _rgb, dr
 HOUSIE_VIEWS = {
     "live": "Live table",
     "demo": "Demo game",
-    "betting": "Preview: buy-in",
+    "betting": "Preview: ticket pick",
     "locked": "Preview: tickets dealt",
     "calling": "Preview: calling",
     "claim": "Preview: a claim",
@@ -73,10 +73,14 @@ class HousieSettings(CasinoSettings):
         description="Live plays the real table. The others are a self-playing demo game or one frozen moment of "
         "it, to check the art (no credits move).",
     )
-    ticket_price: int = Field(10, ge=1, le=100_000, title="Ticket price (credits)")
+    ticket_price: int = Field(10, ge=1, le=100_000, title="Chips per ticket")
     max_tickets: int = Field(3, ge=1, le=6, title="Max tickets per player")
     buy_seconds: int = Field(
-        45, ge=10, le=300, title="Buy-in time", description="Seconds to buy tickets, from the first ticket."
+        45,
+        ge=10,
+        le=300,
+        title="Ticket pick time",
+        description="Seconds to pick tickets, from the first ticket.",
     )
     call_seconds: int = Field(
         6,
@@ -85,9 +89,8 @@ class HousieSettings(CasinoSettings):
         title="Seconds between calls",
         description="The caller's pace (also live from the host bar).",
     )
-    rake: int = Field(
-        0, ge=0, le=20, title="House rake (%)", description="The house's cut of the pot (0 = friendly)."
-    )
+    # no "House rake" setting (legal review L5): the house keeps nothing, every ticket's chips go to the prize
+    # pool. An old stored `rake` is dropped by the engine (unknown key) and the rules default it to 0.
     bogey: str = Choice(
         "none",
         {
@@ -142,7 +145,8 @@ class CasinoHousie(CasinoApp):
     id = "casino_housie"
     name = "Housie"
     description = (
-        "Tambola / bingo, the Indian way: buy tickets, the caller draws 1-90, claim lines and Full House."
+        "Tambola / bingo, the Indian way: pick tickets with play chips, the caller draws 1-90, claim lines and "
+        "Full House."
     )
     icon = "grid"
     Game = Housie
@@ -319,7 +323,7 @@ class CasinoHousie(CasinoApp):
             f.rect(1, 19, round(30 * frac), 1, th.alert if hurry else th.accent)
         pot = int(s["pot"])
         if pot:
-            txt = f"POT {pot}" if measure(f"POT {pot}") <= 30 else str(pot)
+            txt = f"POOL {pot}" if measure(f"POOL {pot}") <= 30 else str(pot)
             f.text_center(21, txt, th.accent)
         else:
             f.text_center(21, "TICKETS", MUTE)

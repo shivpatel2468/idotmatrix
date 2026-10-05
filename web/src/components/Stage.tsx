@@ -337,7 +337,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
             <OpeningOverlay />
           </div>
           <span className="engrave absolute bottom-[3px] left-1/2 -translate-x-1/2 whitespace-nowrap !text-[7.5px] !text-ink-4">
-            iDotMatrix · 32 × 32 RGB
+            32 × 32 RGB · iDotMatrix-compatible
           </span>
         </div>
         {fly && <FlyWing side="right" />}

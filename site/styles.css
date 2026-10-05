@@ -1,5 +1,13 @@
 /* DeskDot — idotmatrix.com. No build step, no framework: tokens, layout, components, motion. */
 
+/* Fonts are self-hosted (no third-party requests): Bricolage Grotesque and Martian Mono, SIL OFL 1.1 (/fonts/OFL.txt). */
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-display: swap; font-weight: 200 800; src: url(/fonts/bricolage-grotesque-latin-opsz-normal.woff2) format("woff2-variations"), url(/fonts/bricolage-grotesque-latin-opsz-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-display: swap; font-weight: 200 800; src: url(/fonts/bricolage-grotesque-latin-ext-opsz-normal.woff2) format("woff2-variations"), url(/fonts/bricolage-grotesque-latin-ext-opsz-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Martian Mono"; font-style: normal; font-display: swap; font-weight: 400; src: url(/fonts/martian-mono-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Martian Mono"; font-style: normal; font-display: swap; font-weight: 500; src: url(/fonts/martian-mono-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Martian Mono"; font-style: normal; font-display: swap; font-weight: 600; src: url(/fonts/martian-mono-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Martian Mono"; font-style: normal; font-display: swap; font-weight: 700; src: url(/fonts/martian-mono-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+
 :root {
   --bg: #08070a;
   --bg-2: #0c0c11;
@@ -154,7 +162,7 @@ main:focus { outline: none; }
 .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: blink 2.2s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: 0.3; } }
 .logo-wrap { margin: 26px 0 8px; position: relative; }
-#logo { display: block; width: 100%; max-width: 620px; aspect-ratio: 45 / 9; }
+#logo { display: block; width: 100%; max-width: 540px; aspect-ratio: 37 / 9; }
 h1 { font: 700 clamp(30px, 4.6vw, 56px)/1.04 var(--display); letter-spacing: -0.025em; margin: 18px 0 16px; text-wrap: balance; }
 h1 .hl { background: linear-gradient(90deg, var(--rose), var(--tangerine) 50%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lede { font-size: clamp(17px, 1.6vw, 19.5px); color: var(--ink-2); max-width: 40ch; margin: 0 0 28px; }
@@ -668,3 +676,59 @@ html:not(.vt) main { animation: vt-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; 
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
   html:not(.vt) main { animation: none; }
 }
+
+/* ------------------------------------------------------------------ brand mark, notice strip, legal (L1, L2, L27) */
+.brand canvas.mini-logo { width: 96px; height: auto; }
+.brand .tm, .logo-wrap .tm { font: 600 10px var(--mono); color: var(--ink-3); align-self: flex-start; margin-left: -6px; }
+.logo-wrap { display: flex; align-items: flex-start; flex-wrap: wrap; max-width: 560px; }
+.logo-wrap #logo { flex: 1 1 0; min-width: 0; }
+.logo-wrap .tm { margin: 6px 0 0 2px; font-size: 13px; }
+.logo-sub { flex-basis: 100%; margin: 6px 0 0; font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+
+.notice { background: #120d0b; border-bottom: 1px solid #3a2a1a; color: var(--ink-2); font-size: 13px; }
+.notice .wrap { display: flex; align-items: center; gap: 12px; padding-block: 8px; }
+.notice p { margin: 0; flex: 1; }
+.notice b { color: var(--ember-2); font-weight: 600; }
+.notice button { flex: none; background: none; border: 1px solid var(--line-2); color: var(--ink-2); border-radius: 8px; width: 30px; height: 28px; cursor: pointer; font: 600 15px/1 var(--mono); }
+.notice button:hover { color: var(--ink); border-color: var(--ink-3); }
+.no-notice .notice { display: none; }
+
+.casino-note { grid-column: 1 / -1; display: flex; gap: 12px; align-items: flex-start; border: 1px solid #4a3a12; border-left: 3px solid var(--gold); background: #ffcc330b; padding: 12px 16px; border-radius: 12px; color: var(--ink-2); font-size: 14px; }
+.casino-note .chip-ico { flex: none; width: 22px; height: 22px; border-radius: 50%; margin-top: 1px; background: radial-gradient(circle, var(--bg) 0 34%, transparent 36%), repeating-conic-gradient(var(--gold) 0 30deg, #8a6a12 30deg 60deg); box-shadow: 0 0 10px #ffcc3355; }
+.casino-note p { margin: 0; }
+.casino-note p + p { margin-top: 4px; font-size: 13px; color: var(--ink-3); }
+.casino-note b { color: var(--ink); }
+.app-page .casino-note { margin-top: 22px; }
+
+.note.warn { border-color: #4a2a1a; border-left-color: var(--rose); background: #ff3f780a; margin: 0 0 22px; max-width: 880px; }
+
+.foot-legal { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 13px; max-width: 880px; }
+.foot-legal p { margin: 0 0 8px; }
+.foot-legal b { color: var(--ink-2); }
+.foot-links { display: flex; flex-wrap: wrap; gap: 6px 16px; list-style: none; padding: 0; margin: 12px 0 0; font: 500 12px var(--mono); }
+.foot-links a { color: var(--ink-2); text-decoration: none; }
+.foot-links a:hover { color: var(--ink); text-decoration: underline; }
+
+/* legal pages: privacy, terms, licences, download */
+.legal { max-width: 820px; }
+.legal h2 { font: 700 clamp(20px, 2.2vw, 25px)/1.2 var(--display); letter-spacing: -0.01em; margin: 36px 0 10px; }
+.legal h3 { font-size: 17px; margin: 22px 0 6px; }
+.legal p, .legal li { color: var(--ink-2); }
+.legal li + li { margin-top: 6px; }
+.legal .updated { font: 500 11.5px var(--mono); color: var(--ink-3); letter-spacing: 0.06em; }
+.summary-box { border: 1px solid var(--line-2); border-radius: 14px; background: var(--chassis); padding: 16px 20px; margin: 20px 0; }
+.summary-box p { margin: 0; color: var(--ink); }
+.legal .data-table { font-size: 14px; }
+.legal .data-table th { width: 32%; }
+.table-scroll { overflow-x: auto; }
+.lic-table td:nth-child(2) { white-space: nowrap; }
+.lic-list { margin-top: 14px; }
+.lic pre { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 12px 14px; background: #08080b; border: 1px solid var(--line); border-radius: 10px; font: 400 11.5px/1.6 var(--mono); color: #cfcdd8; white-space: pre-wrap; word-break: break-word; }
+.lic summary code { margin-left: 8px; font-size: 11px; }
+
+.dl-box { border: 1px solid var(--line-2); border-radius: 18px; background: linear-gradient(180deg, var(--chassis), var(--bg-2)); padding: clamp(18px, 3vw, 26px); margin: 18px 0; }
+.dl-box h2 { margin-top: 0; }
+.dl-box .soon { display: inline-block; font: 600 10px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); border: 1px solid #4a3a12; border-radius: 6px; padding: 3px 7px; margin-left: 8px; vertical-align: 3px; }
+.agree { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; color: var(--ink); cursor: pointer; }
+.agree input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--tangerine); flex: none; }
+.btn[aria-disabled="true"] { opacity: 0.45; pointer-events: none; filter: grayscale(0.6); }

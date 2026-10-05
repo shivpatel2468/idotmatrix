@@ -246,6 +246,13 @@ canvas.av{display:block;image-rendering:pixelated}
 .pays td{padding:7px 0;border-bottom:1px solid var(--line)}.pays td:last-child{text-align:right;font:800 13px/1 var(--mono);color:var(--gold)}
 .end{position:absolute;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:rgba(7,11,9,.95)}
 .endcard{max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.hud .pm{grid-column:1/-1;margin:-2px 0 0;font:700 10.5px/1.2 var(--mono);letter-spacing:.04em;color:var(--dim);text-align:center}
+.gate{position:absolute;inset:0;z-index:95;display:grid;place-items:center;padding:calc(var(--st) + 20px) 20px calc(var(--sb) + 20px);background:rgba(7,11,9,.97);overflow-y:auto}
+.gatecard{max-width:400px;display:flex;flex-direction:column;gap:14px}
+.gatecard h2{margin:0;font:900 22px/1.15 var(--disp);color:var(--gold)}.gatecard p{margin:0;color:var(--ink);font-size:14px;line-height:1.5}
+.gatecard .gate-b{display:flex;flex-direction:column;gap:10px}.gatecard .gate-b .pill{width:100%}
+.gatecard .gate-l{color:var(--dim);font-size:12px}.gatecard .gate-l a{color:inherit;text-decoration:underline}
+.pill:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .endcard h2{margin:0;font:900 26px/1.1 var(--disp)}.endcard p{margin:0;color:var(--dim)}
 .paused{position:absolute;left:50%;top:50%;z-index:20;transform:translate(-50%,-50%);padding:12px 22px;border-radius:14px;background:rgba(0,0,0,.8);border:1px solid var(--gold);color:var(--gold);font:900 18px/1 var(--mono);letter-spacing:.2em;pointer-events:none}
 
@@ -655,20 +662,21 @@ html,body,.board,.dock{touch-action:manipulation}
   <div class="scroll"><div class="cs">
     <div class="panel hero">
       <div class="well"><canvas class="av" id="pv" data-s="72" aria-hidden="true"></canvas></div>
-      <div style="flex:1;min-width:0"><label class="eng" for="name">Your name on the panel</label>
-        <input class="name" id="name" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"></div>
+      <div style="flex:1;min-width:0"><label class="eng" for="name">Nickname (not your real name)</label>
+        <input class="name" id="name" maxlength="10" placeholder="Nickname" aria-describedby="name-hint" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+        <p class="note" id="name-hint">Don't use your full name or a child's name.</p></div>
     </div>
     <div class="panel"><div class="eng">Character</div><div class="grid" id="avs" role="radiogroup" aria-label="Character"></div></div>
     <div class="panel"><div class="eng">Colour</div><div class="sw" id="cols" role="radiogroup" aria-label="Colour"></div>
       <p class="note">Faded colours belong to other players.</p></div>
-    <div class="panel"><div class="eng">House rules</div><p class="note" id="seat-rules">Everyone starts with the same credits. Play money only — just for fun.</p></div>
+    <div class="panel"><div class="eng">House rules</div><p class="note" id="seat-rules">Everyone starts with the same credits. Play money only · credits have no value · 18+ · just for fun.</p></div>
   </div></div>
   <div class="foot"><button class="go" id="sit">Sit down</button></div>
 </section>
 
 <section class="scr" id="s-table" aria-label="Casino table">
   <header class="hud">
-    <button class="meb" id="me-btn" aria-label="You: profile, fairness and rules"><canvas class="av" data-s="34" aria-hidden="true"></canvas></button>
+    <button class="meb" id="me-btn" aria-label="You: profile, verifiable shuffle and rules"><canvas class="av" data-s="34" aria-hidden="true"></canvas></button>
     <div class="who"><b id="me-name">P2</b><small><span class="dot" id="netdot"></span><span id="me-sub">Roulette</span></small></div>
     <div class="bank" aria-live="polite"><span class="lbl">Credits</span><b class="num" id="credits">0</b><small id="inplay">&nbsp;</small></div>
     <button class="hb" id="help-btn" aria-label="How to play and rules">?</button>
@@ -676,6 +684,7 @@ html,body,.board,.dock{touch-action:manipulation}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
       <span class="n" id="pcount">1</span></button>
     <button class="ib snd" id="snd-btn" aria-label="Sound" aria-pressed="true"></button>
+    <p class="pm">Play money only · credits have no value · 18+ · just for fun</p>
   </header>
   <div class="phase" role="status" aria-live="polite">
     <div class="ring" id="ring"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="tr" cx="26" cy="26" r="22"/><circle class="pr" id="ring-p" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="0"/></svg><span id="cd"></span></div>
@@ -704,6 +713,23 @@ html,body,.board,.dock{touch-action:manipulation}
   <div class="sh-h"><h2 id="sh-t"></h2><button id="sh-x">Done</button></div>
   <div class="sh-b" id="sh-b"></div>
 </aside>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-t" hidden><div>
+  <div class="gatecard" id="gate-ask">
+    <h2 id="gate-t">Play-money casino · 18+ only</h2>
+    <p>These casino games use play credits only. Credits are free and have <b>no cash value</b>. They can't be bought, sold,
+    transferred, won as prizes or exchanged for anything, and that includes settling up between friends. Playing for real
+    money, or paying out credits in cash afterwards, is gambling and may be illegal where you live. In India, real-money
+    online games are banned under the Promotion and Regulation of Online Gaming Act, 2025. By continuing you confirm you
+    are <b>18 or older</b> and will play only for fun.</p>
+    <div class="gate-b"><button class="pill hot" id="gate-yes">I'm 18+ · play for fun</button><button class="pill" id="gate-no">Leave the casino</button></div>
+    <p class="gate-l"><a href="https://idotmatrix.com/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="https://idotmatrix.com/terms.html" target="_blank" rel="noopener">Terms</a></p>
+  </div>
+  <div class="gatecard" id="gate-left" hidden>
+    <h2>You left the casino</h2>
+    <p>You haven't joined the table. You can close this page.</p>
+    <div class="gate-b"><button class="pill" id="gate-back">Back</button></div>
+  </div>
+</div></div>
 <div class="end" id="end" hidden><div class="endcard"><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
@@ -814,7 +840,7 @@ function renderSeat() {
   }
   for (const b of $$("button", cols)) { const c = b.dataset.col; b.setAttribute("aria-checked", String(c === S.me.color)); b.setAttribute("aria-disabled", String(tk.has(c) && c !== S.me.color)); }
   const h = S.pub.house;
-  if (h) $("#seat-rules").textContent = `Everyone starts with ${fmt(h.base_credits)} credits. Bets ${fmt(h.min_bet)}–${fmt(h.max_bet)} per spot. Play money only — just for fun.`;
+  if (h) $("#seat-rules").textContent = `Everyone starts with ${fmt(h.base_credits)} credits. Bets ${fmt(h.min_bet)}–${fmt(h.max_bet)} per spot. Play money only · credits have no value · 18+ · just for fun.`;
   paintMe();
 }
 $("#name").addEventListener("input", (e) => { const v = cleanName(e.target.value); if (v !== e.target.value) e.target.value = v; S.me.name = v.trim() || "P" + S.seat; paintMe(); sendProfile({ name: S.me.name }); });
@@ -875,7 +901,7 @@ const ctx = {
   bet(spot, o) {
     if (!ctx.betting) { toast(S.pub.phase === "betting" ? "Sit down first" : "Bets are closed — wait for the next round", true); buzz(30); return false; }
     const amt = chipAmount();
-    if (amt <= 0) { toast("Out of credits — ask the host for a top-up", true); buzz(30); return false; }
+    if (amt <= 0) { toast("Out of credits — ask the host to reset you to the starting chips", true); buzz(30); return false; }
     send("bet", { spot, amount: amt }); S.undo.push({ spot, amount: amt }); buzz(9);
     // the chip flies from the rack (or from where a dragged chip was dropped) and lands with a clack
     fly(amt, o && o.from ? o.from : rackPoint(), spotPoint(spot), { s0: o && o.from ? 1.45 : 1.5, s1: 0.8, done: () => { SFX.chip(); bump(spot); } });
@@ -1129,7 +1155,7 @@ function tourSteps() {
     { sel: "#ring", t: "The timer", p: "The countdown starts with the first chip. At zero — or once everyone taps Done — it's <b>no more bets</b> and every chip is locked." },
     { sel: "#hist", t: "Results & history", p: "The result shows up here (and big on the panel). This strip keeps the last rounds, the newest in gold." },
     { sel: "#help-btn", t: "Rules & payouts", p: "Tap <b>?</b> for how to play, the full rulebook, every payout — and this tour again." },
-    { sel: "#me-btn", t: "Fair play", p: "Every round is sealed before you bet. Tap your avatar to <b>verify</b> a round on this phone, change your seed, name or look." },
+    { sel: "#me-btn", t: "Verifiable shuffle", p: "Each round's seed hash is shown before you place chips. Tap your avatar to <b>verify</b> a round on this phone, change your seed, name or look." },
     { sel: "#players-btn", t: "Players", p: "Who's at the table and the leaderboard." },
     { sel: "#snd-btn", t: "Sound", p: "Chip clacks, the wheel and win stings. Tap to mute — your phone remembers." },
   ];
@@ -1372,7 +1398,7 @@ function renderHelp() {
   if (!g && tab !== "pays") html += `<p class="note">The rules for this table aren't available on this phone yet — reload the page.</p>`;
   else if (tab === "how") html += `${zoomBar(true)}<div class="rbz"><p class="tagl">${md(g.tagline)}</p>${stepsHtml(g)}</div>`;
   else if (tab === "rules") html += `${zoomBar(false)}<div class="rbz"><div class="rb">${g.rules.map((r) => `<h3>${esc(r.h)}</h3><ul>${r.items.map((i) => `<li>${md(i)}</li>`).join("")}</ul>`).join("")}</div></div>`;
-  else html += mod.paytable ? `<div class="eng" style="margin:4px 0 6px">Pays · house edge — this table's live numbers</div>${mod.paytable(ctx)}` : `<p class="note">Payouts appear once the table is live.</p>`;
+  else html += mod.paytable ? `<div class="eng" style="margin:4px 0 6px">Pays · house edge — this table's live numbers</div><p class="note">Play chips; for learning how house edge works.</p>${mod.paytable(ctx)}` : `<p class="note">Payouts appear once the table is live.</p>`;
   const b = $("#sh-b"); b.innerHTML = html; applyZoom();
   for (const x of $$("[data-ht]", b)) x.addEventListener("click", () => { S.helpTab = x.dataset.ht; buzz(6); renderHelp(); b.scrollTop = 0; });
   for (const x of $$("[data-tz]", b)) x.addEventListener("click", () => { setZoom(textZoom + (x.dataset.tz === "+" ? 0.15 : -0.15)); buzz(6); });
@@ -1416,15 +1442,16 @@ function renderPlayers() {
     b.append(row);
     if (p.avatar) drawAvatar($("canvas", row), p.avatar, p.color); else { const cv = $("canvas", row); cv.style.width = cv.style.height = "38px"; cv.style.background = p.color; cv.style.borderRadius = "50%"; }
   });
+  const foot = document.createElement("p"); foot.className = "note"; foot.textContent = "Bragging rights only, no prizes."; b.append(foot);
 }
 let verifySel = null;
 function renderMe() {
-  $("#sh-t").textContent = "Fair play";
+  $("#sh-t").textContent = "Verifiable shuffle";
   const b = $("#sh-b"), hist = (S.pub.history || []).filter((h) => h.proof && h.proof.server_seed).slice().reverse();
   if (verifySel == null || !hist.some((h) => h.round === verifySel)) verifySel = hist.length ? hist[0].round : null;
   const h = hist.find((x) => x.round === verifySel);
   const mod = S.mod || {};
-  let html = `<p class="note">Every round is sealed before betting opens: the panel commits to a secret <b>server seed</b> by publishing its SHA-256. Your phone's own <b>seed</b> is mixed in when betting closes, so nobody — not even the host — can pick the result. After the round the seed is revealed and this phone re-computes the result itself.</p>`;
+  let html = `<p class="note"><b>Verifiable shuffle:</b> each round's seed hash is shown before chips are placed and revealed afterwards, so anyone can check the result wasn't changed. The host can still reset or adjust play chips.</p><p class="note">Your phone's own <b>seed</b> is mixed in when betting closes, and this phone re-computes the result itself.</p>`;
   html += `<div class="eng" style="margin-top:12px">Verify a round</div>`;
   if (!hist.length) html += `<p class="note">No finished rounds yet.</p>`;
   else {
@@ -1439,7 +1466,7 @@ function renderMe() {
   html += `<div class="eng" style="margin-top:18px">Your seed</div><p class="note">Mixed into every round you sit in. Change it whenever you like.</p>
     <div style="display:flex;gap:8px;align-items:center"><code class="num" style="flex:1;padding:10px;border-radius:10px;background:var(--s3);word-break:break-all;user-select:text;-webkit-user-select:text">${esc(seed)}</code><button class="pill" id="reseed">New seed</button></div>`;
   if (guideFor()) html = `<button class="pill hot" id="me-help" style="width:100%;margin-bottom:12px">How to play &amp; rulebook</button>` + html;
-  if (mod.paytable) html += `<div class="eng" style="margin-top:18px">Pays · house edge</div>${mod.paytable(ctx)}`;
+  if (mod.paytable) html += `<div class="eng" style="margin-top:18px">Pays · house edge</div><p class="note">Play chips; for learning how house edge works.</p>${mod.paytable(ctx)}`;
   html += `<div style="display:flex;gap:8px;margin-top:18px"><button class="pill" id="edit-me" style="flex:1">Change name / look</button></div>`;
   b.innerHTML = html;
   for (const x of $$("[data-r]", b)) x.addEventListener("click", () => { verifySel = Number(x.dataset.r); renderMe(); });
@@ -1471,7 +1498,7 @@ function runVerify(h) {
 }
 function canon(o) { if (Array.isArray(o)) return o.map(canon); if (o && typeof o === "object") { const r = {}; for (const k of Object.keys(o).sort()) r[k] = canon(o[k]); return r; } return o; }
 
-/* ------------------------------------------------ provably fair maths (mirrors deskdot/casino/fair.py) */
+/* ------------------------------------------------ verifiable-shuffle maths (mirrors deskdot/casino/fair.py) */
 const K256 = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
 function sha256(bytes) {
   const l = bytes.length, total = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(total);
@@ -2468,7 +2495,7 @@ registerGame("slots", (() => {
       const rows = Object.entries(m.three || {}).sort((a, b) => b[1] - a[1]).map(([ch, p]) => `<tr><td>${img(ch)} ${esc(names[ch] || ch)}${ch === m.wild ? " (wild: stands in for any symbol)" : ""}</td><td>${p}×</td></tr>`);
       for (const [lbl, mem, p] of m.groups || []) rows.push(`<tr><td>${esc(lbl)} (any mix of ${[...mem].map((x) => esc(names[x] || x)).join(", ")})</td><td>${p}×</td></tr>`);
       for (const [n, p] of Object.entries(m.lead || {}).sort((a, b) => b[0] - a[0])) rows.push(`<tr><td>${n} × ${esc(names[m.lead_symbol] || m.lead_symbol)} from the left</td><td>${p}×</td></tr>`);
-      return `<table class="pays">${rows.join("")}</table><p class="note">Pays are × your bet per line; each of the ${m.lines} line${m.lines > 1 ? "s" : ""} pays its best win. <b>RTP ${((m.rtp || 0) * 100).toFixed(3)} %</b> — computed exactly from these reel strips (every stop combination), hit rate 1 in ${(1 / (m.hit || 1)).toFixed(1)} per line, ${esc(m.volatility || "")} volatility. Each spin is its own sealed round: the stops are uniform draws from the fair RNG.</p>`;
+      return `<table class="pays">${rows.join("")}</table><p class="note">Pays are × your bet per line; each of the ${m.lines} line${m.lines > 1 ? "s" : ""} pays its best win. <b>RTP ${((m.rtp || 0) * 100).toFixed(3)} %</b> (play chips; for learning how house edge works) — computed exactly from these reel strips (every stop combination), hit rate 1 in ${(1 / (m.hit || 1)).toFixed(1)} per line, ${esc(m.volatility || "")} volatility. Each spin is its own sealed round: the stops are uniform draws from the fair RNG.</p>`;
     },
   };
 })());
@@ -2559,7 +2586,7 @@ registerGame("housie", (() => {
   function renderNow() {
     const h = H(), ph = c.pub.phase, calls = h.calls || [];
     if (ph === "betting" || ph === "idle" || !calls.length) {
-      const msg = ph === "betting" ? (c.pub.ends_in != null ? `Calling starts in ${c.pub.ends_in}s` : "Buy tickets — the first ticket starts the clock")
+      const msg = ph === "betting" ? (c.pub.ends_in != null ? `Calling starts in ${c.pub.ends_in}s` : "Pick tickets — the first ticket starts the clock")
         : ph === "locked" || ph === "dealing" ? (h.first_in != null ? `Tickets dealt · first call in ${h.first_in}s` : "Tickets dealt — get ready") : "Table closed";
       set("now", `<div class="hs-ball none">?</div><div class="hs-nw"><div class="hs-nm">${esc(msg)}</div><div class="hs-meta"><span>0 / 90</span><span class="bar"><i style="width:0"></i></span><button class="hs-mini" data-act="board">Board</button></div></div>`);
       return;
@@ -2614,20 +2641,20 @@ registerGame("housie", (() => {
     const buyers = (h.buyers || []).map((b) => `<span style="color:${esc(b.color)}">${esc(b.name)} · ${b.n}</span>`).join("");
     set("buy", `<div class="hs-box"><h3>Your tickets</h3>
       <div class="hs-step"><button data-act="minus" aria-label="One ticket fewer" ${!open || shown <= 0 ? "disabled" : ""}>−</button><output aria-live="polite">${shown}<small>OF ${max}</small></output><button data-act="plus" aria-label="One more ticket" ${!open || shown >= max || (shown - n + 1) * price > free ? "disabled" : ""}>+</button></div>
-      <div class="hs-sum"><span>${fmt(price)} credits each</span><span>Cost <b>${fmt(shown * price)}</b></span></div>
-      <div class="hs-sum"><span>${h.sold || 0} ticket${h.sold === 1 ? "" : "s"} sold</span><span>Pot <b>${fmt(h.pot || 0)}</b>${h.rake ? ` · rake ${fmt(h.rake)}` : ""}</span></div>
+      <div class="hs-sum"><span>${fmt(price)} chips per ticket</span><span>Cost <b>${fmt(shown * price)}</b></span></div>
+      <div class="hs-sum"><span>${h.sold || 0} ticket${h.sold === 1 ? "" : "s"} sold</span><span>Prize pool (play chips) <b>${fmt((h.pot || 0) - (h.rake || 0))}</b></span></div>
       <button class="pill ${c.priv.done ? "" : "hot"} hs-go" data-act="done" ${!open || !n ? "disabled" : ""}>${c.priv.done ? "✓ Ready — waiting for the others" : "I'm ready"}</button>
       ${buyers ? `<div class="hs-buyers">${buyers}</div>` : ""}
       <p class="hs-wait">${ph === "idle" ? "The table is closed — the host opens the next game." : "Your tickets are dealt from the sealed round when the calling starts."}</p></div>`);
   }
   function prizeTable() {
     const h = H();
-    return `<table class="hs-pz">${(h.prizes || []).map((p) => `<tr><td>${esc(HS.NAMES[p.id])}<small>${p.share}% of the pool${p.call ? " · won on call " + p.call : ""}</small>${(p.winners || []).map((w) => `<small><span class="hs-dot" style="background:${esc(w.color)}"></span>${esc(w.name)} · ticket ${w.ticket + 1}</small>`).join("")}</td><td>${fmt(p.amount)}</td></tr>`).join("")}</table>`;
+    return `<table class="hs-pz">${(h.prizes || []).map((p) => `<tr><td>${esc(HS.NAMES[p.id])}<small>${p.share}% of the prize pool${p.call ? " · won on call " + p.call : ""}</small>${(p.winners || []).map((w) => `<small><span class="hs-dot" style="background:${esc(w.color)}"></span>${esc(w.name)} · ticket ${w.ticket + 1}</small>`).join("")}</td><td>${fmt(p.amount)}</td></tr>`).join("")}</table>`;
   }
   function renderPrizes() {
     const h = H(), ph = c.pub.phase;
     const extra = ph === "result" && h.returned ? `<p class="hs-wait">${fmt(h.returned)} unclaimed — shared back by tickets.</p>` : "";
-    set("prz", `<div class="hs-box"><h3>Prizes · pool ${fmt((h.pot || 0) - (h.rake || 0))}</h3>${prizeTable()}${extra}
+    set("prz", `<div class="hs-box"><h3>Prizes · prize pool (play chips) ${fmt((h.pot || 0) - (h.rake || 0))}</h3>${prizeTable()}${extra}
       <div class="hs-meta" style="margin-top:8px"><span>Auto-daub</span><button class="hs-mini" data-act="auto" aria-pressed="${auto}">${auto ? "On" : "Off — tap numbers"}</button></div></div>`);
   }
   function board() {
@@ -2649,7 +2676,7 @@ registerGame("housie", (() => {
       if (fl.age < 4) { const me = fl.seat === S.seat; toast(me ? `${fl.name}! It's yours — verified` : `${fl.who} claims ${fl.name}!`); if (me) { buzz([20, 40, 20, 40, 60]); confetti(18); } else buzz(12); }
     }
     const calls = h.calls || [];
-    if (ph === "betting") phase("Buy tickets", c.pub.ends_in != null ? `Calling starts in ${c.pub.ends_in}s · ${fmt(h.price || 0)} a ticket` : `${fmt(h.price || 0)} credits a ticket · up to ${h.max || 1}`);
+    if (ph === "betting") phase("Pick tickets", c.pub.ends_in != null ? `Calling starts in ${c.pub.ends_in}s · ${fmt(h.price || 0)} chips per ticket` : `${fmt(h.price || 0)} chips per ticket · up to ${h.max || 1}`);
     else if (ph === "locked" || (ph === "dealing" && !calls.length)) phase("Tickets dealt", (pv.tickets || []).length ? "Check your tickets — calling starts soon" : "You're watching this game");
     else if (ph === "dealing") phase(h.finished ? "Game over" : `Number ${calls[calls.length - 1]}`, h.finished ? "Checking the last claims" : `${calls.length} of 90 · every ${h.pace || 6}s${auto ? " · auto-daub on" : ""}`);
     else if (ph === "idle") phase("Table closed", "Waiting for the host");
@@ -2688,9 +2715,9 @@ registerGame("housie", (() => {
     describe: (o) => `${o.tickets.length} ticket${o.tickets.length === 1 ? "" : "s"} · calls ${o.calls.slice(0, 6).join(" ")} …`,
     paytable(cx) {
       const h = cx.pub.housie || {}, r = cx.pub.rules || {};
-      return `<table class="pays"><tr><td>Ticket</td><td>${fmt(h.price || r.ticket_price || 0)}</td></tr><tr><td>Max tickets each</td><td>${h.max || r.max_tickets || 1}</td></tr><tr><td>House rake</td><td>${r.rake ? r.rake + " %" : "none"}</td></tr></table>
-        <div class="eng" style="margin:10px 0 4px">Prizes (share of the pool)</div>${(h.prizes || []).length ? prizeTable() : ""}
-        <p class="note">Players play for the pot: the pool (pot minus the rake) is split by the shares. Claims made on the same call share a prize per ticket; a prize nobody claims is shared back by tickets.</p>`;
+      return `<table class="pays"><tr><td>Chips per ticket</td><td>${fmt(h.price || r.ticket_price || 0)}</td></tr><tr><td>Max tickets each</td><td>${h.max || r.max_tickets || 1}</td></tr></table>
+        <div class="eng" style="margin:10px 0 4px">Prizes (share of the prize pool)</div>${(h.prizes || []).length ? prizeTable() : ""}
+        <p class="note">Every ticket's chips go into the prize pool (play chips), split by the shares. Claims made on the same call share a prize per ticket; a prize nobody claims is shared back by tickets.</p>`;
     },
   };
 })());
@@ -2764,7 +2791,24 @@ $("#j-code").textContent = code.toUpperCase();
 for (const s of $$(".scr")) s.inert = !s.classList.contains("on");
 requestAnimationFrame(tickCountdown);
 paintSound();
-connect();
+/* ------------------------------------------------ play-money / 18+ gate (before seating; answer kept per device) */
+const GATE_KEY = "deskdot.casino.agegate.v1", GATE_NO = "deskdot.casino.agegate.declined";
+function gateOk() { try { return localStorage.getItem(GATE_KEY) === "accepted"; } catch (_) { return false; } }
+function gateShow(left) {
+  $("#gate").hidden = false; $("#gate-ask").hidden = !!left; $("#gate-left").hidden = !left;
+  for (const s of $$(".scr")) s.inert = true;
+  const f = $(left ? "#gate-back" : "#gate-yes"); if (f && f.focus) f.focus();
+}
+$("#gate-yes").addEventListener("click", () => {
+  try { localStorage.setItem(GATE_KEY, "accepted"); sessionStorage.removeItem(GATE_NO); } catch (_) {}
+  $("#gate").hidden = true;
+  for (const s of $$(".scr")) s.inert = !s.classList.contains("on");
+  connect();
+});
+$("#gate-no").addEventListener("click", () => { try { sessionStorage.setItem(GATE_NO, "1"); } catch (_) {} gateShow(true); });
+$("#gate-back").addEventListener("click", () => { try { sessionStorage.removeItem(GATE_NO); } catch (_) {} gateShow(false); });
+if (gateOk()) connect();
+else { let no = false; try { no = sessionStorage.getItem(GATE_NO) === "1"; } catch (_) {} gateShow(no); }
 window.DeskDotCasino = { registerGame, Rng, sha256, hmac256, hex, ctx }; // for game modules added later and for tests
 </script>
 </body></html>

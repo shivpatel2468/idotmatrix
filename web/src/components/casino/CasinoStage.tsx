@@ -10,6 +10,7 @@ import { QrCode, useLobbyPoll } from "../Multiplayer";
 import { CountdownRing, Credits, Tabs } from "./bits";
 import { LeftWing } from "./LeftWing";
 import { RightWing } from "./RightWing";
+import { CasinoAgeGate } from "./AgeGate";
 import { closeCasinoLobby, hideCasinoQr, lobbyFor, openCasinoLobby } from "./lobby";
 import { useCasinoSounds } from "./sounds";
 import { type HousieStatus, PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, themeVars, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
@@ -92,10 +93,10 @@ function HostBar() {
   const span = st?.house?.bet_seconds ?? 20;
   const canStart = phase === "idle" || phase === "result";
   const anyBets = Object.keys(st?.totals ?? {}).length > 0;
-  // Housie (a pot game with a caller): "Start calling" instead of "Lock now", the caller's pace, the called count
+  // Housie (a prize-pool game with a caller): "Start calling" instead of "Lock now", the caller's pace, the called count
   const hz = st?.game === "housie" ? (st.housie as HousieStatus | undefined) : undefined;
   const calling = !!hz && phase === "dealing";
-  const label = hz && phase === "dealing" ? (hz.finished ? "Game over" : `Calling · ${hz.called} / 90`) : hz && phase === "betting" ? "Buy-in" : ph.label;
+  const label = hz && phase === "dealing" ? (hz.finished ? "Game over" : `Calling · ${hz.called} / 90`) : hz && phase === "betting" ? "Ticket pick" : ph.label;
   const hint = hz && phase === "dealing" ? (hz.called ? `Last number ${hz.calls[hz.calls.length - 1]} · every ${hz.pace}s` : "Tickets dealt — the first call is coming") : hz && phase === "betting" && ends == null ? "Waiting for the first ticket" : null;
   return (
     <div className="cz-hostbar">
@@ -112,7 +113,7 @@ function HostBar() {
         <button className="cz-gold" disabled={!canStart || paused} onClick={() => casinoOp("start_round").catch(() => undefined)} title="Open betting for a new round" aria-label={phase === "result" ? "Next round" : "Start round"}>
           <Play size={13} /> <span className="cz-lbl">{phase === "result" ? "Next round" : "Start round"}</span>
         </button>
-        <button className="key !h-9" disabled={phase !== "betting" || !anyBets || paused} onClick={() => casinoOp("lock").catch(() => undefined)} title={hz ? "Close the buy-in and start calling numbers" : "No more bets: close betting now and spin"} aria-label={hz ? "Start calling" : "Lock now"}>
+        <button className="key !h-9" disabled={phase !== "betting" || !anyBets || paused} onClick={() => casinoOp("lock").catch(() => undefined)} title={hz ? "Close the ticket pick and start calling numbers" : "No more bets: close betting now and spin"} aria-label={hz ? "Start calling" : "Lock now"}>
           <Lock size={13} /> <span className="cz-lbl">{hz ? "Start calling" : "Lock now"}</span>
         </button>
         {hz && (
@@ -364,6 +365,7 @@ export function CasinoStage() {
   return (
     <div ref={root} className="cz" data-wide={wide || undefined} data-theme={theme?.id ?? "classic"} style={themeVars(theme)}>
       <ChipCascade run={entered} />
+      <CasinoAgeGate />
       {wide ? (
         <div className="cz-row3">
           <aside className="cz-wing cz-wing-l" style={{ flex: `${wl} 1 0%` }} aria-label="Casino settings"><LeftWing /></aside>

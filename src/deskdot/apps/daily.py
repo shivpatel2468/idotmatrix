@@ -198,8 +198,8 @@ class DailySettings(AppSettings):
     advice: bool = _src(True, "Advice")
     cat: bool = _src(False, "Cat fact")
     joke: bool = _src(True, "Programming & pun jokes")
-    chuck: bool = _src(False, "Chuck Norris")
-    kanye: bool = _src(False, "Kanye")
+    chuck: bool = _src(False, "Tough-guy jokes")
+    kanye: bool = _src(False, "Celebrity quotes")
     history: bool = _src(True, "On this day")
     order: str = Choice("cycle", {"cycle": "In turn", "shuffle": "Shuffle"}, title="Order", group="Sources")
     style: str = Choice(

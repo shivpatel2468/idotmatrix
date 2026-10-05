@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DeskDot FAQ</title>
-<meta name="description" content="Is DeskDot official? Which panels work? Does it cost anything? Answers about the iDotMatrix app, MCP and AI agents, smooth animation and writing your own app." />
+<meta name="description" content="Is DeskDot official? Which panels work? Does it cost anything? Is it allowed? Answers about the casino, MCP and AI agents, smooth animation and writing your own app." />
 <link rel="canonical" href="https://idotmatrix.com/faq.html" />
 <meta name="theme-color" content="#08070a" />
 <meta name="color-scheme" content="dark" />
@@ -13,27 +13,25 @@
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/faq.html" />
 <meta property="og:title" content="DeskDot FAQ" />
-<meta property="og:description" content="Is DeskDot official? Which panels work? Does it cost anything? Answers about the iDotMatrix app, MCP and AI agents, smooth animation and writing your own app." />
+<meta property="og:description" content="Is DeskDot official? Which panels work? Does it cost anything? Is it allowed? Answers about the casino, MCP and AI agents, smooth animation and writing your own app." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="DeskDot FAQ" />
-<meta name="twitter:description" content="Is DeskDot official? Which panels work? Does it cost anything? Answers about the iDotMatrix app, MCP and AI agents, smooth animation and writing your own app." />
+<meta name="twitter:description" content="Is DeskDot official? Which panels work? Does it cost anything? Is it allowed? Answers about the casino, MCP and AI agents, smooth animation and writing your own app." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
 <script src="/main.js" defer></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this the official iDotMatrix app?","acceptedAnswer":{"@type":"Answer","text":"No. DeskDot is an independent, community-built project. It is not affiliated with, endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with. It talks to your own panel over Bluetooth and sends nothing to the manufacturer."}},{"@type":"Question","name":"Which panels does it work with?","acceptedAnswer":{"@type":"Answer","text":"The iDotMatrix 32×32 RGB panel (it advertises as IDM-xxxxxx) is verified on hardware. Other sizes share the protocol but are untested, and every app is designed for 32×32."}},{"@type":"Question","name":"Do I need the iDotMatrix phone app?","acceptedAnswer":{"@type":"Answer","text":"No, and you should close it while DeskDot runs: the panel accepts one Bluetooth connection at a time."}},{"@type":"Question","name":"Does it cost anything or need an account?","acceptedAnswer":{"@type":"Answer","text":"No. It's MIT-licensed, runs locally and has no account. Almost every live data source is free and key-less; a few optional ones (GitHub token, Home Assistant, your own services) use your own credentials. See API keys & costs."}},{"@type":"Question","name":"Can I try it without a panel?","acceptedAnswer":{"@type":"Answer","text":"Yes: uv run deskdot serve --sim runs the engine, studio and MCP server against a simulated panel that looks like the real LEDs."}},{"@type":"Question","name":"Why are some animations perfectly smooth and others not?","acceptedAnswer":{"@type":"Answer","text":"Bluetooth carries about 5–9 live frames a second. So deterministic loops are baked once into a GIF that the panel plays with its own firmware, perfectly smooth. Only things that change with live data are streamed. The Apps explorer marks each app as a baked loop, live stream or firmware feature."}},{"@type":"Question","name":"What is MCP, and which agents work?","acceptedAnswer":{"@type":"Answer","text":"The Model Context Protocol lets AI agents call tools. DeskDot's MCP server (deskdot-mcp) is a thin client over the engine's HTTP API, so any MCP client works: Claude Code and Claude Desktop are documented in docs/MCP.md, and Gemini CLI, Codex and Cursor use the same stdio command."}},{"@type":"Question","name":"Can I write my own app?","acceptedAnswer":{"@type":"Answer","text":"Yes. An app is one Python file: a pydantic settings model and a pure render() that draws with clipped primitives and bitmap fonts. Drop it in plugins/ and the studio builds its form. Start with docs/APP_SDK.md and docs/DISPLAY_DESIGN.md."}},{"@type":"Question","name":"Does the Android app work?","acceptedAnswer":{"@type":"Answer","text":"It's in beta: it builds and its Bluetooth bridge is unit-tested, but it hasn't been run on a real phone yet. Build steps are in android/README.md."}},{"@type":"Question","name":"Something's wrong. Where do I report it?","acceptedAnswer":{"@type":"Answer","text":"Open an issue on GitHub. Security issues: see SECURITY.md. Contributions: CONTRIBUTING.md."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this the official iDotMatrix app?","acceptedAnswer":{"@type":"Answer","text":"No. DeskDot is an independent, community-built project. It is not affiliated with, endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with. It talks to your own panel over Bluetooth and sends nothing to the manufacturer.Official support for your panel's hardware and warranty: the manufacturer, via the official iDotMatrix app."}},{"@type":"Question","name":"Is this allowed?","acceptedAnswer":{"@type":"Answer","text":"DeskDot is independently written software that communicates with panels you own, for interoperability. It contains no code, firmware or assets from the manufacturer's app."}},{"@type":"Question","name":"Which panels does it work with?","acceptedAnswer":{"@type":"Answer","text":"The iDotMatrix 32×32 RGB panel (it advertises as IDM-xxxxxx) is verified on hardware. Other sizes share the protocol but are untested, and every app is designed for 32×32."}},{"@type":"Question","name":"Do I need the iDotMatrix phone app?","acceptedAnswer":{"@type":"Answer","text":"No, and you should close it while DeskDot runs: the panel accepts one Bluetooth connection at a time."}},{"@type":"Question","name":"Does it cost anything or need an account?","acceptedAnswer":{"@type":"Answer","text":"No. DeskDot is free today and needs no account. Versions up to v3.2 were published under the MIT licence and remain so; future versions will be proprietary software licensed under the DeskDot EULA (see Licence). Almost every live data source is free and key-less; a few optional ones (GitHub token, Home Assistant, your own services) use your own credentials. See API keys & costs."}},{"@type":"Question","name":"Can I try it without a panel?","acceptedAnswer":{"@type":"Answer","text":"Yes: uv run deskdot serve --sim runs the engine, studio and MCP server against a simulated panel that looks like the real LEDs."}},{"@type":"Question","name":"Why are some animations perfectly smooth and others not?","acceptedAnswer":{"@type":"Answer","text":"Bluetooth carries about 5–9 live frames a second. So deterministic loops are baked once into a GIF that the panel plays with its own firmware, perfectly smooth. Only things that change with live data are streamed. The Apps explorer marks each app as a baked loop, live stream or firmware feature."}},{"@type":"Question","name":"What is MCP, and which agents work?","acceptedAnswer":{"@type":"Answer","text":"The Model Context Protocol lets AI agents call tools. DeskDot's MCP server (deskdot-mcp) is a thin client over the engine's HTTP API, so any MCP client works: Claude Code and Claude Desktop are documented in docs/MCP.md, and Gemini CLI, Codex and Cursor use the same stdio command."}},{"@type":"Question","name":"Can I write my own app?","acceptedAnswer":{"@type":"Answer","text":"Yes. An app is one Python file: a pydantic settings model and a pure render() that draws with clipped primitives and bitmap fonts. Drop it in plugins/ and the studio builds its form. Start with docs/APP_SDK.md and docs/DISPLAY_DESIGN.md."}},{"@type":"Question","name":"Does the Android app work?","acceptedAnswer":{"@type":"Answer","text":"It's in beta: it builds and its Bluetooth bridge is unit-tested, but it hasn't been run on a real phone yet. Build steps are in android/README.md."}},{"@type":"Question","name":"Is the casino real gambling?","acceptedAnswer":{"@type":"Answer","text":"No. The casino games use play chips only: credits are free and have no cash value. They can't be bought, sold, transferred, won as prizes or exchanged for anything, and that includes settling up between friends. The casino is for adults (18+) and for fun. Casino games are free in every plan. Paid plans never add, refill or change casino chips.Verifiable shuffle: each round's seed hash is shown before chips are placed and revealed afterwards, so anyone can check the result wasn't changed. The host can still reset or adjust play chips. House-edge and RTP figures are shown as educational statistics (play chips; for learning how house edge works)."}},{"@type":"Question","name":"What does DeskDot send over the internet?","acceptedAnswer":{"@type":"Answer","text":"No accounts, no analytics, no ads. The browser version uses our hosting for multiplayer signalling and a few data requests, and live-data apps call their data providers directly. The details are in the Privacy notice."}},{"@type":"Question","name":"Something's wrong. Where do I report it?","acceptedAnswer":{"@type":"Answer","text":"Open an issue on GitHub. Security issues: see SECURITY.md. Contributions: CONTRIBUTING.md."}}]}</script>
 </head>
 <body class="page-faq">
 <a class="skip" href="#main">Skip to content</a>
@@ -48,7 +46,7 @@
 </svg>
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">DeskDot</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       <a href="/setup.html">AI setup</a>
       <a href="/guide.html">Run it</a>
@@ -60,9 +58,13 @@
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
   </div>
 </header>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>
 
 <main id="main" tabindex="-1">
 <!-- page:start -->
@@ -71,21 +73,24 @@
       <p class="kicker">Questions</p>
       <h1 id="faq-h" class="page-title reveal">FAQ</h1>
       <div class="faq">
-        <details class="reveal"><summary>Is this the official iDotMatrix app?</summary><div class="a"><p>No. DeskDot is an independent, community-built project. It is not affiliated with, endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with. It talks to your own panel over Bluetooth and sends nothing to the manufacturer.</p></div></details>
+        <details class="reveal"><summary>Is this the official iDotMatrix app?</summary><div class="a"><p>No. DeskDot is an independent, community-built project. It is not affiliated with, endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with. It talks to your own panel over Bluetooth and sends nothing to the manufacturer.</p><p>Official support for your panel's hardware and warranty: the manufacturer, via the official iDotMatrix app.</p></div></details>
+        <details class="reveal"><summary>Is this allowed?</summary><div class="a"><p>DeskDot is independently written software that communicates with panels you own, for interoperability. It contains no code, firmware or assets from the manufacturer's app.</p></div></details>
         <details class="reveal"><summary>Which panels does it work with?</summary><div class="a"><p>The iDotMatrix 32×32 RGB panel (it advertises as <code>IDM-xxxxxx</code>) is verified on hardware. Other sizes share the protocol but are untested, and every app is designed for 32×32.</p></div></details>
         <details class="reveal"><summary>Do I need the iDotMatrix phone app?</summary><div class="a"><p>No, and you should close it while DeskDot runs: the panel accepts one Bluetooth connection at a time.</p></div></details>
-        <details class="reveal"><summary>Does it cost anything or need an account?</summary><div class="a"><p>No. It's MIT-licensed, runs locally and has no account. Almost every live data source is free and key-less; a few optional ones (GitHub token, Home Assistant, your own services) use your own credentials. See <a href="https://github.com/shivpatel2468/idotmatrix#-api-keys--costs">API keys &amp; costs</a>.</p></div></details>
+        <details class="reveal"><summary>Does it cost anything or need an account?</summary><div class="a"><p>No. DeskDot is free today and needs no account. Versions up to v3.2 were published under the MIT licence and remain so; future versions will be proprietary software licensed under the DeskDot EULA (see <a href="/license.html">Licence</a>). Almost every live data source is free and key-less; a few optional ones (GitHub token, Home Assistant, your own services) use your own credentials. See <a href="https://github.com/shivpatel2468/idotmatrix#-api-keys--costs">API keys &amp; costs</a>.</p></div></details>
         <details class="reveal"><summary>Can I try it without a panel?</summary><div class="a"><p>Yes: <code>uv run deskdot serve --sim</code> runs the engine, studio and MCP server against a simulated panel that looks like the real LEDs.</p></div></details>
         <details class="reveal"><summary>Why are some animations perfectly smooth and others not?</summary><div class="a"><p>Bluetooth carries about 5–9 live frames a second. So deterministic loops are baked once into a GIF that the panel plays with its own firmware, perfectly smooth. Only things that change with live data are streamed. The Apps explorer marks each app as a baked loop, live stream or firmware feature.</p></div></details>
         <details class="reveal"><summary>What is MCP, and which agents work?</summary><div class="a"><p>The Model Context Protocol lets AI agents call tools. DeskDot's MCP server (<code>deskdot-mcp</code>) is a thin client over the engine's HTTP API, so any MCP client works: Claude Code and Claude Desktop are documented in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md">docs/MCP.md</a>, and Gemini CLI, Codex and Cursor use the same stdio command.</p></div></details>
         <details class="reveal"><summary>Can I write my own app?</summary><div class="a"><p>Yes. An app is one Python file: a pydantic settings model and a pure <code>render()</code> that draws with clipped primitives and bitmap fonts. Drop it in <code>plugins/</code> and the studio builds its form. Start with <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">docs/APP_SDK.md</a> and <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/DISPLAY_DESIGN.md">docs/DISPLAY_DESIGN.md</a>.</p></div></details>
         <details class="reveal"><summary>Does the Android app work?</summary><div class="a"><p>It's in beta: it builds and its Bluetooth bridge is unit-tested, but it hasn't been run on a real phone yet. Build steps are in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/android/README.md">android/README.md</a>.</p></div></details>
+        <details class="reveal"><summary>Is the casino real gambling?</summary><div class="a"><p>No. The casino games use play chips only: credits are free and have no cash value. They can't be bought, sold, transferred, won as prizes or exchanged for anything, and that includes settling up between friends. The casino is for adults (18+) and for fun. Casino games are free in every plan. Paid plans never add, refill or change casino chips.</p><p><b>Verifiable shuffle:</b> each round's seed hash is shown before chips are placed and revealed afterwards, so anyone can check the result wasn't changed. The host can still reset or adjust play chips. House-edge and RTP figures are shown as educational statistics (play chips; for learning how house edge works).</p></div></details>
+        <details class="reveal"><summary>What does DeskDot send over the internet?</summary><div class="a"><p>No accounts, no analytics, no ads. The browser version uses our hosting for multiplayer signalling and a few data requests, and live-data apps call their data providers directly. The details are in the <a href="/privacy.html">Privacy notice</a>.</p></div></details>
         <details class="reveal"><summary>Something's wrong. Where do I report it?</summary><div class="a"><p>Open an issue on <a href="https://github.com/shivpatel2468/idotmatrix/issues">GitHub</a>. Security issues: see <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">SECURITY.md</a>. Contributions: <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p></div></details>
       </div>
 
       <p class="note reveal" style="margin-top:28px;max-width:880px"><b>Unofficial.</b> DeskDot is an independent, community-built project. It is not affiliated with,
         endorsed by or supported by the makers of iDotMatrix; "iDotMatrix" is used only to identify compatible panels and all trademarks belong to their
-        owners. DeskDot runs locally and sends nothing to the manufacturer.</p>
+        owners. DeskDot runs on your device and sends nothing to the panel's manufacturer.</p>
     </div>
   </section>
 <!-- page:end -->
@@ -95,13 +100,14 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas>
+        <p>DeskDot™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>, India.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -122,17 +128,28 @@
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p><b>DeskDot™</b> is an independent product by Shiv Patel, India. <b>Unofficial:</b> not made, endorsed or supported by Shenzhen Heaton Technology Co., Ltd. or the iDotMatrix brand. “iDotMatrix” is a trademark of its owner and is used only to describe compatible panels. All other trademarks belong to their owners.</p>
+      <p>DeskDot versions up to v3.2 were published under the MIT licence and remain so. Future versions will be proprietary software licensed under the DeskDot EULA.</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="https://github.com/shivpatel2468/idotmatrix">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
+      <span>1,024 pixels.</span>
     </div>
   </div>
 </footer>

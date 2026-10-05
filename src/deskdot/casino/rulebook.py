@@ -43,20 +43,19 @@ PVP_BASICS: Section = (
         "A hand starts once at least two players are in (a short countdown first).",
         "Your cards are only ever on your own phone; the panel shows the shared table.",
         "Every turn has a timer. When it runs out the game makes the safe move for you.",
-        "Players who can't cover the big blind (Hold'em) or the boot (Teen Patti) sit out until the host tops "
-        "them up.",
+        "Players who can't cover the big blind (Hold'em) or the boot (Teen Patti) sit out until the host resets "
+        "them to the starting chips.",
         "If the host closes the table mid-hand, the hand is void and every chip goes back to its owner.",
     ),
 )
 
 FAIRNESS: Section = (
-    "Provably fair",
+    "Verifiable shuffle",
     (
-        "Before betting opens the panel seals the round: it publishes the SHA-256 hash of a secret server seed.",
-        "Your phone's own seed is mixed in when betting closes, so nobody — not even the host — can pick the "
-        "result. The house never looks at bets, balances or history.",
-        "After the round the seed is revealed. Tap your avatar → **Verify on this phone** to recompute the result "
-        "yourself.",
+        "**Verifiable shuffle:** each round's seed hash is shown before chips are placed and revealed afterwards, "
+        "so anyone can check the result wasn't changed. The host can still reset or adjust play chips.",
+        "Your phone's own seed is mixed in when betting closes, so the host can't pick the result.",
+        "After the round tap your avatar → **Verify on this phone** to recompute the result yourself.",
     ),
 )
 
@@ -388,10 +387,10 @@ GUIDES: dict[str, dict[str, Any]] = {
             (
                 "Return to player",
                 (
-                    "The RTP is computed exactly from the reel strips and the pay table (every preset 95–96.5 %) "
-                    "and shown in the Payouts tab. **Volatility** (host option) picks the strips: low = frequent "
+                    "The RTP is computed exactly from the reel strips and the pay table (every preset 95–96.5 %; "
+                    "play chips; for learning how house edge works) and shown in the Payouts tab. **Volatility** (host option) picks the strips: low = frequent "
                     "small wins, high = rarer, bigger ones.",
-                    "There is no shared betting round: each pull is its own provably fair round. Once you pull, "
+                    "There is no shared betting round: each pull is its own sealed round. Once you pull, "
                     "that spin is locked.",
                 ),
             ),
@@ -496,17 +495,17 @@ GUIDES: dict[str, dict[str, Any]] = {
     },
     "housie": {
         "title": "Housie",
-        "tagline": "Tambola, the Indian way: buy tickets, the caller draws 1–90 — first to complete a pattern wins.",
+        "tagline": "Tambola, the Indian way: pick tickets, the caller draws 1–90 — first to complete a pattern wins.",
         "how": (
             JOIN,
-            "Buy **1 or more tickets** with the **+ / −** stepper (the host sets the price and the limit); the first "
-            "ticket sold starts the buy-in clock. Tap **I'm ready** when you're done.",
+            "Pick **1 or more tickets** with the **+ / −** stepper (the host sets the chips per ticket and the limit); "
+            "the first ticket starts the ticket pick clock. Tap **I'm ready** when you're done.",
             "When the calling starts your tickets appear on your phone. The caller draws a number every few seconds; "
             "the panel shows it big, your phone **daubs** it on your tickets (turn auto-daub off to mark by hand).",
             "Complete a pattern — **Early Five**, a **line**, the **Four Corners** or the **Full House** — and tap its "
             "glowing **Claim** button before the next number is called.",
             "The server checks your ticket against the numbers called. A Full House ends the game; the prizes are "
-            "paid from the pot.",
+            "paid from the prize pool (play chips).",
         ),
         "rules": (
             (
@@ -514,10 +513,10 @@ GUIDES: dict[str, dict[str, Any]] = {
                 (
                     "A ticket is a 3 × 9 grid with **15 numbers, 5 in every row**. Column 1 holds 1–9, column 2 "
                     "10–19 … column 9 holds 80–90; each column has 1–3 numbers, smallest at the top.",
-                    "Tickets are sold only during the buy-in. Once the calling starts nobody can buy, sell or swap "
-                    "a ticket.",
-                    "Every ticket and the whole order of the 90 calls come from the sealed round (see Provably "
-                    "fair) — the host can't pick them.",
+                    "Tickets are picked only during the ticket pick. Once the calling starts nobody can add, drop "
+                    "or swap a ticket.",
+                    "Every ticket and the whole order of the 90 calls come from the sealed round (see Verifiable "
+                    "shuffle) — the host can't pick them.",
                 ),
             ),
             (
@@ -546,9 +545,8 @@ GUIDES: dict[str, dict[str, Any]] = {
             (
                 "Payouts",
                 (
-                    "Players play for the pot: every ticket sold goes in. The house keeps only the **rake** the "
-                    "host sets (0 % by default).",
-                    "The rest is the prize pool, split by the prize shares (host option; default: Early Five **10 %**, "
+                    "Every ticket's chips go into the **prize pool (play chips)**; the house keeps nothing.",
+                    "The prize pool is split by the prize shares (host option; default: Early Five **10 %**, "
                     "Top Line **15 %**, Middle Line **15 %**, Bottom Line **15 %**, Four Corners **10 %**, Full "
                     "House **35 %**).",
                     "Shares are of the enabled prizes; credits are rounded down and the odd credits go to the Full "

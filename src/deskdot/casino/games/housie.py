@@ -158,11 +158,12 @@ def split(amount: int, n: int) -> list[int]:
 
 # =========================================================================== rules
 class HousieRules(Rules):
-    ticket_price: int = Field(10, ge=1, le=100_000, title="Ticket price (credits)")
+    ticket_price: int = Field(10, ge=1, le=100_000, title="Chips per ticket")
     max_tickets: int = Field(3, ge=1, le=6, title="Max tickets per player")
-    buy_seconds: int = Field(45, ge=10, le=300, title="Buy-in time (from the first ticket)")
+    buy_seconds: int = Field(45, ge=10, le=300, title="Ticket pick time (from the first ticket)")
     call_seconds: int = Field(6, ge=3, le=20, title="Seconds between calls")
-    rake: int = Field(0, ge=0, le=20, title="House rake (% of the pot)")
+    # engine-level only: the studio no longer offers it (casino_housie.HousieSettings has no `rake`), so it stays 0
+    rake: int = Field(0, ge=0, le=20, title="House share (% of the prize pool; always 0 in the studio)")
     bogey: Literal["none", "prize", "ticket"] = Field("none", title="False claim (bogey)")
     auto_claim: bool = Field(False, title="Claim for everyone automatically")
     early5: bool = Field(True, title="Early Five")

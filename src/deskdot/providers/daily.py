@@ -153,8 +153,8 @@ SOURCES: dict[str, Source] = {
         Source("advice", "Advice (Advice Slip)", "ADVICE", 6, 3, 60),
         Source("cat", "Cat fact (catfact.ninja)", "CAT", 20, 5, 120),
         Source("joke", "Programming & pun jokes (JokeAPI)", "JOKE", 10, 4, 60),
-        Source("chuck", "Chuck Norris (safe categories)", "CHUCK", 6, 3, 60),
-        Source("kanye", "Kanye (kanye.rest)", "KANYE", 40, 5, 3600),
+        Source("chuck", "Tough-guy jokes (safe categories)", "TOUGH", 6, 3, 60),
+        Source("kanye", "Celebrity quotes", "CELEB", 40, 5, 3600),
         Source("history", "On this day (Wikipedia)", "OTD", 12, 1, 3600, cycle=True),
     )
 }
@@ -289,7 +289,9 @@ def parse_chuck(payload: Any) -> list[Item]:
 
 def parse_kanye(payload: Any) -> list[Item]:
     quotes = payload if isinstance(payload, list) else [(payload or {}).get("quote")]
-    return [it for q in quotes if (it := _item("kanye", q, author="KANYE WEST")) is not None]
+    return [
+        it for q in quotes if (it := _item("kanye", q)) is not None
+    ]  # no author line naming a real person
 
 
 def parse_onthisday(payload: Any, keep: int = 12, max_len: int = 110) -> list[Item]:

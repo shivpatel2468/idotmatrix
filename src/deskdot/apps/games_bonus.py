@@ -1,4 +1,4 @@
-"""Bonus games: Minesweeper auto-solver and a vertical space shooter. Original code and art."""
+"""Bonus games: Mines auto-solver and a vertical space shooter. Original code and art."""
 
 from __future__ import annotations
 
@@ -114,7 +114,7 @@ class Mines(GameApp):
     id = "mines"
     name = "Mines"
     description = (
-        "Minesweeper that solves itself with logic (and the odd guess). Arrows move the cursor, "
+        "A mine-field puzzle that solves itself with logic (and the odd guess). Arrows move the cursor, "
         "A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells."
     )
     icon = "bomb"
@@ -556,7 +556,7 @@ class Starship(GameApp):
         Mode("coop", "Wingmen", 2, 4, "coop"),
         Mode("ace", "Ace", 2, 4, "ffa"),
     )
-    maps: ClassVar[dict[str, str]] = {"deep": "Deep space", "rocks": "Asteroids", "canyon": "Canyon"}
+    maps: ClassVar[dict[str, str]] = {"deep": "Deep space", "rocks": "Rock Belt", "canyon": "Canyon"}
     game_themes: ClassVar[dict[str, Theme]] = STARSHIP_THEMES
     game_theme_labels: ClassVar[dict[str, str]] = {"void": "Void", "solar": "Solar"}
 

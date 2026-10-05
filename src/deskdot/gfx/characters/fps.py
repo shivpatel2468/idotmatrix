@@ -1,4 +1,4 @@
-"""Shooters: tactical-shooter archetypes (original chibi designs)."""
+"""Shooters: generic arena-shooter archetypes (original chibi designs, no real-world factions)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ biped(
     "br_soldier",
     "BR Soldier",
     "fps",
-    "A battle-royale survivor: level-3 helmet, stuffed tactical vest and a trusty frying pan on the back.",
+    "A battle-royale survivor: scuffed helmet, stuffed tactical vest and a trusty frying pan on the back.",
     slots={
         "helmet": (110, 120, 80),
         "vest": (200, 170, 100),
@@ -66,9 +66,9 @@ biped(
 
 biped(
     "ct_operator",
-    "CT Operator",
+    "Tac Operator",
     "fps",
-    "A counter-terrorist operator in navy fatigues, goggles up on the helmet, rifle at low ready.",
+    "A tactical operator in navy fatigues, goggles up on the helmet, rifle at low ready.",
     slots={
         "helmet": (40, 70, 170),
         "uniform": (50, 90, 200),
@@ -109,21 +109,23 @@ biped(
 )
 
 biped(
-    "terrorist",
-    "Terrorist",
+    "raider",
+    "Raider",
     "fps",
-    "A masked insurgent: dark balaclava with an eye slit, tan jacket and a wood-stocked rifle.",
+    "A scrappy arena raider: round helmet with an amber visor, rust-red jacket and a stubby blaster.",
     slots={
-        "mask": (80, 80, 95),
-        "jacket": (205, 170, 110),
+        "helmet": (95, 105, 95),
+        "visor": (255, 150, 40),
+        "jacket": (170, 70, 50),
         "skin": SKIN,
-        "pants": (100, 110, 70),
-        "wood": (150, 80, 30),
+        "pants": (60, 60, 75),
     },
     key={
-        "k": "mask",
-        "K": "mask*0.6",
+        "k": "helmet",
+        "K": "helmet*0.6",
+        "o": "visor",
         "s": "skin",
+        "S": "skin*0.8",
         "t": "jacket",
         "T": "jacket*0.65",
         "u": "#3c3228",
@@ -132,23 +134,24 @@ biped(
         "p": "pants",
         "f": "#3c3228",
         "G": "#5a5a6e",
-        "g": "wood",
+        "g": "#3c3c4b",
+        "h": "#50281e",
     },
     head=(
         "..kkkkkk..",
         ".kkkkkkkk.",
         "kkkkkkkkkk",
-        "kkkkkkkkkk",
-        "kkssssssss",
-        "kkkkkkkkkk",
-        ".kkkkkkkK.",
-        "..kkkkkk..",
+        "kKKKKKKKKK",
+        "kkoooooooo",
+        ".sssssssss",
+        ".sssshhsS.",
+        "..ssssss..",
     ),
     torso=("tttttttt", "tTttTttt", "tttttttt", "uuuuuuuu", "pppppppp"),
     eyes={"pts": [(7, 4), (10, 4)], "w": 1, "h": 1},
     item={
-        "hold": v("..G....", "GGGGggg", "..g.g..", grip=(4, 1)),
-        "aim": v("..G....", "GGGGggg", "..g.g..", grip=(6, 1)),
+        "hold": v(".GG..", "GGGGo", "g....", grip=(1, 1)),
+        "aim": v(".GG..", "GGGGo", "g....", grip=(3, 1)),
     },
     opts={"food": "drumstick", "gun": True},
     extras=FPS,
@@ -156,13 +159,13 @@ biped(
 
 biped(
     "agent",
-    "Agent Duelist",
+    "Neon Duelist",
     "fps",
-    "A flashy tactical duelist: spiky hair, cropped black jacket with neon trim and a sleek rifle.",
+    "A flashy neon duelist: spiky orange hair, a deep-teal jacket with magenta neon trim and a sleek blaster.",
     slots={
-        "hair": (60, 40, 110),
-        "jacket": (40, 40, 60),
-        "accent": (0, 235, 255),
+        "hair": (255, 140, 30),
+        "jacket": (20, 70, 80),
+        "accent": (255, 50, 170),
         "skin": SKIN,
         "pants": (70, 70, 95),
     },

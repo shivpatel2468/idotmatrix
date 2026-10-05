@@ -6,14 +6,16 @@
 Run after scripts/build_site_media.py (previews) and scripts/build_site_data.py (apps.json).
 
 Two kinds of page:
-  * hand-written pages (index, setup, guide, apps, features, studio, specs, faq, 404): edit the HTML between
+  * hand-written pages (index, setup, guide, apps, features, studio, specs, faq, download, privacy, terms,
+    license, licenses, 404): edit the HTML between
     `<!-- page:start -->` and `<!-- page:end -->` in site/<page>.html. This script rewrites everything around it
     (head, meta tags, header, footer) so the chrome is identical everywhere, fills the `<!-- gen:NAME -->` regions
     (app cards, preview reels) and refreshes `data-count` numbers.
   * one generated page per app: site/apps/<id>.html (preview, settings, game modes, try-it commands).
 
 URLs are root-relative (/apps.html), so every page, the 404 page included, works at any depth. The site is
-plain static files: no framework, no bundler; Google Fonts is the only third-party request.
+plain static files: no framework, no bundler, no third-party requests (fonts are self-hosted in site/fonts/, the
+GitHub star count is baked in at build time). Legal copy and the licence inventory live in scripts/site_legal.py.
 """
 
 from __future__ import annotations
@@ -31,6 +33,9 @@ from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import unquote, urlsplit
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_legal as legal
+
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 SITE_URL = "https://idotmatrix.com"
@@ -41,7 +46,11 @@ START, END = "<!-- page:start -->", "<!-- page:end -->"
 # The one inline script, run before first paint: marks the document as JS-enabled (scroll-reveal styles key off
 # it) and as supporting cross-document View Transitions (`vt`: the CSS fade-in fallback then stays off).
 # netlify.toml's Content-Security-Policy allows exactly this script by its hash (see csp_hash()).
-INLINE_JS = 'document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")'
+# It also hides the "unofficial" notice strip before paint once a visitor has dismissed it (main.js stores that).
+INLINE_JS = (
+    'var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");'
+    'try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}'
+)
 
 NAV = [
     ("setup", "/setup.html", "AI setup"),
@@ -56,26 +65,26 @@ NAV = [
 PAGES: dict[str, dict[str, Any]] = {
     "index.html": {
         "nav": "home",
-        "title": "DeskDot: the all-in-one app for your iDotMatrix 32×32 panel",
-        "description": "Turn your iDotMatrix 32×32 LED panel into a live desktop companion: {apps} apps, "
-        "multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can "
-        "drive it. Free, open source, local.",
+        "title": "DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)",
+        "description": "DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: {apps} "
+        "apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can "
+        "drive it. Unofficial; free web app.",
     },
     "setup.html": {
         "nav": "setup",
         "title": "Set up DeskDot with your AI agent",
         "description": "One prompt for Claude Code, Gemini CLI, Codex or Cursor installs DeskDot, starts the "
-        "simulator, then connects your iDotMatrix panel and its MCP server.",
+        "simulator, then connects your iDotMatrix-compatible panel and its MCP server.",
     },
     "guide.html": {
         "nav": "guide",
         "title": "Run DeskDot yourself: step-by-step guide",
-        "description": "From nothing to a live iDotMatrix panel in about ten minutes: install uv, clone, build the "
+        "description": "From nothing to a live 32×32 LED panel in about ten minutes: install uv, clone, build the "
         "studio, try the simulator, pair over Bluetooth, and keep it on with a Raspberry Pi.",
     },
     "apps.html": {
         "nav": "apps",
-        "title": "All {apps} DeskDot apps for the iDotMatrix panel",
+        "title": "All {apps} DeskDot apps for 32×32 LED panels",
         "description": "Browse every DeskDot app with its real animated preview: clocks, live data, media, "
         "pets, ambient loops and {games} games. Search apps, settings and options.",
     },
@@ -83,7 +92,7 @@ PAGES: dict[str, dict[str, Any]] = {
         "nav": "features",
         "title": "DeskDot features: games, AI agents, live data",
         "description": "Multiplayer games with phone controllers, an MCP server for AI agents, baked loops that "
-        "play smoothly on the panel, live data from 45+ free sources, and a fruit-fly brain that plays games.",
+        "play smoothly on the panel, live data from 45+ free sources, and a fruit fly with a hand-tuned neural model.",
     },
     "studio.html": {
         "nav": "studio",
@@ -93,15 +102,45 @@ PAGES: dict[str, dict[str, Any]] = {
     },
     "specs.html": {
         "nav": "specs",
-        "title": "DeskDot compatibility and iDotMatrix panel specs",
+        "title": "DeskDot compatibility and 32×32 panel specs",
         "description": "Which computers run DeskDot (Windows, Raspberry Pi, Linux, macOS, Android beta) and the "
-        "measured limits of the iDotMatrix 32×32 panel it drives.",
+        "measured limits of the iDotMatrix-compatible 32×32 panel it drives.",
     },
     "faq.html": {
         "nav": "faq",
         "title": "DeskDot FAQ",
-        "description": "Is DeskDot official? Which panels work? Does it cost anything? Answers about the "
-        "iDotMatrix app, MCP and AI agents, smooth animation and writing your own app.",
+        "description": "Is DeskDot official? Which panels work? Does it cost anything? Is it allowed? Answers about "
+        "the casino, MCP and AI agents, smooth animation and writing your own app.",
+    },
+    "download.html": {
+        "nav": None,
+        "title": "Get DeskDot",
+        "description": "Get DeskDot for your iDotMatrix-compatible 32×32 LED panel: open it in your browser, run "
+        "it from the source code (MIT), or wait for the Windows installer. Unofficial.",
+    },
+    "privacy.html": {
+        "nav": None,
+        "title": "Privacy notice",
+        "description": "What DeskDot and idotmatrix.com process: no accounts, no analytics, no ads. Hosting logs, "
+        "multiplayer signalling, the data proxy, third-party services and your rights.",
+    },
+    "terms.html": {
+        "nav": None,
+        "title": "Terms of use",
+        "description": "The short, plain terms for the DeskDot website and web app: age, acceptable use, no "
+        "gambling, hardware and safety, liability and governing law.",
+    },
+    "license.html": {
+        "nav": None,
+        "title": "DeskDot licence",
+        "description": "Which licence DeskDot is under: versions up to v3.2 are MIT; future versions will be "
+        "proprietary under the DeskDot EULA.",
+    },
+    "licenses.html": {
+        "nav": None,
+        "title": "Open-source licences",
+        "description": "The open-source components the DeskDot website and web app ship or load, with their "
+        "licences and full licence texts.",
     },
     "404.html": {
         "nav": None,
@@ -236,10 +275,8 @@ def head(
         '<link rel="icon" href="/favicon.ico" sizes="32x32" />',
         '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
         '<link rel="manifest" href="/site.webmanifest" />',
-        '<link rel="preconnect" href="https://fonts.googleapis.com" />',
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />',
-        '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,'
-        '400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />',
+        '<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" '
+        "crossorigin />",
         '<link rel="stylesheet" href="/styles.css" />',
         f"<script>{INLINE_JS}</script>",
         '<script src="/main.js" defer></script>',
@@ -253,6 +290,40 @@ def head(
     return "<head>\n" + "\n".join(tags) + "\n</head>"
 
 
+def stars() -> int:
+    """GitHub stars, baked in at build time (no runtime request to api.github.com). Falls back to the number
+    already on the committed pages when offline."""
+    try:
+        import urllib.request
+
+        req = urllib.request.Request(
+            "https://api.github.com/repos/" + REPO.removeprefix("https://github.com/"),
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "deskdot-site-build"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return int(json.load(r).get("stargazers_count") or 0)
+    except Exception:
+        try:
+            m = re.search(r'data-stars="(\d+)"', (SITE / "index.html").read_text(encoding="utf-8"))
+            return int(m.group(1)) if m else 0
+        except OSError:
+            return 0
+
+
+STARS: int | None = None
+
+
+def _stars_html() -> str:
+    global STARS
+    if STARS is None:
+        STARS = stars()
+    n = STARS
+    if n <= 0:
+        return '<span class="count" data-stars="0"></span>'
+    label = f"{n / 1000:.1f}".removesuffix(".0") + "k" if n >= 1000 else str(n)
+    return f'<span class="count" data-stars="{n}" aria-label="{n} stars">★ {label}</span>'
+
+
 def header(active: str | None) -> str:
     links = []
     for key, href, label in NAV:
@@ -263,15 +334,19 @@ def header(active: str | None) -> str:
 {SPRITE}
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/"{home_cur} aria-label="{BRAND} home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">{BRAND}</span></a>
+    <a class="brand" href="/"{home_cur} aria-label="{BRAND} home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">{BRAND}</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       {chr(10).join("      " + link for link in links).strip()}
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="{REPO}" aria-label="{BRAND} on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="{REPO}" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg>{_stars_html()}</a>
   </div>
-</header>"""
+</header>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> {legal.e(legal.UNOFFICIAL.removeprefix("Unofficial: "))}</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>"""
 
 
 def footer() -> str:
@@ -279,13 +354,14 @@ def footer() -> str:
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>{BRAND} turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="{BRAND}, written in glowing LED dots"></canvas>
+        <p>{BRAND}™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">{legal.OWNER}</a>, {legal.COUNTRY}.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -306,17 +382,28 @@ def footer() -> str:
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="{REPO}">GitHub repository</a></li>
+          <li><a href="{REPO}">Source code (MIT)</a></li>
           <li><a href="{REPO}/issues">Issues</a></li>
           <li><a href="{REPO}/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="{REPO}/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="{REPO}/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p>{legal.FOOTER_TEXT}</p>
+      <p>{legal.e(legal.LICENCE_LINE)}</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="{REPO}">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© {legal.YEAR} {legal.OWNER}. Casino games: play money only, 18+.</span>
+      <span>1,024 pixels.</span>
     </div>
   </div>
 </footer>
@@ -346,6 +433,34 @@ def panel(app: dict[str, Any], *, eager: bool = False, cls: str = "panel") -> st
     return (
         f'<div class="{cls}"><picture>{still}<img src="/{app["preview"]}" width="32" height="32" {load} '
         f'decoding="async" alt="{e(alt)}" /></picture></div>'
+    )
+
+
+# Marketing copy for the play-money casino (L4): "place chips", never "bet" or "buy"; the in-game UI keeps its terms.
+_CASINO_WORDS = [
+    (r"\bCasino roulette\b", "Play-money roulette"),
+    (r"\bThe money wheel\b", "The big wheel"),
+    (r"\bbuy tickets\b", "pick tickets"),
+    (r"\bbet (on|from)\b", r"place chips \1"),
+    (r"\bbet\b", "place chips on"),
+]
+
+
+def site_description(app: dict[str, Any]) -> str:
+    """The app's description as the website shows it (casino apps get play-money wording)."""
+    desc = app["description"]
+    if app["category"] == "casino":
+        for pat, sub in _CASINO_WORDS:
+            desc = re.sub(pat, sub, desc)
+    return desc
+
+
+def casino_note(extra: bool = False, hidden: bool = False) -> str:
+    """The play-money banner on every casino page, card group and the explorer (L4, L6, L8)."""
+    more = f"<p>{legal.CASINO_FREE} {legal.CASINO_EDGE}</p>" if extra else ""
+    return (
+        f'<div class="casino-note" role="note"{" hidden" if hidden else ""}><span class="chip-ico" aria-hidden="true"></span>'
+        f"<div><p>{legal.CASINO_BANNER}</p>{more}</div></div>"
     )
 
 
@@ -387,7 +502,7 @@ def app_card(app: dict[str, Any], cat_label: str, *, i: int = 0, searchable: boo
   <div class="body">
     <span class="tag" style="color:{CAT_COLOR[app["category"]]}">{e(cat_label)}</span>
     <h3>{e(app["name"])}</h3>
-    <p>{e(app["description"])}</p>
+    <p>{e(site_description(app))}</p>
     <div class="foot">{"".join(foot)}</div>
   </div>
 </a>"""
@@ -495,7 +610,7 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
         )
     if app.get("source"):
         facts.append(
-            f'<div class="fact"><span>Source</span><b><a href="{REPO}/blob/main/{e(app["source"])}">'
+            f'<div class="fact"><span>Source code (MIT)</span><b><a href="{REPO}/blob/main/{e(app["source"])}">'
             f"{e(app['source'].rsplit('/', 1)[-1])}</a></b><small>{e(app['source'])}</small></div>"
         )
 
@@ -608,7 +723,7 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
         '<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></nav>'
     )
     src_btn = (
-        f'<a class="btn" href="{REPO}/blob/main/{e(app["source"])}"><svg aria-hidden="true"><use href="#i-gh"/></svg>View source</a>'
+        f'<a class="btn" href="{REPO}/blob/main/{e(app["source"])}"><svg aria-hidden="true"><use href="#i-gh"/></svg>Source code (MIT)</a>'
         if app.get("source")
         else ""
     )
@@ -619,14 +734,18 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
   <div>
     <div class="badges">{badges}</div>
     <h1>{e(app["name"])}</h1>
-    <p class="lede">{e(app["description"])}</p>
-    <div class="cta"><a class="btn primary" href="/setup.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>{src_btn}</div>
+    <p class="lede">{e(site_description(app))}</p>
+    <div class="cta"><a class="btn primary" href="/download.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>{src_btn}</div>
   </div>
 </div>
+{casino_note(extra=True) if app["category"] == "casino" else ""}
 {"".join(sections)}
 {pager}
 </div>"""
-    desc = f"{app['description']} A {cat.lower()} app for the iDotMatrix 32×32 LED panel, with {len(app['settings'])} settings."
+    desc = site_description(app)
+    if app["category"] == "casino":
+        desc += " Free play chips only (18+, play money): no purchases, no cash-out, no prizes."
+    desc += f" {len(app['settings'])} settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)."
     crumbs = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -638,7 +757,7 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
     og = f"/{app['og_image']}" if app.get("og_image") else "/media/og.png"
     head_html = head(
         app["page"],
-        f"{app['name']}: {cat} app for iDotMatrix",
+        f"{app['name']}: a DeskDot app for 32×32 panels",
         desc,
         og_image=og,
         og_size=(480, 480) if app.get("og_image") else (1200, 630),
@@ -693,8 +812,9 @@ SOFTWARE_LD = {
     "url": f"{SITE_URL}/",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Windows, Linux, macOS, Android (beta)",
-    "description": "An engine, studio and MCP server that turns an iDotMatrix 32×32 LED panel into a live desktop companion.",
-    "license": "https://opensource.org/licenses/MIT",
+    "description": "An independent (unofficial) companion app, studio and MCP server for iDotMatrix-compatible 32×32 "
+    "LED panels. Versions up to v3.2 are MIT-licensed; future versions will be licensed under the DeskDot EULA.",
+    "license": f"{SITE_URL}/license.html",
     "author": {"@type": "Person", "name": "Shiv Patel", "url": "https://github.com/shivpatel2468"},
     "codeRepository": REPO,
     "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
@@ -712,8 +832,12 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
     cats = {c["id"]: c["label"] for c in data["categories"]}
     by_id = {a["id"]: a for a in data["apps"]}
 
-    cards = "\n".join(app_card(a, cats[a["category"]], i=i) for i, a in enumerate(data["apps"]))
-    body = fill(body, "cards", cards)
+    card_list = []
+    for i, a in enumerate(data["apps"]):
+        if a["category"] == "casino" and not any(x["category"] == "casino" for x in data["apps"][:i]):
+            card_list.append(casino_note(extra=True))  # the explorer's "Casino" group starts with the banner
+        card_list.append(app_card(a, cats[a["category"]], i=i))
+    body = fill(body, "cards", "\n".join(card_list))
     chips = [
         f'<button type="button" class="chip" data-cat="all" aria-pressed="true" style="--c:#f3f1ec"><i></i>All <small>{data["count"]}</small></button>'
     ]
@@ -737,11 +861,18 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
         (a for a in data["apps"] if a.get("game", {}).get("max_players", 1) > 1),
         key=lambda a: -a["game"]["max_players"],
     )
-    body = fill(
-        body,
-        "games",
-        "\n".join(app_card(a, cats[a["category"]], i=i, searchable=False) for i, a in enumerate(games[:8])),
-    )
+    game_cards = [app_card(a, cats[a["category"]], i=i, searchable=False) for i, a in enumerate(games[:8])]
+    if any(a["category"] == "casino" for a in games[:8]):
+        game_cards.insert(0, casino_note())
+    body = fill(body, "games", "\n".join(game_cards))
+    lic = legal.licences_html()
+    if lic is not None:
+        body = fill(body, "licences", lic)
+    # The contact address: written as {{CONTACT}} in the page source; re-rendered on every build so a changed
+    # legal.CONTACT_EMAIL reaches pages that were already generated.
+    contact = f'<a class="contact-email" href="mailto:{legal.CONTACT_EMAIL}">{legal.CONTACT_EMAIL}</a>'
+    body = body.replace("{{CONTACT}}", contact)
+    body = re.sub(r'<a class="contact-email" href="mailto:[^"]*">[^<]*</a>', lambda _m: contact, body)
     body = refresh_counts(body, nums)
 
     desc = meta["description"].format(**nums)
@@ -758,33 +889,47 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
 
 
 # =============================================================================================== static extras
-FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#08070a"/><g fill="#ff3f78"><circle cx="8" cy="7" r="2.4"/><circle cx="8" cy="15" r="2.4"/><circle cx="8" cy="21" r="2.4"/><circle cx="8" cy="27" r="2.4"/></g><g fill="#ff7419"><circle cx="16" cy="15" r="2.4"/><circle cx="16" cy="21" r="2.4"/><circle cx="16" cy="27" r="2.4"/></g><g fill="#ffcc33"><circle cx="24" cy="15" r="2.4"/><circle cx="24" cy="21" r="2.4"/><circle cx="24" cy="27" r="2.4"/></g></svg>
-"""
+# The DeskDot mark: an LED "D" (rose → tangerine by column) and the gold "dot" beside it, on the panel's black.
+_D = ["###.", "#..#", "#..#", "#..#", "###."]
+_D_COLS = ["#ff3f78", "#ff5a4c", "#ff7419", "#ff9a2a"]
+ICON_DOTS: list[tuple[float, float, float, str]] = [
+    (5 + 5.6 * cx, 5 + 5.5 * cy, 2.3, _D_COLS[cx])
+    for cy, row in enumerate(_D)
+    for cx, ch in enumerate(row)
+    if ch == "#"
+] + [(27.2, 27.0, 2.6, "#ffcc33")]
+FAVICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>DeskDot</title>'
+    '<rect width="32" height="32" rx="7" fill="#08070a"/>'
+    + "".join(f'<circle cx="{x:g}" cy="{y:g}" r="{r:g}" fill="{c}"/>' for x, y, r, c in ICON_DOTS)
+    + "</svg>\n"
+)
 
 
 def write_icons() -> None:
     from PIL import Image, ImageDraw
 
     (SITE / "favicon.svg").write_text(FAVICON, encoding="utf-8")
-    dots = [(8, 7, "#ff3f78"), (8, 15, "#ff3f78"), (8, 21, "#ff3f78"), (8, 27, "#ff3f78")]
-    dots += [(16, y, "#ff7419") for y in (15, 21, 27)] + [(24, y, "#ffcc33") for y in (15, 21, 27)]
 
     def icon(size: int, radius: float) -> Image.Image:
-        k = size / 32
-        im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        ss = 4  # draw 4× larger, then downsample: crisp round dots at every size
+        k = size * ss / 32
+        im = Image.new("RGBA", (size * ss, size * ss), (0, 0, 0, 0))
         d = ImageDraw.Draw(im)
-        d.rounded_rectangle([0, 0, size - 1, size - 1], radius=radius * k, fill="#08070a")
-        for x, y, c in dots:
-            d.ellipse([(x - 2.4) * k, (y - 2.4) * k, (x + 2.4) * k, (y + 2.4) * k], fill=c)
-        return im
+        d.rounded_rectangle([0, 0, size * ss - 1, size * ss - 1], radius=radius * k, fill="#08070a")
+        for x, y, r, c in ICON_DOTS:
+            d.ellipse([(x - r) * k, (y - r) * k, (x + r) * k, (y + r) * k], fill=c)
+        return im.resize((size, size), Image.Resampling.LANCZOS)
 
     icon(180, 0).convert("RGB").save(SITE / "apple-touch-icon.png", optimize=True)
     icon(512, 7).save(SITE / "icon-512.png", optimize=True)
     icon(192, 7).save(SITE / "icon-192.png", optimize=True)
     icon(64, 7).save(SITE / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
     manifest = {
-        "name": f"{BRAND} for iDotMatrix",
+        "name": f"{BRAND}: for iDotMatrix-compatible 32×32 panels (unofficial)",
         "short_name": BRAND,
+        "description": "DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels. "
+        "Not made or endorsed by the panel's manufacturer.",
         "start_url": "/",
         "display": "browser",
         "background_color": "#08070a",

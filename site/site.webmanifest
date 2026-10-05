@@ -1,6 +1,7 @@
 {
- "name": "DeskDot for iDotMatrix",
+ "name": "DeskDot: for iDotMatrix-compatible 32\u00d732 panels (unofficial)",
  "short_name": "DeskDot",
+ "description": "DeskDot is an independent companion app for iDotMatrix-compatible 32\u00d732 LED panels. Not made or endorsed by the panel's manufacturer.",
  "start_url": "/",
  "display": "browser",
  "background_color": "#08070a",

@@ -76,7 +76,11 @@ def test_every_app_has_a_real_preview_and_a_page() -> None:
     assert all(f'href="/apps/{a}.html"' in explorer for a in VISIBLE)
 
 
-PAGES = ["index", "setup", "guide", "apps", "features", "studio", "specs", "faq"]
+PAGES = [
+    "index", "setup", "guide", "apps", "features", "studio", "specs", "faq",
+    "download", "privacy", "terms", "license", "licenses",
+]  # fmt: skip
+LEGAL = ("download", "privacy", "terms", "license", "licenses")  # not in the main nav
 
 
 def test_pages_have_standard_head_and_chrome() -> None:
@@ -100,7 +104,7 @@ def test_pages_have_standard_head_and_chrome() -> None:
         if name != "404":
             assert '<link rel="canonical"' in html
             nav = re.search(r'<nav id="nav".*?</nav>', html, re.S)
-            assert nav and (name == "index" or 'aria-current="page"' in nav.group(0))
+            assert nav and (name in ("index", *LEGAL) or 'aria-current="page"' in nav.group(0))
         for img in re.findall(r"<img\b[^>]*>", html):
             assert 'alt="' in img and 'width="' in img and 'height="' in img, f"{name}.html: {img}"
 
@@ -118,6 +122,23 @@ def test_sitemap_lists_every_page() -> None:
 
 def test_no_broken_internal_links() -> None:
     assert _load("build_site_pages").check_links(SITE) == []
+
+
+def test_site_makes_no_third_party_requests_and_carries_the_legal_chrome() -> None:
+    for name in [*PAGES, "404"]:
+        html = (SITE / f"{name}.html").read_text(encoding="utf-8")
+        assert "fonts.googleapis" not in html and "fonts.gstatic" not in html, name
+        assert 'id="notice"' in html and 'href="/privacy.html"' in html and 'href="/terms.html"' in html, name
+        title = re.search(r"<title>(.*?)</title>", html).group(1)
+        assert not title.startswith("iDotMatrix") and "for your iDotMatrix" not in title, name
+        h1 = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.S).group(1)
+        assert "iDotMatrix" not in h1, name
+    assert "api.github.com" not in (SITE / "main.js").read_text(encoding="utf-8")
+    assert (SITE / "fonts" / "OFL.txt").exists()
+    for app in _committed()["apps"]:
+        if app["category"] == "casino":
+            page = (SITE / "apps" / f"{app['id']}.html").read_text(encoding="utf-8")
+            assert 'class="casino-note"' in page and "Play money only" in page, app["id"]
 
 
 def test_site_says_deskdot_not_dotdeck() -> None:
@@ -143,7 +164,9 @@ def test_netlify_config_matches_the_site() -> None:
     for pattern in ("/", "/apps/*", "/media/*"):
         assert csps[pattern] == site, pattern
     assert _load("build_site_pages").csp_hash() in site  # the inline <script> is allowed by its hash
-    assert "https://api.github.com" in site and "https://fonts.gstatic.com" in site
+    # No third-party requests from the website: fonts are self-hosted, the GitHub star count is baked at build time.
+    assert "font-src 'self'" in site and "connect-src 'self';" in site
+    assert "googleapis" not in site and "gstatic" not in site and "api.github.com" not in site
     app = csps["/app/*"]
     assert "'wasm-unsafe-eval'" in app and "https://cdn.jsdelivr.net" in app and "worker-src 'self'" in app
     assert (SITE / "404.html").exists() and (SITE / "CNAME").read_text().strip() == "idotmatrix.com"

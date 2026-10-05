@@ -1,6 +1,6 @@
-"""Pixel Avatar — Minecraft faces, GitHub identicons and DiceBear pixel characters on an exact grid.
+"""Pixel Avatar — block-game player heads, GitHub identicons and DiceBear pixel characters on an exact grid.
 
-Every source is pixel art whose native grid divides the panel: an 8×8 Minecraft face ×4, a 5×5 identicon in
+Every source is pixel art whose native grid divides the panel: an 8×8 block-game player head ×4, a 5×5 identicon in
 6 px cells with a 1 px margin, a 16×16 DiceBear character ×2. Names rotate with a name tag; bob and blink
 are drawn in code. The rotation is deterministic, so it is baked as a clip and plays natively.
 """
@@ -34,11 +34,15 @@ class AvatarSettings(AppSettings):
         max_length=400,
         title="Names",
         description="Comma-separated. Prefix gh: for a GitHub identicon, db: for a DiceBear character, "
-        "mc: for a Minecraft face; unprefixed names use the default source",
+        "mc: for a block-game player head (by username); unprefixed names use the default source",
     )
     source: str = Choice(
         "minecraft",
-        {"minecraft": "Minecraft face", "github": "GitHub identicon", "dicebear": "DiceBear pixel art"},
+        {
+            "minecraft": "Block-game player head",
+            "github": "GitHub identicon",
+            "dicebear": "DiceBear pixel art",
+        },
         title="Default source",
     )
     layout: str = Choice("framed", {"framed": "Face + name tag", "full": "Full screen"}, title="Layout")
@@ -66,7 +70,7 @@ def scaled(
 
 
 def blinked(av: Avatar) -> Avatar:
-    """A Minecraft face with its eyes closed (unchanged if no eyes are found).
+    """A player head with its eyes closed (unchanged if no eyes are found).
 
     Skins put the eyes anywhere in rows 2–5, columns 1–2 and 5–6, so they are found by colour: cells there
     that differ from the skin tone (the most common colour of the cheek / nose-bridge columns 0, 3, 4, 7 in
@@ -96,9 +100,7 @@ def blinked(av: Avatar) -> Avatar:
 class PixelAvatar(App):
     id = "avatar"
     name = "Pixel Avatar"
-    description = (
-        "Minecraft faces, GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag."
-    )
+    description = "Block-game player heads (by username), GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag."
     icon = "user-round"
     category = "creative"
     Settings = AvatarSettings

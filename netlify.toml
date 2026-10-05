@@ -52,22 +52,22 @@
 [[headers]]
   for = "/"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/:page"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/apps/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/media/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-wuQ05BGS4fB84zLslY2delBS6nRGEpjNY7Rcc8MBpKM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 
 # The web app (docs/WEB_APP.md): Pyodide from the pinned jsDelivr CDN ('wasm-unsafe-eval' compiles its WebAssembly),
@@ -112,5 +112,10 @@
     Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
 [[headers]]
   for = "/favicon.*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+# Self-hosted fonts (site/fonts/, SIL OFL 1.1: OFL.txt ships beside them).
+[[headers]]
+  for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"

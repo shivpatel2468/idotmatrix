@@ -7,8 +7,8 @@ export const EMPTY_MAP: Record<string, string> = {};
 
 export type Toast = { id: number; text: string; tone: "info" | "error" | "ok" };
 export type Tool = "pencil" | "eraser" | "fill" | "picker";
-/** The four settings sections. */
-export type SettingsSection = "display" | "alerts" | "playlist" | "device";
+/** The settings sections. */
+export type SettingsSection = "display" | "alerts" | "playlist" | "device" | "about";
 /**
  * Where to open settings: a section, or a named block inside one (the sheet scrolls to it).
  * The block names are the old tab ids, so every "open settings at X" link keeps working.

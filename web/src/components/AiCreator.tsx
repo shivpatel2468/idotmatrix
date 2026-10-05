@@ -201,7 +201,7 @@ export function AiCreator() {
                 </span>
               </div>
               <p className="mt-1 text-[11.5px] text-ink-3">
-                Generative AI pixel art &amp; multi-frame native loops for iDotMatrix
+                Generative AI pixel art &amp; multi-frame native loops for 32×32 LED panels
               </p>
             </div>
           </div>
@@ -440,7 +440,7 @@ export function AiCreator() {
                 <button
                   onClick={pushToPanelLoop}
                   className="key key-ember flex items-center justify-center gap-1.5 py-1.5 text-[11.5px]"
-                  title="Uploads to the iDotMatrix hardware panel as a native baked loop"
+                  title="Uploads to your LED panel as a native baked loop"
                 >
                   <Zap size={12} /> Send to Panel
                 </button>

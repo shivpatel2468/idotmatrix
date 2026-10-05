@@ -1,4 +1,8 @@
-"""Player Card — a football-game style rated player card with tiers, shine and a stats flip."""
+"""Player Card — your own football player card: portrait, flag, name and number, shine and a skills flip.
+
+Its own layout: the portrait is the hero in the middle, the flag sits top-left, a small overall tag
+top-right and the name along the bottom; the position only appears on the skills side.
+"""
 
 from __future__ import annotations
 
@@ -37,7 +41,7 @@ HAIR = {
     "bald": "Bald",
     "bun": "Man bun",
 }
-STATS = ("PA", "SH", "PS", "DR", "DF", "PH")  # pace, shooting, passing, dribbling, defending, physical
+STATS = ("SP", "SH", "PS", "SK", "DF", "ST")  # speed, shooting, passing, skill, defending, strength
 
 
 class CardSettings(AppSettings):
@@ -54,19 +58,19 @@ class CardSettings(AppSettings):
             "gold": "Gold",
             "silver": "Silver",
             "bronze": "Bronze",
-            "icon": "Icon",
-            "totw": "Team of the week",
-            "hero": "Hero",
+            "icon": "Legend",
+            "totw": "Night",
+            "hero": "Neon",
             "special": "Special",
         },
         title="Card",
     )
-    pac: int = Field(92, ge=1, le=99, title="Pace", json_schema_extra={"group": "Stats"})
+    pac: int = Field(92, ge=1, le=99, title="Speed", json_schema_extra={"group": "Stats"})
     sho: int = Field(89, ge=1, le=99, title="Shooting", json_schema_extra={"group": "Stats"})
     pas: int = Field(84, ge=1, le=99, title="Passing", json_schema_extra={"group": "Stats"})
-    dri: int = Field(90, ge=1, le=99, title="Dribbling", json_schema_extra={"group": "Stats"})
+    dri: int = Field(90, ge=1, le=99, title="Skill", json_schema_extra={"group": "Stats"})
     defending: int = Field(45, ge=1, le=99, title="Defending", json_schema_extra={"group": "Stats"})
-    phy: int = Field(78, ge=1, le=99, title="Physical", json_schema_extra={"group": "Stats"})
+    phy: int = Field(78, ge=1, le=99, title="Strength", json_schema_extra={"group": "Stats"})
     skin: Color = Field("#d9a066", title="Skin", json_schema_extra={"group": "Player look"})
     hair: Color = Field("#2b1a0e", title="Hair colour", json_schema_extra={"group": "Player look"})
     hair_style: str = Choice("short", HAIR, title="Hair style", group="Player look")
@@ -75,7 +79,7 @@ class CardSettings(AppSettings):
     nation_2: Color = Field("#ffffff", title="Flag stripe 2", json_schema_extra={"group": "Nation"})
     nation_3: Color = Field("#138808", title="Flag stripe 3", json_schema_extra={"group": "Nation"})
     shine: bool = Field(True, title="Shine sweep")
-    flip_to_stats: bool = Field(True, title="Flip to stats page")
+    flip_to_stats: bool = Field(True, title="Flip to skills page")
     page_seconds: int = Field(5, ge=2, le=30, title="Seconds per side")
 
 
@@ -83,7 +87,7 @@ class CardSettings(AppSettings):
 class PlayerCard(App):
     id = "playercard"
     name = "Player Card"
-    description = "Your own rated football card — tiers, portrait, nation, six stats, shine and flip."
+    description = "Your own football player card — portrait, flag, name, six skills, shine and a flip."
     icon = "id-card"
     category = "creative"
     Settings = CardSettings
@@ -134,12 +138,11 @@ class PlayerCard(App):
 
     def _front(self, f: Frame, ink: tuple[int, int, int], accent: tuple[int, int, int]) -> None:
         s = self.settings
-        f.text(2, 2, str(s.rating), ink, font="small")
-        f.text(2, 10, s.position, ink)
-        for i, c in enumerate((s.nation_1, s.nation_2, s.nation_3)):  # flag
-            f.rect(2, 17 + i, 7, 1, c)
-        self._portrait(f, 14, 3)
+        for i, c in enumerate((s.nation_1, s.nation_2, s.nation_3)):  # flag, top-left
+            f.rect(2, 3 + i, 5, 1, c)
+        self._portrait(f, 8, 3)  # the hero: centred
         f.rect(1, 22, 30, 1, scale(ink, 0.5) if ink != (255, 255, 255) else (120, 120, 140))
+        f.text_right(30, 2, str(s.rating), ink)  # the overall: a small tag in the top-right corner
         f.text_center(24, fit(s.name.upper(), 29), ink)
 
     def _portrait(self, f: Frame, x: int, y: int) -> None:
@@ -177,8 +180,8 @@ class PlayerCard(App):
     def _stats(self, f: Frame, ink: tuple[int, int, int], accent: tuple[int, int, int]) -> None:
         s = self.settings
         vals = (s.pac, s.sho, s.pas, s.dri, s.defending, s.phy)
-        f.text(2, 2, str(s.rating), ink, font="small")
-        f.text_right(29, 3, fit(s.name.upper(), 17), ink)
+        f.text(2, 3, s.position, ink)
+        f.text_right(29, 3, fit(s.name.upper(), 26 - len(s.position) * 4), ink)
         f.hline(1, 9, 30, scale(ink, 0.5) if ink != (255, 255, 255) else (120, 120, 140))
         lab_c = LABEL.get(s.tier, accent)
         for i, (lab, v) in enumerate(zip(STATS, vals, strict=True)):

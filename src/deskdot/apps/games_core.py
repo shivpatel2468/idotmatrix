@@ -996,7 +996,7 @@ class GameApp(App):
                 f.text(29, y, ">", th.p)
 
     def draw_teams(self, f: Frame, now: float) -> None:
-        """FIFA-style side select: each controller moves left/right into a team, A = ready."""
+        """Football-style team select: each controller moves left/right into a team, A = ready."""
         th = self.theme
         f.clear((0, 0, 0))
         f.rect(0, 0, 11, 32, scale(TEAM_RGB[0], 0.14))

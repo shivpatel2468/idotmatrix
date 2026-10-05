@@ -1,4 +1,8 @@
-"""Emotes — big animated reaction faces that fill the panel (arena-game style), baked as native loops."""
+"""Emotes — big animated reaction faces that fill the panel, baked as native loops.
+
+Face styles: a classic smiley, a laughing jester (two-tailed hat with bells), a goblin and a cat. The style id
+"king" is kept for the jester so stored settings keep working.
+"""
 
 from __future__ import annotations
 
@@ -30,7 +34,7 @@ EMOTES = {
     "hundred": "100",
     "rage": "Rage quit",
 }
-STYLES = {"smiley": "Smiley", "king": "Arena King", "goblin": "Goblin", "cat": "Cat"}
+STYLES = {"smiley": "Smiley", "king": "Laughing Jester", "goblin": "Goblin", "cat": "Cat"}
 SKIN = {"smiley": (255, 200, 0), "king": (255, 190, 140), "goblin": (110, 200, 60), "cat": (255, 150, 60)}
 
 YY, XX = np.mgrid[0:32, 0:32]
@@ -52,7 +56,7 @@ class EmoteSettings(AppSettings):
 class Emotes(App):
     id = "emotes"
     name = "Emotes"
-    description = "Full-screen animated emotes: laughing King, crying, GG, fire, 100, rage quit…"
+    description = "Full-screen animated emotes: laughing jester, crying, GG, fire, 100, rage quit…"
     icon = "face-slightly-smiling-plus"
     category = "creative"
     Settings = EmoteSettings
@@ -133,21 +137,27 @@ class Emotes(App):
         f.circle(cx, cy, r + 1, outline)
         f.circle(cx, cy, r, skin)
         f.circle(cx - 4, cy - 5, 3, mix(skin, (255, 255, 255), 0.35))  # highlight
-        if style == "king":
-            self._crown(f, cx, cy - r - 1, ph)
-            beard = (240, 120, 30)
-            for k in range(7):
-                f.hline(cx - 7 + k // 2, cy + 6 + k, 15 - k, beard)
+        if style == "king":  # the laughing jester
+            self._jester_hat(f, cx, cy - r + 1, ph)
+            for sx in (-8, 7):  # rosy cheeks
+                f.rect(cx + sx, cy + 1, 2, 1, mix(skin, (255, 60, 90), 0.6))
         getattr(self, f"_e_{emote}")(f, ph, cx, cy, skin)
 
-    def _crown(self, f: Frame, cx: int, y: int, ph: float) -> None:
-        gold = (255, 200, 0)
-        f.rect(cx - 7, y - 1, 15, 3, gold)
-        for dx in (-7, -3, 1, 5):
-            f.rect(cx + dx, y - 4, 2, 3, gold)
-        f.set(cx - 1, y, (255, 30, 60))
-        if int(ph * 8) % 4 == 0:
-            f.set(cx + 5, y - 4, (255, 255, 255))
+    def _jester_hat(self, f: Frame, cx: int, y: int, ph: float) -> None:
+        """A two-tailed jester hat (purple / green halves) whose bells jingle on the beat."""
+        left, right, gold = (150, 60, 220), (40, 200, 120), (255, 200, 0)
+        f.rect(cx - 8, y, 8, 3, left)
+        f.rect(cx, y, 9, 3, right)
+        for k in range(9):  # the tails curl up and out to both sides
+            yy = y - (k * 4) // 8
+            w = max(1, 3 - k // 3)
+            f.rect(cx - 2 - k - w + 1, yy, w, 2, left)
+            f.rect(cx + 2 + k, yy, w, 2, right)
+        jingle = 1 if int(ph * 8) % 2 else 0
+        f.rect(cx - 13, y - 4 + jingle, 2, 2, gold)
+        f.rect(cx + 12, y - 4 + 1 - jingle, 2, 2, gold)
+        for dx in (-5, -1, 3):  # diamonds on the band
+            f.set(cx + dx, y + 1, gold)
 
     # ------------------------------------------------------------------ eyes / mouths
     @staticmethod

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>DeskDot: the all-in-one app for your iDotMatrix 32×32 panel</title>
-<meta name="description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<title>DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)</title>
+<meta name="description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <link rel="canonical" href="https://idotmatrix.com/" />
 <meta name="theme-color" content="#08070a" />
 <meta name="color-scheme" content="dark" />
@@ -12,28 +12,26 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/" />
-<meta property="og:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
-<meta property="og:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta property="og:title" content="DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)" />
+<meta property="og:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="DeskDot: the all-in-one app for your iDotMatrix 32×32 panel" />
-<meta name="twitter:description" content="Turn your iDotMatrix 32×32 LED panel into a live desktop companion: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Free, open source, local." />
+<meta name="twitter:title" content="DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)" />
+<meta name="twitter:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
 <script src="/main.js" defer></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeskDot","url":"https://idotmatrix.com/","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows, Linux, macOS, Android (beta)","description":"An engine, studio and MCP server that turns an iDotMatrix 32×32 LED panel into a live desktop companion.","license":"https://opensource.org/licenses/MIT","author":{"@type":"Person","name":"Shiv Patel","url":"https://github.com/shivpatel2468"},"codeRepository":"https://github.com/shivpatel2468/idotmatrix","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeskDot","url":"https://idotmatrix.com/","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows, Linux, macOS, Android (beta)","description":"An independent (unofficial) companion app, studio and MCP server for iDotMatrix-compatible 32×32 LED panels. Versions up to v3.2 are MIT-licensed; future versions will be licensed under the DeskDot EULA.","license":"https://idotmatrix.com/license.html","author":{"@type":"Person","name":"Shiv Patel","url":"https://github.com/shivpatel2468"},"codeRepository":"https://github.com/shivpatel2468/idotmatrix","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 </head>
 <body class="page-index">
 <a class="skip" href="#main">Skip to content</a>
@@ -48,7 +46,7 @@
 </svg>
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-current="page" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <a class="brand" href="/" aria-current="page" aria-label="DeskDot home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">DeskDot</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       <a href="/setup.html">AI setup</a>
       <a href="/guide.html">Run it</a>
@@ -60,45 +58,50 @@
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
   </div>
 </header>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>
 
 <main id="main" tabindex="-1">
 <!-- page:start -->
 <div class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="eyebrow"><i aria-hidden="true"></i>Free &amp; open source · unofficial · for iDotMatrix 32×32</span>
+      <span class="eyebrow"><i aria-hidden="true"></i>Free web app · unofficial · for iDotMatrix-compatible 32×32 panels</span>
       <div class="logo-wrap">
-        <canvas id="logo" role="img" aria-label="idotmatrix, written in glowing LED dots"></canvas>
+        <canvas id="logo" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas><span class="tm" aria-hidden="true">™</span>
+        <p class="logo-sub">for iDotMatrix-compatible 32×32 panels · unofficial</p>
       </div>
-      <h1>Turn your iDotMatrix into a <span class="hl">live desktop companion</span>.</h1>
-      <p class="lede"><b>DeskDot is the all-in-one app for your iDotMatrix:</b> <span data-count="apps">102</span> apps,
+      <h1>Turn your 32×32 LED panel into a <span class="hl">live desktop companion</span>.</h1>
+      <p class="lede"><b>DeskDot is an independent companion app for iDotMatrix-compatible 32×32 panels:</b> <span data-count="apps">102</span> apps,
         <span data-count="multiplayer">32</span> multiplayer games, live data from 45+ free sources, a studio for your
         browser and phone, and an MCP server so AI agents can see the panel and drive it.</p>
       <div class="cta">
         <a class="btn primary" href="/app/">Open in your browser <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <a class="btn" href="/setup.html">Set it up with your AI agent</a>
-        <a class="btn" href="/guide.html">Run it yourself</a>
+        <a class="btn" href="/download.html#agent">Set it up with your AI agent</a>
+        <a class="btn" href="/download.html">Run it yourself</a>
         <a class="btn" href="/apps.html">Browse the apps</a>
       </div>
       <p class="hero-note">No install: the full engine runs in the tab and talks to the panel over Web Bluetooth (Chrome, Edge or
         Opera on Windows, macOS, ChromeOS, Linux and Android; on iPhone use the Bluefy browser).</p>
-      <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>no cloud</span><span>zero subscriptions</span><span>MIT</span></div>
+      <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>runs on your device</span><span>free web app</span><span>MIT up to v3.2</span></div>
     </div>
     <div class="device" id="device">
       <div class="device-frame">
-        <div class="panel big"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/hero-reel.png" /><img src="/media/hero-reel.gif" width="32" height="32" fetchpriority="high" alt="DeskDot apps playing one after another on a 32×32 LED panel: Synthwave, a clock, Pet World, the weather, Light Cycles, Now Playing, a 3D wireframe, a flight radar and a flock of boids" /></picture></div>
+        <div class="panel big"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/hero-reel.png" /><img src="/media/hero-reel.gif" width="32" height="32" fetchpriority="high" alt="DeskDot apps playing one after another on a 32×32 LED panel: Synthwave, a clock, Pet World, the weather, Neon Trails, Now Playing, a 3D wireframe, a flight radar and a flock of boids" /></picture></div>
       </div>
-      <div class="device-label"><span>iDotMatrix · 32×32 RGB</span><span class="live">real renders</span></div>
+      <div class="device-label"><span>32×32 RGB panel (iDotMatrix-compatible)</span><span class="live">real renders</span></div>
     </div>
   </div>
   <div class="wrap">
     <ul class="stats reveal" aria-label="DeskDot in numbers">
       <li><b data-count="apps">102</b><span>apps</span></li>
       <li><b data-count="games">27</b><span>games</span></li>
-      <li><b data-count="settings">999</b><span>settings, all documented</span></li>
+      <li><b data-count="settings">997</b><span>settings, all documented</span></li>
       <li><b>45+</b><span>free live sources</span></li>
       <li><b>7</b><span>phone controllers</span></li>
       <li><b>21</b><span>MCP tools</span></li>
@@ -163,10 +166,10 @@
   </div>
 </a>
 <a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:2">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Light Cycles running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neon Trails running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ff7419">Games</span>
-    <h3>Light Cycles</h3>
+    <h3>Neon Trails</h3>
     <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
@@ -212,7 +215,7 @@
   <div class="body">
     <span class="tag" style="color:#c39bff">Creative</span>
     <h3>Fly Brain</h3>
-    <p>A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
+    <p>A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
     <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
@@ -243,11 +246,12 @@
       </a>
     </div>
     <div class="quick-links reveal">
-      <a href="/features.html">Features</a><a href="/studio.html">The studio</a><a href="/specs.html">Compatibility</a><a href="/faq.html">FAQ</a><a href="https://github.com/shivpatel2468/idotmatrix">Source on GitHub</a>
+      <a href="/features.html">Features</a><a href="/studio.html">The studio</a><a href="/specs.html">Compatibility</a><a href="/faq.html">FAQ</a><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a>
     </div>
     <p class="note reveal"><b>Unofficial.</b> DeskDot is an independent, community-built project. It is not affiliated with,
       endorsed by or supported by the makers of iDotMatrix; the name is only used to say which panels it works with.
-      It runs locally and sends nothing to the manufacturer.</p>
+      It runs on your device and sends nothing to the panel's manufacturer. Multiplayer connections and some data
+      requests pass through our hosting (see <a href="/privacy.html">Privacy</a>).</p>
   </div>
 </section>
 <!-- page:end -->
@@ -257,13 +261,14 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas>
+        <p>DeskDot™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>, India.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -284,17 +289,28 @@
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p><b>DeskDot™</b> is an independent product by Shiv Patel, India. <b>Unofficial:</b> not made, endorsed or supported by Shenzhen Heaton Technology Co., Ltd. or the iDotMatrix brand. “iDotMatrix” is a trademark of its owner and is used only to describe compatible panels. All other trademarks belong to their owners.</p>
+      <p>DeskDot versions up to v3.2 were published under the MIT licence and remain so. Future versions will be proprietary software licensed under the DeskDot EULA.</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="https://github.com/shivpatel2468/idotmatrix">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
+      <span>1,024 pixels.</span>
     </div>
   </div>
 </footer>

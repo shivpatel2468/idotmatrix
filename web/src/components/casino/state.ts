@@ -1,6 +1,7 @@
 import { type CSSProperties, useEffect, useState } from "react";
 import { create } from "zustand";
 import { api } from "../../lib/api";
+import { clearCasinoGateDecline } from "../../lib/legal";
 import { appMeta, useStore } from "../../lib/store";
 
 /**
@@ -141,6 +142,7 @@ export function leaveCasino() {
 }
 
 export function enterCasino() {
+  clearCasinoGateDecline(); // asking to come back in: the age gate asks again
   useCasino.setState({ dismissedFor: null, entered: performance.now() });
 }
 

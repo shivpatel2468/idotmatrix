@@ -1,4 +1,4 @@
-"""Action games: Invaders, Maze Chase, Asteroids, Infinity. Original code and art.
+"""Action games: Alien Wave, Dot Dash, Rock Field, Infinity. Original code and art.
 
 Each game builds its match in `new_game()` from the menu's mode / map / roster (see `games_core.GameApp`).
 With an empty roster (attract mode) every game plays its classic solo round with the AI in seat 1.
@@ -54,7 +54,7 @@ class _ActionGame(GameApp):
 
 
 # =====================================================================================================
-# Invaders
+# Alien Wave
 # =====================================================================================================
 class InvadersSettings(GameSettings):
     rows: int = Field(3, ge=2, le=4, title="Alien rows", json_schema_extra={"group": "Game"})
@@ -78,11 +78,12 @@ class InvadersSettings(GameSettings):
     )
 
 
+# Original fleet: a one-eyed blob, a drifting jelly, a twinkling spike-star and a little saucer.
 ALIENS = [
-    ([".#.#.", "#####", "#.#.#", ".#.#."], [".#.#.", "#####", "#.#.#", "#...#"]),
-    (["#...#", ".###.", "##.##", "#.#.#"], ["#...#", ".###.", "##.##", ".#.#."]),
-    ([".###.", "#.#.#", "#####", ".#.#."], [".###.", "#.#.#", "#####", "#.#.#"]),
-    (["..#..", ".###.", "#.#.#", "#...#"], ["..#..", ".###.", "#.#.#", ".#.#."]),
+    ([".###.", "##.##", "#####", "#.#.#"], [".###.", "##.##", "#####", ".#.#."]),
+    ([".###.", "#####", "#.#.#", "#.#.#"], [".###.", "#####", ".#.#.", ".#.#."]),
+    (["#.#.#", ".###.", "##.##", ".#.#."], [".#.#.", ".###.", "##.##", "#.#.#"]),
+    (["..#..", ".###.", "#####", ".#.#."], ["..#..", ".###.", "#####", "#.#.#"]),
 ]
 SHIP = ["..#..", ".###.", "#####"]
 A_COLS, A_PITCH_X, A_PITCH_Y = 4, 7, 5
@@ -108,7 +109,7 @@ def invader_shields(map_id: str) -> np.ndarray:
 @register
 class Invaders(_ActionGame):
     id = "invaders"
-    name = "Invaders"
+    name = "Alien Wave"
     description = "Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires."
     icon = "rocket"
     Settings = InvadersSettings
@@ -248,7 +249,7 @@ class Invaders(_ActionGame):
         elif k == "a":
             self._fire(c)
 
-    #: the fly steering "up" (towards the invaders) fires
+    #: the fly steering "up" (towards the aliens) fires
     fly_keys: ClassVar[dict[str, str]] = {"up": "a"}
 
     def pilot_anchor(self) -> tuple[float, float] | None:
@@ -509,7 +510,8 @@ class Invaders(_ActionGame):
 
 
 # =====================================================================================================
-# Maze Chase — 8×8 maze of 3×3 rooms with 1 px walls (fills the whole panel)
+# Dot Dash — 8×8 maze of 3×3 rooms with 1 px walls (fills the whole panel); robots chase, charge orbs
+# power the runner up
 # =====================================================================================================
 M = 8
 DXY = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
@@ -522,12 +524,12 @@ PAC = {
     "down": ["###", "#.#", "#.#"],
 }
 PAC_SHUT = ["###", "###", "###"]
-PILL = ["#.#", ".#.", "#.#"]
-GHOST = ["###", "W#W", "#.#"]
+PILL = [".#.", "#.#", ".#."]  # a charge orb
+GHOST = [".#.", "#W#", "#.#"]  # a chaser robot: antenna, visor eye, two legs
 
 
 class MazeSettings(GameSettings):
-    ghosts: int = Field(3, ge=1, le=4, title="Ghosts", json_schema_extra={"group": "Game"})
+    ghosts: int = Field(3, ge=1, le=4, title="Robots", json_schema_extra={"group": "Game"})
     lives: int = Field(3, ge=1, le=5, title="Lives", json_schema_extra={"group": "Game"})
     hunt_time: int = Field(
         40,
@@ -537,17 +539,17 @@ class MazeSettings(GameSettings):
         description="Seconds the runner must survive in Hunt mode",
         json_schema_extra={"group": "Game"},
     )
-    fright: float = Field(6.0, ge=2.0, le=10.0, title="Power pill (s)", json_schema_extra={"group": "Game"})
+    fright: float = Field(6.0, ge=2.0, le=10.0, title="Charge orb (s)", json_schema_extra={"group": "Game"})
 
 
 @register
 class Maze(_ActionGame):
     id = "maze"
-    name = "Maze Chase"
+    name = "Dot Dash"
     description = (
-        "Eat every dot in a fresh wrap-around maze while ghosts give chase; power pills turn the tables."
+        "Collect every dot in a fresh wrap-around maze while robots give chase; charge orbs turn the tables."
     )
-    icon = "ghost"
+    icon = "bot"
     Settings = MazeSettings
     step_hz = 30.0
     over_hold = 2.0
@@ -556,7 +558,7 @@ class Maze(_ActionGame):
     modes: ClassVar[tuple[Mode, ...]] = (
         Mode("solo", "Solo"),
         Mode("coop", "Co-op", 2, 2, "coop", "Two runners, shared lives"),
-        Mode("hunt", "Hunt", 2, 4, "ffa", "The others are the ghosts; everyone runs once"),
+        Mode("hunt", "Hunt", 2, 4, "ffa", "The others are the robots; everyone runs once"),
     )
     maps: ClassVar[dict[str, str]] = {
         "random": "Random",
@@ -566,7 +568,7 @@ class Maze(_ActionGame):
     }
     game_themes: ClassVar[dict[str, Theme]] = {
         "haunted": Theme(
-            p=(255, 230, 60),
+            p=(170, 255, 60),
             e=(255, 90, 60),
             x=(120, 255, 200),
             w=(120, 50, 210),
@@ -600,7 +602,7 @@ class Maze(_ActionGame):
             ),
         ),
     }
-    game_theme_labels: ClassVar[dict[str, str]] = {"haunted": "Haunted", "hedge": "Hedge Maze"}
+    game_theme_labels: ClassVar[dict[str, str]] = {"haunted": "Circuit", "hedge": "Hedge Maze"}
 
     def new_game(self) -> None:
         self.level = 1
@@ -1058,7 +1060,7 @@ class Maze(_ActionGame):
 
     def _pac_color(self) -> RGB:
         return (
-            (255, 220, 0)
+            (120, 255, 90)
             if self._tid() == "classic"
             else self.theme.p
             if self._tid() in self.game_themes
@@ -1071,7 +1073,7 @@ class Maze(_ActionGame):
     def _ghost_colors(self) -> list[RGB]:
         th = self.theme
         if self._tid() == "classic":
-            return [(255, 20, 30), (255, 110, 200), (0, 220, 255), (255, 150, 0)]
+            return [(200, 210, 230), (255, 120, 40), (120, 230, 120), (180, 130, 255)]
         return [th.e, th.r[1], th.r[2], th.r[5]]
 
     def _sprite(self, rows: list[str], color: RGB, eye: RGB = WHITE) -> Sprite:
@@ -1091,7 +1093,7 @@ class Maze(_ActionGame):
     def draw(self, f: Frame, now: float) -> None:
         th = self.theme
         f.clear(th.bg)
-        wall = (40, 70, 255) if self._tid() == "classic" else th.w
+        wall = (0, 170, 160) if self._tid() == "classic" else th.w
         if self.flash > 0 and int(now * 10) % 2:
             wall = WHITE
         f.px[self.walls] = scale(wall, 0.7)
@@ -1100,7 +1102,7 @@ class Maze(_ActionGame):
             if (x, y) not in self.pills:
                 f.set(4 * x + 2, 4 * y + 2, dot)
         if int(now * 4) % 2:
-            pill = self._sprite(PILL, (255, 140, 200) if self._tid() == "classic" else th.x)
+            pill = self._sprite(PILL, (255, 200, 60) if self._tid() == "classic" else th.x)
             for x, y in self.pills:
                 f.sprite(pill, 4 * x + 1, 4 * y + 1)
         cols = self._ghost_colors()
@@ -1114,8 +1116,8 @@ class Maze(_ActionGame):
                 continue
             c = cols[i % len(cols)] if g["seat"] is None else self.colour_of(g["seat"])
             if self.fright > 0:
-                c = (90, 120, 255) if self.fright > 1.5 or int(now * 8) % 2 else WHITE
-            self._blit_wrap(f, self._sprite(GHOST, c, WHITE if self.fright <= 0 else (255, 150, 150)), gx, gy)
+                c = (110, 110, 130) if self.fright > 1.5 or int(now * 8) % 2 else WHITE  # powered down
+            self._blit_wrap(f, self._sprite(GHOST, c, WHITE if self.fright <= 0 else (60, 60, 70)), gx, gy)
         for r in self.runners:
             if r["out"] or r["dead"] > 0:
                 continue
@@ -1143,7 +1145,7 @@ def _wrapi(d: int) -> int:
 
 
 # =====================================================================================================
-# Asteroids
+# Rock Field
 # =====================================================================================================
 class AsteroidsSettings(GameSettings):
     rocks: int = Field(3, ge=1, le=6, title="Rocks per wave", json_schema_extra={"group": "Game"})
@@ -1170,7 +1172,7 @@ def _wrapd(a: float, b: float) -> float:
 @register
 class Asteroids(_ActionGame):
     id = "asteroids"
-    name = "Asteroids"
+    name = "Rock Field"
     description = (
         "Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp."
     )
@@ -1697,16 +1699,15 @@ class Asteroids(_ActionGame):
         for s in self.ships:
             if s["out"] or s["dead"] > 0 or self.over or (s["inv"] > 0 and int(now * 10) % 2):
                 continue
+            # a round pod (not a vector triangle): solid plus-shaped hull, a bright cockpit towards the
+            # heading and a dim exhaust behind
             c, sn = math.cos(s["ang"]), math.sin(s["ang"])
-            nose = (s["x"] + c * 3, s["y"] + sn * 3)
-            lw = (s["x"] + math.cos(s["ang"] + 2.5) * 2.4, s["y"] + math.sin(s["ang"] + 2.5) * 2.4)
-            rw = (s["x"] + math.cos(s["ang"] - 2.5) * 2.4, s["y"] + math.sin(s["ang"] - 2.5) * 2.4)
-            pts = [(round(p[0]), round(p[1])) for p in (nose, lw, rw)]
+            cx, cy = round(s["x"]), round(s["y"])
             col = self._ship_col(s)
-            f.line(*pts[0], *pts[1], col)
-            f.line(*pts[0], *pts[2], col)
-            f.line(*pts[1], *pts[2], scale(col, 0.6))
-            f.set(*pts[0], WHITE)
+            for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                f.set(cx + dx, cy + dy, col)
+            f.set(round(s["x"] + c * 2), round(s["y"] + sn * 2), WHITE)
+            f.set(round(s["x"] - c * 2), round(s["y"] - sn * 2), scale(col, 0.45))
         if self._combat():
             for i, s in enumerate(self.ships[:4]):  # lives per ship, in its colour, along the top
                 col = self._ship_col(s)

@@ -175,11 +175,14 @@ def inject_host(index: Path, build: str) -> None:
     )
     tag = f'<script src="/app/host/host.js?v={build}"></script>'
     html = re.sub(
-        r"<title>.*?</title>", "<title>DeskDot in your browser — iDotMatrix studio</title>", html, count=1
+        r"<title>.*?</title>",
+        "<title>DeskDot in your browser: unofficial studio for iDotMatrix panels</title>",
+        html,
+        count=1,
     )
     head_extra = (
-        '<meta name="description" content="Drive your iDotMatrix 32×32 LED panel from the browser over Web '
-        'Bluetooth: the full DeskDot studio and engine, no install." />\n    '
+        '<meta name="description" content="The DeskDot studio for iDotMatrix-compatible 32×32 LED panels, in your '
+        'browser over Web Bluetooth: the full studio and engine, no install (unofficial)." />\n    '
         '<link rel="manifest" href="/app/manifest.webmanifest" />\n    '
         f"{tag}\n    "
     )
@@ -299,7 +302,7 @@ def main() -> int:
             {
                 "name": "DeskDot",
                 "short_name": "DeskDot",
-                "description": "The iDotMatrix 32×32 panel studio, in your browser",
+                "description": "DeskDot's studio for 32×32 LED panels, in your browser (unofficial)",
                 "start_url": "/app/",
                 "scope": "/app/",
                 "display": "standalone",

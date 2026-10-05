@@ -199,8 +199,9 @@ class FlyBrainApp(App):
     category = "creative"
     icon = "bug"
     description = (
-        "A fruit fly driven by a model of its real visual circuit (FlyWire connectome): it hunts fruit, "
-        "dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view."
+        "A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as "
+        "mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing "
+        "and the keys it presses play in the studio's 3D Fly view."
     )
     Settings = FlyBrainSettings
 

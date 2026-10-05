@@ -3,7 +3,7 @@ import { type LogoTimeline, NeonLogo } from "../lib/logo";
 
 const HEADER: LogoTimeline = { build: 1.5, hold: 14, off: 1.2 };
 
-/** The header logo: "idotmatrix" in LEDs, built and struck like neon, on a loop. Hover strikes it again. */
+/** The header logo: "DeskDot" in LEDs, built and struck like neon, on a loop. Hover strikes it again. */
 export function NeonMark({ pitch = 3.4 }: { pitch?: number }) {
   const cv = useRef<HTMLCanvasElement>(null);
   const restart = useRef<() => void>(() => {});
@@ -39,5 +39,5 @@ export function NeonMark({ pitch = 3.4 }: { pitch?: number }) {
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
   }, [pitch]);
-  return <canvas ref={cv} aria-label="idotmatrix" role="img" className="block" onMouseEnter={() => restart.current()} />;
+  return <canvas ref={cv} aria-label="DeskDot, written in glowing LED dots" role="img" className="block" onMouseEnter={() => restart.current()} />;
 }

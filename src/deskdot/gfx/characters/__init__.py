@@ -45,7 +45,7 @@ GROUPS: dict[str, str] = {
     "monsters": "Monsters",
     "troops": "Troops",
     "fps": "Shooters",
-    "tv": "TV & Cartoons",
+    "tv": "Everyday Folks",
     "sports": "Sports",
 }
 

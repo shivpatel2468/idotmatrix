@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Ban, Check, ChevronDown, CircleCheck, CircleX, Crown, Hand, Medal, RotateCcw, ShieldCheck, Undo2, UserCheck, Users } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "../../lib/store";
-import { AvatarPix, Chip, Credits, NumberInput, Section, Tabs } from "./bits";
+import { AvatarPix, Chip, Credits, Section, Tabs } from "./bits";
 import {
   type HistoryEntry, type PlayerRow, type Spot, type SpotBettor, TONE, casinoOp, fmt, seatLabel, short, useCasino, verifyRound,
 } from "./state";
@@ -21,13 +21,13 @@ function usePlayers(): PlayerRow[] {
 }
 
 // ------------------------------------------------------------------ seats
-function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: boolean }) {
+function SeatCard({ p, betting, done, base }: { p: PlayerRow; betting: boolean; done: boolean; base: number }) {
   const [open, setOpen] = useState(false);
   const t = target(p);
   const credit = (body: Record<string, unknown>) => t && casinoOp("credits", { ...t, ...body }).catch(() => undefined);
   return (
     <div className={clsx("cz-seat", !p.online && "cz-seat-away", p.kicked && "cz-seat-kicked")} style={{ ["--c" as string]: p.color }}>
-      <button className="cz-seat-main" onClick={() => setOpen((o) => !o)} aria-expanded={open} title="Credits, top-up and kick">
+      <button className="cz-seat-main" onClick={() => setOpen((o) => !o)} aria-expanded={open} title="Credits reset and kick">
         <AvatarPix id={p.avatar} color={p.color} name={p.name} size={34} />
         <span className="min-w-0 flex-1 text-left">
           <span className="flex items-center gap-1.5">
@@ -51,16 +51,12 @@ function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: 
       </button>
       {open && (
         <div className="cz-seat-tools">
+          {/* no per-player top-ups (legal review L5): the host can only put a player back to the same starting chips */}
           <div className="flex flex-wrap items-center gap-1">
-            {[100, 500, 1000].map((v) => (
-              <button key={v} className="cz-pill" onClick={() => credit({ add: v })} disabled={!t}>+{fmt(v)}</button>
-            ))}
-            <button className="cz-pill" onClick={() => credit({ add: -100 })} disabled={!t || p.credits <= 0}>−100</button>
-            <span className="ml-auto flex items-center gap-1">
-              <span className="text-[10.5px] text-ink-3">Set</span>
-              <NumberInput value={p.credits} min={0} max={1_000_000_000} width={84} label={`Set ${p.name}'s credits`}
-                onCommit={(v) => credit({ set: v })} />
-            </span>
+            <button className="cz-pill" onClick={() => credit({ set: base })} disabled={!t}
+              title={`Back to the starting ${fmt(base)} chips, the same for everyone`}>
+              <RotateCcw size={11} /> Reset to starting chips
+            </button>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] text-ink-3">
             <span>Biggest win <b className="text-ink-1">{fmt(p.biggest)}</b></span>
@@ -79,16 +75,13 @@ function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: 
 }
 
 function Everyone({ base }: { base: number }) {
-  const [amt, setAmt] = useState(500);
   return (
     <div className="cz-everyone">
       <Users size={13} className="shrink-0 text-[var(--gold)]" />
       <span className="text-[11.5px] text-ink-2">Everyone</span>
-      <NumberInput value={amt} min={0} max={1_000_000} width={74} onCommit={setAmt} label="Amount for everyone" />
-      <button className="cz-pill" onClick={() => casinoOp("credits", { all: true, add: amt }).then(() => toast(`+${fmt(amt)} for everyone`, "ok")).catch(() => undefined)}>Add</button>
-      <button className="cz-pill" onClick={() => casinoOp("credits", { all: true, set: amt }).then(() => toast(`Everyone set to ${fmt(amt)}`, "ok")).catch(() => undefined)}>Set</button>
-      <button className="cz-pill" title="Everyone back to the starting credits" onClick={() => casinoOp("credits", { all: true, set: base }).catch(() => undefined)}>
-        <RotateCcw size={11} /> {short(base)}
+      <button className="cz-pill ml-auto" title="Everyone back to the same starting chips"
+        onClick={() => casinoOp("credits", { all: true, set: base }).then(() => toast(`Everyone reset to ${fmt(base)} chips`, "ok")).catch(() => undefined)}>
+        <RotateCcw size={11} /> Reset to starting chips ({short(base)})
       </button>
     </div>
   );
@@ -109,7 +102,7 @@ function Seats() {
           <Everyone base={base} />
           <div className="flex flex-col gap-1.5">
             {rows.map((p, i) => (
-              <SeatCard key={p.pid ?? `${p.seat}-${i}`} p={p} betting={phase === "betting" && !!bettors?.includes(p.seat as number)} done={!!done?.includes(p.seat as number)} />
+              <SeatCard key={p.pid ?? `${p.seat}-${i}`} p={p} base={base} betting={phase === "betting" && !!bettors?.includes(p.seat as number)} done={!!done?.includes(p.seat as number)} />
             ))}
           </div>
         </>
@@ -141,6 +134,7 @@ function Ranking() {
       ) : (
         <p className="cz-empty">The leaderboard fills in as players join.</p>
       )}
+      <p className="cz-empty !mt-2">Bragging rights only, no prizes.</p>
     </Section>
   );
 }
@@ -181,7 +175,7 @@ function Round({ h }: { h: HistoryEntry }) {
               <ShieldCheck size={13} /> {v === "busy" ? "Checking…" : "Verify"}
             </button>
             {v && v !== "busy" && (
-              <span className={clsx("text-[11.5px] font-[600]", v.ok ? "text-[#3ddc97]" : "text-[#ff6b8a]")}>{v.ok ? "Fair — it all checks out" : v.error ?? "Mismatch"}</span>
+              <span className={clsx("text-[11.5px] font-[600]", v.ok ? "text-[#3ddc97]" : "text-[#ff6b8a]")}>{v.ok ? "Verified — the result wasn't changed" : v.error ?? "Mismatch"}</span>
             )}
           </div>
           {v && v !== "busy" && (
@@ -201,9 +195,9 @@ function Rounds() {
   const hist = useCasino((s) => s.status?.history);
   const rows = useMemo(() => [...(hist ?? [])].reverse(), [hist]);
   return (
-    <Section title="Round history" hint="Every round is provably fair: the seed's hash is shown before any bet.">
+    <Section title="Round history" hint="Verifiable shuffle: each round's seed hash is shown before chips are placed and revealed afterwards, so anyone can check the result wasn't changed. The host can still reset or adjust play chips.">
       {rows.length ? <ul className="flex flex-col gap-1">{rows.map((h) => <Round key={h.round} h={h} />)}</ul>
-        : <p className="cz-empty">Finished rounds appear here with their fairness proof.</p>}
+        : <p className="cz-empty">Finished rounds appear here with their seed hash to verify.</p>}
     </Section>
   );
 }

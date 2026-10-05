@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 import { useStore } from "../lib/store";
 
 /*
- * Web app only (idotmatrix.com/app/): camera / screen / sound permission for the app on the panel. The engine asks
+ * Web app only (/app/ on the website): camera / screen / sound permission for the app on the panel. The engine asks
  * for a stream (providers/webmedia.py), the page's capture add-on (web/webapp/host-media.js) tracks it and exposes
  * `window.DeskDotMedia`; this card shows its state and turns a click into the browser prompt — getDisplayMedia
  * only works from a user gesture, so `start()` is called straight from the button. Renders nothing elsewhere.
@@ -40,13 +40,17 @@ function useMedia(on: boolean): Snapshot | null {
   return snap;
 }
 
-function copy(kind: Kind, s: KindState): { title: string; action: string } {
+/** What stays local (legal review L20): said before the browser's own prompt. */
+const LOCAL = (what: string) =>
+  `${what} is processed only in this tab and sent to your LED panel. It never leaves your device or reaches DeskDot's servers.`;
+
+function copy(kind: Kind, s: KindState): { title: string; action: string; note: string } {
   const system = kind === "audio" && s.source !== "mic";
-  if (kind === "screen") return { title: "Share a screen to mirror", action: "Choose screen" };
-  if (kind === "camera") return { title: "This app needs your camera", action: "Allow camera" };
+  if (kind === "screen") return { title: "Share a screen to mirror", action: "Choose screen", note: LOCAL("The shared screen") };
+  if (kind === "camera") return { title: "Allow camera", action: "Allow camera", note: LOCAL("Your camera image") };
   return system
-    ? { title: "Share the sound this app reacts to", action: "Share sound" }
-    : { title: "This app listens through your microphone", action: "Allow microphone" };
+    ? { title: "Share the sound this app reacts to", action: "Share sound", note: LOCAL("The shared sound") }
+    : { title: "Allow microphone", action: "Allow microphone", note: LOCAL("Your microphone sound") };
 }
 
 /** The stage card: one row per stream the panel's app is waiting for (or sharing). */
@@ -68,7 +72,7 @@ export function MediaPrompt() {
 function MediaRow({ kind, s }: { kind: Kind; s: KindState }) {
   const m = media();
   const Icon = ICON[kind];
-  const { title, action } = copy(kind, s);
+  const { title, action, note } = copy(kind, s);
   const useMic = () => {
     m?.start("audio", { source: "mic" }); // inside the click: the prompt may need it
     void api.settings({ audio_source: "mic" });
@@ -97,6 +101,7 @@ function MediaRow({ kind, s }: { kind: Kind; s: KindState }) {
       <Icon size={18} className="shrink-0 text-ember" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="font-[600] text-ink-1">{s.state === "unsupported" ? "Not available in this browser" : title}</span>
+        {s.state !== "unsupported" && <span className="text-[11.5px] leading-snug text-ink-3">{note}</span>}
         {s.detail && <span className="text-[11.5px] leading-snug text-ink-3">{s.detail}</span>}
       </div>
       {s.state !== "unsupported" && (

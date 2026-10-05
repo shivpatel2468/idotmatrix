@@ -1,5 +1,8 @@
 """Time-synced lyrics: LRCLIB first (keyless, fast), `syncedlyrics` as the fallback.
 
+The web app (Pyodide) uses LRCLIB only: the `syncedlyrics` fallback and the Musixmatch word-timing upgrade are
+off there (legal review L16), and the studio credits LRCLIB wherever lyrics show.
+
 One background search per track, cached for the session — misses too (network errors retry after a while).
 
 * Line timing comes from LRC stamps (``[mm:ss.xx]``).
@@ -23,6 +26,7 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any, NamedTuple
 
+from .. import platforms
 from .base import Provider
 
 log = logging.getLogger("deskdot.lyrics")
@@ -331,6 +335,8 @@ class LyricsProvider(Provider[None]):
         self._meta: dict[str, str] = {}  # key -> "instrumental" | "error"
         self._failed_at: dict[str, float] = {}
         self._pending: set[str] = set()
+        # scraping fallbacks (syncedlyrics / Musixmatch) only outside the web app: there it's LRCLIB only
+        self.scrapers = platforms.current() != "web"
 
     def acquire(self) -> None:  # no polling loop
         self._refs += 1
@@ -390,7 +396,7 @@ class LyricsProvider(Provider[None]):
             except Exception as e:
                 errors += 1
                 log.info("lrclib failed for %s: %s", title, e)
-            if (best is None or not best.synced) and self._meta.get(key) != "instrumental":
+            if self.scrapers and (best is None or not best.synced) and self._meta.get(key) != "instrumental":
                 try:
                     alt = await self._syncedlyrics(f"{t} {a}".strip(), duration)
                     if alt is not None:
@@ -406,7 +412,7 @@ class LyricsProvider(Provider[None]):
             self.hub.on_change(self.name)
         # try to upgrade line-synced lyrics to word-synced ones (Musixmatch, when it answers)
         lyr = self._cache.get(key)
-        if lyr is not None and lyr.synced and not lyr.word_synced:
+        if self.scrapers and lyr is not None and lyr.synced and not lyr.word_synced:
             try:
                 up = await self._enhanced(f"{t} {a}".strip(), lyr)
                 if up is not None and self._cache.get(key) is lyr:

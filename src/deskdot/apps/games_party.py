@@ -1,6 +1,6 @@
 """Party games for 1–4 players on one panel: friends join from their phones over local Wi-Fi.
 
-Light Cycles — original take on the classic trail game. Up to four bikes leave glowing walls; turn to box the
+Neon Trails — an original trail game. Up to four bikes leave glowing walls; turn to box the
 others in, don't crash. Last bike (or team) riding wins the round, first to `first_to` wins the match. Seats
 without a person are ridden by an AI that picks the turn leaving it the most open space (a short flood fill).
 
@@ -106,7 +106,7 @@ CYCLE_THEMES: dict[str, Theme] = {
 @register
 class LightCycles(GameApp):
     id = "cycles"
-    name = "Light Cycles"
+    name = "Neon Trails"
     description = (
         "Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer "
         "the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and "

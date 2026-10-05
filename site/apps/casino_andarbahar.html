@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Andar Bahar: Casino app for iDotMatrix · DeskDot</title>
-<meta name="description" content="The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall. A casino app for the iDotMatrix 32×32 LED panel, with 4 settings." />
+<title>Andar Bahar: a DeskDot app for 32×32 panels</title>
+<meta name="description" content="The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall. Free play chips only (18+, play money): no purchases, no cash-out, no prizes. 4 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <link rel="canonical" href="https://idotmatrix.com/apps/casino_andarbahar.html" />
 <meta name="theme-color" content="#08070a" />
 <meta name="color-scheme" content="dark" />
@@ -12,26 +12,24 @@
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/apps/casino_andarbahar.html" />
-<meta property="og:title" content="Andar Bahar: Casino app for iDotMatrix · DeskDot" />
-<meta property="og:description" content="The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall. A casino app for the iDotMatrix 32×32 LED panel, with 4 settings." />
+<meta property="og:title" content="Andar Bahar: a DeskDot app for 32×32 panels" />
+<meta property="og:description" content="The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall. Free play chips only (18+, play money): no purchases, no cash-out, no prizes. 4 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <meta property="og:image" content="https://idotmatrix.com/media/apps/og/casino_andarbahar.png" />
 <meta property="og:image:width" content="480" />
 <meta property="og:image:height" content="480" />
 <meta property="og:image:alt" content="Andar Bahar on a 32×32 LED panel" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Andar Bahar: Casino app for iDotMatrix · DeskDot" />
-<meta name="twitter:description" content="The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall. A casino app for the iDotMatrix 32×32 LED panel, with 4 settings." />
+<meta name="twitter:title" content="Andar Bahar: a DeskDot app for 32×32 panels" />
+<meta name="twitter:description" content="The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall. Free play chips only (18+, play money): no purchases, no cash-out, no prizes. 4 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/apps/og/casino_andarbahar.png" />
 <meta name="twitter:image:alt" content="Andar Bahar on a 32×32 LED panel" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
 <script src="/main.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Apps","item":"https://idotmatrix.com/apps.html"},{"@type":"ListItem","position":2,"name":"Andar Bahar","item":"https://idotmatrix.com/apps/casino_andarbahar.html"}]}</script>
 </head>
@@ -48,7 +46,7 @@
 </svg>
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">DeskDot</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       <a href="/setup.html">AI setup</a>
       <a href="/guide.html">Run it</a>
@@ -60,9 +58,13 @@
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
   </div>
 </header>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>
 
 <main id="main" tabindex="-1">
 <!-- page:start -->
@@ -73,16 +75,17 @@
   <div>
     <div class="badges"><span class="badge" style="--c:#ffcc33"><i></i>Casino</span><span class="badge" style="--c:#45d9ff"><i></i>Live</span><span class="badge" style="--c:#ff7419"><i></i>9 players</span></div>
     <h1>Andar Bahar</h1>
-    <p class="lede">The Indian card game: the joker is turned, bet Andar or Bahar, watch the cards fall.</p>
-    <div class="cta"><a class="btn primary" href="/setup.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="btn" href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/casino_andarbahar.py"><svg aria-hidden="true"><use href="#i-gh"/></svg>View source</a></div>
+    <p class="lede">The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall.</p>
+    <div class="cta"><a class="btn primary" href="/download.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="btn" href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/casino_andarbahar.py"><svg aria-hidden="true"><use href="#i-gh"/></svg>Source code (MIT)</a></div>
   </div>
 </div>
-<section class="app-sec" aria-labelledby="s-glance"><h2 id="s-glance">At a glance</h2><div class="facts"><div class="fact"><span>Output</span><b>Live</b><small>Rendered by the engine and streamed over Bluetooth as its data changes (about 5–9 frames a second).</small></div><div class="fact"><span>Settings</span><b>4</b><small>every one editable live in the studio, or by an agent with <code>update_app_settings</code></small></div><div class="fact"><span>Source</span><b><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/casino_andarbahar.py">casino_andarbahar.py</a></b><small>src/deskdot/apps/casino_andarbahar.py</small></div></div></section><section class="app-sec" aria-labelledby="s-game"><h2 id="s-game">Game</h2><div class="facts"><div class="fact"><span>Players</span><b>1–9</b><small>seat 1 on the keyboard or studio, the rest on phones over your Wi-Fi; empty seats are played by the AI</small></div><div class="fact"><span>Controllers</span><div class="pills"><span class="pill def">casino</span></div></div></div></section><section class="app-sec" aria-labelledby="s-settings"><h2 id="s-settings">Settings</h2><div class="table-scroll"><table class="settings-table"><caption class="sr-only">Settings</caption><thead><tr><th scope="col">Setting</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Options / range</th></tr></thead><tbody><tr class="group-row"><th colspan="4" scope="colgroup">General</th></tr><tr><th scope="row" class="k">First card goes to<code>first</code><span class="d">The side that gets the first card wins 51.5 % of games, so it pays 0.9:1 (edge 2.15 %); the other side pays 1:1 (edge 3.00 %).</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Andar (the standard table)</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Andar (the standard table)</span><span class="pill">Bahar</span></div></td></tr><tr><th scope="row" class="k">Card-count side bets<code>side_bets</code><span class="d">Bet on how many cards are dealt (1-5, 6-10 … 41-49).</span></th><td><span class="t">on/off</span></td><td class="def-cell"><span class="v">On</span></td><td class="opt-cell"><span class="range">on / off</span></td></tr><tr class="group-row"><th colspan="4" scope="colgroup">Preview</th></tr><tr><th scope="row" class="k">Panel view<code>view</code><span class="d">Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Live table</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Live table</span><span class="pill">Demo loop</span><span class="pill">Preview: betting</span><span class="pill">Preview: no more bets</span><span class="pill">Preview: spin / roll</span><span class="pill">Preview: result</span><span class="pill">Preview: result board</span><span class="pill">Preview: join QR</span><span class="pill">Preview: paused</span></div></td></tr><tr class="group-row"><th colspan="4" scope="colgroup">Look</th></tr><tr><th scope="row" class="k">Table theme<code>table_theme</code><span class="d">The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Classic green</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Classic green</span><span class="pill">Royal blue</span><span class="pill">Crimson velvet</span><span class="pill">Midnight neon</span><span class="pill">Neon strip</span><span class="pill">Emerald &amp; champagne</span><span class="pill">Burgundy &amp; ivory</span></div></td></tr></tbody></table></div></section><section class="app-sec" aria-labelledby="s-try"><h2 id="s-try">Try it</h2><div class="code"><span class="label">render a frame to PNG (no panel needed)</span><pre><span class="p">$ </span>uv run deskdot preview casino_andarbahar --settings '{&quot;view&quot;:&quot;demo&quot;}' --out casino_andarbahar.png</pre></div><div class="code"><span class="label">show it on your panel (engine running)</span><pre><span class="p">$ </span>curl -X POST http://127.0.0.1:8765/api/apps/casino_andarbahar/activate</pre></div><p class="range">Or ask your agent: “Show Andar Bahar on my panel”. It calls <code>show_app</code> with <code>"casino_andarbahar"</code>. New here? <a href="/setup.html">Set up DeskDot</a> first.</p></section><section class="app-sec" aria-labelledby="s-more"><h2 id="s-more">More casino apps</h2><div class="app-grid small"><a class="card app-card" href="/apps/casino_baccarat.html" style="--glow:#ffcc33;--i:0">
+<div class="casino-note" role="note"><span class="chip-ico" aria-hidden="true"></span><div><p><b>Play money only.</b> No purchases, no cash-out, no prizes, no real-money betting. 18+. Credits reset with the session.</p><p>Casino games are free in every plan. Paid plans never add, refill or change casino chips. House-edge and RTP figures are shown as educational statistics (play chips; for learning how house edge works).</p></div></div>
+<section class="app-sec" aria-labelledby="s-glance"><h2 id="s-glance">At a glance</h2><div class="facts"><div class="fact"><span>Output</span><b>Live</b><small>Rendered by the engine and streamed over Bluetooth as its data changes (about 5–9 frames a second).</small></div><div class="fact"><span>Settings</span><b>4</b><small>every one editable live in the studio, or by an agent with <code>update_app_settings</code></small></div><div class="fact"><span>Source code (MIT)</span><b><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/casino_andarbahar.py">casino_andarbahar.py</a></b><small>src/deskdot/apps/casino_andarbahar.py</small></div></div></section><section class="app-sec" aria-labelledby="s-game"><h2 id="s-game">Game</h2><div class="facts"><div class="fact"><span>Players</span><b>1–9</b><small>seat 1 on the keyboard or studio, the rest on phones over your Wi-Fi; empty seats are played by the AI</small></div><div class="fact"><span>Controllers</span><div class="pills"><span class="pill def">casino</span></div></div></div></section><section class="app-sec" aria-labelledby="s-settings"><h2 id="s-settings">Settings</h2><div class="table-scroll"><table class="settings-table"><caption class="sr-only">Settings</caption><thead><tr><th scope="col">Setting</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Options / range</th></tr></thead><tbody><tr class="group-row"><th colspan="4" scope="colgroup">General</th></tr><tr><th scope="row" class="k">First card goes to<code>first</code><span class="d">The side that gets the first card wins 51.5 % of games, so it pays 0.9:1 (edge 2.15 %); the other side pays 1:1 (edge 3.00 %).</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Andar (the standard table)</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Andar (the standard table)</span><span class="pill">Bahar</span></div></td></tr><tr><th scope="row" class="k">Card-count side bets<code>side_bets</code><span class="d">Bet on how many cards are dealt (1-5, 6-10 … 41-49).</span></th><td><span class="t">on/off</span></td><td class="def-cell"><span class="v">On</span></td><td class="opt-cell"><span class="range">on / off</span></td></tr><tr class="group-row"><th colspan="4" scope="colgroup">Preview</th></tr><tr><th scope="row" class="k">Panel view<code>view</code><span class="d">Live plays the real table. The others are a self-playing demo or one frozen phase, to check the art (no credits move).</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Live table</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Live table</span><span class="pill">Demo loop</span><span class="pill">Preview: betting</span><span class="pill">Preview: no more bets</span><span class="pill">Preview: spin / roll</span><span class="pill">Preview: result</span><span class="pill">Preview: result board</span><span class="pill">Preview: join QR</span><span class="pill">Preview: paused</span></div></td></tr><tr class="group-row"><th colspan="4" scope="colgroup">Look</th></tr><tr><th scope="row" class="k">Table theme<code>table_theme</code><span class="d">The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.</span></th><td><span class="t">choice</span></td><td class="def-cell"><span class="v">Classic green</span></td><td class="opt-cell"><div class="opts"><span class="pill def">Classic green</span><span class="pill">Royal blue</span><span class="pill">Crimson velvet</span><span class="pill">Midnight neon</span><span class="pill">Neon strip</span><span class="pill">Emerald &amp; champagne</span><span class="pill">Burgundy &amp; ivory</span></div></td></tr></tbody></table></div></section><section class="app-sec" aria-labelledby="s-try"><h2 id="s-try">Try it</h2><div class="code"><span class="label">render a frame to PNG (no panel needed)</span><pre><span class="p">$ </span>uv run deskdot preview casino_andarbahar --settings '{&quot;view&quot;:&quot;demo&quot;}' --out casino_andarbahar.png</pre></div><div class="code"><span class="label">show it on your panel (engine running)</span><pre><span class="p">$ </span>curl -X POST http://127.0.0.1:8765/api/apps/casino_andarbahar/activate</pre></div><p class="range">Or ask your agent: “Show Andar Bahar on my panel”. It calls <code>show_app</code> with <code>"casino_andarbahar"</code>. New here? <a href="/setup.html">Set up DeskDot</a> first.</p></section><section class="app-sec" aria-labelledby="s-more"><h2 id="s-more">More casino apps</h2><div class="app-grid small"><a class="card app-card" href="/apps/casino_baccarat.html" style="--glow:#ffcc33;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_baccarat.png" /><img src="/media/apps/casino_baccarat.gif" width="32" height="32" loading="lazy" decoding="async" alt="Baccarat running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Baccarat</h3>
-    <p>Punto Banco for parties: bet Player, Banker or Tie from your phone; the panel deals the coup.</p>
+    <p>Punto Banco for parties: place chips on Player, Banker or Tie from your phone; the panel deals the coup.</p>
     <div class="foot"><span>5 settings</span><span>9 players</span></div>
   </div>
 </a><a class="card app-card" href="/apps/casino_bigsix.html" style="--glow:#ffcc33;--i:0">
@@ -90,7 +93,7 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Big Six</h3>
-    <p>The money wheel: bet on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.</p>
+    <p>The big wheel: place chips on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.</p>
     <div class="foot"><span>2 settings</span><span>9 players</span></div>
   </div>
 </a><a class="card app-card" href="/apps/casino_blackjack.html" style="--glow:#ffcc33;--i:0">
@@ -106,8 +109,8 @@
   <div class="body">
     <span class="tag" style="color:#ffcc33">Casino</span>
     <h3>Housie</h3>
-    <p>Tambola / bingo, the Indian way: buy tickets, the caller draws 1-90, claim lines and Full House.</p>
-    <div class="foot"><span>21 settings</span><span>9 players</span></div>
+    <p>Tambola / bingo, the Indian way: pick tickets with play chips, the caller draws 1-90, claim lines and Full House.</p>
+    <div class="foot"><span>20 settings</span><span>9 players</span></div>
   </div>
 </a></div></section>
 <nav class="pager" aria-label="Previous and next app"><a class="btn" href="/apps/casino_sevens.html" rel="prev"><svg aria-hidden="true"><use href="#i-back"/></svg><span><small>Previous</small>7 Up 7 Down</span></a><a class="btn" href="/apps.html">All apps</a><a class="btn next" href="/apps/casino_baccarat.html" rel="next"><span><small>Next</small>Baccarat</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></nav>
@@ -119,13 +122,14 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas>
+        <p>DeskDot™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>, India.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -146,17 +150,28 @@
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p><b>DeskDot™</b> is an independent product by Shiv Patel, India. <b>Unofficial:</b> not made, endorsed or supported by Shenzhen Heaton Technology Co., Ltd. or the iDotMatrix brand. “iDotMatrix” is a trademark of its owner and is used only to describe compatible panels. All other trademarks belong to their owners.</p>
+      <p>DeskDot versions up to v3.2 were published under the MIT licence and remain so. Future versions will be proprietary software licensed under the DeskDot EULA.</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="https://github.com/shivpatel2468/idotmatrix">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
+      <span>1,024 pixels.</span>
     </div>
   </div>
 </footer>

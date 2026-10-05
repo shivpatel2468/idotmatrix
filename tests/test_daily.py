@@ -129,7 +129,7 @@ def test_daily_parsers_on_real_captures() -> None:
     assert dd.parse_chuck(fx_json("chucknorris") | {"categories": []}) == []  # uncategorised: never
     assert dd.parse_chuck(fx_json("chucknorris") | {"categories": ["explicit"]}) == []
     k = dd.parse_kanye(fx_json("kanye_quotes"))
-    assert len(k) == 10 and k[0]["author"] == "KANYE WEST"
+    assert len(k) == 10 and "author" not in k[0]  # no real person named (legal review L40)
     hist = dd.parse_onthisday(fx_json("wikipedia_onthisday"), keep=8)
     years = [h["year"] for h in hist]
     assert len(hist) == 8 and years == sorted(years, reverse=True)

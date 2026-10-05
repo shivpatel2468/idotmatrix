@@ -13,6 +13,7 @@ import { Icon } from "./Icon";
 import { Modal } from "./Overlays";
 import { SFX_NAMES, SOUND_CATEGORIES, type SfxName, getSound, onSound, setSound, sfx, sfxCategory } from "../lib/sound";
 import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
+import { CONTACT_EMAIL, LEGAL_LINKS, LICENCE_LINE, UNOFFICIAL_LINE } from "../lib/legal";
 
 type St = EngineState;
 
@@ -25,6 +26,7 @@ const SECTIONS: [SettingsSection, string, string, string][] = [
   ["alerts", "Notifications & integrations", "bell-ring", "Computer alerts, On Air, eye breaks, phone pushes, smart home"],
   ["playlist", "Playlist & hand-off", "list-music", "Transitions, presets, following your apps, running without the computer"],
   ["device", "Device", "bluetooth", "Connection, location, sound input, data sources"],
+  ["about", "About", "info", "Version, privacy, terms and licences"],
 ];
 
 const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
@@ -32,6 +34,7 @@ const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
   alerts: "alerts", notifications: "alerts", integrations: "alerts",
   playlist: "playlist", autopilot: "playlist", handoff: "playlist",
   device: "device", panel: "device", weather: "device", audio: "device",
+  about: "about",
 };
 
 /** What the settings search knows about: label, extra words, and the block it lives in. */
@@ -63,6 +66,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Sound input", "audio microphone system loopback visualizer", "audio"],
   ["Data sources", "providers status health", "sources"],
   ["Link statistics", "frames sent dropped telemetry latency", "sources"],
+  ["About DeskDot", "version privacy terms licence license open source contact unofficial", "about"],
 ];
 const INDEX_SECTION: Record<string, SettingsSection> = {
   "display-basics": "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
@@ -249,7 +253,7 @@ function LocationTab({ st }: { st: St }) {
   const save = () => { api.settings({ location: city ? { city } : {} }); toast("Location saved", "ok"); };
   return (
     <div className="divide-y divide-line">
-      <Row label="City" hint="Used by Weather, Flight Radar and sunrise/sunset. Empty = detect from IP.">
+      <Row label="City" hint="Used only to fetch your local weather from Open-Meteo (and nearby flights, sunrise/sunset); not stored by us. Empty = detect from your IP address.">
         <input className="field !h-8 !w-56" value={city} placeholder="e.g. Mumbai" onChange={(e) => setCity(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
         <button className="key" onClick={save}>Save</button>
       </Row>
@@ -499,6 +503,7 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
       </div>
     );
   }
+  if (id === "about") return <AboutBlock />;
   return (
     <div className="space-y-4">
       <Block id="panel" title="Connection" icon="bluetooth"><ConnectionBlock st={st} /></Block>
@@ -506,6 +511,35 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
       <Block id="audio" title="Sound input" icon="audio-lines"><AudioTab st={st} /></Block>
       <Block id="sources" title="Data sources" icon="activity" hint="Where live data comes from, and whether it's healthy."><SourcesBlock st={st} /></Block>
     </div>
+  );
+}
+
+// ------------------------------------------------------------------ about (legal review L27–L29)
+function AboutBlock() {
+  const meta = useStore((s) => s.meta);
+  // the legal pages live on the website; the desktop studio links to it there
+  const site = meta?.platform === "web" ? "" : "https://idotmatrix.com";
+  return (
+    <Block id="about" title="About DeskDot" icon="info">
+      <div className="space-y-3 text-[12.5px] leading-relaxed text-ink-2">
+        <p className="font-mono text-[11.5px] text-ink-3">DeskDot{meta?.version ? ` v${meta.version}` : ""} · {meta?.platform === "web" ? "browser version" : "desktop studio"}</p>
+        <p>{UNOFFICIAL_LINE}</p>
+        <p>
+          No account and no analytics. Settings stay on your device. The browser version uses our host for
+          multiplayer signalling and a few data requests; see Privacy.
+        </p>
+        <p>{LICENCE_LINE}</p>
+        <p>Casino games: play money only, 18+.</p>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {LEGAL_LINKS.map((l) => (
+            <li key={l.href}>
+              <a className="text-ink-1 underline decoration-line-2 underline-offset-2 hover:decoration-ember" href={site + l.href} target="_blank" rel="noopener">{l.label}</a>
+            </li>
+          ))}
+        </ul>
+        <p>Contact: <span className="select-all font-mono text-ink-1">{CONTACT_EMAIL}</span></p>
+      </div>
+    </Block>
   );
 }
 

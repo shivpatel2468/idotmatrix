@@ -1,8 +1,9 @@
-"""Puzzle games: Tetris (falling blocks) and 2048. Original code and art.
+"""Puzzle games: Block Drop (falling blocks) and 2048. Original code and art.
 
-Tetris: Solo (10-wide well), Versus (two 7-wide wells side by side; clearing lines sends garbage rows to the
+Block Drop: Solo (9-wide well), Versus (two 7-wide wells side by side; clearing lines sends garbage rows to the
 opponent) and Co-op (one 13-wide well, two falling pieces at once). Maps: an empty well, a garbage mound, or a
-rising floor.
+rising floor. Its own look: settled blocks are coloured by height (one gradient band per row, not per piece),
+the falling piece has a single accent colour, and there is no landing shadow.
 
 2048: Solo, Race (2–4 small boards, first to the target tile wins; big merges drop junk tiles on rivals) and
 Relay (one board, players take turns). Maps: the classic board, or one with two immovable stones.
@@ -21,9 +22,9 @@ from ..gfx import RGB, Frame, scale
 from .games_core import BLACK, THEMES, WHITE, GameApp, GameSettings, Mode, Theme, tint
 
 # =====================================================================================================
-# Tetris — wells of 2×2 px cells, 16 rows tall
+# Block Drop — wells of 2×2 px cells, 16 rows tall
 # =====================================================================================================
-WW, WH = 10, 16
+WW, WH = 9, 16
 _SHAPES = {
     "I": [(0, 1), (1, 1), (2, 1), (3, 1)],
     "O": [(1, 0), (2, 0), (1, 1), (2, 1)],
@@ -35,9 +36,9 @@ _SHAPES = {
 }
 KINDS = tuple(_SHAPES)
 GARBAGE = 8  # grid value of a garbage block
-GHOST = 8  # ghost cell = kind + GHOST (9..15)
 FLASH = 16  # a clearing row
 SEAT_IDX = 16  # an active co-op piece = SEAT_IDX + seat (17..20)
+ACTIVE = 21  # the falling piece (solo / versus), drawn in the theme's accent colour `p`
 ATTACK = (0, 0, 1, 2, 4)  # garbage rows sent for 0..4 cleared lines
 ATTACK_MIRROR = (0, 1, 2, 3, 4)
 
@@ -66,6 +67,8 @@ def _rowmasks(cells: tuple[tuple[int, int], ...]) -> list[tuple[int, int]]:
 
 MASKS = {k: [_rowmasks(r) for r in rots] for k, rots in ROTS.items()}
 
+# `r` is a 7-step gradient from the floor (r[0]) to the ceiling (r[6]): settled blocks take the colour of the
+# row they sit in. `p` is the falling piece's accent colour.
 TETRIS_THEMES: dict[str, Theme] = {
     "prism": Theme(
         p=(0, 220, 255),
@@ -75,50 +78,58 @@ TETRIS_THEMES: dict[str, Theme] = {
         hud=(255, 255, 255),
         bg=(0, 0, 0),
         r=(
-            (0, 220, 255),
-            (255, 214, 0),
-            (190, 60, 255),
-            (40, 230, 60),
-            (255, 30, 30),
-            (40, 80, 255),
-            (255, 130, 0),
+            (170, 20, 70),
+            (215, 40, 60),
+            (245, 80, 45),
+            (255, 125, 35),
+            (255, 170, 40),
+            (255, 210, 70),
+            (255, 240, 150),
         ),
     ),
     "candy": Theme(
-        p=(255, 120, 220),
+        p=(120, 255, 190),
         e=(255, 90, 90),
         x=(255, 255, 150),
         w=(200, 80, 170),
         hud=(255, 210, 240),
         bg=(8, 2, 8),
         r=(
-            (120, 240, 255),
-            (255, 240, 120),
-            (230, 130, 255),
-            (140, 255, 150),
-            (255, 110, 140),
-            (130, 150, 255),
-            (255, 170, 90),
+            (150, 60, 200),
+            (185, 80, 220),
+            (220, 100, 230),
+            (245, 120, 220),
+            (255, 145, 200),
+            (255, 180, 210),
+            (255, 215, 235),
         ),
     ),
     "deep": Theme(
-        p=(0, 255, 210),
+        p=(255, 200, 60),
         e=(255, 110, 70),
         x=(210, 255, 255),
         w=(0, 120, 160),
         hud=(170, 245, 255),
         bg=(0, 3, 10),
         r=(
-            (0, 255, 230),
-            (255, 220, 90),
-            (150, 110, 255),
-            (60, 255, 120),
-            (255, 90, 110),
-            (40, 150, 255),
-            (255, 150, 60),
+            (20, 50, 170),
+            (20, 90, 200),
+            (0, 130, 220),
+            (0, 170, 220),
+            (0, 205, 210),
+            (60, 235, 200),
+            (160, 255, 225),
         ),
     ),
 }
+
+
+def _band(y: int) -> int:
+    """Gradient band (1..7) of a well row: the floor is 1, the ceiling 7."""
+    return 1 + (WH - 1 - y) * 7 // WH
+
+
+_BANDS = np.array([_band(y) for y in range(WH)], dtype=np.int16)
 
 
 class Pilot:
@@ -170,7 +181,6 @@ class Well:
 
 
 class TetrisSettings(GameSettings):
-    ghost: bool = Field(True, title="Landing shadow")
     start_level: int = Field(1, ge=1, le=10, title="Start level")
     attack: str = Choice(
         "classic",
@@ -186,9 +196,10 @@ class TetrisSettings(GameSettings):
 @register
 class Tetris(GameApp):
     id = "tetris"
-    name = "Tetris"
+    name = "Block Drop"
     description = (
-        "Falling blocks with a next-piece preview. The AI stacks by holes, height and bumpiness. "
+        "Stack falling blocks in a narrow well; the stack glows warmer as it climbs. The AI stacks by holes, "
+        "height and bumpiness. "
         "←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus "
         "(clear lines to send garbage) and Co-op (one wide well)."
     )
@@ -204,7 +215,7 @@ class Tetris(GameApp):
     )
     maps: ClassVar[dict[str, str]] = {"classic": "Empty", "mound": "Mound", "rising": "Rising"}
     game_themes: ClassVar[dict[str, Theme]] = TETRIS_THEMES
-    game_theme_labels: ClassVar[dict[str, str]] = {"prism": "Prism", "candy": "Candy", "deep": "Deep sea"}
+    game_theme_labels: ClassVar[dict[str, str]] = {"prism": "Sunset", "candy": "Candy", "deep": "Deep sea"}
 
     def new_game(self) -> None:
         teams = self.play_mode.teams
@@ -438,7 +449,7 @@ class Tetris(GameApp):
         start = p.py
         while self._move(w, p, 0, 1):
             pass
-        c = self.theme.r[KINDS.index(p.kind)]
+        c = self.theme.p
         for x, _y in self._cells(p.kind, p.rot, p.px, p.py):
             for yy in range(start, p.py, 3):
                 self.fx.emit(w.x0 + x * 2 + 1, yy * 2 + 1, 0, 0, scale(c, 0.5), 0.25)
@@ -449,12 +460,6 @@ class Tetris(GameApp):
         if self._fits(w, p, p.rot, p.px, p.py + 1, others=False):
             return
         self._lock(w, p)
-
-    def _ghost_y(self, w: Well, p: Pilot) -> int:
-        y = p.py
-        while self._fits(w, p, p.rot, p.px, y + 1):
-            y += 1
-        return y
 
     # ------------------------------------------------------------------ AI
     def _plan(self, w: Well, p: Pilot, near: bool = False) -> tuple[int, int]:
@@ -676,26 +681,23 @@ class Tetris(GameApp):
         th = self.theme
         g = (125, 125, 140)
         seats = [self.colour_of(s) for s in (1, 2, 3, 4)]
-        base = [th.bg, *th.r, g, *(scale(c, 0.22) for c in th.r), WHITE, *seats]
-        hi = [th.bg, *(tint(c, 0.45) for c in th.r), tint(g, 0.3), *(scale(c, 0.3) for c in th.r), WHITE]
-        hi += [tint(c, 0.45) for c in seats]
-        lo = [th.bg, *(scale(c, 0.55) for c in th.r), scale(g, 0.6), *(scale(c, 0.16) for c in th.r), WHITE]
-        lo += [scale(c, 0.55) for c in seats]
+        pad = [th.bg] * 7  # 9..15 unused (no landing shadow)
+        base = [th.bg, *th.r, g, *pad, WHITE, *seats, th.p]
+        hi = [th.bg, *(tint(c, 0.45) for c in th.r), tint(g, 0.3), *pad, WHITE]
+        hi += [tint(c, 0.45) for c in seats] + [tint(th.p, 0.45)]
+        lo = [th.bg, *(scale(c, 0.55) for c in th.r), scale(g, 0.6), *pad, WHITE]
+        lo += [scale(c, 0.55) for c in seats] + [scale(th.p, 0.55)]
         return (np.array(base, np.uint8), np.array(hi, np.uint8), np.array(lo, np.uint8))
 
     def _draw_well(self, f: Frame, w: Well, luts: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
         cells = np.array(w.grid, dtype=np.int16)
+        settled = (cells >= 1) & (cells < GARBAGE)
+        cells[settled] = np.broadcast_to(_BANDS[:, None], cells.shape)[settled]  # colour by height
         if w.alive and not w.clearing and not self.over:
             for p in w.pilots:
                 if p.waiting:
                     continue
-                idx = KINDS.index(p.kind) + 1
-                if self.settings.ghost:
-                    gy = self._ghost_y(w, p)
-                    for x, y in self._cells(p.kind, p.rot, p.px, gy):
-                        if 0 <= y < WH and cells[y, x] == 0:
-                            cells[y, x] = idx + GHOST
-                own = SEAT_IDX + p.seat if self.layout == "coop" else idx
+                own = SEAT_IDX + p.seat if self.layout == "coop" else ACTIVE
                 for x, y in self._cells(p.kind, p.rot, p.px, p.py):
                     if 0 <= y < WH:
                         cells[y, x] = own
@@ -745,22 +747,21 @@ class Tetris(GameApp):
         w = self.wells[0]
         p = w.pilots[0]
         wall = hot if w.hurt > 0 and int(w.hurt * 10) % 2 else scale(th.w, 0.8 if self.flash <= 0 else 1.0)
-        f.vline(20, 0, 32, wall)
+        f.vline(WW * 2, 0, 32, wall)
         # next piece
-        nidx = KINDS.index(p.next)
         cells_n = ROTS[p.next][0]
         pw = max(x for x, _ in cells_n) + 1
-        ox = 21 + (11 - pw * 2) // 2
-        c = th.r[nidx]
+        ox = 19 + (13 - pw * 2) // 2
+        c = th.p
         for x, y in cells_n:
             f.rect(ox + x * 2, 2 + y * 2, 2, 2, c)
             f.set(ox + x * 2, 2 + y * 2, tint(c, 0.45))
         if self.settings.show_score:
             f.text_right(30, 9, str(w.lines), th.hud)
-            f.text(22, 16, "L", scale(th.hud, 0.5))
+            f.text(21, 16, "L", scale(th.hud, 0.5))
             f.text_right(30, 16, str(self.level), scale(th.hud, 0.8))
         who = "YOU" if self.is_human(1) else "AI"
-        f.text(21 + (11 - (len(who) * 4 - 1)) // 2 + (1 if who == "YOU" else 0), 26, who, scale(th.p, 0.55))
+        f.text(19 + (13 - (len(who) * 4 - 1)) // 2 + (1 if who == "YOU" else 0), 26, who, scale(th.hud, 0.55))
 
     def status(self) -> dict[str, Any]:
         st = super().status()

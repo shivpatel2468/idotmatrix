@@ -32,7 +32,6 @@ const RULE_HINTS: Record<string, string> = {
   small_blind: "Forced bet left of the button.",
   big_blind: "Forced bet two left of the button; the minimum raise.",
   blind_increase: "Raise the blinds every few hands so the game finishes.",
-  rake: "The house's cut of each pot (0 = a friendly game).",
   boot: "Everyone's ante into the pot before cards are dealt.",
   max_blind_rounds: "How long a player may keep playing blind before they must look at their cards.",
   pot_limit: "The pot is shown down when it reaches this size.",
@@ -41,10 +40,10 @@ const RULE_HINTS: Record<string, string> = {
   bet_per_line: "Credits staked on each payline.",
   lines: "How many of the 5 paylines are played.",
   theme: "The machine's symbols and colours on the panel.",
-  ticket_price: "Credits per Housie ticket; every ticket sold goes into the pot.",
+  ticket_price: "Play chips per Housie ticket; every ticket's chips go into the prize pool.",
   max_tickets: "How many tickets one player may buy for a game.",
   call_seconds: "The caller's pace. Also live from the host bar (− / +).",
-  buy_seconds: "The buy-in clock, from the first ticket sold.",
+  buy_seconds: "The ticket pick clock, from the first ticket.",
 };
 
 type Preset = { id: string; name: string; blurb: string; icon: React.ReactNode; house: Partial<House>; rules: Record<string, unknown> };
@@ -325,7 +324,7 @@ const KIND: Record<string, string> = {
   firstfour: "First four (0-1-2-3)", ff: "First four (0-1-2-3)", top_line: "Top line (0-00-1-2-3)", topline: "Top line (0-00-1-2-3)",
   dozen: "Dozen", column: "Column", red: "Red", black: "Black", odd: "Odd", even: "Even", low: "Low (1–18)", high: "High (19–36)",
   down: "Under 7", seven: "Lucky 7", up: "Over 7", player: "Player", banker: "Banker", tie: "Tie",
-  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar", ticket: "Ticket (the house keeps only the rake)",
+  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar", ticket: "Ticket (the house keeps nothing)",
 };
 const kindName = (k: string, sample?: string) => KIND[k] ?? (sample && sample.length < 24 ? `${k.replace(/_/g, " ")} (${sample})` : k.replace(/_/g, " "));
 
@@ -353,7 +352,7 @@ function Odds() {
         <div className="cz-rtp">
           <span className="engrave !text-[var(--gold)]/80">Return to player</span>
           <b>{rtpPct.toFixed(2)} %</b>
-          <span>Computed from this machine's reel strips and pay table.</span>
+          <span>Computed from this machine's reel strips and pay table (play chips; for learning how house edge works).</span>
         </div>
       )}
       {housie && <HousiePrizes h={housie} />}
@@ -374,17 +373,17 @@ function Odds() {
       ) : (
         <p className="cz-empty">The odds appear once the table is live.</p>
       )}
-      <p className="cz-foot">Each edge is computed exactly from every outcome's probability and the payout — the worst bet in each family is shown. The house never adapts to bets or balances.</p>
+      <p className="cz-foot">Each edge is computed exactly from every outcome's probability and the payout — the worst bet in each family is shown. Play chips; for learning how house edge works.</p>
     </>
   );
 }
 
-/** Housie: players play for the pot — the prizes, their shares of the pool and who won them. */
+/** Housie: the prizes, their shares of the prize pool (play chips) and who won them. */
 function HousiePrizes({ h }: { h: HousieStatus }) {
   const pool = Math.max(0, h.pot - h.rake);
   return (
     <div className="cz-odds mb-3" role="table" aria-label="Housie prizes">
-      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Credits{h.pot ? ` · pool ${fmt(pool)}` : ""}</span></div>
+      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Chips{h.pot ? ` · prize pool (play chips) ${fmt(pool)}` : ""}</span></div>
       {h.prizes.map((p) => (
         <div role="row" key={p.id} className="cz-odds-row">
           <span className="truncate" title={p.winners.map((w) => w.name).join(", ")}>
@@ -395,7 +394,7 @@ function HousiePrizes({ h }: { h: HousieStatus }) {
           <span className="font-mono">{fmt(p.amount)}{p.call ? ` · call ${p.call}` : ""}</span>
         </div>
       ))}
-      <p className="cz-foot">Ticket {fmt(h.price)} · up to {h.max} each · {h.sold} sold. Claims on the same call split a prize; unclaimed prizes are shared back by tickets.</p>
+      <p className="cz-foot">{fmt(h.price)} chips per ticket · up to {h.max} each · {h.sold} sold. Claims on the same call split a prize; unclaimed prizes are shared back by tickets.</p>
     </div>
   );
 }
@@ -451,6 +450,7 @@ export function LeftWing() {
           <>
             <Section title="Presets" hint="Set the house and the table rules in one tap."><Presets app={app} house={house} /></Section>
             <Section title="House" hint="Shared by every casino game."><HouseForm house={house} /></Section>
+            <p className="cz-foot">Casino games are free in every plan. Paid plans never add, refill or change casino chips.</p>
             <Section title="Table theme" hint="The felt and accent on the panel, every phone and this studio."><ThemePicker app={app} /></Section>
           </>
         )}

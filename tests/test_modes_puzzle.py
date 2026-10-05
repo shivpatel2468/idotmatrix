@@ -1,4 +1,4 @@
-"""Puzzle group game modes: Snake (arcade), Tetris and 2048 — modes, maps, themes, results and damage."""
+"""Puzzle group game modes: Snake (arcade), Block Drop and 2048 — modes, maps, themes, results and damage."""
 
 from __future__ import annotations
 
@@ -109,7 +109,7 @@ def test_attract_falls_back_to_classic_solo(cls: type[GameApp]) -> None:
     if cls is Arcade:
         assert len(g.snakes) == 1 and not g.multi
     elif cls is Tetris:
-        assert g.layout == "solo" and g.wells[0].w == 10
+        assert g.layout == "solo" and g.wells[0].w == 9
     else:
         assert g.layout == "solo" and len(g.boards) == 1
 
@@ -233,7 +233,7 @@ async def test_tetris_coop_one_wide_well_two_pieces() -> None:
 def test_tetris_solo_still_classic() -> None:
     g, c = _game(Tetris)
     _run(g, c, 20)
-    assert g.layout == "solo" and g.wells[0].w == 10
+    assert g.layout == "solo" and g.wells[0].w == 9
     assert g.lines == g.wells[0].lines
 
 
