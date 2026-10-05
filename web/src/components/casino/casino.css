@@ -132,9 +132,10 @@
 .cz-gold {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; height: 2.25rem; padding: 0 0.95rem; border-radius: 10px;
   font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
-  color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-2), var(--gold) 55%, var(--gold-lo));
+  /* the fallbacks let the gold key work outside the casino view too (top bar "Casino") */
+  color: var(--gold-ink, #1d1402); background: linear-gradient(180deg, var(--gold-2, #ffe08a), var(--gold, #ffcc33) 55%, var(--gold-lo, #e0a91c));
   border: 1px solid #ffe7a3;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 0 #6b4d05, 0 0 26px -8px rgba(var(--gold-rgb), 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 0 #6b4d05, 0 0 26px -8px rgba(var(--gold-rgb, 255, 204, 51), 0.85);
   transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
 }
 .cz-gold:hover { filter: brightness(1.06); }
@@ -311,8 +312,7 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-title-me .cz-credits { color: var(--gold); font-size: 12px; }
 .cz-fly { margin-left: auto; align-items: center; }
 .cz-fly + .cz-leave { margin-left: 6px; }
-.cz-leave { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 8px; font-size: 11.5px; color: #c9d6cf; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.25); }
-.cz-leave:hover { color: #fff; border-color: rgba(var(--gold-rgb), 0.4); }
+.cz-leave { margin-left: auto; height: 2rem; padding: 0 0.8rem; } /* the gold key (.cz-gold), a touch smaller in the title row */
 
 .cz-hostbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; border-radius: 14px;
@@ -414,11 +414,6 @@ button.cz-chip:hover { transform: translateY(-2px); }
   .cz-phase { flex-basis: 150px; }
 }
 
-/* a "back to the casino" key on the normal stage */
-.cz-enter {
-  color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-2), var(--gold) 55%, var(--gold-lo)); border: 1px solid #ffe7a3;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 0 #6b4d05, 0 0 26px -8px rgba(var(--gold-rgb), 0.85);
-}
 
 @media (max-width: 767.98px) {
   .cz-hostkeys { width: 100%; margin-left: 0; }
