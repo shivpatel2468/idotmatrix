@@ -10,7 +10,7 @@ import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
 import { Dices } from "lucide-react";
-import { enterCasino, useCasinoApp } from "./casino/state";
+import { enterCasino, useCasinoApp, useCasinoView } from "./casino/state";
 import { playCoinDrop } from "./CoinDrop";
 
 /** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
@@ -122,12 +122,44 @@ function Brightness() {
 /** A casino table is on the panel but its casino view was left: the gold way back, next to the panel status. */
 function CasinoKey() {
   const app = useCasinoApp();
-  if (!app) return null;
+  const inCasino = useCasinoView();
+  const meta = useStore((s) => s.meta);
+  useEffect(() => {
+    if (app) rememberCasino(app); // the key reopens this table later, from any app
+  }, [app]);
+  if (inCasino || !meta?.apps.some((a) => a.category === "casino")) return null; // in the casino already / no casino
+  const open = async () => {
+    playCoinDrop();
+    if (app) return enterCasino();
+    // another app is on the panel: put the last casino table back (Roulette the first time), then open the casino
+    let last = "casino_roulette";
+    try {
+      last = localStorage.getItem(LAST_CASINO) || last;
+    } catch {
+      /* private mode */
+    }
+    const id = meta.apps.some((a) => a.id === last) ? last : meta.apps.find((a) => a.category === "casino")!.id;
+    try {
+      await api.activate(id);
+      enterCasino();
+    } catch {
+      /* toasted by the api layer */
+    }
+  };
   return (
-    <button className="cz-gold shrink-0" onClick={() => { playCoinDrop(); enterCasino(); }} title="Back to the casino table: house, players and the room">
+    <button className="cz-gold shrink-0" onClick={open} title={app ? "Back to the casino table: house, players and the room" : "Open the casino: the last table goes on the panel"}>
       <Dices size={14} /> Casino
     </button>
   );
+}
+/** The casino table the host played last (the top bar's Casino key reopens it). */
+const LAST_CASINO = "deskdot.casino.last";
+function rememberCasino(id: string) {
+  try {
+    localStorage.setItem(LAST_CASINO, id);
+  } catch {
+    /* private mode */
+  }
 }
 
 /** Phones: everything the wide header holds, in a bottom sheet under one "more" key. */
