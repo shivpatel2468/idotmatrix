@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useState } from "react";
+import { playCoinDrop } from "../CoinDrop";
 import { create } from "zustand";
 import { api } from "../../lib/api";
 import { appMeta, useStore } from "../../lib/store";
@@ -149,6 +150,42 @@ export function useCasinoView(): boolean {
 export function leaveCasino() {
   const app = useStore.getState().state?.engine.current?.app ?? null;
   useCasino.setState({ dismissedFor: app });
+}
+
+/** The casino table the host played last: the top bar's Casino key and the library's Casino chip reopen it. */
+const LAST_CASINO = "deskdot.casino.last";
+export function rememberCasino(id: string) {
+  try {
+    localStorage.setItem(LAST_CASINO, id);
+  } catch {
+    /* private mode */
+  }
+}
+
+/**
+ * Enter casino mode from anywhere, with the coin drop: back into the table that's on the panel, or put the last
+ * casino table (Roulette the first time) on the panel first.
+ */
+export async function openCasino() {
+  playCoinDrop();
+  const s = useStore.getState();
+  const apps = s.meta?.apps ?? [];
+  const cur = s.state?.engine.current?.app;
+  if (cur && apps.find((a) => a.id === cur)?.category === "casino") return enterCasino();
+  let last = "casino_roulette";
+  try {
+    last = localStorage.getItem(LAST_CASINO) || last;
+  } catch {
+    /* private mode */
+  }
+  const id = apps.some((a) => a.id === last) ? last : apps.find((a) => a.category === "casino")?.id;
+  if (!id) return;
+  try {
+    await api.activate(id);
+    enterCasino();
+  } catch {
+    /* the api layer shows the error */
+  }
 }
 
 export function enterCasino() {
