@@ -9,6 +9,8 @@ import { Sheet } from "./Sheet";
 import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
+import { Dices } from "lucide-react";
+import { enterCasino, useCasinoApp } from "./casino/state";
 
 /** The idotmatrix logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
@@ -116,6 +118,17 @@ function Brightness() {
   );
 }
 
+/** A casino table is on the panel but its casino view was left: the gold way back, next to the panel status. */
+function CasinoKey() {
+  const app = useCasinoApp();
+  if (!app) return null;
+  return (
+    <button className="cz-gold shrink-0" onClick={enterCasino} title="Back to the casino table: house, players and the room">
+      <Dices size={14} /> Casino
+    </button>
+  );
+}
+
 /** Phones: everything the wide header holds, in a bottom sheet under one "more" key. */
 function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { tone, label, detail, retry, sim } = usePanelStatus();
@@ -201,7 +214,7 @@ export function TopBar() {
   if (phone) return <PhoneTopBar />;
   return (
     <header className="grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
-      <div className="flex min-w-0 items-center"><StatusPill /></div>
+      <div className="flex min-w-0 items-center gap-2.5"><StatusPill /><CasinoKey /></div>
       <Wordmark />
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
       {/* on wide screens these live under the settings panel (App.tsx FlyDock) */}

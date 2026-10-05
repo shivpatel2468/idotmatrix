@@ -351,7 +351,7 @@ export function CasinoStage() {
         {me.seated && <span className="cz-title-me">You <Credits value={me.credits ?? 0} /></span>}
         {/* the fly's on/off sign: the settings drawer (its usual home on wide screens) is closed in casino mode */}
         <span className="cz-fly hidden xl:inline-flex" title="Show or hide the roaming fruit fly"><RoamSign /></span>
-        <button className="cz-leave" onClick={leaveCasino} title="Back to the normal studio (the table keeps running)" aria-label="Leave casino"><DoorOpen size={13} /> <span className="cz-lbl">Leave casino</span></button>
+        <button className="cz-gold cz-leave" onClick={leaveCasino} title="Back to the normal studio (the table keeps running)" aria-label="Leave casino"><DoorOpen size={13} /> <span className="cz-lbl">Leave casino</span></button>
       </div>
       <HostBar />
       <PreviewNotice app={app} />

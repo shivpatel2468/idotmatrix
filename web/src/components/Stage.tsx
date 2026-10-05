@@ -14,7 +14,7 @@ import { FlyBar, FlyWing } from "./fly/FlyView";
 import { openFlyView, useFly } from "../lib/fly";
 import { FlyToggle } from "./FlyToggle";
 import { CasinoStage } from "./casino/CasinoStage";
-import { enterCasino, useCasinoApp, useCasinoView } from "./casino/state";
+import { useCasinoView } from "./casino/state";
 
 const KIND: Record<string, { label: string; hint: string }> = {
   stream: { label: "Live", hint: "Updates live: frames are sent over Bluetooth as they change" },
@@ -302,7 +302,6 @@ export function Stage({ fly = false }: { fly?: boolean }) {
 }
 
 function StageBody({ fly = false }: { fly?: boolean }) {
-  const casinoApp = useCasinoApp(); // a casino game whose casino view the host left: offer the way back
   const { box, side } = useSquare(1400, fly ? 0.4 : 1);
   const flyLive = useFly((s) => s.snap.active);
   const cur = useStore((s) => s.state?.engine.current);
@@ -341,11 +340,6 @@ function StageBody({ fly = false }: { fly?: boolean }) {
           </span>
         </div>
         {fly && <FlyWing side="right" />}
-        {!fly && casinoApp && (
-          <button className="key cz-enter absolute left-2 top-2 hidden md:inline-flex" onClick={enterCasino} title="Back to the casino table: house, players and the room">
-            <Icon name="dices" size={14} /> Casino
-          </button>
-        )}
         {!fly && flyLive && (
           <button className="key key-ember absolute right-2 top-2 hidden md:inline-flex" onClick={openFlyView} title="Watch the fly's brain and the keys it presses, in 3D">
             <Icon name="bug" size={14} /> Fly view
