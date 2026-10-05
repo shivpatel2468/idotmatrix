@@ -11,6 +11,7 @@ import { NeonMark } from "./NeonMark";
 import { SafetySwitch } from "./SafetySwitch";
 import { Dices } from "lucide-react";
 import { enterCasino, useCasinoApp } from "./casino/state";
+import { playCoinDrop } from "./CoinDrop";
 
 /** The idotmatrix logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
@@ -123,7 +124,7 @@ function CasinoKey() {
   const app = useCasinoApp();
   if (!app) return null;
   return (
-    <button className="cz-gold shrink-0" onClick={enterCasino} title="Back to the casino table: house, players and the room">
+    <button className="cz-gold shrink-0" onClick={() => { playCoinDrop(); enterCasino(); }} title="Back to the casino table: house, players and the room">
       <Dices size={14} /> Casino
     </button>
   );
