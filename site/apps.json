@@ -1899,24 +1899,6 @@
      "default": 0,
      "min": 0,
      "max": 100
-    },
-    {
-     "key": "rake_percent",
-     "title": "Rake (%)",
-     "type": "integer",
-     "description": "The house's share of each pot at a showdown. 0 = none.",
-     "default": 0,
-     "min": 0,
-     "max": 10
-    },
-    {
-     "key": "rake_cap",
-     "title": "Rake cap per hand",
-     "type": "integer",
-     "description": "0 = no cap.",
-     "default": 0,
-     "min": 0,
-     "max": 1000000
     }
    ],
    "game": {

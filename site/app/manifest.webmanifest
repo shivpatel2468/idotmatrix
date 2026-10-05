@@ -1,7 +1,7 @@
 {
   "name": "DeskDot",
   "short_name": "DeskDot",
-  "description": "The iDotMatrix 32\u00d732 panel studio, in your browser",
+  "description": "DeskDot's studio for 32\u00d732 LED panels, in your browser (unofficial)",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",

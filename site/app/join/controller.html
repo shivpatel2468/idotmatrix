@@ -459,9 +459,10 @@ canvas.av{display:block;image-rendering:pixelated}
     <div class="cs">
       <div class="panel hero">
         <div class="well"><canvas class="av" id="pv" data-s="128" width="128" height="128" style="width:128px;height:128px" aria-hidden="true"></canvas></div>
-        <label class="field"><span class="eng">Name</span>
-          <input class="name" id="name" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-describedby="name-c">
-          <span class="count" id="name-c">0/10</span></label>
+        <label class="field"><span class="eng">Nickname (not your real name)</span>
+          <input class="name" id="name" maxlength="10" placeholder="Nickname" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-describedby="name-c name-h">
+          <span class="count" id="name-c">0/10</span>
+          <span class="hint" id="name-h">Don't use your full name or a child's name.</span></label>
       </div>
       <div class="opts" style="display:grid;gap:14px">
         <div class="panel"><div class="eng sec" id="av-l">Character</div><div class="grid" id="avs" role="radiogroup" aria-labelledby="av-l"></div></div>
@@ -628,5 +629,5 @@ canvas.av{display:block;image-rendering:pixelated}
   <button class="k fb b" data-k="b" aria-label="B button">B</button><button class="k fb a" data-k="a" aria-label="A button">A</button></div></template>
 <template id="tpl-info"><div class="info"><div class="well"><canvas class="av" data-s="88" aria-hidden="true"></canvas></div><div class="lineup"></div><div class="mhint"></div></div></template>
 
-<script src="/app/join/controller.js?v=42055d3ca0be"></script>
+<script src="/app/join/controller.js?v=be02a6a960b6"></script>
 </body></html>

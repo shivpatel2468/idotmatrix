@@ -442,14 +442,15 @@
   <div class="card">
     <div class="brand"><span class="dot"></span>DESKDOT · IN YOUR BROWSER</div>
     <h1 id="dd-title">Your panel, straight from this tab</h1>
-    <p class="lede">The full DeskDot engine runs right here (Python in WebAssembly). Pick your iDotMatrix panel and
-    everything you do in the studio shows on it — no install.</p>
+    <p class="lede">The full DeskDot engine runs right here (Python in WebAssembly). Pick your 32×32 panel
+    (iDotMatrix-compatible) and everything you do in the studio shows on it — no install.</p>
     <div class="support" hidden></div>
     <div class="boot"><div class="bar"><i></i></div><div class="phase">Starting…</div></div>
     <div class="actions">
       <button class="key ember connect" type="button">Connect panel</button>
       <button class="key ghost open" type="button">Open studio</button>
     </div>
+    <p class="disclaimer">Unofficial. Close the iDotMatrix app first. DeskDot doesn't modify your panel's firmware.</p>
     <p class="hint">The panel must be on and <b>not connected to another app</b> (the iDotMatrix phone app, the DeskDot
     desktop or Android app): a panel talks to one app at a time.</p>
     <details>

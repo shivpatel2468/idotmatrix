@@ -32,7 +32,7 @@
  "asteroids": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 12784
+  "bytes": 12835
  },
  "avatar": {
   "frames": 20,
@@ -50,9 +50,9 @@
   "bytes": 41703
  },
  "breakout": {
-  "frames": 60,
+  "frames": 56,
   "ms": 6000,
-  "bytes": 9557
+  "bytes": 8961
  },
  "calendar": {
   "frames": 1,
@@ -97,7 +97,7 @@
  "casino_housie": {
   "frames": 108,
   "ms": 20300,
-  "bytes": 28673
+  "bytes": 28675
  },
  "casino_roulette": {
   "frames": 90,
@@ -157,7 +157,7 @@
  "cycles": {
   "frames": 49,
   "ms": 6000,
-  "bytes": 5987
+  "bytes": 6150
  },
  "daily": {
   "frames": 1,
@@ -175,9 +175,9 @@
   "bytes": 10168
  },
  "dino": {
-  "frames": 60,
+  "frames": 49,
   "ms": 6000,
-  "bytes": 11866
+  "bytes": 9236
  },
  "emotes": {
   "frames": 40,
@@ -192,7 +192,7 @@
  "flappy": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 14903
+  "bytes": 14748
  },
  "flybrain": {
   "frames": 44,
@@ -260,9 +260,9 @@
   "bytes": 22328
  },
  "invaders": {
-  "frames": 60,
+  "frames": 58,
   "ms": 6000,
-  "bytes": 8760
+  "bytes": 7922
  },
  "leafleap": {
   "frames": 60,
@@ -280,9 +280,9 @@
   "bytes": 296
  },
  "maze": {
-  "frames": 60,
+  "frames": 59,
   "ms": 6000,
-  "bytes": 8460
+  "bytes": 7349
  },
  "mediaserver": {
   "frames": 1,
@@ -325,14 +325,14 @@
   "bytes": 6923
  },
  "pet": {
-  "frames": 64,
+  "frames": 96,
   "ms": 30000,
-  "bytes": 9197
+  "bytes": 16310
  },
  "petworld": {
   "frames": 24,
   "ms": 3840,
-  "bytes": 6429
+  "bytes": 6591
  },
  "photoframe": {
   "frames": 8,
@@ -352,7 +352,7 @@
  "playercard": {
   "frames": 41,
   "ms": 10000,
-  "bytes": 14931
+  "bytes": 14610
  },
  "pokedex": {
   "frames": 66,
@@ -360,9 +360,9 @@
   "bytes": 12379
  },
  "pong": {
-  "frames": 59,
+  "frames": 58,
   "ms": 6000,
-  "bytes": 5952
+  "bytes": 5810
  },
  "printer": {
   "frames": 1,
@@ -432,7 +432,7 @@
  "starship": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 15928
+  "bytes": 15674
  },
  "stocks": {
   "frames": 1,
@@ -457,7 +457,7 @@
  "tetris": {
   "frames": 60,
   "ms": 6000,
-  "bytes": 8435
+  "bytes": 6198
  },
  "text": {
   "frames": 1,
