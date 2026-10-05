@@ -91,10 +91,40 @@ def _css(felt: str, felt2: str, felt3: str, accent: str, hi: str, lo: str, deep:
          wing3: str, ink: str = "#1a1200") -> dict[str, str]:  # fmt: skip
     a = accent.lstrip("#")
     rgb = ", ".join(str(int(a[i : i + 2], 16)) for i in (0, 2, 4))
+    s4 = mix_hex(wing, "#ffffff", 0.11)
+    text = (
+        next(  # the accent as text: nudged toward accent_hi until it reads (WCAG AA) on the lightest surface
+            c for c in (mix_hex(accent, hi, k / 10) for k in range(11)) if contrast(c, s4) >= 4.5 or c == hi
+        )
+    )
     return {
         "felt": felt, "felt2": felt2, "felt3": felt3, "accent": accent, "accent_hi": hi, "accent_lo": lo,
         "accent_deep": deep, "accent_rgb": rgb, "ink": ink, "wing": wing, "wing2": wing2, "wing3": wing3,
+        # derived page palette (phones + studio): every surface is tinted by the theme's wings, text on felt by the felt
+        "bg": mix_hex(wing3, "#000000", 0.45), "surface": mix_hex(wing3, "#ffffff", 0.02),
+        "surface2": mix_hex(wing2, "#ffffff", 0.05), "surface3": mix_hex(wing, "#ffffff", 0.05),
+        "surface4": s4, "felt_ink": mix_hex("#ffffff", felt, 0.1), "accent_text": text,
     }  # fmt: skip
+
+
+def mix_hex(a: str, b: str, t: float) -> str:
+    """CSS ``color-mix(in srgb, a, b t)``: ``a`` moved ``t`` of the way to ``b`` (sRGB channels, rounded)."""
+    x, y = a.lstrip("#"), b.lstrip("#")
+    ch = (round(int(x[i : i + 2], 16) * (1 - t) + int(y[i : i + 2], 16) * t) for i in (0, 2, 4))
+    return "#" + "".join(f"{c:02x}" for c in ch)
+
+
+def contrast(a: str, b: str) -> float:
+    """WCAG 2 contrast ratio of two ``#rrggbb`` colours (1 … 21)."""
+
+    def lum(h: str) -> float:
+        h = h.lstrip("#")
+        c = [int(h[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+        c = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+    hi, lo = sorted((lum(a), lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
 
 
 TABLE_THEMES: dict[str, TableTheme] = {

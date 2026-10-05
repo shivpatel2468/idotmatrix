@@ -1,4 +1,4 @@
-import type { LobbyInfo, LobbyResponse, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
+import type { LobbyInfo, LobbyResponse, TvInfo, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
 import { toast, useStore } from "./store";
 import type { Autotune, CalTest, Calib, MotionInfo, MotionTest, PresetListing, VideoInfo } from "./calib";
 
@@ -96,6 +96,10 @@ export const api = {
   openLobby: (app: string) => req<LobbyInfo & { ok: boolean }>("POST", "/api/play/lobby", { app }),
   startLobby: () => req("POST", "/api/play/lobby/start"),
   closeLobby: () => req("DELETE", "/api/play/lobby"),
+  // TV view (docs/TV_VIEW.md): a read-only full-screen view for any screen on the network
+  tv: () => req<{ tv: TvInfo | null }>("GET", "/api/tv"),
+  openTv: (renew = false) => req<TvInfo & { ok: boolean }>("POST", "/api/tv", { renew }),
+  closeTv: () => req("DELETE", "/api/tv"),
   // Gemini AI Studio
   aiConfig: () => req<{ configured: boolean; source: string; masked_key: string; model: string }>("GET", "/api/ai/config"),
   aiSaveConfig: (data: { api_key?: string; model?: string }) =>

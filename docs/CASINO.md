@@ -77,7 +77,7 @@ games) → result → idle`.
 ## 5. Phone page (`casino.html`)
 
 - A single self-contained file, mobile-first, matching the controller's dark style.
-- The warm casino palette: felt green, gold, red, and the brand rose #ff3f78 / tangerine #ff7419 / gold #ffcc33.
+- Every colour comes from the table theme (§11: felt, accent, the derived surfaces); classic is felt green and gold.
 - **Always visible:** name, avatar, credits (animated count up and down), the phase and countdown.
 - **Bet controls:** a chip rack (1, 5, 25, 100, 500, all-in) with tap-to-place. Undo / clear / rebet are always reachable.
 - **Per game:**
@@ -104,6 +104,18 @@ games) → result → idle`.
   `dblclick` and iOS `gesturestart` zoom are blocked. The rulebook has its own text zoom (A−/A+ or a two-finger
   pinch on the text). Chips fly rack → spot on an arc and the stack bounces (WAAPI, transform/opacity only;
   `prefers-reduced-motion` turns flights off); a stack's height follows the chips it takes (`--stk`).
+  **Mouse and pen work the same as a finger** (a laptop can join as a friend): only the primary button bets
+  (right / middle clicks never do), one click is exactly one chip (the click after a pointer press never bets again;
+  only a keyboard Enter / Space click does), the rack takes no pointer capture (with a mouse it retargeted the click
+  to `#rack`, so clicking a chip never picked it — the move / up listeners sit on the document instead), and every
+  `pointermove` handler runs at most once per frame (`perFrame`). The countdown ring writes to the DOM only when a
+  value changes. `tests/test_casino_phone_input.py` drives the real handlers with mouse / pen / touch events.
+- **Live panel:** after every `hello` the page sends `{"type": "frames", "on": true}` (off while the tab is hidden)
+  and the socket streams the engine's frames as binary 32×32×3 RGB (newest only, ≤ 10 fps; old pages never ask and
+  never get binary; the web app's WebRTC tunnel relays binary as-is). While the table plays (`locked`, `spinning`,
+  `dealing`, `reveal`, `result`) the board is covered by the panel, big, with round LEDs and a glow — the spinning
+  wheel on every phone — and betting reopens on the betting table, with a 44 px live thumbnail in the phase strip.
+  Games played on the phone itself (Hold'em, Teen Patti, Blackjack, Slots, Housie) set `livePanel: false`.
 - **Who is on a spot:** `status.spot_bets {spot: [{seat, name, color, amount}]}` (table order) is drawn as coloured
   dots + the spot total on every phone and in the studio — the same list everywhere. Ops carry `seq`; the socket
   echoes `ack`, and the undo stack is trimmed to `private.bets` only when no op is in flight.
@@ -125,7 +137,12 @@ games) → result → idle`.
   - Each bet's house edge, and the slot RTP.
   - Presets: "Friendly night", "Vegas", "High rollers".
 - **Right wing: the players.** Seats with avatar and credits (live), a leaderboard, adjust/top-up, kick, the round
-  history with "Verify", and a "Play from this laptop" mini-controller.
+  history with "Verify", and a "Play from this laptop" mini-controller with the phones' chip feel
+  (`chipfx.ts`): chips fly rack → spot on an arc and the stack squashes on landing (with the studio's `chip` sound),
+  stacks grow with the amount, Undo / Clear / right-click fly chips home, Rebet flies them out, a chip dragged from
+  the rack follows the pointer as a ghost and lights the spot under it, a stack dragged off its spot gets a red ✕,
+  and other players' chips drop onto their spot in their colour as `status.spot_bets` grows. Pointer events (mouse,
+  pen, touch), no pointer capture, one move per frame; nothing flies with reduced motion.
 - **Centre:** the panel mirror plus the host bar: game picker (casino games), Start round / Next, the countdown,
   pause, and the QR for joining.
 - **Leaving:** exits back to the normal studio.
@@ -347,10 +364,21 @@ live in one place, `TABLE_THEMES` in `apps/_casino.py`:
   rim and the PvP headers / pot use it. Semantic colours never change (roulette pockets, card suits, under / over
   tones, Big Six symbols, players' colours, blackjack's BJ gold) and the join QR stays black on white. Slots keeps
   its own machine `theme` for the reel art.
-- **Phones and studio:** the public status carries `table_theme {id, name, css}`. `casino.html` sets its felt /
-  accent CSS variables from it and the studio's `.cz` root does the same (`themeVars` in `state.ts`); both register
-  the colours with `@property`, so a change cross-fades (instant with reduced motion). Classic sets nothing — the
-  stylesheets are the classic look. The studio's House tab has a theme picker (swatches from the host view's
+- **Phones and studio:** the public status carries `table_theme {id, name, css}`. Besides the felt / accent / wing
+  tokens, `css` carries a derived page palette computed once in `_css()`: `bg`, `surface`…`surface4` (the wings
+  lifted a little), `felt_ink` (text on felt) and `accent_text` (the accent nudged until it reads AA on every
+  surface). The **whole** casino UI derives from these — page, HUD, buttons, pills, sheets, rulebook tabs, the tour,
+  toasts, Housie tickets, the game zones' highlights, scrollbars and focus rings — and nothing else: the only literal
+  colours left are semantic (win green / loss red, suits, roulette pockets, chip values, players' colours, game
+  result tiles, warnings). `casino.html` maps them in `THEME_VARS` on every state push (and points
+  `<meta name="theme-color">` at the felt); the studio's `.cz` root does the same (`themeVars` in `state.ts`) and
+  re-points the studio's own tokens (ember, chassis, ink, line) inside `.cz`, so shared keys / faders / toggles /
+  fields match. While the casino view is open, `stampPage` puts `html[data-cz]` + `--cz-page-*` on the document so
+  the page around it (body, top bar keys, toasts) follows too; the top bar's gold "Casino" key only appears with the
+  view closed and stays classic gold. Both register the colours with `@property`, so a change cross-fades (instant
+  with reduced motion). Classic sets nothing — the stylesheets are the classic look (a test checks the registered
+  initial values equal classic's tokens, that no warm accent literal is left outside the token blocks, and the
+  contrast of every theme). The studio's House tab has a theme picker (swatches from the host view's
   `themes`), optionally applied to every table; the setting is also in the normal schema form.
 
 **Rulebook.** "How to play" (3–6 steps for a first-timer) and the rules of every game — and of Rock Paper Scissors —

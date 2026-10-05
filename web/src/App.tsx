@@ -8,6 +8,7 @@ import { FlyToggle, RoamSign } from "./components/FlyToggle";
 import { Inspector } from "./components/Inspector";
 import { Library } from "./components/Library";
 import { CommandPalette, DropZone, NotifyComposer, Toasts } from "./components/Overlays";
+import { TvSheet } from "./components/TvSheet";
 import { SettingsSheet } from "./components/Settings";
 import { Icon } from "./components/Icon";
 import { LedPanel } from "./components/LedPanel";
@@ -255,6 +256,7 @@ export default function App() {
       </div>
       <Drawers />
       <NotifyComposer />
+      <TvSheet />
       <SettingsSheet />
       <AiCreator />
       <PlayMode />

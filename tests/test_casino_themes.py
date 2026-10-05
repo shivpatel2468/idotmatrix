@@ -196,3 +196,130 @@ def test_studio_theme_list_mirrors_the_engine() -> None:
     rows = re.findall(r'\{ id: ("[^"]+"), name: ("[^"]+"), css: (\{[^}]*\}) \}', ts)
     studio = {json.loads(i): (json.loads(n), json.loads(c)) for i, n, c in rows}
     assert studio == {k: (t.name, t.css) for k, t in TABLE_THEMES.items()}
+
+
+# ------------------------------------------------------------------ the theme on every surface (phone + studio)
+DERIVED = ("bg", "surface", "surface2", "surface3", "surface4", "felt_ink", "accent_text")
+PHONE = ROOT / "src" / "deskdot" / "casino.html"
+STUDIO_CSS = ROOT / "web" / "src" / "components" / "casino" / "casino.css"
+STUDIO_TS = ROOT / "web" / "src" / "components" / "casino" / "state.ts"
+
+# Literal colours that may stay: semantic ones (game result tiles / zones, the slot machine's own skin, ticket ink).
+# Everything else (accent, felt, surfaces) must come from the theme's variables.
+SEMANTIC_ALLOW = {
+    "d79a00",
+    "c58b00",  # 7 up 7 down: the "seven" tile / zone
+    "a87a00",
+    "c99400",  # result tiles: "gold"
+    "c99a00",
+    "d8521a",
+    "a08a3a",  # Big Six: the 1, 20 and logo segments
+    "5a3a0a",  # the classic slot machine's brass rim (slots keep their own machine theme)
+}
+
+
+def _css_rules(text: str, *, token_blocks: list[str]) -> str:
+    """The stylesheet without the theme token blocks and @property registrations (where literals belong)."""
+    for blk in token_blocks:
+        text = re.sub(blk, "", text, count=1, flags=re.S)
+    return re.sub(r"@property[^\n]*", "", text)
+
+
+def _warm_literals(css: str) -> list[str]:
+    """Hex literals in the gold / orange / amber hue band (what a hard-coded accent looks like)."""
+    import colorsys
+
+    out = []
+    for m in re.finditer(r"#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b", css):
+        h = m.group(1).lower()
+        h = "".join(c * 2 for c in h) if len(h) == 3 else h
+        r, g, b = (int(h[i : i + 2], 16) / 255 for i in (0, 2, 4))
+        hue, sat, val = colorsys.rgb_to_hsv(r, g, b)
+        if 15 <= hue * 360 <= 65 and sat > 0.45 and val > 0.3:
+            out.append(h)
+    return out
+
+
+def test_every_theme_has_the_derived_palette_and_reads() -> None:
+    from deskdot.apps._casino import contrast, mix_hex
+
+    for t in TABLE_THEMES.values():
+        c = t.css
+        for k in DERIVED:
+            assert re.fullmatch(r"#[0-9a-f]{6}", c[k]), (t.id, k)
+        for s in ("surface", "surface2", "surface3", "surface4"):
+            assert contrast(c["accent_text"], c[s]) >= 4.5, (t.id, "accent text", s)
+            if s != "surface4":  # the dimmest phone text, on the surfaces text sits on
+                assert contrast("#9e9a8c", c[s]) >= 4.5, (t.id, "phone --mute", s)
+        assert contrast(c["ink"], c["accent"]) >= 4.5, (t.id, "ink on accent")
+        assert contrast(c["ink"], c["accent_hi"]) >= 4.5, (t.id, "ink on accent_hi")
+        assert contrast(c["ink"], c["accent_lo"]) >= 3, (t.id, "ink on accent_lo (bold buttons only)")
+        assert contrast(c["felt_ink"], c["felt"]) >= 4.5, (t.id, "text on felt")
+        # studio: --cz-dim / --cz-mute are felt_ink mixed into the wing (casino.css)
+        for share in (0.36, 0.44):
+            tone = mix_hex(c["felt_ink"], c["wing"], share)
+            for s in ("wing", "wing2", "wing3", "surface2"):
+                assert contrast(tone, c[s]) >= 4.5, (t.id, share, s)
+
+
+def test_classic_stylesheets_are_the_classic_theme() -> None:
+    """Classic sets no variables: the phone's registered initial values must be classic's derived tokens."""
+    html = PHONE.read_text(encoding="utf-8")
+    props = dict(re.findall(r"@property (--[\w-]+)\{[^}]*initial-value:(#[0-9a-f]{6})\}", html))
+    m = re.search(r"const THEME_VARS = \{(.*?)\};", html, re.S)
+    assert m, "casino.html: THEME_VARS"
+    mapping = dict(re.findall(r'"(--[\w-]+)": "(\w+)"', m.group(1)))
+    css = CLASSIC.css
+    assert set(mapping.values()) >= set(DERIVED) | {
+        "felt",
+        "felt2",
+        "felt3",
+        "accent",
+        "accent_hi",
+        "accent_lo",
+        "ink",
+    }
+    assert set(mapping.values()) <= set(css)
+    for var, key in mapping.items():
+        if var in props:
+            assert props[var] == css[key], (var, key)
+        assert (
+            re.search(re.escape(var) + r":" + re.escape(css[key]) + r"[;\s]", html)
+            or var == "--gold-rgb"
+            or var in props
+        )
+
+
+def test_phone_page_follows_the_theme_everywhere() -> None:
+    html = PHONE.read_text(encoding="utf-8")
+    style = html[html.index("<style>") : html.index("</style>")]
+    rules = _css_rules(style, token_blocks=[r":root\{.*?\n\}"])
+    stray = [h for h in _warm_literals(rules) if h not in SEMANTIC_ALLOW]
+    assert not stray, f"hard-coded accent colours in casino.html (use the theme variables): {stray}"
+    for t in TABLE_THEMES.values():  # no theme's accent / felt literal, no accent rgba outside the tokens
+        for k in ("accent", "accent_hi", "accent_lo", "felt", "felt2", "felt3"):
+            assert t.css[k] not in rules.lower(), (t.id, k)
+    assert "rgba(255,204,51" not in rules and "rgba(13,107,69" not in rules and "--rose" not in html
+    # applied on every state push (not only on join), browser bar follows the felt, one inline script, no on*= handlers
+    assert "applyTheme(S.pub.table_theme)" in html[html.index("function onState") :][:400]
+    assert 'meta[name="theme-color"]' in html
+    assert html.count("<script") == 1
+    assert not re.search(r"<[^>]+\son[a-z]+=", html[: html.index("<script")])
+    assert "prefers-reduced-motion" in style
+
+
+def test_studio_casino_follows_the_theme_everywhere() -> None:
+    css = STUDIO_CSS.read_text(encoding="utf-8")
+    rules = _css_rules(css, token_blocks=[r"\.cz \{.*?\n\}", r"html\[data-cz\] \{.*?\n\}"])
+    rules = re.sub(
+        r"var\(--[\w-]+, #[0-9a-fA-F]+\)", "", rules
+    )  # var() fallbacks: the gold key outside the view
+    stray = [h for h in _warm_literals(rules) if h not in SEMANTIC_ALLOW]
+    assert not stray, f"hard-coded accent colours in casino.css: {stray}"
+    assert "--rose" not in css and "--tang" not in css
+    for tok in ("--color-ember:", "--color-chassis-2:", "--color-ink-3:", "--color-line:"):
+        assert css.count(tok) >= 2, tok  # remapped inside .cz and on the page (html[data-cz])
+    ts = STUDIO_TS.read_text(encoding="utf-8")
+    body = ts[ts.index("export function themeVars") :]
+    for k in CLASSIC.css:
+        assert f"c.{k}" in body, f"state.ts themeVars/pageVars: {k}"

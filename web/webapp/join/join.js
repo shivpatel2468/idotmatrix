@@ -5,7 +5,8 @@
  * runs the game: the engine lives in the host's browser tab. This page:
  *
  *   1. swaps one WebRTC offer/answer with that tab through /app/signal (non-trickle ICE, STUN only);
- *   2. asks the tab for /p/<code> over the data channel (does the room exist? a casino table or a game pad?);
+ *   2. asks the tab for /p/<code> over the data channel (does the room exist? a casino table or a game pad?) — or,
+ *      at /tv/<code>, for the TV view (docs/TV_VIEW.md: the `tv` page, its scripts in /app/join/tv/);
  *   3. installs fetch + WebSocket shims that send same-origin /p/, /api/ and /ws/ traffic over the data channel,
  *      then writes the phone controller page (the engine's controller.html / casino.html, built into
  *      /app/join/<kind>.html with its script moved to <kind>.js — the page's CSP allows no inline script) into this
@@ -23,6 +24,8 @@
   const SELF = document.currentScript ? new URL(document.currentScript.src) : new URL("/app/join/join.js", location.href);
   const VERSION = SELF.search; // ?v=<build>
   const code = (location.pathname.split("/").filter(Boolean).pop() || "").toUpperCase();
+  // /tv/<code>: a TV watching the host's panel (docs/TV_VIEW.md) — same link, the read-only TV page instead of a pad
+  const isTv = /^\/tv\//.test(location.pathname);
   const realFetch = window.fetch.bind(window);
   const RealWebSocket = window.WebSocket;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -67,6 +70,17 @@
     },
     "bad-code": { tone: "bad", title: "That link doesn't look right", text: "Scan the QR code on the panel again." },
   };
+  if (isTv) {
+    Object.assign(SCREENS, {
+      connecting: { tone: "busy", title: "Connecting to DeskDot…", text: "This screen is linking straight to the browser tab running DeskDot." },
+      reconnecting: { tone: "busy", title: "Reconnecting to DeskDot…", text: "The link dropped for a moment." },
+      loading: { tone: "busy", title: "Connected!", text: "Loading the TV view…" },
+      "no-room": { tone: "bad", title: "No TV link with this code", text: "Open Show on TV in DeskDot again, then use the new address.", button: "Try again" },
+      expired: { tone: "bad", title: "This TV link has closed", text: "Open Show on TV in DeskDot again, then use the new address.", button: "Try again" },
+      closed: { tone: "warn", title: "This TV link has closed", text: "Open Show on TV in DeskDot again, then use the new address.", button: "Try again" },
+      "bad-code": { tone: "bad", title: "That TV link doesn't look right", text: "Use the address Show on TV shows in DeskDot." },
+    });
+  }
 
   let ui = null;
   let gameWritten = false;
@@ -96,13 +110,13 @@
     const text = el("p");
     const tips = el("ul");
     const chip = el("div", "code");
-    chip.append(el("span", null, "Room"), el("b", null, code));
+    chip.append(el("span", null, isTv ? "TV" : "Room"), el("b", null, code));
     const step = el("div", "step");
     const button = el("button");
     button.type = "button";
     button.addEventListener("click", retry);
     const note = el("div", "note", "DeskDot · the game runs in the host's browser tab");
-    card.append(el("div", "brand", "DeskDot · play with friends"), dots, title, text, tips, chip, step, button, note);
+    card.append(el("div", "brand", isTv ? "DeskDot · TV view" : "DeskDot · play with friends"), dots, title, text, tips, chip, step, button, note);
     veil.appendChild(card);
     root.append(css, veil);
     (document.body || document.documentElement).appendChild(host);
@@ -445,12 +459,12 @@
     starting = true;
     try {
       show("loading");
-      const m = await tunnelRequest(`/p/${code}`, [["accept", "text/html"]]);
+      const m = await tunnelRequest(isTv ? `/tv/${code}` : `/p/${code}`, [["accept", "text/html"]]);
       if (m.s === 404) return show("expired");
       if (m.s !== 200) return show("server", `The host answered ${m.s}.`);
       // which phone page the engine serves for this room: a casino table or a game pad
       const html = m.b ? W.utf8(W.unb64(m.b)) : "";
-      const kind = html.includes("DeskDotCasino") ? "casino" : "controller";
+      const kind = isTv ? "tv" : html.includes("DeskDotCasino") ? "casino" : "controller";
       const r = await realFetch(`/app/join/${kind}.html${VERSION}`, { cache: "no-cache" });
       if (!r.ok) return show("server", `Couldn't load the controller (${r.status}).`);
       const page = await r.text();

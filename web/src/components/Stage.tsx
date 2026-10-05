@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, Gamepad2, Eraser, ImageUp, Paintbrush, PaintBucket, Pipette, Plus, SlidersHorizontal, Sparkles, Trash2, Type, X } from "lucide-react";
+import { Bell, ChevronDown, Gamepad2, Eraser, ImageUp, Paintbrush, PaintBucket, Pipette, Plus, SlidersHorizontal, Sparkles, Trash2, Tv, Type, X } from "lucide-react";
 import { api } from "../lib/api";
 import { EMPTY_MAP, appMeta, inspect, onFrame, toast, type Tool, useStore } from "../lib/store";
 import { randomTip } from "../lib/tips";
@@ -232,6 +232,7 @@ function CreateMenu() {
     [<ImageUp size={15} />, "Show a picture or GIF", "Or drop a file anywhere on the studio", () => file.current?.click()],
     [<Paintbrush size={15} />, "Draw on the panel", "Paint pixels right on the preview", () => api.activate("canvas")],
     [<Type size={15} />, "Write text", "Place and style text in Text Studio", () => api.activate("composer")],
+    [<Tv size={15} />, "Show on TV", "Any screen on your Wi-Fi shows the panel, big", () => set({ tvOpen: true })],
   ];
   return (
     <div className="relative">

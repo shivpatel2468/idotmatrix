@@ -256,8 +256,8 @@ class DigWorld(GameApp):
             want = c0 + (0, 3, -3, 6)[i % 4]
             self._init_miner(min(dry, key=lambda c, w=want: abs(c - w)) if dry else want)
             self._save(seat)
-        self._seat = self.seat_order[0]
-        self._load(self._seat)
+        self._cur_seat = self.seat_order[0]
+        self._load(self._cur_seat)
         self.cam_c = max(0, min(WW - VW, self.mc - VW // 2))
         self.cam_r = max(0, min(WH - VW, self.mr - 9))
         for m in self.miners.values():
@@ -296,7 +296,7 @@ class DigWorld(GameApp):
     def _load(self, seat: int) -> None:
         for a, v in self.miners[seat].items():
             setattr(self, a, v)
-        self._seat = seat
+        self._cur_seat = seat
 
     @property
     def multi(self) -> bool:
@@ -304,7 +304,7 @@ class DigWorld(GameApp):
 
     def _controlled(self, seat: int | None = None) -> bool:
         """Is this miner (default: the loaded one) driven by a person right now?"""
-        return self.is_human(self._seat if seat is None else seat)
+        return self.is_human(self._cur_seat if seat is None else seat)
 
     def _gen(self) -> None:
         rng = self.rng
@@ -531,13 +531,13 @@ class DigWorld(GameApp):
     def _award(self, n: int) -> None:
         """Points for the loaded miner. Co-op pools them; in Ore Rush the panel score is seat 1's own."""
         self.pts += n
-        if self.play_mode.id != "rush" or not self.multi or self._seat == 1:
+        if self.play_mode.id != "rush" or not self.multi or self._cur_seat == 1:
             self.score += n
 
     def _miner_at(self, c: int, r: int) -> bool:
         """Another miner (not the loaded one) stands in cell (c, r)."""
         for seat, m in self.miners.items():
-            if seat != self._seat and m["mc"] == c and r in (m["mr"], m["mr"] - 1):
+            if seat != self._cur_seat and m["mc"] == c and r in (m["mr"], m["mr"] - 1):
                 return True
         return False
 
@@ -551,7 +551,7 @@ class DigWorld(GameApp):
             self.aim = {"left": (-1, 0), "right": (1, 0), "up": (0, -1), "down": (0, 1)}[k]
 
     def key_p(self, k: str, player: int) -> None:
-        if player == self._seat:
+        if player == self._cur_seat:
             self.key(k)
             return
         m = self.miners.get(player)
@@ -844,7 +844,7 @@ class DigWorld(GameApp):
     # ------------------------------------------------------------- the fruit-fly pilot
     def pilot_anchor(self) -> tuple[float, float] | None:
         """The fruit-fly pilot's eye follows seat 1's miner (2 px blocks, feet on row `mr`)."""
-        if self._seat != 1:
+        if self._cur_seat != 1:
             m = self.miners.get(1)
             if m is None:
                 return None
@@ -855,7 +855,7 @@ class DigWorld(GameApp):
 
     def fly_lure(self) -> list[tuple[float, float, float]]:
         """Ore: the richest one in reach (dig towards it), else down and along to explore; home at dusk."""
-        if self._seat != 1 or self.down_t > 0:
+        if self._cur_seat != 1 or self.down_t > 0:
             return []
         c, r = self.mc, self.mr
 
@@ -1084,7 +1084,7 @@ class DigWorld(GameApp):
     def update(self, dt: float) -> None:
         length = float(self.settings.day_length)
         self.tod += dt / length
-        self._save(self._seat)
+        self._save(self._cur_seat)
         if self.tod >= 1.0:
             self.tod -= 1.0
             self.day += 1
@@ -1094,7 +1094,7 @@ class DigWorld(GameApp):
                     mm["down_t"], mm["hearts"] = 0.0, 1  # dawn gets everyone back up
                 else:
                     mm["hearts"] = min(top, mm["hearts"] + 1)
-            self._load(self._seat)
+            self._load(self._cur_seat)
             if self.multi:
                 if self.day >= int(self.settings.match_days):
                     self._match_end()
@@ -1107,7 +1107,7 @@ class DigWorld(GameApp):
         if self.multi and self.play_mode.id == "coop":
             self._revive_partners()
         if self.over:
-            self._load(self._seat)
+            self._load(self._cur_seat)
             return
         for seat in self.seat_order:
             self._load(seat)
@@ -1165,7 +1165,7 @@ class DigWorld(GameApp):
             self.idle = 0.0
 
     def _camera(self) -> None:
-        if self._seat != self.seat_order[0]:
+        if self._cur_seat != self.seat_order[0]:
             return  # the camera follows seat 1 (the host)
         c, r = self.mc, self.mr
         if c - self.cam_c < 3:
@@ -1209,7 +1209,7 @@ class DigWorld(GameApp):
         return "day" if t >= 0.02 else "dusk"
 
     def draw(self, f: Frame, now: float) -> None:
-        self._save(self._seat)
+        self._save(self._cur_seat)
         look = self._look()
         cc, cr = self.cam_c, self.cam_r
         lut = self._lut
@@ -1394,7 +1394,7 @@ class DigWorld(GameApp):
                 f.set(2, 5, (120, 80, 40))
         col = WHITE if self.flash else tint(self.theme.hud, 0.0)
         if self.multi and self.play_mode.id == "rush":
-            col = WHITE if self.flash else self.colour_of(self._seat)
+            col = WHITE if self.flash else self.colour_of(self._cur_seat)
         self.hud(f, str(self.score), color=col)
 
     def status(self) -> dict[str, Any]:

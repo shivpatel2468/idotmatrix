@@ -64,6 +64,7 @@ type Store = Prefs & {
   wizardOpen: boolean;
   notifyOpen: boolean;
   aiOpen: boolean;
+  tvOpen: boolean; // the "Show on TV" sheet (docs/TV_VIEW.md)
   playMode: boolean; // focused full-window game view
   lobby: LobbyInfo | null; // open multiplayer lobby (polled while Play mode is open)
   lanReady: boolean; // can phones on the Wi-Fi reach the engine?
@@ -95,6 +96,7 @@ export const useStore = create<Store>((set, get) => ({
   wizardOpen: false,
   notifyOpen: false,
   aiOpen: false,
+  tvOpen: false,
   playMode: false,
   lobby: null,
   lanReady: true,
