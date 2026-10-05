@@ -1,18 +1,24 @@
-/** The "idotmatrix" logo as LEDs: three neon tubes, "i", "dot" and "matrix", each its own colour, built dot by dot
- *  at the same time (the i drops in, "dot" types in, "matrix" rains down), then struck like real neon — a stutter of
- *  flashes as the gas catches — a steady hum, a power-down, and round again. Canvas 2D; cheap enough for the header. */
+/** The "DeskDot" logo as LEDs: three neon tubes, a drop-cap "D", "esk" and "Dot" ("Desk" rose, "Dot" gold),
+ *  built dot by dot at the same time (the D drops in, "esk" types in, "Dot" rains down), then struck
+ *  like real neon — a stutter of flashes as the gas catches — a steady hum, a power-down, and round again. Canvas 2D;
+ *  cheap enough for the header.
+ *
+ *  Plain-JS copies of this renderer live in the pages that can't import it (src/deskdot/tv/tv.js, casino.html,
+ *  controller.html, web/webapp/join/join.js, web/webapp/host.js — between `// <deskdot-logo>` markers).
+ *  tests/test_logo_copies.py fails if their glyphs, tubes, colours or timings drift from this file: change them
+ *  everywhere at once. */
 
-// 7-row lowercase pixel font (rows 0–1 ascenders, 2–6 x-height)
+// 7-row pixel font (rows 0–1 ascenders / cap height, 2–6 x-height)
 const GLYPHS: Record<string, string[]> = {
-  i: ["#", ".", "#", "#", "#", "#", "#"],
-  d: ["...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"],
+  D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
+  e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
+  s: ["....", "....", ".###", "#...", ".##.", "...#", "###."],
+  k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
   o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
   t: ["...", ".#.", "###", ".#.", ".#.", ".#.", "..#"],
-  m: [".....", ".....", "####.", "#.#.#", "#.#.#", "#.#.#", "#.#.#"],
-  a: ["....", "....", ".###", "...#", ".###", "#..#", ".###"],
-  r: ["....", "....", "#.##", "##..", "#...", "#...", "#..."],
-  x: [".....", ".....", "#...#", ".#.#.", "..#..", ".#.#.", "#...#"],
 };
+/** The word, as its three tubes. */
+const TUBES = ["D", "esk", "Dot"];
 export const ROWS = 7;
 
 export type Part = 0 | 1 | 2;
@@ -57,6 +63,8 @@ const DELAY = [0, 0.28, 0.12];
 
 /** A warm neon-sign palette: rose, tangerine, gold. */
 export const NEON: [string, string, string] = ["#ff3f78", "#ff7419", "#ffcc33"];
+/** The DeskDot wordmark's colours: two shades, "Desk" rose and "Dot" gold (the logo still builds in three parts). */
+export const LOGO: [string, string, string] = ["#ff3f78", "#ff3f78", "#ffcc33"];
 
 function strike(part: Part, t: number): number {
   if (t < 0) return 0;
@@ -105,11 +113,11 @@ export class NeonLogo {
   readonly parts: { from: number; to: number }[];
   private dots: Dot[];
   private glows: HTMLCanvasElement[];
-  private glitchLetter = 7; // the "r" of matrix: the tube that's a little loose
+  private glitchLetter = 5; // the "o" of Dot: the tube that's a little loose
   colors: string[];
 
-  constructor(colors: string[] = NEON, gap = 1) {
-    const l = layout(["i", "dot", "matrix"], gap);
+  constructor(colors: string[] = LOGO, gap = 1) {
+    const l = layout(TUBES, gap);
     this.dots = l.dots;
     this.cols = l.cols;
     this.parts = l.parts;
@@ -119,6 +127,20 @@ export class NeonLogo {
 
   cycle(tl: LogoTimeline) {
     return tl.build + 1.4 + tl.hold + tl.off;
+  }
+
+  /** Seconds until the picture changes again (0 = it is moving now: build, strike, the loose letter's blink,
+   *  power-down). While lit it only wakes for the blink, so a caller can idle instead of redrawing every frame. */
+  wake(t: number, tl: LogoTimeline) {
+    const total = this.cycle(tl);
+    const lt = Number.isFinite(total) ? t % total : t;
+    const igniteAt = tl.build + 0.15;
+    const offAt = tl.build + 1.4 + tl.hold;
+    const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...([0, 1, 2] as Part[]).map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
+    if (lt < litAt || lt >= offAt) return 0;
+    const g = (lt * 0.37) % 1;
+    if (g > 0.61 && g < 0.68) return 0;
+    return Math.min(((1.61 - g) % 1) / 0.37, offAt - lt);
   }
 
   /**
@@ -150,7 +172,7 @@ export class NeonLogo {
       // tube level: struck, humming, glitching, dying
       let level = strike(part, lt - igniteAt - DELAY[part]);
       const lit = lt > igniteAt + DELAY[part] + strikeLen(part);
-      if (lit) level = 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
+      if (lit) level = opts.still ? 1 : 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
       let dying = 0;
       if (lt > offAt) {
         dying = Math.min(1, (lt - offAt) / tl.off);
@@ -166,7 +188,7 @@ export class NeonLogo {
 
       for (const d of this.dots) {
         if (d.part !== part) continue;
-        // ---- assemble: the "i" drops in, "dot" types in from the left (pop), "matrix" rains down (bounce)
+        // ---- assemble: the "D" drops in, "esk" types in from the left (pop), "Dot" rains down (bounce)
         let x = d.x;
         let y = d.y;
         let k: number;
@@ -186,7 +208,7 @@ export class NeonLogo {
           y = d.y - (1 - bounce(k)) * (6 + d.y);
         }
         if (k <= 0) continue;
-        // ---- power-down scatter: "i" and "dot" sweep out to the right, "matrix" falls away
+        // ---- power-down scatter: "D" and "esk" sweep out to the right, "Dot" falls away
         let fade = 1;
         if (dying > 0.35) {
           const q = Math.min(1, Math.max(0, (dying - 0.35) / 0.65 - (part === 2 ? d.seed * 0.3 : d.col * 0.4)));
@@ -197,7 +219,7 @@ export class NeonLogo {
         }
         // the loose tube: one letter blinks out for a beat now and then
         let lv = level;
-        if (lit && dying === 0 && d.letter === this.glitchLetter) {
+        if (lit && !opts.still && dying === 0 && d.letter === this.glitchLetter) {
           const g = (lt * 0.37) % 1;
           if (g > 0.62 && g < 0.645) lv *= 0.1;
           else if (g > 0.66 && g < 0.672) lv *= 0.3;

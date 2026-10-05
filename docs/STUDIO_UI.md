@@ -190,8 +190,12 @@ colour → *Intro & outro* (`INTRO_THEMES` in `lib/intro.ts` drives that list); 
 Rules for a theme (a class with `left`, `open`, `idle`, `resize()`, `slide(0 | 1)`, `frame(dt)` and optionally
 `arm()`, called when the engine is in — Coin Gate drops its coin only then):
 - Canvas 2D, `devicePixelRatio` capped at 1.5, static layers pre-rendered per size; a frame only draws what moves.
-- The logo is `NeonLogo` (`lib/logo.ts`). Its pitch on phones (`w < 640`) is computed from the width so the sign
-  (and its frame) is never wider than the screen; a gap between LED columns falls exactly on the split.
+- The logo is `NeonLogo` (`lib/logo.ts`): "DeskDot" in three tubes ("D", "esk", "Dot"), two shades (`LOGO`: rose
+  "Desk", gold "Dot"; the 3-colour `NEON` palette is for scenery). Its pitch on phones (`w < 640`) is computed from
+  the width so the sign (and its frame) is never wider than the screen; a gap between LED columns falls exactly on
+  the split. Pages that can't import it (TV view, phone controller / casino, web-app join and landing cards) carry a
+  plain-JS copy between `// <deskdot-logo>` markers; `tests/test_logo_copies.py` keeps every copy identical. Outside
+  the intros the logo redraws only while it moves (`NeonLogo.wake()`), idles while lit and stops in hidden tabs.
 - Flashes stay tasteful: `flare` is a short lift of the tubes and their cores — never a bigger or brighter additive
   halo (the halos overlap neighbouring dots and wash the logo into one blur). Keep any light behind the logo modest.
 - `prefers-reduced-motion`: Coin Gate skips the flight, the shake and the blur and fades the gate instead of sliding.

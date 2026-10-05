@@ -2,7 +2,7 @@ import { type LogoTimeline, NEON, NeonLogo } from "../../lib/logo";
 import { sfx } from "../../lib/sound";
 import type { DoorPose } from "./sunset";
 
-/** Intro theme "Circuit". One sealed LED-matrix face covers the screen — no seam while shut. The idotmatrix logo
+/** Intro theme "Circuit". One sealed LED-matrix face covers the screen — no seam while shut. The DeskDot logo
  *  builds and strikes in the middle. To open: a power surge lights every LED in a ring from the logo outwards, a
  *  crack of light splits the face down the middle, and the two halves slide apart 50/50 (tilting back a little in
  *  3D), light pouring through. Closing plays it backwards and the crack heals once the halves meet.

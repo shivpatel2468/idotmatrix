@@ -13,11 +13,11 @@ import { Dices } from "lucide-react";
 import { enterCasino, useCasinoApp } from "./casino/state";
 import { playCoinDrop } from "./CoinDrop";
 
-/** The idotmatrix logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
+/** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
-    <div className="flex shrink-0 justify-center" title="idotmatrix · DeskDot studio">
+    <div className="flex shrink-0 justify-center" title="DeskDot studio">
       <NeonMark pitch={phone ? 2.6 : 3.8} />
     </div>
   );

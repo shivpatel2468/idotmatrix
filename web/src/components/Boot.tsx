@@ -27,7 +27,7 @@ const isDoors = (t: IntroTheme) => t === "sunset" || t === "circuit" || t === "c
 
 /**
  * Intro / outro, in the theme picked in Settings → Display (lib/intro.ts):
- * - Sunset / Circuit: a sealed scene covers the studio while it connects; the idotmatrix logo builds and strikes;
+ * - Sunset / Circuit: a sealed scene covers the studio while it connects; the DeskDot logo builds and strikes;
  *   when the engine, the app catalogue and the first state are in, the scene splits and the halves glide apart 50/50.
  * - Coin Gate: an arcade cabinet; a silver coin drops in, CREDIT 1, and the heavy toothed gate grinds open. It draws
  *   both gate halves itself on one canvas (no CSS doors) and waits for the engine before the coin drops.

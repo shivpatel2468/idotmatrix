@@ -4,7 +4,7 @@ import { sfx } from "../../lib/sound";
 import type { DoorPose } from "./sunset";
 
 /** Intro theme "Coin Gate": an arcade cabinet front. The whole screen is a heavy brushed-steel gate split down the
- *  middle by interlocking teeth; the idotmatrix neon sign glows in a backlit marquee at the top and a coin door sits
+ *  middle by interlocking teeth; the DeskDot neon sign glows in a backlit marquee at the top and a coin door sits
  *  below it — a blinking INSERT COIN display, a backlit coin slot (on the seam), a service lock, a coin-return
  *  button, a CREDIT counter and a ring of chase bulbs.
  *
