@@ -462,3 +462,28 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-steps b, .cz-rules b { color: var(--gold-2); font-weight: 650; }
 .cz-tabs > button { min-width: 0; }
 .cz-tabs:has(> button:nth-child(5)) > button { letter-spacing: 0.02em; padding: 0 3px; }
+
+/* the play-money / 18+ gate (AgeGate.tsx): a felt card with a gold chip, one gold key and a quiet way out */
+.cz-gate { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 30%, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85)); backdrop-filter: blur(6px); overflow-y: auto; animation: cz-gate-in 0.35s var(--ease-snap, ease) both; }
+.cz-gate-card { width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 28px 24px 20px; border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, var(--felt-hi, #1d7a50) 0%, var(--felt, #0d5134) 45%, var(--felt-deep, #062a1c) 100%);
+  border: 1px solid rgba(var(--gold-rgb, 255, 204, 51), 0.55);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 6px rgba(0, 0, 0, 0.25); }
+.cz-gate-chip { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; margin-top: -2px;
+  background: repeating-conic-gradient(var(--gold, #ffcc33) 0 15deg, #fff3cc 15deg 30deg); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 30px -6px rgba(var(--gold-rgb, 255, 204, 51), 0.8); }
+.cz-gate-chip span { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #2a1d05, #120c02);
+  border: 2px solid var(--gold, #ffcc33); color: var(--gold, #ffcc33); font: 900 19px/1 var(--font-mono, monospace); letter-spacing: -0.02em; }
+.cz-gate-card h2 { margin: 0; font: 800 21px/1.2 var(--font-display, sans-serif); color: #fff7dc; letter-spacing: -0.01em; }
+.cz-gate-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; text-align: left; }
+.cz-gate-points li { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); font-size: 13px; color: #e8efe9; }
+.cz-gate-points .ok { color: #7ff0bd; font-weight: 900; } .cz-gate-points .no { color: #ff8aa5; font-weight: 900; }
+.cz-gate-text { margin: 0; font-size: 11.5px; line-height: 1.55; color: rgba(232, 239, 233, 0.62); text-align: left; }
+.cz-gate-text b { color: #fff7dc; }
+.cz-gate-yes { width: 100%; height: 3.1rem !important; font-size: 12.5px !important; border-radius: 14px !important; }
+.cz-gate-no { min-height: 44px; padding: 0 16px; border-radius: 12px; background: transparent; border: 0; color: rgba(232, 239, 233, 0.7); font-size: 13px; font-weight: 600; cursor: pointer; }
+.cz-gate-no:hover, .cz-gate-no:focus-visible { color: #fff; background: rgba(0, 0, 0, 0.25); }
+.cz-gate-links { margin: 0; font-size: 11.5px; color: rgba(232, 239, 233, 0.5); }
+.cz-gate-links a { color: inherit; text-decoration: underline; }
+@keyframes cz-gate-in { from { opacity: 0; transform: scale(0.97); } }
+@media (prefers-reduced-motion: reduce) { .cz-gate { animation: none; } }

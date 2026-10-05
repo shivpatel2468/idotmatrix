@@ -248,9 +248,19 @@ canvas.av{display:block;image-rendering:pixelated}
 .endcard{max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .hud .pm{grid-column:1/-1;margin:-2px 0 0;font:700 10.5px/1.2 var(--mono);letter-spacing:.04em;color:var(--dim);text-align:center}
 .gate{position:absolute;inset:0;z-index:95;display:grid;place-items:center;padding:calc(var(--st) + 20px) 20px calc(var(--sb) + 20px);background:rgba(7,11,9,.97);overflow-y:auto}
-.gatecard{max-width:400px;display:flex;flex-direction:column;gap:14px}
-.gatecard h2{margin:0;font:900 22px/1.15 var(--disp);color:var(--gold)}.gatecard p{margin:0;color:var(--ink);font-size:14px;line-height:1.5}
-.gatecard .gate-b{display:flex;flex-direction:column;gap:10px}.gatecard .gate-b .pill{width:100%}
+.gatecard{width:min(420px,100%);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:26px 20px 18px;border-radius:22px;background:radial-gradient(ellipse at 50% 0%,var(--felt) 0%,var(--felt2) 45%,var(--felt3) 100%);border:1px solid rgba(var(--gold-rgb),.55);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08)}
+.gatecard h2{margin:0;font:900 21px/1.2 var(--disp);color:#fff7dc}.gatecard p{margin:0;color:var(--ink);font-size:14px;line-height:1.5}
+.gate-chip{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:repeating-conic-gradient(var(--gold) 0 15deg,#fff3cc 15deg 30deg);box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 30px -6px rgba(var(--gold-rgb),.8)}
+.gate-chip span{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#2a1d05,#120c02);border:2px solid var(--gold);color:var(--gold);font:900 18px/1 var(--mono)}
+.gate-pts{list-style:none;margin:0;padding:0;display:grid;gap:6px;width:100%;text-align:left}
+.gate-pts li{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13.5px}
+.gate-pts .y{color:var(--ok);font-weight:900}.gate-pts .n{color:var(--bad);font-weight:900}
+.gatecard p.gate-x{font-size:11.5px;line-height:1.55;color:rgba(243,239,228,.62);text-align:left}.gatecard p.gate-x b{color:#fff7dc}
+.gatecard .gate-b{display:flex;flex-direction:column;gap:6px;width:100%}
+.gate-yes{width:100%;min-height:52px;border-radius:14px;border:1px solid #ffe7a3;font:900 13px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,var(--gold2));box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 var(--gold-deep),0 0 26px -8px rgba(var(--gold-rgb),.85)}
+.gate-yes:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 1px 0 var(--gold-deep)}
+.gate-no{min-height:44px;border-radius:12px;background:transparent;border:0;color:rgba(243,239,228,.72);font-weight:700;font-size:13.5px}
+.gate-no:active{background:rgba(0,0,0,.25)}
 .gatecard .gate-l{color:var(--dim);font-size:12px}.gatecard .gate-l a{color:inherit;text-decoration:underline}
 .pill:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .endcard h2{margin:0;font:900 26px/1.1 var(--disp)}.endcard p{margin:0;color:var(--dim)}
@@ -715,13 +725,15 @@ html,body,.board,.dock{touch-action:manipulation}
 </aside>
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-t" hidden><div>
   <div class="gatecard" id="gate-ask">
+    <div class="gate-chip" aria-hidden="true"><span>18+</span></div>
     <h2 id="gate-t">Play-money casino · 18+ only</h2>
-    <p>These casino games use play credits only. Credits are free and have <b>no cash value</b>. They can't be bought, sold,
+    <ul class="gate-pts"><li><span class="y">✓</span>Free play chips, set by the host</li><li><span class="n">✕</span>No cash value · no prizes · no buying or cashing out</li><li><span class="y">✓</span>For fun only, 18 and over</li></ul>
+    <p class="gate-x">These casino games use play credits only. Credits are free and have <b>no cash value</b>. They can't be bought, sold,
     transferred, won as prizes or exchanged for anything, and that includes settling up between friends. Playing for real
     money, or paying out credits in cash afterwards, is gambling and may be illegal where you live. In India, real-money
     online games are banned under the Promotion and Regulation of Online Gaming Act, 2025. By continuing you confirm you
     are <b>18 or older</b> and will play only for fun.</p>
-    <div class="gate-b"><button class="pill hot" id="gate-yes">I'm 18+ · play for fun</button><button class="pill" id="gate-no">Leave the casino</button></div>
+    <div class="gate-b"><button class="gate-yes" id="gate-yes">I'm 18+ · play for fun</button><button class="gate-no" id="gate-no">Leave the casino</button></div>
     <p class="gate-l"><a href="https://idotmatrix.com/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="https://idotmatrix.com/terms.html" target="_blank" rel="noopener">Terms</a></p>
   </div>
   <div class="gatecard" id="gate-left" hidden>
