@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { AlertTriangle, Bluetooth, Search, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { api, loadPresets } from "../lib/api";
 import { type SettingsSection, type SettingsTab, toast, useStore } from "../lib/store";
 import type { EngineState, Handoff } from "../lib/types";
@@ -11,6 +11,7 @@ import { Row, Slider, Toggle } from "./controls";
 import { IntegrationsTab } from "./IntegrationsTab";
 import { Icon } from "./Icon";
 import { Modal } from "./Overlays";
+import { SFX_NAMES, SOUND_CATEGORIES, type SfxName, getSound, onSound, setSound, sfx, sfxCategory } from "../lib/sound";
 import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
 
 type St = EngineState;
@@ -20,7 +21,7 @@ type St = EngineState;
  * links (the old tab ids) and the search box scroll straight to it.
  */
 const SECTIONS: [SettingsSection, string, string, string][] = [
-  ["display", "Display & colour", "monitor", "Brightness, night mode, colours, smooth motion"],
+  ["display", "Display & colour", "monitor", "Brightness, night mode, studio sounds, colours, smooth motion"],
   ["alerts", "Notifications & integrations", "bell-ring", "Computer alerts, On Air, eye breaks, phone pushes, smart home"],
   ["playlist", "Playlist & hand-off", "list-music", "Transitions, presets, following your apps, running without the computer"],
   ["device", "Device", "bluetooth", "Connection, location, sound input, data sources"],
@@ -38,6 +39,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Brightness", "dim bright level", "display-basics"],
   ["Night mode", "dim overnight schedule sleep dark", "display-basics"],
   ["Rotate 180°", "flip upside down mount", "display-basics"],
+  ["Studio sounds", "sound effects sfx audio volume mute quiet clicks casino chips fly buzz", "sound"],
   ["Colour calibration", "color white gamma saturation black wizard tint match screen video test", "calibrate"],
   ["Colour presets", "preset sony lg samsung macbook apple dell benq srgb rec709 warm night claude quick match", "calibrate"],
   ["Advanced colour", "contrast temperature kelvin per-channel gamma gains dither peak level preview match", "calibrate"],
@@ -63,7 +65,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Link statistics", "frames sent dropped telemetry latency", "sources"],
 ];
 const INDEX_SECTION: Record<string, SettingsSection> = {
-  "display-basics": "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
+  "display-basics": "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
   homeassistant: "alerts", transitions: "playlist", presets: "playlist", sources: "device",
 };
 const sectionOf = (block: string): SettingsSection => BLOCK_SECTION[block as SettingsTab] ?? INDEX_SECTION[block] ?? "display";
@@ -122,6 +124,50 @@ function DisplayBasics({ st }: { st: St }) {
         )}
         <Row label="Rotate 180°" hint="If the panel is mounted upside down.">
           <Toggle on={s.flip} label="Rotate 180°" onChange={(v) => api.settings({ flip: v })} />
+        </Row>
+      </div>
+    </Block>
+  );
+}
+
+// ------------------------------------------------------------------- sound
+/** The studio's own sound effects (lib/sound.ts; per browser). Not the panel's sound input — that's in Device. */
+function SoundBlock() {
+  const p = useSyncExternalStore(onSound, getSound);
+  const [pick, setPick] = useState<SfxName>("coin-insert");
+  const test = () => {
+    // one effect from each category that's switched on, a beat apart
+    const demo: SfxName[] = (["click", "chip", "coin-insert", "score"] as SfxName[]).filter((n) => p.cats[sfxCategory(n)]);
+    demo.forEach((n, i) => setTimeout(() => sfx(n), i * 420));
+  };
+  return (
+    <Block id="sound" title="Sound" icon="volume-2"
+      hint="Little sounds in the studio — keys, sheets, the casino table, games, the fly. All made live in the browser; nothing is downloaded.">
+      <div className="divide-y divide-line">
+        <Row label="Studio sounds" hint={p.on ? undefined : "Muted."}>
+          <Toggle on={p.on} label="Studio sounds" onChange={(v) => setSound({ on: v })} />
+        </Row>
+        <Row label="Volume">
+          <fieldset disabled={!p.on} className={clsx("flex items-center gap-2", !p.on && "opacity-50")}>
+            <Slider value={Math.round(p.volume * 100)} min={0} max={100} unit="%" onCommit={(v) => { setSound({ volume: v / 100 }); sfx("click"); }} />
+          </fieldset>
+        </Row>
+        {SOUND_CATEGORIES.map(([id, label, hint]) => (
+          <Row key={id} label={label} hint={hint}>
+            <fieldset disabled={!p.on} className={p.on ? undefined : "opacity-50"}>
+              <Toggle on={p.cats[id]} label={label} onChange={(v) => setSound({ cats: { ...p.cats, [id]: v } })} />
+            </fieldset>
+          </Row>
+        ))}
+        <Row label="Quiet when the tab is in the background">
+          <Toggle on={p.hiddenMute} label="Quiet when the tab is in the background" onChange={(v) => setSound({ hiddenMute: v })} />
+        </Row>
+        <Row label="Try them" hint="Test plays one effect from each category that is on; or pick any effect and press play.">
+          <button className="key" disabled={!p.on} onClick={test} data-sfx="off"><Icon name="volume-2" size={13} /> Test</button>
+          <select className="field !h-8 !w-40" value={pick} aria-label="Effect" onChange={(e) => setPick(e.target.value as SfxName)}>
+            {SFX_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <button className="key key-icon" disabled={!p.on} aria-label={`Play ${pick}`} title="Play it" onClick={() => sfx(pick)} data-sfx="off"><Icon name="play" size={12} /></button>
         </Row>
       </div>
     </Block>
@@ -405,6 +451,7 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
     return (
       <div className="space-y-4">
         <DisplayBasics st={st} />
+        <SoundBlock />
         <Block id="intro" title="Intro & outro" icon="clapperboard"
           hint="What plays while the studio connects, and when the engine stops. OG is the original LED fly-in.">
           <IntroThemePicker />

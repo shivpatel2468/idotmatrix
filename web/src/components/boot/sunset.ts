@@ -1,4 +1,5 @@
 import { type LogoTimeline, NEON, NeonLogo } from "../../lib/logo";
+import { sfx } from "../../lib/sound";
 
 /** The intro / outro: a warm retro-synthwave sunset with a lo-fi finish. A plum-to-ember sky with twinkling
  *  stars, a striped retro sun breathing on the horizon, soft mountain silhouettes, a neon perspective grid gliding
@@ -129,6 +130,7 @@ export class SunsetDoors {
   private flare = 0;
   private grainPattern: CanvasPattern | null = null;
   private sunC: HTMLCanvasElement | null = null;
+  private logoT = 0; // the logo's clock last frame (to buzz once as the tubes strike)
 
   constructor(readonly left: HTMLCanvasElement, readonly right: HTMLCanvasElement, startOpen = false) {
     if (startOpen) {
@@ -174,9 +176,10 @@ export class SunsetDoors {
     const cy = hy - r * 0.18;
     // halo
     o.globalCompositeOperation = "lighter";
-    const halo = o.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * (2.4 + glow));
-    halo.addColorStop(0, `rgba(255,140,46,${0.35 + glow * 0.4})`);
-    halo.addColorStop(0.5, `rgba(255,79,123,${0.12 + glow * 0.2})`);
+    // the flare only warms the halo a little: a big additive bloom here washes out the sky and the sign above it
+    const halo = o.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * (2.4 + glow * 0.3));
+    halo.addColorStop(0, `rgba(255,140,46,${0.35 + glow * 0.12})`);
+    halo.addColorStop(0.5, `rgba(255,79,123,${0.12 + glow * 0.06})`);
     halo.addColorStop(1, "rgba(0,0,0,0)");
     o.fillStyle = halo;
     o.fillRect(cx - r * 3.5, cy - r * 3.5, r * 7, r * 7);
@@ -237,7 +240,7 @@ export class SunsetDoors {
     for (let k = 0; k < 14; k++) {
       const z = (k + ((now * speed) % 1)) / 14; // 0 at the horizon → 1 at the viewer
       const y = hy + (h - hy) * z * z;
-      const a = Math.min(1, z * 1.6) * (0.55 + glow * 0.4);
+      const a = Math.min(1, z * 1.6) * (0.55 + glow * 0.25);
       o.strokeStyle = `rgba(255,140,46,${a})`;
       o.lineWidth = 0.8 + z * 1.6;
       o.beginPath();
@@ -268,6 +271,7 @@ export class SunsetDoors {
       this.t = Math.min(1, this.t + dt / (this.dir ? OPEN_S : CLOSE_S));
       const k = this.t;
       if (this.dir === 1) {
+        if (before === 0) sfx("door-open");
         // 0–.3 the sun flares and the horizon streak runs out; .22–.4 the crack; .34–1 the glide
         this.flare = Math.max(this.flare, Math.sin(Math.min(1, k / 0.3) * Math.PI));
         this.streak = Math.min(1, k / 0.3);
@@ -277,7 +281,10 @@ export class SunsetDoors {
         this.streak = 0;
         this.open = 1 - easeOut(Math.min(1, k / 0.82));
         this.crack = k < 0.82 ? 1 : 1 - (k - 0.82) / 0.18; // sealed: the crack heals
-        if (k >= 0.82 && before < 0.82) this.flare = 0.8; // the soft thud of the seal
+        if (k >= 0.82 && before < 0.82) {
+          this.flare = 0.6; // the soft thud of the seal
+          sfx("door-close");
+        }
       }
     }
     this.flare = Math.max(0, this.flare - dt * 1.2);
@@ -321,7 +328,10 @@ export class SunsetDoors {
     plate.addColorStop(1, "rgba(8,3,12,0)");
     o.fillStyle = plate;
     o.fillRect(0, 0, w, h);
-    this.logo.draw(o, (performance.now() - this.t0) / 1000, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare * 0.8 });
+    const lt = (performance.now() - this.t0) / 1000;
+    if (this.logoT < BOOT_LOGO.build + 0.15 && lt >= BOOT_LOGO.build + 0.15) sfx("logo-buzz");
+    this.logoT = lt;
+    this.logo.draw(o, lt, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare * 0.6 });
     // the crack of light down the middle (only while splitting or healing)
     if (this.crack > 0.01) {
       o.globalCompositeOperation = "lighter";

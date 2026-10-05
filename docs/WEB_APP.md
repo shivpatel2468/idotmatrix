@@ -197,7 +197,7 @@ Legend: ✅ works · 🟡 works with a limit · ❌ not available.
 
 | Apps | Browser | Needs / why |
 | --- | --- | --- |
-| Games: Snake, Asteroids, Breakout, Light Cycles, Dig World, Dino Runner, Flappy, Four Up, 2048, Infinity, Invaders, Leaf Leap, Maze Chase, Mines, Neon Heat, Pong, Racer, Rock Paper Scissors, Starship, Street Surge, Tetris, X and 0, Player Card, 3D Dungeon Raycaster, 3D Wireframe | ✅ | nothing but the engine (numpy). Multiplayer: phones join over WebRTC (see "Play with friends") |
+| Games: Snake, Asteroids, Breakout, Light Cycles, Dig World, Dino Runner, Flappy, Four Up, 2048, Infinity, Invaders, Leaf Leap, Maze Chase, Mines, Neon Heat, Penguin Escape, Pong, Racer, Rock Paper Scissors, Starship, Street Surge, Tetris, X and 0, Player Card, 3D Dungeon Raycaster, 3D Wireframe | ✅ | nothing but the engine (numpy). Multiplayer: phones join over WebRTC (see "Play with friends") |
 | Casino: Roulette, 7 Up 7 Down, Blackjack, Baccarat, Slots, Texas Hold'em, Teen Patti, Andar Bahar, Big Six | ✅ | same |
 | Clock, Countdown, Focus Timer, Five O'Clock Somewhere, Progress, Habits, Focus Companion | ✅ | time zones from Pyodide's `tzdata` package |
 | Claude Mascot, Ambient, Flocking Boids, Neuromorphic Cortex, Fly Brain, Emotes, Loops, Pixabots, QR Code, Falling Sand, Synthwave Horizon, Text, Canvas, Firmware Modes | ✅ | baked clips / native modes; clip bakes take ~0.1–0.4 s in WebAssembly |

@@ -113,6 +113,7 @@ it is costly, so `render()` stays fast.
 | 2048 | the board's middle | the edge of the best slide (one-ply tidiness + merges) | arrows |
 | X and 0 | the cursor | X's best cell (minimax for the variant) | arrows, feeding reflex = place |
 | Four Up | the hover disc | the best column (shallow negamax), then straight down into the slot (or up to pop) | left/right, down = drop |
+| Penguin Escape | the penguin | the next move of the BFS solution (one tile that way), faintly the exit gate | arrows only (undo / restart stay with people) |
 | Mines | the cursor | the nearest cell the solver knows is safe (mines it found are avoided, never flagged) | arrows, feeding reflex = open |
 
 A real key press always takes the game straight back from the fly; the studio's Fly button (top bar, Play mode,

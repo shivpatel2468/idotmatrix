@@ -149,3 +149,41 @@ def test_page_strips_match_the_engine() -> None:
     for game in ("blackjack", "baccarat", "slots"):
         assert f'registerGame("{game}"' in page
     _ = fair  # the page's Rng is the one pinned in tests/test_casino.py
+
+
+HELPERS = (
+    HARNESS.split("const api")[0]
+    + r"""
+const api = new Function(src + "\n;return { S, whoHtml, reconcileUndo, stackShadow, tourSteps, SFX };")();
+const S = api.S;
+S.seat = 3;
+S.pub = { totals: { red: 30, "n:17": 5 }, spot_bets: { red: [{ seat: "host", name: "HOST", color: "#00c8ff", amount: 10 }, { seat: 3, name: "ME", color: "#ff3c5a", amount: 20 }] } };
+S.priv = { bets: { red: 20 } };
+S.undo = [{ spot: "red", amount: 25 }, { spot: "red", amount: 5 }, { spot: "n:17", amount: 5 }];
+api.reconcileUndo();
+process.stdout.write(JSON.stringify({ who: api.whoHtml("red"), none: api.whoHtml("black"), undo: S.undo,
+  tall: api.stackShadow(600).split("),").length, flat: api.stackShadow(1).split("),").length, steps: api.tourSteps().length, muted: api.SFX.muted }));
+"""
+)
+
+
+def test_page_core_helpers(tmp_path: Path) -> None:
+    """who-dots come from status.spot_bets (everyone's colour, me ringed, the spot total); the undo stack is trimmed
+    to the chips really on the table; stacks grow with the amount; the tour has its steps; sound starts on."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    h = tmp_path / "helpers.js"
+    h.write_text(HELPERS, encoding="utf-8")
+    r = subprocess.run([node, str(h), str(PAGE)], capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    out = json.loads(r.stdout)
+    assert (
+        out["who"].count("<i ") == 2
+        and "#00c8ff" in out["who"]
+        and 'class="me"' in out["who"]
+        and ">30<" in out["who"]
+    )
+    assert out["none"] == ""
+    assert out["undo"] == [{"spot": "red", "amount": 15}, {"spot": "red", "amount": 5}]
+    assert out["tall"] > out["flat"] and out["steps"] >= 8 and out["muted"] is False

@@ -25,6 +25,7 @@ from . import (
     casino_bigsix,
     casino_blackjack,
     casino_holdem,
+    casino_housie,
     casino_roulette,
     casino_sevens,
     casino_slots,
@@ -173,6 +174,7 @@ BUILTIN = (
     casino_baccarat,
     casino_blackjack,
     casino_slots,
+    casino_housie,
 )
 
 

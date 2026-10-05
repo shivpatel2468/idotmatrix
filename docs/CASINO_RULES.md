@@ -211,12 +211,13 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
 3. Tap **ANDAR** (inside) or **BAHAR** (outside). You can also bet on how many cards it takes.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
-5. At the lock the joker is turned up. Cards are dealt to Andar and Bahar in turn until one matches the joker's rank — that side wins.
+5. At the lock the joker is turned up. Cards are dealt to Andar and Bahar in turn until one matches the joker's **value — any suit** (a 7♥ joker is matched by any 7) — that side wins.
 
 ### The deal
 
 - One 52-card deck is shuffled; the top card is the **joker** (the game card).
 - Cards are dealt one at a time, alternately, starting with **Andar** (the host may start with Bahar), until a card of the joker's rank appears. The side it lands on wins.
+- A match is by **value only — the suit never matters**: with a 7♥ joker the first 7♠, 7♦ or 7♣ wins (and K matches K, A matches A). That is the standard Andar Bahar rule: 3 of the 51 cards left can end the game.
 
 ### Payouts
 
@@ -404,6 +405,53 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 - Every turn has a timer. When it runs out the game makes the safe move for you.
 - Players who can't cover the big blind (Hold'em) or the boot (Teen Patti) sit out until the host tops them up.
 - If the host closes the table mid-hand, the hand is void and every chip goes back to its owner.
+
+### Provably fair
+
+- Before betting opens the panel seals the round: it publishes the SHA-256 hash of a secret server seed.
+- Your phone's own seed is mixed in when betting closes, so nobody — not even the host — can pick the result. The house never looks at bets, balances or history.
+- After the round the seed is revealed. Tap your avatar → **Verify on this phone** to recompute the result yourself.
+
+## Housie
+
+*Tambola, the Indian way: buy tickets, the caller draws 1–90 — first to complete a pattern wins.*
+
+**How to play**
+
+1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
+2. Buy **1 or more tickets** with the **+ / −** stepper (the host sets the price and the limit); the first ticket sold starts the buy-in clock. Tap **I'm ready** when you're done.
+3. When the calling starts your tickets appear on your phone. The caller draws a number every few seconds; the panel shows it big, your phone **daubs** it on your tickets (turn auto-daub off to mark by hand).
+4. Complete a pattern — **Early Five**, a **line**, the **Four Corners** or the **Full House** — and tap its glowing **Claim** button before the next number is called.
+5. The server checks your ticket against the numbers called. A Full House ends the game; the prizes are paid from the pot.
+
+### Tickets
+
+- A ticket is a 3 × 9 grid with **15 numbers, 5 in every row**. Column 1 holds 1–9, column 2 10–19 … column 9 holds 80–90; each column has 1–3 numbers, smallest at the top.
+- Tickets are sold only during the buy-in. Once the calling starts nobody can buy, sell or swap a ticket.
+- Every ticket and the whole order of the 90 calls come from the sealed round (see Provably fair) — the host can't pick them.
+
+### Prizes
+
+- **Early Five**: the first ticket with any 5 numbers called.
+- **Top Line**, **Middle Line**, **Bottom Line**: all 5 numbers of that row.
+- **Four Corners**: the first and last numbers of the top and bottom rows.
+- **Full House**: all 15 numbers. It ends the game.
+- The host can switch any prize off. The game also ends once every prize is won, or after all 90 numbers.
+
+### Claims
+
+- Tap **Claim** for a prize: the server checks that ticket against the numbers called so far.
+- A false claim is a **bogey**: it is rejected. The host may add a penalty — that ticket can't win that prize any more, or the ticket is out of the game.
+- Claims made on the **same call** (before the next number) share the prize, split per winning ticket. After the next number is called the prize is closed.
+- The host can switch on **auto-claim**: the server claims for everyone the moment a pattern completes.
+
+### Payouts
+
+- Players play for the pot: every ticket sold goes in. The house keeps only the **rake** the host sets (0 % by default).
+- The rest is the prize pool, split by the prize shares (host option; default: Early Five **10 %**, Top Line **15 %**, Middle Line **15 %**, Bottom Line **15 %**, Four Corners **10 %**, Full House **35 %**).
+- Shares are of the enabled prizes; credits are rounded down and the odd credits go to the Full House.
+- A prize nobody claims is shared back to every ticket holder in proportion to their tickets.
+- If the host closes the table before the game is decided, every ticket is refunded.
 
 ### Provably fair
 

@@ -486,6 +486,8 @@ class CasinoApp(App):
             return self.host_view(bool(payload.get("spots")))
         if player == "host" and op in _host_ops():
             return {"ok": True, **self.session.host_op(op, payload)}
+        if player == "host" and op in self.game.host_ops:
+            return {"ok": True, **self.game.host_op(op, payload, now)}
         if player == "host":
             pid = self.session.ensure_host().pid
         elif type(player) is int:
@@ -533,6 +535,9 @@ class CasinoApp(App):
             "table_theme": self.th.public(),
         }
         st["history"] = [h for h in st["history"] if h.get("game") == self.Game.id][-10:]
+        # the session's change counter: the studio gets this status from two feeds (the engine stream and the
+        # host-view poll) and keeps the newest, so a late reply can never roll the chips on the table back
+        st["rev"] = self.session.version
         return st
 
     def host_view(self, spots: bool = False) -> dict[str, Any]:

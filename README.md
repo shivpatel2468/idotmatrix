@@ -63,9 +63,9 @@ that anyone, including an AI agent, can make a new app in one Python file.
 *   **🎮 25 games, 21 with real multiplayer:** 2–4 players on the same Wi-Fi.
     *   Friends scan a QR code on the panel and their phone becomes the controller.
     *   There's a FIFA-style side select, plus intro screens, results screens and a red damage flash.
-*   **🎰 Casino night:** 9 real casino games for a party around the panel: Roulette (European / American),
-    7 Up 7 Down, Blackjack, Baccarat, Slots (pull the lever on your phone), Texas Hold'em, Teen Patti, Andar Bahar and
-    the Big Six wheel.
+*   **🎰 Casino night:** 10 real casino games for a party around the panel: Roulette (European / American),
+    7 Up 7 Down, Blackjack, Baccarat, Slots (pull the lever on your phone), Texas Hold'em, Teen Patti, Andar Bahar,
+    the Big Six wheel and Housie (Tambola: the tickets on your phone, the caller on the panel).
     - Friends join with the QR code; the host sets everyone's credits.
     - The panel shows only the table, while phones show credits, the betting layout and private cards.
     - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
@@ -117,7 +117,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
 | 📡 | **Live data** | Weather, What to Wear, Air Quality, Rain Radar, Earthquakes, Flight Radar, Tides & Surf, Planets Tonight, Space, Crypto Ticker, Stocks, Currency, Live Scores, Headlines, GitHub Graph, System Monitor, Home Assistant |
 | 🎵 | **Media** | Now Playing (album art, vinyl, karaoke lyrics), Visualizer, Photo Frame, Gallery, Media Server, Screen & Camera Mirror |
 | 🐾 | **Pets & characters** | Pet World (rooms, park, football), Pet, Pokédex, Pixel Avatar |
-| 🎮 | **Games** | Pong, Breakout, Flappy, Dino, Racer, Snake, Tetris, 2048, Invaders, Maze Chase, Asteroids, Infinity, X and 0, Four Up, Mines, Starship, Light Cycles, Dig World, Neon Heat, Street Surge, Leaf Leap, Chess Puzzle, Trivia |
+| 🎮 | **Games** | Pong, Breakout, Flappy, Dino, Racer, Snake, Tetris, 2048, Invaders, Maze Chase, Asteroids, Infinity, X and 0, Four Up, Mines, Starship, Light Cycles, Dig World, Neon Heat, Street Surge, Leaf Leap, Penguin Escape, Chess Puzzle, Trivia |
 | 🎨 | **Creative** | Fly Brain 🪰, Synthwave Horizon, 3D Wireframe, Flocking Boids, Falling Sand, Neuromorphic Cortex, Raycaster, Emotes, Pixabots, Text, Font Lab, Canvas, Player Card, Composer |
 | 🎯 | **Focus & agents** | Agent (Claude mascot), Focus Timer, Focus Pet, Eye Break, On Air, Calendar, Habits, Anki, Active App, CI radiator, OBS, Uptime, 3D Printer |
 | 🌌 | **Ambient** | Ambient (rain, snow, plasma, fireworks…), Loops |

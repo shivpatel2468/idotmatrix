@@ -171,13 +171,130 @@ chip rack and bets). Centre: title + round + commitment hash, the host bar (phas
 round, Lock now, Pause; the result replaces the phase on a result) and the room strip (open, QR, code, Hide QR,
 close). Below ~980 px of stage width the wings become two tabs under the table. Gold replaces ember inside `.cz`.
 
+## Intro & outro (`components/Boot.tsx`, `components/boot/`, `lib/intro.ts`)
+
+Plays while the studio connects (engine → app catalogue → first state) and comes back as the outro when the engine
+goes away for 2.5 s. The theme is per browser (`deskdot.intro` in localStorage), picked in Settings → Display &
+colour → *Intro & outro* (`INTRO_THEMES` in `lib/intro.ts` drives that list); *Play it now* fires
+`deskdot:replay-intro`.
+
+| Theme | id | What happens |
+| --- | --- | --- |
+| Sunset (default) | `sunset` | synthwave sky, striped sun, neon grid; the sun flares, a crack of light splits the scene and the halves glide apart 50/50 |
+| Circuit | `circuit` | a sealed LED-matrix face with traces; a power-surge ring, a crack, the halves slide apart |
+| Coin Gate | `coin` | an arcade cabinet: the neon logo in a backlit marquee, a coin door (INSERT COIN display, backlit slot, service lock, coin return, CREDIT counter, chase bulbs). A silver coin spins in, turns edge-on, knocks the rim and drops in; the slot light runs down the mech, the bulbs chase, CREDIT 0 → 1. Opening: lock bolts retract with a clunk, the gate strains, then the toothed halves grind apart (gears turn, slight shake, motion blur). Outro: the halves slam shut, the bolts shoot home, the door waits for the next coin |
+| OG | `og` | the original LED fly-in of the DESKDOT wordmark, then a fade |
+| Off | `off` | the progress only, then a quick fade |
+
+Rules for a theme (a class with `left`, `open`, `idle`, `resize()`, `slide(0 | 1)`, `frame(dt)` and optionally
+`arm()`, called when the engine is in — Coin Gate drops its coin only then):
+- Canvas 2D, `devicePixelRatio` capped at 1.5, static layers pre-rendered per size; a frame only draws what moves.
+- The logo is `NeonLogo` (`lib/logo.ts`). Its pitch on phones (`w < 640`) is computed from the width so the sign
+  (and its frame) is never wider than the screen; a gap between LED columns falls exactly on the split.
+- Flashes stay tasteful: `flare` is a short lift of the tubes and their cores — never a bigger or brighter additive
+  halo (the halos overlap neighbouring dots and wash the logo into one blur). Keep any light behind the logo modest.
+- `prefers-reduced-motion`: Coin Gate skips the flight, the shake and the blur and fades the gate instead of sliding.
+- Sounds through `sfx()`: `door-open` / `door-close` / `logo-buzz` (Sunset, Circuit); `coin-insert` → `coin-drop` →
+  `coin-roll`, `gate-unlock` → `gate-open`, `gate-close` and `logo-buzz` (Coin Gate).
+- New theme: add it to `IntroTheme` / `INTRO_THEMES`, `MIN_INTRO_MS` and the scene switch in `Boot.tsx`.
+
+## Sound (`web/src/lib/sound.ts`)
+
+The studio has its own small sound set. **Every effect is synthesized live with the Web Audio API** — oscillators,
+one shared white-noise buffer, biquad filters and gain envelopes. No audio files, nothing sampled or copied, no
+dependencies. It is a studio feature (per browser), separate from the panel's *sound input* (Settings → Device).
+
+```ts
+import { sfx } from "../lib/sound";
+sfx("chip");                                  // play one effect
+sfx("fly-buzz", { pan: -0.4, volume: 0.5 });  // stereo pan −1…1, volume 0…1 (× master)
+```
+
+- **Autoplay:** the `AudioContext` is created and resumed on the first `pointerdown` / `keydown` / `touchstart`
+  (later gestures revive a suspended one). Calls before that are dropped silently — except the latest one, which
+  still plays if the unlocking gesture comes within 300 ms of it (the intro may call before any gesture).
+- **Preferences** (`localStorage["deskdot.sound"]`, try/catch): on/off, master volume (default 60 %, squared for a
+  perceptual curve), four categories — **Interface**, **Casino**, **Intro & outro**, **Games & fly** — and
+  *Quiet when the tab is in the background* (default on: hidden tabs are silent and the master fades out).
+  `getSound()` / `setSound(patch)` / `onSound(listener)`; Settings → Display & colour → **Sound** edits them (toggle,
+  volume, category switches, Test, and a picker to play any effect).
+- **Manners:** at most 12 voices (the oldest fades out), a minimum gap per effect (chips 40 ms, clicks 35 ms, score
+  70 ms, the fly 6 s…), a compressor as a safety limiter, interface sounds mixed deliberately quiet.
+  `stopSfx(name?)` cuts a long effect (a wheel when the result lands early); `recentlyPlayed(name, ms)` lets a watcher
+  avoid doubling a sound a key already made. Opt an element out of the click tick with `data-sfx="off"`, or give it
+  another effect: `data-sfx="chip"`.
+- **Adding an effect:** add the name to `SfxName` (never rename or remove one — other code calls them), its category
+  in `CAT`, an optional gap in `GAP`, and a function in `FX` built from the `Synth` kit (`tone`, `noise`, `metal`,
+  `click`, `thump`, `arp`) that returns its duration.
+
+### Effects
+
+| Category | Effect | What it is |
+| --- | --- | --- |
+| Intro | `boot-hum` | mains hum swelling (50 + 100 Hz saws, low-passed) |
+| | `door-open` / `door-close` | bolt clunk + pneumatic hiss (and the reverse) |
+| | `logo-buzz` | a neon tube striking: 120 Hz buzz gated by flicker |
+| | `coin-insert` | a silver coin: bright inharmonic clink, short ring, a bounce, the slide down the chute, a soft landing |
+| | `coin-drop` / `coin-roll` | bouncing clinks closing up · a coin rolling on its edge, then the settling whirr speeding up |
+| | `gate-unlock` | latch click, bolt slide, deep clunk |
+| | `gate-open` / `gate-close` | rolling shutter: slat rattle at a changing rate, rumble and motor, end-stop clunk |
+| Interface | `click` `tab` `toggle` | soft ticks (keys, tabs / segmented controls, switches) |
+| | `sheet-open` / `sheet-close` | a filtered-noise swish up / down |
+| | `toast` `success` `error` | two-note chime · rising triad · two low notes |
+| | `app-switch` `playlist-next` `playlist-prev` | blip-swish · swish up / down + tick |
+| Casino | `chip` `chips-stack` | clay chips knocking (one, or a handful) |
+| | `round-open` `no-more-bets` | a desk bell · a two-tone bell (high, low) |
+| | `wheel-spin` `ball-drop` | whoosh + ratchet ticks spreading out over ~4 s · the ball skittering into a pocket |
+| | `card-deal` `card-flip` | swish across the felt + snap · flip snap |
+| | `dice-roll` `reel-spin` `reel-stop` | hard clacks over a felt rumble · reel ratchet whirr · mechanical thunk |
+| | `win` `big-win` `lose` | short major arpeggio · a double arpeggio + coins · a soft falling pair |
+| | `bingo-call` `bingo-win` `tick` | a bell ding · bell + arpeggio · a countdown tick |
+| Games | `game-start` `game-over` `score` | soft square-wave arpeggio up · down with vibrato · a two-note blip |
+| | `fly-buzz` | ~200 Hz wing buzz with a wobbling pitch, fading in and out, panned to where the fly is |
+
+### Trigger points
+
+Every place in the project where a sound belongs. **Wired** = calls `sfx` today; **suggested** = a good place, not
+wired yet. The phone pages and the panel itself can't reach the studio's audio: a phone page needs its own small copy
+of the synthesizer, and panel-side events are best voiced by the studio when it sees them in the state stream.
+
+| Where | Event | Effect | Status |
+| --- | --- | --- | --- |
+| Studio — any key, button, library tile (`lib/studioSound.ts`, one delegated click listener) | press | `click` | wired |
+| Studio — tab bar, category chips, segmented controls, settings sections | select | `tab` | wired |
+| Studio — every switch (`role="switch"`) | flip | `toggle` | wired |
+| Studio — `Sheet` / `Modal` (settings, dialogs, Quick controls, Match…) | open / close | `sheet-open` / `sheet-close` | wired |
+| Studio — toasts (`store.toast`) | info / ok / error | `toast` / `success` / `error` | wired |
+| Studio — the app on the panel changes (state stream) | switch | `app-switch` | wired |
+| Studio — playback dock ‹ › | previous / next | `playlist-prev` / `playlist-next` | wired |
+| Studio — ← / → keys (playlist) | previous / next | `app-switch` (from the change) | wired |
+| Studio — Play mode (`status.flow`, `status.score`) | flow → `play` · flow → `outro` or score back to 0 · score up | `game-start` · `game-over` · `score` | wired |
+| Studio — fruit-fly view opens (`openFlyView`) | open | `fly-buzz` | wired |
+| Studio — the roaming fly (`RoamingFly.tsx`) | swatted · now and then near the cursor | `fly-buzz` (panned) | wired |
+| Studio casino (`components/casino/sounds.ts`, from the public status) | casino mode entered (chip cascade) | `chips-stack` | wired |
+| | anyone's chips go down (totals rise) / come off | `chip` · `chips-stack` (≥ 5 × min bet) | wired |
+| | betting opens · last 3 s · lock | `round-open` · `tick` · `no-more-bets` | wired |
+| | reveal: roulette & Big Six · slots · Sevens · card games | `wheel-spin` · `reel-spin` · `dice-roll` · 4 × `card-deal` | wired |
+| | players' turn (Hold'em, Teen Patti) | `card-flip` | wired |
+| | result: wheel · slots · cards, then winners / nobody | `ball-drop` · 3 × `reel-stop` · `card-flip`, then `win` / `big-win` (≥ 10 × min bet) / `lose` | wired |
+| Studio — device link drops / comes back | lost / connected | `error` / `success` | suggested |
+| Studio — multiplayer lobby (`Multiplayer.tsx`) | a friend joins / leaves | `chip` / `sheet-close` | suggested |
+| Studio — Play mode lives lost (`status.lives`, as rumble reads it) | hit | a new `hit` effect | suggested |
+| Intro / outro themes (`components/boot/*`) | doors open / close · logo lights | `door-open` / `door-close` · `logo-buzz` | wired in Sunset and Circuit |
+| | Coin Gate: coin enters the slot · falls · rolls · bolts retract · gate moves · gate slams shut · logo lights | `coin-insert` · `coin-drop` · `coin-roll` · `gate-unlock` · `gate-open` · `gate-close` · `logo-buzz` | wired |
+| | engine reachable | `boot-hum` | suggested (effect ready) |
+| Phone casino page (`src/deskdot/casino.html`) | tap a chip / spot · Done · your win / loss · your turn | `chip` · `click` · `win` / `lose` · `tick` | suggested (needs its own synth) |
+| Phone controller (`src/deskdot/controller.html`) | button press · joined · game over | `click` · `success` · `game-over` | suggested (keep optional: friends sit in the same room) |
+| Panel-side events (notifications, On Air, eye break, timers / Pomodoro, alarms, ntfy pushes, Home Assistant) | shown on the panel | `toast`, or a chime per kind | suggested |
+| Bingo-style apps (if one is added) | number called · line | `bingo-call` · `bingo-win` | suggested (effects ready) |
+
 ## Settings
 
 Four sections, each a stack of titled blocks with an anchor id `set-<block>`:
 
 | Section | Blocks |
 | --- | --- |
-| Display & colour | display (brightness, night mode, rotate) · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
+| Display & colour | display (brightness, night mode, rotate) · `intro` intro & outro theme · `sound` studio sounds · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
 | Notifications & integrations | `notifications` computer alerts · `integrations`: On Air, eye break, status indicators, phone pushes (ntfy), Home Assistant |
 | Playlist & hand-off | transitions · your presets · `autopilot` "Follow the app I'm using" · `handoff` "Keep showing when my computer is off" |
 | Device | `panel` connection (reconnect, scan, disconnect…) · `weather` location & units · `audio` sound input · data sources |

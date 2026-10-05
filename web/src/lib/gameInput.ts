@@ -29,6 +29,7 @@ const PROFILES: Record<string, Profile> = {
   arcade: {}, // Snake: a held arrow just keeps the heading
   maze: {},
   g2048: {}, // one slide per press
+  penguin: {}, // one waddle / slide per press
   flappy: {},
   dino: {},
   tetris: { left: [150, 50], right: [150, 50], down: [110, 40] },

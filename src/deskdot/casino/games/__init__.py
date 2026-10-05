@@ -1,12 +1,13 @@
 """One module per casino game: pure rules (no drawing). Importing registers each in `table.GAMES`.
 
 Wave 1: roulette, sevens. Player-vs-player card games and Indian / wheel games: holdem, teenpatti, andarbahar,
-bigsix. House-banked card games and the slot machines: blackjack, baccarat, slots.
+bigsix. House-banked card games and the slot machines: blackjack, baccarat, slots. Pot games: housie
+(Tambola).
 """
 
 from __future__ import annotations
 
-from . import andarbahar, baccarat, bigsix, blackjack, holdem, roulette, sevens, slots, teenpatti
+from . import andarbahar, baccarat, bigsix, blackjack, holdem, housie, roulette, sevens, slots, teenpatti
 
 __all__ = [
     "andarbahar",
@@ -14,6 +15,7 @@ __all__ = [
     "bigsix",
     "blackjack",
     "holdem",
+    "housie",
     "roulette",
     "sevens",
     "slots",

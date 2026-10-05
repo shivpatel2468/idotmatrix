@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- 🎱 **Housie (Tambola), the 10th casino table.** Players buy 1–N tickets into a pot (host: price, max tickets,
+  rake); the caller draws 1–90 at a host-set pace (live − / + in the studio host bar, pausable); phones show 3×9
+  tickets with auto-daub (or manual) and a stamp animation, the 1–90 board, traditional call names and claim buttons
+  for Early Five, Top / Middle / Bottom Line, Four Corners and Full House (each on/off with its share of the pool).
+  The server verifies every claim (bogeys rejected, optional penalty), ties on the same call split, unclaimed prizes
+  are shared back. Provably fair: the call order and every ticket come from the sealed round and re-verify on the
+  phone. Panel: the ball, the recent calls, n/90, claim flashes in the winner's colour, the buy-in screen and a demo
+  preview. Casino games can declare their own host ops (`CasinoGame.host_ops`).
+- 🐧 **New game: Penguin Escape** (`penguin`). A sliding-ice puzzle made for the 32 × 32 panel: waddle a penguin out
+  of the zoo through 16 handcrafted single-screen levels (8 × 7 tiles of 4 px under a 4-row HUD). Ice slides you
+  until something stops you; shove ice blocks (into water to bridge it), grab keys for doors, collect three fish
+  per level for stars, and stay out of the keepers' torch beams (they move one step per move of yours). Arrows move,
+  A undoes, B restarts and opens the level card (←/→ pick any level you've reached). Stars and progress are saved;
+  themes Ice / Night / Aurora; the demo AI plays BFS-solved 3-star solutions and re-plans from wherever you left it.
+- 🪙 **New intro theme: Coin Gate** (Settings → Display & colour → Intro & outro). An arcade cabinet: the neon
+  idotmatrix sign in a backlit marquee, a coin door with a blinking INSERT COIN display and chase bulbs. A silver coin
+  spins in and drops into the slot, CREDIT 0 → 1, then the lock bolts retract and the heavy toothed gate grinds open
+  (gears, a little shake, motion blur); the outro slams it shut. Phone-sized, reduced-motion fallback, with sounds.
+- Intro: the logo no longer blooms into a huge blurry halo when the doors open (Sunset, Circuit). The unlock flash
+  is now a short lift of the tubes' cores; the halo never grows, so the dots stay crisp at every moment. The sun's
+  flare and the light through the crack are toned down too.
+- 🔊 **Studio sounds** (`web/src/lib/sound.ts`): ~45 effects synthesized live with the Web Audio API — no audio files.
+  Soft ticks on keys / tabs / switches, sheet swishes, toast chimes, app switches and playlist skips; the casino table
+  voices every player's chips, the betting bell, the last-seconds tick, no more bets, the wheel / reels / dice / cards
+  and the result; Play mode game start / over / score; the fruit fly buzzes now and then. Settings → Display & colour →
+  **Sound**: on/off, volume, per-category switches (Interface, Casino, Intro & outro, Games & fly), quiet in background
+  tabs, Test. Every trigger point, wired and suggested, is listed in docs/STUDIO_UI.md "Sound".
 - Casino: the panel shows the join QR only while the table is empty. Once someone sits down it shows the table and
   a row of everyone seated — dim = no chips yet, lit = chips down, capped block = pressed Done.
 - Web app play-with-friends: a relay (TURN) fallback for networks that block direct links (mobile carriers, same

@@ -1,9 +1,10 @@
 /** The studio's intro / outro theme: a per-browser choice (it plays before the engine is even reachable). */
-export type IntroTheme = "sunset" | "circuit" | "og" | "off";
+export type IntroTheme = "sunset" | "circuit" | "coin" | "og" | "off";
 
 export const INTRO_THEMES: { id: IntroTheme; name: string; hint: string }[] = [
   { id: "sunset", name: "Sunset", hint: "Warm retro-synthwave: striped sun, neon grid, film grain; the doors glide apart 50/50" },
   { id: "circuit", name: "Circuit", hint: "A sealed LED-matrix face with circuit traces and a power-surge ring" },
+  { id: "coin", name: "Coin Gate", hint: "An arcade cabinet: drop a silver coin, CREDIT 1, and the heavy toothed gate rolls open" },
   { id: "og", name: "OG", hint: "The original: LEDs fly in and settle into the wordmark" },
   { id: "off", name: "Off", hint: "No intro: a quick fade" },
 ];

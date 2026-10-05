@@ -94,6 +94,11 @@
   "ms": 8390,
   "bytes": 3058
  },
+ "casino_housie": {
+  "frames": 108,
+  "ms": 20300,
+  "bytes": 28673
+ },
  "casino_roulette": {
   "frames": 90,
   "ms": 15410,
@@ -313,6 +318,11 @@
   "frames": 32,
   "ms": 3840,
   "bytes": 2100
+ },
+ "penguin": {
+  "frames": 53,
+  "ms": 6000,
+  "bytes": 6923
  },
  "pet": {
   "frames": 64,

@@ -123,8 +123,8 @@ export class NeonLogo {
 
   /**
    * Draw at (ox, oy) with dot pitch `p` (CSS px). `t` = seconds since start (loops by itself).
-   * `parts` limits drawing to one word (the boot doors draw each half on its own door). `flare` (0..1) overdrives
-   * the glow, for the moment the doors unlock.
+   * `parts` limits drawing to one word (the boot doors draw each half on its own door). `flare` (0..1) is a
+   * short flash for the moment the doors unlock: hotter cores, a touch brighter — never a bigger halo.
    */
   draw(ctx: CanvasRenderingContext2D, t: number, ox: number, oy: number, p: number, tl: LogoTimeline, opts: { grid?: boolean; flare?: number; still?: boolean } = {}) {
     const parts: Part[] = [0, 1, 2];
@@ -157,7 +157,10 @@ export class NeonLogo {
         const sputter = dying < 0.35 ? (Math.sin(lt * 90) > 0.2 ? 1 : 0.25) : 0;
         level = Math.max(0, 1 - dying * 2.4) * (0.5 + sputter * 0.5);
       }
-      level = Math.min(1.6, level + flare * 0.8);
+      // the flare is a brief flash, not a bloom: it lifts the tubes a little and heats their cores. Additive halos
+      // overlap their neighbours (a halo spans ~3 dots), so growing or brightening them washes the dots into one
+      // blur — keep the halo size and strength fixed and the dots stay crisp at every moment.
+      level = Math.min(1.08, level + flare * 0.15);
       const color = this.colors[part];
       const glow = this.glows[part];
 
@@ -211,8 +214,8 @@ export class NeonLogo {
         if (light > 0.02) {
           ctx.globalCompositeOperation = "lighter";
           // the halo the gas throws on the wall
-          ctx.globalAlpha = Math.min(1, light * 0.5);
-          const gs = p * (3.4 + flare * 2.5);
+          ctx.globalAlpha = Math.min(0.5, light * 0.5);
+          const gs = p * 3.4;
           ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
           // the tube itself, then its white-hot core
           ctx.globalAlpha = Math.min(1, light);
@@ -221,7 +224,7 @@ export class NeonLogo {
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
           // a small hot core keeps each tube's colour readable
-          ctx.globalAlpha = Math.min(1, light * 0.5);
+          ctx.globalAlpha = Math.min(1, light * 0.5 + flare * 0.35);
           ctx.fillStyle = "#fff4e0";
           ctx.beginPath();
           ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);

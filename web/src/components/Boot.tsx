@@ -3,10 +3,11 @@ import { type IntroTheme, getIntroTheme, onIntroTheme } from "../lib/intro";
 import { useStore } from "../lib/store";
 import { TIPS } from "../lib/tips";
 import { CircuitDoors } from "./boot/circuit";
+import { CoinGate } from "./boot/coin";
 import { OgIntro } from "./boot/og";
 import { type DoorPose, SunsetDoors } from "./boot/sunset";
 
-const MIN_INTRO_MS: Record<IntroTheme, number> = { sunset: 2600, circuit: 2600, og: 1700, off: 0 };
+const MIN_INTRO_MS: Record<IntroTheme, number> = { sunset: 2600, circuit: 2600, coin: 3300, og: 1700, off: 0 };
 const OFFLINE_MS = 2500; // the engine has been gone this long: close the doors (the outro)
 const FADE_MS = 650; // OG / Off themes fade instead of opening doors
 
@@ -17,14 +18,19 @@ type DoorScene = {
   resize(): void;
   slide(to: 0 | 1): void;
   frame(dt: number): DoorPose;
+  /** The engine is in: a scene that waits for it (Coin Gate's coin) may play its build-up now. */
+  arm?(): void;
 };
 
-const isDoors = (t: IntroTheme) => t === "sunset" || t === "circuit";
+/** Themes drawn as a sealed scene that opens; "coin" draws its own gate halves on one full-screen canvas. */
+const isDoors = (t: IntroTheme) => t === "sunset" || t === "circuit" || t === "coin";
 
 /**
  * Intro / outro, in the theme picked in Settings → Display (lib/intro.ts):
  * - Sunset / Circuit: a sealed scene covers the studio while it connects; the idotmatrix logo builds and strikes;
  *   when the engine, the app catalogue and the first state are in, the scene splits and the halves glide apart 50/50.
+ * - Coin Gate: an arcade cabinet; a silver coin drops in, CREDIT 1, and the heavy toothed gate grinds open. It draws
+ *   both gate halves itself on one canvas (no CSS doors) and waits for the engine before the coin drops.
  * - OG: the original — LEDs fly in and settle into the wordmark — then a fade.
  * - Off: just the progress, then a quick fade.
  * If the engine goes away later, the intro comes back (the outro) and leaves again when it's back.
@@ -37,6 +43,7 @@ export function Boot() {
   const cvL = useRef<HTMLCanvasElement>(null);
   const cvR = useRef<HTMLCanvasElement>(null);
   const cvOg = useRef<HTMLCanvasElement>(null);
+  const cvCoin = useRef<HTMLCanvasElement>(null);
   const doorL = useRef<HTMLDivElement>(null);
   const doorR = useRef<HTMLDivElement>(null);
   const shine = useRef<HTMLDivElement>(null);
@@ -76,16 +83,18 @@ export function Boot() {
   // door themes: the canvas runs only while the doors are on screen
   useEffect(() => {
     if (phase === "open" || !isDoors(theme)) return;
-    const c = cvL.current;
+    const coin = theme === "coin";
+    const c = coin ? cvCoin.current : cvL.current;
     const c2 = cvR.current;
-    if (!c || !c2) return;
+    if (!c || (!coin && !c2)) return;
     let d = doors.current;
     if (d?.left !== c) {
       const closing = phase === "closing";
-      d = theme === "circuit" ? new CircuitDoors(c, c2, closing) : new SunsetDoors(c, c2, closing);
+      d = coin ? new CoinGate(c, closing) : theme === "circuit" ? new CircuitDoors(c, c2!, closing) : new SunsetDoors(c, c2!, closing);
       if (closing) d.slide(0); // the outro: in from the sides
     }
     doors.current = d;
+    if (phase === "intro") d.arm?.();
     d.resize();
     const scene = d;
     const onResize = () => scene.resize();
@@ -110,7 +119,8 @@ export function Boot() {
         doorR.current.style.transform = css(1);
         doorR.current.style.filter = `brightness(${1 - o * 0.45})`;
       }
-      if (shine.current) shine.current.style.opacity = String(Math.min(1, pose.crack) * (1 - o) * 1.2);
+      // a soft light through the crack — kept modest so it never blooms over the logo
+      if (shine.current) shine.current.style.opacity = String(Math.min(1, pose.crack) * (1 - o) * 0.85);
       if (scene.open >= 1 && scene.idle) setPhase((p) => (p === "opening" ? "open" : p));
     };
     raf = requestAnimationFrame(loop);
@@ -219,13 +229,25 @@ export function Boot() {
       </div>
     );
   }
+  const caption = <div className="engrave !text-[9px] !tracking-[0.42em] !text-ink-3">DeskDot studio · all in one for your iDotMatrix</div>;
+  if (theme === "coin") {
+    return (
+      <div className="boot fixed inset-0 z-[100]" data-phase={phase} aria-busy={shut} aria-label="Starting the DeskDot studio">
+        <canvas ref={cvCoin} className="absolute left-0 top-0 block" />
+        <div className="boot-ui boot-glass pointer-events-none absolute inset-x-0 top-[71%] mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-5">
+          {caption}
+          {status}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="boot fixed inset-0 z-[100]" data-phase={phase} aria-busy={shut} aria-label="Starting the DeskDot studio">
       <div ref={shine} className="boot-shine" />
       <div ref={doorL} className="boot-door boot-door-l"><canvas ref={cvL} /></div>
       <div ref={doorR} className="boot-door boot-door-r"><canvas ref={cvR} /></div>
       <div className={`boot-ui pointer-events-none absolute inset-x-0 mx-auto flex w-[min(560px,88vw)] flex-col items-center gap-6 ${theme === "sunset" ? "top-[67%] boot-glass" : "top-[calc(42%+min(6.2vw,110px)+46px)]"}`}>
-        <div className="engrave !text-[9px] !tracking-[0.42em] !text-ink-3">DeskDot studio · all in one for your iDotMatrix</div>
+        {caption}
         {status}
       </div>
     </div>

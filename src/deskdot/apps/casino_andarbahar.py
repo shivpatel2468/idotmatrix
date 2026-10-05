@@ -89,12 +89,13 @@ class CasinoAndarBahar(CasinoApp):
         piles: dict[str, list[str]] = {first: dealt[0::2], other: dealt[1::2]}
         done = k >= int(o["count"]) and (v.phase == "result" or t >= DEAL_LEAD + k * deal_pace(k) + FLY)
         winner = str(o["winner"])
-        # the joker: turned over at the start of the deal
+        # the joker: turned over at the start of the deal; when a card of its rank lands (any suit) the joker
+        # glows with it, so the match reads as "same value" rather than "same card"
         flip = min(1.0, max(0.0, t / 0.5))
         if flip < 0.5:
             cards.back(f, JOKER_X, JOKER_Y)
         else:
-            cards.card(f, JOKER_X, JOKER_Y, str(o["joker"]))
+            cards.card(f, JOKER_X, JOKER_Y, str(o["joker"]), hi=done)
         pulse = 0.5 + 0.5 * math.sin(now * 7)
         for side, letter, lx in (("andar", "A", 3), ("bahar", "B", 24)):
             col = SIDE_RGB[side]

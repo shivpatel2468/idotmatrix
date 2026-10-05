@@ -6,7 +6,9 @@ Rules (the common Indian casino game):
   The top card is the **joker** (game card), face up in the middle.
 * Bets go on **Andar** (inside, left) or **Bahar** (outside, right) while betting is open.
 * Cards are then dealt one at a time, alternately, **starting with Andar** (host option ``first``: Andar or
-  Bahar), until a card of the **joker's rank** appears. The side it lands on wins.
+  Bahar), until a card of the **joker's rank** appears. The side it lands on wins. Only the rank (value) matters,
+  never the suit: a 7♥ joker is matched by the first 7♠, 7♦ or 7♣ (the standard rule — three cards in the
+  remaining 51 can match, which is where the probabilities below come from).
 * Pays: the side that gets the first card has a small advantage, so it pays **0.9:1**; the other side pays
   **1:1** (with the first card to Andar: Andar 0.9:1, Bahar 1:1 — the standard table).
 * Optional side bet on **how many cards are dealt** (joker excluded, the matching card included: 1–49), in
@@ -134,9 +136,27 @@ class AndarBahar(CasinoGame):
                 out[sid] = self._spots[sid].win
         return out
 
+    def dealt(self, now: float) -> int:
+        """How many cards the panel has dealt so far (the same clock as the panel app's animation)."""
+        if self.outcome is None or self.phase != "dealing":
+            return 0
+        n = int(self.outcome["count"])
+        t = now - self.phase_at
+        return 0 if t < DEAL_LEAD else min(n, 1 + int((t - DEAL_LEAD) / deal_pace(n)))
+
     def public_state(self, now: float) -> dict[str, Any]:
         out = super().public_state(now)
         out["spots"] = self.spot_table()  # the phone prints these payouts (the server's own numbers)
+        if self.phase == "dealing" and self.outcome is not None:
+            # the deal as the panel shows it: the joker (face up from the start) and the cards dealt so far, so
+            # phones can follow along and light up the card that matches the joker's rank (any suit)
+            o, k = self.outcome, self.dealt(now)
+            out["deal"] = {
+                "joker": o["joker"],
+                "first": o["first"],
+                "cards": list(o["cards"])[:k],
+                "matched": k >= int(o["count"]),
+            }
         return out
 
     def summary(self, outcome: dict[str, Any]) -> dict[str, Any]:

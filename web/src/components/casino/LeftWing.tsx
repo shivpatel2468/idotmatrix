@@ -6,7 +6,7 @@ import { appMeta, toast, useStore } from "../../lib/store";
 import type { JsonSchemaProp } from "../../lib/types";
 import { Slider, Toggle } from "../controls";
 import { NumberInput, Section, Tabs } from "./bits";
-import { type Guide, type House, casinoApps, casinoOp, fmt, useCasino } from "./state";
+import { type Guide, type House, type HousieStatus, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
 const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true };
@@ -41,6 +41,10 @@ const RULE_HINTS: Record<string, string> = {
   bet_per_line: "Credits staked on each payline.",
   lines: "How many of the 5 paylines are played.",
   theme: "The machine's symbols and colours on the panel.",
+  ticket_price: "Credits per Housie ticket; every ticket sold goes into the pot.",
+  max_tickets: "How many tickets one player may buy for a game.",
+  call_seconds: "The caller's pace. Also live from the host bar (− / +).",
+  buy_seconds: "The buy-in clock, from the first ticket sold.",
 };
 
 type Preset = { id: string; name: string; blurb: string; icon: React.ReactNode; house: Partial<House>; rules: Record<string, unknown> };
@@ -321,7 +325,7 @@ const KIND: Record<string, string> = {
   firstfour: "First four (0-1-2-3)", ff: "First four (0-1-2-3)", top_line: "Top line (0-00-1-2-3)", topline: "Top line (0-00-1-2-3)",
   dozen: "Dozen", column: "Column", red: "Red", black: "Black", odd: "Odd", even: "Even", low: "Low (1–18)", high: "High (19–36)",
   down: "Under 7", seven: "Lucky 7", up: "Over 7", player: "Player", banker: "Banker", tie: "Tie",
-  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar",
+  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar", ticket: "Ticket (the house keeps only the rake)",
 };
 const kindName = (k: string, sample?: string) => KIND[k] ?? (sample && sample.length < 24 ? `${k.replace(/_/g, " ")} (${sample})` : k.replace(/_/g, " "));
 
@@ -329,6 +333,7 @@ function Odds() {
   const edges = useCasino((s) => s.status?.edges);
   const spots = useCasino((s) => s.spots);
   const rtp = useCasino((s) => s.status?.rtp);
+  const housie = useCasino((s) => (s.status?.game === "housie" ? (s.status.housie as HousieStatus | undefined) : undefined));
   const rows = useMemo(() => {
     const by: Record<string, { pays: Set<string>; sample: string; n: number }> = {};
     for (const s of spots) {
@@ -351,6 +356,7 @@ function Odds() {
           <span>Computed from this machine's reel strips and pay table.</span>
         </div>
       )}
+      {housie && <HousiePrizes h={housie} />}
       {rows.length ? (
         <div className="cz-odds" role="table" aria-label="House edge per bet">
           <div role="row" className="cz-odds-head"><span>Bet</span><span>Pays</span><span>House edge</span></div>
@@ -370,6 +376,27 @@ function Odds() {
       )}
       <p className="cz-foot">Each edge is computed exactly from every outcome's probability and the payout — the worst bet in each family is shown. The house never adapts to bets or balances.</p>
     </>
+  );
+}
+
+/** Housie: players play for the pot — the prizes, their shares of the pool and who won them. */
+function HousiePrizes({ h }: { h: HousieStatus }) {
+  const pool = Math.max(0, h.pot - h.rake);
+  return (
+    <div className="cz-odds mb-3" role="table" aria-label="Housie prizes">
+      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Credits{h.pot ? ` · pool ${fmt(pool)}` : ""}</span></div>
+      {h.prizes.map((p) => (
+        <div role="row" key={p.id} className="cz-odds-row">
+          <span className="truncate" title={p.winners.map((w) => w.name).join(", ")}>
+            {p.name}
+            {p.winners.length > 0 && <em className="ml-1 not-italic" style={{ color: p.winners[0].color }}> · {p.winners.map((w) => w.name).join(", ")}</em>}
+          </span>
+          <span className="font-mono">{p.share} %</span>
+          <span className="font-mono">{fmt(p.amount)}{p.call ? ` · call ${p.call}` : ""}</span>
+        </div>
+      ))}
+      <p className="cz-foot">Ticket {fmt(h.price)} · up to {h.max} each · {h.sold} sold. Claims on the same call split a prize; unclaimed prizes are shared back by tickets.</p>
+    </div>
   );
 }
 

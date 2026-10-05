@@ -91,7 +91,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .go:disabled{filter:grayscale(.8) brightness(.6)}
 
 /* ---------- table: HUD ---------- */
-.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:8px;align-items:center;
+.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;
   padding:calc(var(--st) + 10px) calc(var(--sr) + 12px) 8px calc(var(--sl) + 12px)}
 .meb{width:46px;height:46px;border-radius:14px;border:2px solid var(--c);background:#040605;padding:4px;box-shadow:0 0 16px var(--ca)}
 .who{min-width:0}.who b{display:block;font:850 15px/1.1 var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--c)}
@@ -101,7 +101,7 @@ canvas.av{display:block;image-rendering:pixelated}
 @keyframes blink{50%{opacity:.25}}
 .bank{text-align:right;line-height:1}
 .bank .lbl{display:block;font:800 9.5px/1 var(--mono);letter-spacing:.18em;color:var(--mute);text-transform:uppercase}
-@media (max-width:380px){.bank b{font-size:21px!important}}
+@media (max-width:380px){.bank b{font-size:21px!important}.hud{gap:6px}.hud .ib,.hud .hb{width:40px}}
 .bank b{display:block;font:900 26px/1.05 var(--mono);font-variant-numeric:tabular-nums;color:var(--gold);text-shadow:0 0 18px rgba(var(--gold-rgb),.35);transition:color .3s}
 .bank b.up{color:var(--ok);text-shadow:0 0 22px rgba(77,255,138,.55)}.bank b.down{color:#ff8a9c}
 .bank small{display:block;margin-top:3px;font:700 11px/1 var(--mono);color:var(--dim)}
@@ -249,6 +249,46 @@ canvas.av{display:block;image-rendering:pixelated}
 .endcard h2{margin:0;font:900 26px/1.1 var(--disp)}.endcard p{margin:0;color:var(--dim)}
 .paused{position:absolute;left:50%;top:50%;z-index:20;transform:translate(-50%,-50%);padding:12px 22px;border-radius:14px;background:rgba(0,0,0,.8);border:1px solid var(--gold);color:var(--gold);font:900 18px/1 var(--mono);letter-spacing:.2em;pointer-events:none}
 
+/* ---------- chip flights, drag & drop, who is on a spot, the tour ---------- */
+html,body,.board,.dock{touch-action:manipulation}
+.rack{touch-action:none}
+.fx{position:fixed;inset:0;z-index:65;pointer-events:none;overflow:hidden}
+.fly{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;will-change:transform,opacity;display:grid;place-items:center;
+  background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 4px 0 rgba(0,0,0,.45),0 8px 16px rgba(0,0,0,.4)}
+.fly::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
+.fly b{position:relative;font:900 11px/1 var(--mono);color:var(--ct,#fff);letter-spacing:-.03em}
+.fly.ghost{width:52px;height:52px;margin:-26px 0 0 -26px;box-shadow:0 16px 0 rgba(0,0,0,.28),0 0 0 3px var(--gold),0 0 30px rgba(var(--gold-rgb),.55)}
+.fly.ghost b{font-size:13px}
+.fly.ghost.rm{box-shadow:0 16px 0 rgba(0,0,0,.28),0 0 0 3px var(--bad),0 0 30px rgba(255,77,106,.5)}
+.fly.ghost.rm::after{content:"\2715";position:absolute;right:-6px;top:-6px;width:20px;height:20px;border-radius:50%;background:var(--bad);color:#fff;font:900 12px/20px var(--disp);text-align:center}
+.dd-on{outline:3px solid var(--gold);outline-offset:-3px;filter:brightness(1.18)}
+[data-spot].mine{touch-action:none}
+.wd{display:inline-flex;align-items:center;gap:2px;padding:2px 5px 2px 3px;border-radius:999px;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.25);
+  font:800 10px/1 var(--mono);color:#eee;white-space:nowrap;pointer-events:none;vertical-align:middle}
+.wd i{width:8px;height:8px;border-radius:50%;background:var(--pc,#888);box-shadow:0 0 0 1px rgba(0,0,0,.6);flex:none}
+.wd i.me{box-shadow:0 0 0 1.5px #fff}
+.wd em{font-style:normal;margin-left:2px}
+.snd svg{width:20px;height:20px}
+.snd.off{color:var(--mute)}
+/* the tour: a spotlight on one control, a card with Back / Next / Skip */
+.tour{position:fixed;inset:0;z-index:95;touch-action:none}
+.tour-hole{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:16px;border:2px solid var(--gold);box-shadow:0 0 0 200vmax rgba(3,6,5,.76),0 0 26px rgba(var(--gold-rgb),.5);
+  transition:transform .32s var(--ease),width .32s var(--ease),height .32s var(--ease);pointer-events:none}
+.tour-card{position:absolute;left:12px;right:12px;top:40%;max-width:420px;margin:0 auto;padding:14px 14px 12px;border-radius:18px;
+  background:radial-gradient(120% 80% at 50% 0,var(--felt2),var(--s1) 75%);border:1px solid rgba(var(--gold-rgb),.5);box-shadow:0 18px 50px rgba(0,0,0,.7);transition:top .3s var(--ease)}
+.tour-card .eng{color:var(--gold)}
+.tour-card h3{margin:4px 0 4px;font:900 19px/1.15 var(--disp)}
+.tour-card p{margin:0;color:var(--ink);font-size:14.5px;line-height:1.4}
+.tour-card p b{color:var(--gold)}
+.tour-bt{display:flex;gap:8px;align-items:center;margin-top:12px}
+.tour-dots{flex:1;display:flex;gap:4px;justify-content:center}
+.tour-dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.25);transition:width .2s}
+.tour-dots i.on{background:var(--gold);width:16px}
+.tz{display:flex;gap:6px;justify-content:flex-end;margin:-4px 0 8px}
+.tz button{min-width:44px;min-height:36px;border-radius:10px;background:var(--s3);border:1px solid var(--line2);font:850 13px/1 var(--disp)}
+.tz .tour-go{margin-right:auto;padding:0 12px;background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:var(--gold-ink);border-color:transparent}
+.rbz{zoom:var(--tzoom,1)}
+
 /* ================= roulette ================= */
 .rt{position:absolute;inset:0;touch-action:none}
 .rt .cell{position:absolute;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);font:900 15px/1 var(--mono);color:#fff;
@@ -263,7 +303,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .rt .won{animation:won .5s ease-in-out infinite alternate;z-index:3}
 @keyframes won{to{box-shadow:inset 0 0 0 4px #fff,0 0 26px 6px var(--gold)}}
 .rt .chp{position:absolute;z-index:5;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;pointer-events:none;display:grid;place-items:center;
-  background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5),0 0 0 1.5px rgba(0,0,0,.4);animation:place .22s var(--ease)}
+  background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5),0 0 0 1.5px rgba(0,0,0,.4)}
 .rt .chp::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .rt .chp b{position:relative;font:900 10.5px/1 var(--mono);color:var(--ct,#fff);letter-spacing:-.03em}
 .rt .chp.win{box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold)}
@@ -511,6 +551,92 @@ canvas.av{display:block;image-rendering:pixelated}
 .sl-pt{display:inline-flex;align-items:center;gap:2px;vertical-align:middle}.sl-pt img{width:22px;height:22px}
 @media (orientation:landscape) and (max-height:560px){.sl-win{--cell:44px}.sl-lever{min-height:140px}.bc-zones{min-height:110px}}
 /* ===== END house games block ===== */
+/* ===== BEGIN housie block (Housie / Tambola) — helpers prefixed .hs- ===== */
+.hs{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overscroll-behavior:contain;padding:2px 0 calc(var(--sb) + 14px);touch-action:pan-y}
+.hs>*{flex-shrink:0}
+.hs-now{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--s2);border:1px solid var(--line);min-height:84px}
+.hs-ball{--bc:#a87a00;flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font:900 28px/1 var(--mono);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);
+  background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.55),rgba(255,255,255,0) 40%),var(--bc);box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 0 20px rgba(0,0,0,.4)}
+.hs-ball.none{--bc:#2a332e;color:var(--mute);font-size:20px}
+.hs-ball.pop{animation:hspop .5s var(--ease)}
+@keyframes hspop{0%{transform:scale(.3) rotate(-90deg)}70%{transform:scale(1.12)}100%{transform:none}}
+.hs-nw{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.hs-nm{font:italic 700 14px/1.2 var(--disp);color:var(--gold-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-rc{display:flex;gap:4px;align-items:center;overflow:hidden}
+.hs-rc i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:850 11.5px/1 var(--mono);font-style:normal;color:#fff;opacity:.8;background:var(--bc)}
+.hs-rc i:first-child{opacity:1}
+.hs-meta{display:flex;align-items:center;gap:8px;font:800 12px/1 var(--mono);color:var(--dim)}
+.hs-meta .bar{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.hs-meta .bar i{display:block;height:100%;background:var(--gold);border-radius:3px;transition:width .4s var(--ease)}
+.hs-mini{min-height:34px;padding:0 10px;border-radius:10px;background:var(--s3);border:1px solid var(--line2);font:800 12px/1 var(--mono);color:var(--ink)}
+.hs-mini[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:transparent}
+.hs-claims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.hs-cl{position:relative;min-height:54px;padding:6px 4px;border-radius:12px;background:var(--s2);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink);overflow:hidden}
+.hs-cl b{font:850 12.5px/1.1 var(--disp);text-align:center}.hs-cl small{font:800 11px/1 var(--mono);color:var(--gold)}
+.hs-cl:disabled{opacity:.55}
+.hs-cl.ready{border-color:var(--gold);background:linear-gradient(180deg,rgba(var(--gold-rgb),.32),rgba(var(--gold-rgb),.12));box-shadow:0 0 18px rgba(var(--gold-rgb),.45);animation:hsglow 1.1s ease-in-out infinite}
+@keyframes hsglow{50%{box-shadow:0 0 4px rgba(var(--gold-rgb),.2)}}
+.hs-cl.won{opacity:1;border-color:transparent;background:linear-gradient(180deg,var(--wc,#555),rgba(0,0,0,.35))}.hs-cl.won small{color:#fff}
+.hs-cl.mine{box-shadow:0 0 0 2px #fff,0 0 18px rgba(255,255,255,.4)}
+.hs-tix{display:flex;flex-direction:column;gap:10px}
+.hs-t{padding:6px 6px 7px;border-radius:12px;background:linear-gradient(180deg,#fbf5e4,#efe5cb);box-shadow:0 5px 14px rgba(0,0,0,.45);color:#1d1a12}
+.hs-t.out{filter:grayscale(1) brightness(.6)}
+.hs-th{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 3px 5px;font:800 11.5px/1.1 var(--mono);color:#6b5a2a}
+.hs-th b{font:900 12px/1 var(--mono);letter-spacing:.06em;color:#3d3214;text-transform:uppercase}.hs-th em{font-style:normal;color:#b0122e}
+.hs-g{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:2px}
+.hs-c{position:relative;aspect-ratio:1/1.08;min-width:0;border:0;border-radius:6px;background:#fffdf6;box-shadow:inset 0 0 0 1px rgba(60,45,10,.18);display:grid;place-items:center;padding:0;color:#1d1a12;font:850 clamp(12px,4.1vw,17px)/1 var(--mono)}
+.hs-c.e{background:repeating-linear-gradient(45deg,rgba(170,130,40,.2) 0 3px,rgba(170,130,40,.05) 3px 7px);box-shadow:none}
+.hs-c b{position:relative;z-index:1}
+.hs-c::before{content:"";position:absolute;inset:7%;border-radius:50%;background:radial-gradient(circle,rgba(255,63,120,.82) 0 55%,rgba(214,20,80,.95) 57% 64%,rgba(255,63,120,0) 66%);opacity:0;transform:scale(.5)}
+.hs-c.on::before{opacity:1;transform:rotate(-12deg)}
+.hs-c.on{color:#fff}
+.hs-c.stamp::before{animation:hsstamp .42s cubic-bezier(.2,1.5,.4,1)}
+@keyframes hsstamp{0%{opacity:0;transform:scale(2.4) rotate(-40deg)}60%{opacity:1;transform:scale(.88) rotate(-8deg)}100%{opacity:1;transform:rotate(-12deg)}}
+.hs-c.last{box-shadow:inset 0 0 0 2px var(--gold2)}
+.hs-box{padding:10px 12px;border-radius:14px;background:var(--s2);border:1px solid var(--line)}
+.hs-box h3{margin:0 0 6px;font:800 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.hs-step{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 8px}
+.hs-step button{width:56px;height:56px;border-radius:50%;background:var(--s3);border:1px solid var(--line2);font:900 28px/1 var(--mono);color:var(--ink)}
+.hs-step button:disabled{opacity:.35}
+.hs-step output{min-width:72px;text-align:center;font:900 40px/1 var(--mono);color:var(--gold)}
+.hs-step output small{display:block;margin-top:4px;font:800 11px/1 var(--mono);color:var(--dim);letter-spacing:.08em}
+.hs-sum{display:flex;justify-content:space-between;gap:8px;font:700 13px/1.3 var(--disp);color:var(--dim)}.hs-sum b{color:var(--ink);font-family:var(--mono)}
+.hs-go{width:100%;margin-top:10px}
+.hs-buyers{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hs-buyers span{padding:4px 8px;border-radius:999px;background:var(--s3);font:800 11.5px/1.2 var(--mono)}
+.hs-pz{width:100%;border-collapse:collapse;font-size:13px}
+.hs-pz td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:middle}.hs-pz td:nth-child(2){text-align:right;font:800 13px/1 var(--mono);color:var(--gold);white-space:nowrap}
+.hs-pz td small{display:block;color:var(--mute);font-size:11px}
+.hs-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.hs-bd{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.hs-bd i{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:800 12px/1 var(--mono);font-style:normal;color:var(--mute);background:rgba(255,255,255,.05)}
+.hs-bd i.on{color:#fff;background:var(--bc)}.hs-bd i.last{box-shadow:0 0 0 2px #fff}
+.hs-wait{text-align:center;color:var(--dim);font-size:13px;padding:4px 8px}
+@media (prefers-reduced-motion:reduce){.hs-ball.pop,.hs-c.stamp::before,.hs-cl.ready{animation:none}}
+/* ===== END housie block ===== */
+/* ===== BEGIN chip stacks (core): chipStyle() sets --stk, one edge per chip under the top one ===== */
+.rt .chp,.sv .chp,.hz .chp,.hg-chp{box-shadow:var(--stk,0 3px 0 rgba(0,0,0,.5))}
+.rt .wd{position:absolute;z-index:6;transform:translateX(-50%)}
+.zo .wd,.hz-z .o .wd,.bc-z .zo .wd,.bj-spot .others .wd{font-size:10.5px}
+.hz-z .o,.zone .zo,.bc-z .zo{min-height:16px;opacity:1}
+/* Andar Bahar: the joker, its rank big ("any 7"), the two piles, the matching card */
+.ab{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center;width:100%}
+.ab-j{display:grid;justify-items:center;gap:3px}
+.ab-j .pc{--cw:50px}
+.ab-j .k{font:900 9.5px/1 var(--mono);letter-spacing:.18em;color:var(--gold)}
+.ab-any{font:800 11px/1 var(--mono);color:#e8f5ec;text-transform:uppercase;white-space:nowrap}
+.ab-any b{font:900 22px/1 var(--mono);color:var(--gold);vertical-align:-3px;margin-left:3px}
+.ab-piles{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
+.ab-pile{--zc:#1b5bd8;padding:6px;border-radius:12px;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 1.5px var(--zc);min-width:0}
+.ab-pile.bahar{--zc:#c81f53}
+.ab-pile.won{box-shadow:inset 0 0 0 2px #fff,0 0 22px var(--zc)}
+.ab-pile b{display:block;font:900 11px/1 var(--mono);margin-bottom:4px;white-space:nowrap}
+.ab-row{display:flex;padding-left:16px;min-height:44px;overflow:hidden}
+.ab-row .pc{--cw:31px;margin-left:-16px}
+.ab-row .pc.hi{z-index:1;animation:abpop .5s var(--ease)}
+@keyframes abpop{0%{transform:translateY(-10px) scale(1.25)}100%{transform:none}}
+.ab-msg{grid-column:1/-1;font:700 12.5px/1.35 var(--disp);color:#e8f5ec;text-align:center}
+.ab-msg b{color:var(--gold)}
+/* ===== END chip stacks (core) ===== */
 </style></head>
 <body>
 <div class="app" id="app">
@@ -549,6 +675,7 @@ canvas.av{display:block;image-rendering:pixelated}
     <button class="ib" id="players-btn" aria-label="Players and leaderboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
       <span class="n" id="pcount">1</span></button>
+    <button class="ib snd" id="snd-btn" aria-label="Sound" aria-pressed="true"></button>
   </header>
   <div class="phase" role="status" aria-live="polite">
     <div class="ring" id="ring"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="tr" cx="26" cy="26" r="22"/><circle class="pr" id="ring-p" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="0"/></svg><span id="cd"></span></div>
@@ -580,5 +707,5 @@ canvas.av{display:block;image-rendering:pixelated}
 <div class="end" id="end" hidden><div class="endcard"><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
-<script src="/app/join/casino.js?v=5c8f9c488e7e"></script>
+<script src="/app/join/casino.js?v=42055d3ca0be"></script>
 </body></html>

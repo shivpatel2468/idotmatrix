@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { type FlyLook, flyCanPilot, flyTakeOver, useFly } from "../lib/fly";
+import { sfx } from "../lib/sound";
 import { appMeta, useStore } from "../lib/store";
 
 /**
@@ -272,6 +273,12 @@ export function RoamingFly() {
         const a = Math.atan2(-dy, -dx) + rnd(-0.5, 0.5);
         st.tx = Math.min(W() - 30, Math.max(30, st.x + Math.cos(a) * rnd(280, 420)));
         st.ty = Math.min(H() - 30, Math.max(60, st.y + Math.sin(a) * rnd(280, 420)));
+      }
+      // sound: a buzz when swatted, and now and then a quiet one while it hangs around the cursor (sfx throttles it)
+      if (booted && !still) {
+        const pan = (st.x / W()) * 2 - 1;
+        if (mode.current === "escape" && m !== "escape") sfx("fly-buzz", { pan, volume: 0.7 });
+        else if (st.buzz > 0.5 && md < 140 && Math.random() < dt * 0.12) sfx("fly-buzz", { pan, volume: 0.3 });
       }
 
       const seek = (speed: number, accel: number, wobble: number) => {

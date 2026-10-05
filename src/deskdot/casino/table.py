@@ -431,6 +431,13 @@ class CasinoGame:
         """Game-specific player ops (hit, stand, fold, pull …). Return an error message or None."""
         return self._note(pid, f"Unknown move {op!r}")
 
+    #: the game's own host ops (the studio's ``POST /api/apps/{id}/actions/casino``), e.g. Housie's ``pace``
+    host_ops: ClassVar[tuple[str, ...]] = ()
+
+    def host_op(self, op: str, payload: dict[str, Any], now: float) -> dict[str, Any]:
+        """A host op listed in ``host_ops``. Raise on bad input (HTTP 400). Returns a small JSON result."""
+        raise KeyError(op)
+
     # ================================================================== state
     def public_state(self, now: float) -> dict[str, Any]:
         """Everything every phone and the studio may see. Never the outcome before the result phase, never
@@ -449,6 +456,7 @@ class CasinoGame:
             "next_in": _left(self.result_until, now),
             "rules": self.rules.model_dump(mode="json"),
             "totals": totals,
+            "spot_bets": self.spot_bets(),
             "bettors": _seats(self.session.seat_of(p) for p, b in self.bets.items() if b),
             "done": _seats(self.session.seat_of(p) for p in self.done),
         }
@@ -468,6 +476,27 @@ class CasinoGame:
                 ),
             }
         return out
+
+    def spot_bets(self) -> dict[str, list[dict[str, Any]]]:
+        """Who has chips on which spot: ``{spot: [{seat, name, color, amount}, …]}`` in table order (host first,
+        then by seat; a player whose seat was taken counts as seat 0). Built from the same `bets` as ``totals`` in
+        the same call, so every phone and the studio draw the same chips with the same colours."""
+        s = self.session
+        rows: dict[str, list[tuple[tuple[int, int, str], dict[str, Any]]]] = {}
+        for pid, b in self.bets.items():
+            seat = s.seat_of(pid) or 0
+            p = s.players.get(pid)
+            key = (0, 0, pid) if seat == "host" else (1, int(seat), pid)
+            for spot, amount in b.items():
+                if amount > 0:
+                    who = {
+                        "seat": seat,
+                        "name": s.name_of(pid),
+                        "color": (p.color if p else "") or "#f0f0f0",
+                        "amount": amount,
+                    }
+                    rows.setdefault(spot, []).append((key, who))
+        return {spot: [w for _k, w in sorted(r, key=lambda kw: kw[0])] for spot, r in sorted(rows.items())}
 
     def private_state(self, pid: str, now: float) -> dict[str, Any]:
         mine = self.bets.get(pid, {})

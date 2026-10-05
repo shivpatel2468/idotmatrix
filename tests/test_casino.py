@@ -588,3 +588,153 @@ async def test_live_table_with_players(engine: Any) -> None:
         st = app.status()
         assert len(st["players"]) == players and st["casino"] is True
         assert app.private_status(2)["seated"] is True and app.private_status(30) == {"seated": False}
+
+
+# ================================================================= multiplayer sync
+def _check_spot_bets(st: dict[str, Any], privs: dict[int, dict[str, Any]]) -> None:
+    """`spot_bets` agrees with `totals` and with every seat's own private `bets`."""
+    sb = st["spot_bets"]
+    assert {k: sum(w["amount"] for w in v) for k, v in sb.items()} == st["totals"]
+    for seat, pv in privs.items():
+        if not pv.get("seated", True):
+            continue
+        mine = {k: w["amount"] for k, v in sb.items() for w in v if w["seat"] == seat}
+        assert mine == pv["bets"], seat
+    for rows in sb.values():  # table order, each player once per spot
+        seats = [w["seat"] for w in rows]
+        assert len(set(seats)) == len(seats)
+        assert seats == sorted(seats, key=lambda s: (0, 0) if s == "host" else (1, int(s)))
+
+
+async def test_spot_bets_follow_every_op(engine: Any) -> None:
+    """bet / unbet (part and all) / clear / rebet / done from several players and the host, a phone dropping and
+    coming back on another seat: the public spot breakdown always matches the private views."""
+    app = engine._slot("casino_roulette").app
+    clk = Clock()
+    app.session.clock = clk
+    for seat, pid, col in ((2, "pidAAAA", "#ff3c5a"), (3, "pidBBBB", "#00c8ff"), (4, "pidCCCC", "#50ff78")):
+        await app.action("seat", {"player": seat, "joined": True, "name": pid[-4:], "color": col, "pid": pid})
+
+    async def op(player: int | str, **kw: Any) -> None:
+        await app.action("casino", {"player": player, **kw})
+        _check_spot_bets(app.status(), {s: app.private_status(s) for s in (2, 3, 4)})
+
+    for spot in ("n:17", "red", "n:17", "s:17-18"):
+        for p in (2, 3, 4):
+            await op(p, op="bet", spot=spot, amount=5 * p)
+    await op("host", op="bet", spot="n:17", amount=25)
+    st = app.status()
+    assert [w["seat"] for w in st["spot_bets"]["n:17"]] == ["host", 2, 3, 4]
+    assert [w["color"] for w in st["spot_bets"]["n:17"]] == ["#00c8ff", "#ff3c5a", "#00c8ff", "#50ff78"]
+    assert st["totals"]["n:17"] == 25 + 2 * (10 + 15 + 20)
+    await op(2, op="unbet", spot="n:17", amount=5)
+    await op(3, op="unbet", spot="red")
+    await op(4, op="clear")
+    await op(2, op="done")
+    # seat 3 drops and its phone comes back on seat 5: its chips stay on the table, now under seat 5
+    await app.action("seat", {"player": 3, "joined": False})
+    await app.action(
+        "seat", {"player": 5, "joined": True, "name": "BBBB", "color": "#00c8ff", "pid": "pidBBBB"}
+    )
+    st = app.status()
+    assert {w["seat"] for v in st["spot_bets"].values() for w in v} == {"host", 2, 5}
+    _check_spot_bets(st, {s: app.private_status(s) for s in (2, 4, 5)})
+    # next round: rebet repeats everyone's previous bets
+    await app.action("casino", {"op": "lock", "player": "host"})
+    clk.t += 60
+    app.status()
+    clk.t += 60
+    app.status()
+    assert app.game.phase == "betting" and app.status()["spot_bets"] == {}
+    await op(2, op="rebet")
+    assert app.status()["spot_bets"]["n:17"] == [
+        {"seat": 2, "name": "AAAA", "color": "#ff3c5a", "amount": 15}
+    ]
+
+
+def test_phones_betting_at_once_see_the_same_table(tmp_path: Path) -> None:
+    """Three phones fire bets, undos and clears at the same time; once each phone's taps are acknowledged, every
+    phone (and the studio) holds the identical public table: totals, who is on which spot, in which colour."""
+    with _client(tmp_path) as c:
+        code = c.post("/api/play/lobby", json={"app": "casino_roulette"}).json()["code"]
+        app = c.app.state.engine._slot("casino_roulette").app
+        app.session.clock = Clock()
+        with (
+            c.websocket_connect(f"/ws/p/{code}?cid=syncAAAA01") as a,
+            c.websocket_connect(f"/ws/p/{code}?cid=syncBBBB02") as b,
+            c.websocket_connect(f"/ws/p/{code}?cid=syncCCCC03") as d,
+        ):
+            phones = [a, b, d]
+            seats = [p.receive_json()["seat"] for p in phones]
+            script = [
+                ("bet", {"spot": "n:17", "amount": 5}),
+                ("bet", {"spot": "red", "amount": 25}),
+                ("bet", {"spot": "n:17", "amount": 1}),
+                ("unbet", {"spot": "n:17", "amount": 1}),
+                ("bet", {"spot": "c:13", "amount": 100}),
+                ("bet", {"spot": "n:17", "amount": 5}),
+                ("unbet", {"spot": "red"}),
+                ("bet", {"spot": "black", "amount": 5}),
+            ]
+            sent = [0, 0, 0]
+            for i, (o, kw) in enumerate(script):  # interleaved: a, b, c, a, b, c …
+                for j, p in enumerate(phones):
+                    if o == "unbet" and (i + j) % 3 == 0:
+                        continue
+                    sent[j] += 1
+                    p.send_text(json.dumps({"type": "casino", "op": o, "seq": sent[j], **kw}))
+            sent[1] += 1
+            b.send_text(json.dumps({"type": "casino", "op": "clear", "seq": sent[1]}))
+            # each phone's own last op is applied …
+            for j, p in enumerate(phones):
+                _state(p, lambda m, w=sent[j]: m.get("ack") == w, timeout=5)
+            # … then every phone converges on the same revision of the table
+            rev = app.status()["rev"]
+            got = [_state(p, lambda m, r=rev: m["status"].get("rev", -1) >= r, timeout=5) for p in phones]
+            pub = [
+                {k: m["status"][k] for k in ("totals", "spot_bets", "bettors", "round", "phase")} for m in got
+            ]
+            assert pub[0] == pub[1] == pub[2]
+            assert pub[0]["totals"]  # the table isn't empty
+            privs = {s: m["private"] for s, m in zip(seats, got, strict=True)}
+            _check_spot_bets(got[0]["status"], privs)
+            assert privs[seats[1]]["bets"] == {}  # b cleared everything last
+            view = c.post("/api/apps/casino_roulette/actions/casino", json={"op": "view"}).json()["result"]
+            assert {k: view["status"][k] for k in ("totals", "spot_bets")} == {
+                k: pub[0][k] for k in ("totals", "spot_bets")
+            }
+
+
+def test_andar_bahar_deal_on_phones_matches_by_rank_any_suit() -> None:
+    """While the cards are dealt the phones get the joker and the cards so far (never the winner ahead of the
+    deal); the game ends on the first card of the joker's rank, whatever its suit (the standard rule)."""
+    from deskdot.casino.games.andarbahar import AndarBahar
+
+    for k in range(6):
+        s, clk = _session()
+        _seat(s, "a", 2, seed=f"ab-{k}")
+        g = AndarBahar(s)
+        s.use(g)
+        g.open_betting()
+        assert g.place_bet("a", "andar", 10) is None
+        assert "deal" not in g.public_state(clk.t)
+        g.lock()
+        seen: list[int] = []
+        for _ in range(400):
+            clk.t += 0.1
+            g.tick()
+            st = g.public_state(clk.t)
+            if g.phase != "dealing":
+                continue
+            d = st["deal"]
+            assert "winner" not in d and "result" not in st
+            cards = d["cards"]
+            seen.append(len(cards))
+            joker = d["joker"]
+            assert all(c[0] != joker[0] for c in cards[:-1])  # no earlier card had the joker's rank
+            if d["matched"]:
+                assert cards[-1][0] == joker[0] and cards[-1] != joker
+        assert seen == sorted(seen) and g.phase in ("result", "betting")
+        o = g.result.outcome  # type: ignore[union-attr]
+        assert o["cards"][-1][0] == o["joker"][0] and len(o["cards"]) == o["count"]
+        assert o["winner"] == (o["first"] if o["count"] % 2 else ({"andar", "bahar"} - {o["first"]}).pop())

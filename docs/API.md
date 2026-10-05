@@ -227,11 +227,11 @@ casino table. Same socket, same `hello` / `profile` / `roster`; in addition:
 
 | Direction | Message |
 | --- | --- |
-| phone → | `{"type": "casino", "op": "bet", "spot": "n:17", "amount": 25}` · `{"op": "unbet", "spot", "amount"?}` (all of it without `amount`) · `{"op": "clear"}` · `{"op": "rebet"}` · `{"op": "done"}` (locks early once everyone with chips is done) · `{"op": "seed", "client_seed": "≤64 printable chars, no ':'"}` · game ops later (`hit`, `fold`, `pull`, …). The server overwrites `player` with the socket's seat; host ops from a phone are refused |
-| → phone | `state {status, private}` — `status` is public (every phone + the studio); `private` (from `App.private_status(seat)`) only ever reaches that seat's socket |
+| phone → | `{"type": "casino", "op": "bet", "spot": "n:17", "amount": 25}` · `{"op": "unbet", "spot", "amount"?}` (all of it without `amount`) · `{"op": "clear"}` · `{"op": "rebet"}` · `{"op": "done"}` (locks early once everyone with chips is done) · `{"op": "seed", "client_seed": "≤64 printable chars, no ':'"}` · game ops (`hit`, `fold`, `pull`, …; Housie: `buy {count}`, `claim {prize, ticket?}` / `claim_<prize>`, prizes `early5 top middle bottom corners full`). Any op may carry `seq` (an increasing integer); the socket echoes the last applied one as `ack` in every later `state`. The server overwrites `player` with the socket's seat; host ops from a phone are refused |
+| → phone | `state {status, private, ack?}` — `status` is public (every phone + the studio); `private` (from `App.private_status(seat)`) only ever reaches that seat's socket |
 
 `status` (casino): `{casino, game, name, table_theme {id, name, css {felt, felt2, felt3, accent, accent_hi, accent_lo, accent_deep, accent_rgb, ink, wing, wing2, wing3}}, phase, round, hash (commitment of this round), ends_in (whole s, null =
-waiting for the first chip), reveal_in, next_in, paused, rules, totals {spot: credits, all players}, bettors, done
+waiting for the first chip), reveal_in, next_in, paused, rules, totals {spot: credits, all players}, spot_bets {spot: [{seat, name, color, amount}]} (who is on each spot, table order — phones and the studio draw the same dots from it), rev (the session's change counter: keep the newest status when two feeds race), deal? (Andar Bahar while dealing: {joker, first, cards so far, matched}), bettors, done
 (seats, the host `"host"` first),
 house {base_credits, min_bet, max_bet, bet_seconds, result_seconds, turn_seconds, auto_next}, edges {bet kind: house
 edge}, players [{seat, name, color, avatar, online, credits, staked, net, biggest}] (leaderboard order), history
@@ -257,6 +257,7 @@ Host ops: `POST /api/apps/{id}/actions/casino` with `{"op": …}` (local only; `
 | `kick` | `{seat \| pid, on?: bool}` | take a player off the table (open bets refunded while betting) |
 | `pause` | `{on?: bool}` | freeze every timer (toggle without `on`) |
 | `reset_session` | `{base_credits?}` | everyone back to base credits, history cleared |
+| `pace` | `{seconds}` or `{delta}` | Housie (a game's own `host_ops`): seconds between calls (3–20), applied at once → `{call_seconds}` |
 | `verify` | `{round}` | recompute a past round from its revealed seeds → `{ok, hash_ok, matches, outcome, proof}` |
 | `view` | `{spots?: bool}` | read-only, for the studio's casino mode: `{status (fresh), private (the host seat's own view; `{seated: false}` until the host first plays — looking never seats the host), players (leaderboard + `pid`, `kicked`), spots? [{id, label, kind, pays, numbers}], avatars? {id: {name, px}}, guide? (this game's rulebook, with `spots`), themes? [table_theme…] (with `spots`)}` |
 

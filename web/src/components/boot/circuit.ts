@@ -1,4 +1,5 @@
 import { type LogoTimeline, NEON, NeonLogo } from "../../lib/logo";
+import { sfx } from "../../lib/sound";
 import type { DoorPose } from "./sunset";
 
 /** Intro theme "Circuit". One sealed LED-matrix face covers the screen — no seam while shut. The idotmatrix logo
@@ -141,6 +142,7 @@ export class CircuitDoors {
   private t = 1; // progress of the current open/close, 0..1
   private t0 = performance.now();
   private flare = 0;
+  private logoT = 0;
 
   constructor(readonly left: HTMLCanvasElement, readonly right: HTMLCanvasElement, startOpen = false) {
     if (startOpen) {
@@ -216,6 +218,7 @@ export class CircuitDoors {
       this.t = Math.min(1, this.t + dt / (this.dir ? OPEN_S : CLOSE_S));
       const k = this.t;
       if (this.dir === 1) {
+        if (before === 0) sfx("door-open");
         // 0–.3 power surge, .2–.38 the crack, .32–1 the slide
         this.surge = Math.min(1, k / 0.3);
         this.flare = Math.max(this.flare, Math.sin(Math.min(1, k / 0.3) * Math.PI));
@@ -225,7 +228,10 @@ export class CircuitDoors {
         this.surge = -1;
         this.open = 1 - easeOut(Math.min(1, k / 0.82));
         this.crack = k < 0.82 ? 1 : 1 - (k - 0.82) / 0.18; // sealed: the crack heals
-        if (k >= 0.82 && before < 0.82) this.flare = 0.8; // the thud of the seal
+        if (k >= 0.82 && before < 0.82) {
+          this.flare = 0.6; // the thud of the seal
+          sfx("door-close");
+        }
       }
     }
     this.flare = Math.max(0, this.flare - dt * 1.4);
@@ -254,7 +260,10 @@ export class CircuitDoors {
     plate.addColorStop(1, "rgba(3,3,5,0)");
     o.fillStyle = plate;
     o.fillRect(0, 0, w, h);
-    this.logo.draw(o, (performance.now() - this.t0) / 1000, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare });
+    const lt = (performance.now() - this.t0) / 1000;
+    if (this.logoT < BOOT_LOGO.build + 0.15 && lt >= BOOT_LOGO.build + 0.15) sfx("logo-buzz");
+    this.logoT = lt;
+    this.logo.draw(o, lt, ox, oy, p, BOOT_LOGO, { grid: true, flare: this.flare * 0.6 });
     // ---- the crack of light down the middle (only while splitting or healing — sealed, there's no seam)
     if (this.crack > 0.01) {
       o.globalCompositeOperation = "lighter";

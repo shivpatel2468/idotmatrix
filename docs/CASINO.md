@@ -92,10 +92,26 @@ games) → result → idle`.
     animate in sync with the panel. Pay table on a tap.
   - **Hold'em:** own hole cards, the board, pot, call amount, a fold / check / call / raise slider and all-in.
   - **Teen Patti:** blind/seen state, see cards, chaal (stake shown), pack, show, sideshow.
-  - **Andar Bahar:** Andar / Bahar zones with the joker shown.
+  - **Andar Bahar:** Andar / Bahar zones with the joker shown; while dealing (`status.deal`) the joker, "any 7"
+    big, both piles and the matching card lit — a match is by value, any suit.
   - **Big Six:** zones for every wheel symbol with its payout.
 - **Results:** win/loss as a toast with the amount, then a "Verify this round" sheet.
 - **Fair-play:** haptics on bet, lock, win; reduced-motion respected; no zooming or text selection.
+- **Gestures (core, every `[data-spot]` zone; roulette maps its own geometry):** pointer events only — a tap bets
+  at `pointerup` (no click, no 300 ms delay, rapid taps each place a chip), hold 550 ms or drag the stack off a spot
+  to take it back, drag a chip from the rack onto a spot (a ghost chip follows the finger, the spot under it lights
+  up). `touch-action: manipulation` everywhere, `none` on the rack / roulette / zones holding my chips; double-tap,
+  `dblclick` and iOS `gesturestart` zoom are blocked. The rulebook has its own text zoom (A−/A+ or a two-finger
+  pinch on the text). Chips fly rack → spot on an arc and the stack bounces (WAAPI, transform/opacity only;
+  `prefers-reduced-motion` turns flights off); a stack's height follows the chips it takes (`--stk`).
+- **Who is on a spot:** `status.spot_bets {spot: [{seat, name, color, amount}]}` (table order) is drawn as coloured
+  dots + the spot total on every phone and in the studio — the same list everywhere. Ops carry `seq`; the socket
+  echoes `ack`, and the undo stack is trimmed to `private.bets` only when no op is in flight.
+- **Sound:** a Web Audio synth inside the page (chip clack, swish, the "no more bets" chime, slowing spin ticks,
+  card flicks, win / lose stings), unlocked by the first tap, mute toggle in the header (`deskdot.casino.mute`).
+- **Tour:** first visit per game, "Show me around" from the how-to card or the **?** sheet: spotlight steps over the
+  credits, chip rack, table (game-specific text, `module.tour`), Undo/Clear/Rebet/Done, timer, history, **?**,
+  fair play, players and sound. Seen per game in `deskdot.casino.tour.<game>`.
 
 ## 6. Studio casino mode
 
@@ -127,6 +143,7 @@ games) → result → idle`.
 | **Teen Patti** | boot, blind/seen (chaal: blind 1× stake, seen 2×), pack, show (2 left), sideshow; trail > pure sequence > sequence > colour > pair > high card (A-K-Q top sequence, A-2-3 next) | pot to the winner | boot, max blind rounds, pot limit, turn timer |
 | **Andar Bahar** | joker drawn, cards dealt alternately (first card to Andar) until a rank match | Andar 0.9:1, Bahar 1:1 | first-card side, bet timer |
 | **Big Six wheel** | 54 segments: 1×24, 2×15, 5×7, 10×4, 20×2, joker×1, logo×1 | 1:1, 2:1, 5:1, 10:1, 20:1, joker/logo 40:1 | bet timer |
+| **Housie** (Tambola) | 3×9 tickets, 15 numbers (5 a row), calls 1–90; players buy tickets into a pot | pool (pot − rake) split by prize shares: Early Five 10 %, Top / Middle / Bottom Line 15 % each, Four Corners 10 %, Full House 35 %; ties split | ticket price, max tickets, buy-in time, call pace (live), rake, bogey penalty, auto-claim, each prize on/off + share |
 
 Rock Paper Scissors is a regular **game** (category `games`, a `GameApp`), not part of the casino. It has AI vs AI
 (attract), player vs AI and player vs player modes, best-of options, and pixel-hand pickers on phones.
@@ -347,3 +364,43 @@ generated from it (`uv run python -m deskdot.casino.rulebook > docs/CASINO_RULES
   a "? Rules" button and the same one-time card (`deskdot.howto.rps`).
 - **Studio:** the host op `view` with `spots: true` also returns `guide` (and `themes`); the left wing's **Guide** tab
   shows How to play and the Rulebook.
+
+## 12. As built: Housie (Tambola)
+
+Rules: `casino/games/housie.py` · panel: `apps/casino_housie.py` · phone: the "housie" block of `casino.html` (`HS.*`,
+`.hs-` styles) · tests: `tests/test_casino_housie.py`. The 10th table and the first **pot game**: players play for
+each other's ticket money, the house keeps only the rake (default 0, `edges = {"ticket": rake}`).
+
+- **Round machine.** `betting` is the **buy-in**: `buy {count}` sets a player's tickets (0…`max_tickets`, each
+  `ticket_price` into escrow); the generic chip ops also work on the spot `ticket` (`bet` = one more, `unbet` = one
+  fewer / all, `clear`, `rebet`, `done`), so the studio's laptop controller needs nothing special. The first ticket
+  starts the `buy_seconds` clock; the host's `lock` ("Start calling" in the host bar) or everyone pressing done
+  closes it. After the lock nothing about tickets can change.
+- **Fairness.** At the lock the round's `Rng` draws the **call order first** (Fisher–Yates of 1…90), then every
+  ticket in seat order (`make_ticket`: one number per column plus 6 more to columns with room, numbers from a
+  shuffle of each column's range, rows by "most room left" with a shuffled tie-break — always 5 per row). Outcome
+  `{calls, holders [[seat, n]…], tickets [[27 cells]…]}`; `replay_with` rebuilds it from the stored holders and the
+  phone's `HS.deal` does the same (tested in Node). The call order never depends on how many tickets were sold.
+  Only the numbers called so far are public (`status.housie.calls`); tickets are only in their owner's
+  `private.housie`.
+- **Calling.** `dealing` is the calling phase: 4 s to look at the tickets, then one number every `call_seconds`
+  (host op `pace {seconds | delta}` changes it live — a game's own `CasinoGame.host_ops`, routed by
+  `CasinoApp.casino`; the table's pause freezes the caller). Claims: `claim {prize, ticket?}` or `claim_<prize>`
+  (the laptop controller gets these as `private.ops`). The server checks the ticket against the numbers called; a
+  bogey is rejected (`bogey`: just rejected / that ticket can't win that prize / the ticket is out). Valid claims
+  before the next call share the prize (per ticket, odd credits to the earliest); the next call closes it.
+  `auto_claim` claims for everyone.
+- **End and settlement.** Full House (3 s grace for ties), every prize won, or 90 calls → a 2.5 s beat → settled
+  once through the bank (stake = tickets × price, payout = prizes). Unclaimed prizes are shared back by tickets, so
+  the nets always sum to −rake. Closing the table mid-game refunds every ticket; a decided game is paid.
+- **Panel.** Buy-in: HOUSIE, the countdown, the pot and a column of ticket pips per player. Calling: the number on a
+  ball coloured by its decade (it pops in), the last three calls, the called count and a /90 bar, prize pips (lit in
+  the winner's colour); a claim flashes a band in the winner's colour with chasing bulbs. Result: HOUSIE!, then the
+  winners board (E5 TOP MID BOT 4C FH tiles) and the history (label = the call the game ended on). Views: demo,
+  betting, locked, calling, claim, result, board, lobby, paused; the library preview plays a demo game.
+- **Phone.** Ticket stepper and "I'm ready" during the buy-in; then the current ball with its traditional call name
+  ("Two little ducks — 22"), the recent calls, a 1–90 **Board** sheet, claim buttons that glow when a pattern is
+  complete (auto-daub: the server's check; manual daub: your own marks, so a wrong mark can be a bogey), the
+  tickets as 3×9 paper grids with a stamp animation per daub (fits 360–430 px), the prize table and the winners.
+- **Studio.** Host bar: "Start calling", the pace − / +, "Calling · n / 90". Odds tab: the prize table (shares,
+  credits, winners) above the rake row.

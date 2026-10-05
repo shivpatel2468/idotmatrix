@@ -481,6 +481,7 @@ class PvPGame(CasinoGame):
     def public_state(self, now: float) -> dict[str, Any]:
         out = super().public_state(now)
         out.pop("totals", None)  # pot contributions are in `table` per seat
+        out.pop("spot_bets", None)
         out["pvp"] = True
         out["ends_in"] = _left(self.deadline, now)
         out["sitting"] = sorted(

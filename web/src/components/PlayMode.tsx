@@ -35,6 +35,7 @@ const HINTS: Record<string, Partial<Record<GameKey | "move", string>>> = {
   flappy: { up: "Flap", a: "Flap" },
   dino: { up: "Jump", a: "Jump", down: "Duck" },
   racer: { left: "Lane left", right: "Lane right" },
+  penguin: { move: "Waddle / slide", a: "Undo", b: "Restart · levels" },
 };
 
 function useMedia(q: string) {

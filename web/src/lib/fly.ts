@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { api } from "./api";
+import { sfx } from "./sound";
 import { appMeta, toast, useStore } from "./store";
 
 /** One reading of the fruit-fly brain (GET /api/fly; src/deskdot/fly/brain.py `snapshot`). Studio only:
@@ -232,6 +233,7 @@ export function closeFlyView() {
 
 export function openFlyView() {
   useFly.getState().set({ forced: true, forcedAt: performance.now(), dismissedFor: null });
+  sfx("fly-buzz", { volume: 0.5 });
 }
 
 /** Can this app be played by the fly? (Games built on GameApp have the `pilot` setting.) */

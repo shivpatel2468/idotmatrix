@@ -489,6 +489,9 @@ def create_app(cfg: Config) -> FastAPI:
         engine.changed()
 
         poke = asyncio.Event()  # set after a casino op so its result reaches the phone at once
+        # the last casino op `seq` this socket has applied: echoed as `ack` so the phone knows which of its taps
+        # the state already includes (its undo stack and chip animations reconcile against it)
+        acked: dict[str, int] = {}
 
         async def push_state() -> None:
             # poll fast, send only on change (plus a heartbeat) so turn / flow changes reach the phone quickly
@@ -505,6 +508,8 @@ def create_app(cfg: Config) -> FastAPI:
                 pv = cur.app.private_status(seat) if live and cur else None
                 if pv is not None:
                     out["private"] = pv
+                if "seq" in acked:
+                    out["ack"] = acked["seq"]
                 txt = json.dumps(out, default=str)
                 t = time.monotonic()
                 if txt != last or t - sent_at > 2.0:
@@ -546,11 +551,14 @@ def create_app(cfg: Config) -> FastAPI:
                     await broadcast_roster(room)  # also corrects a phone whose pick was refused
                 elif kind == "casino" and lobby.room is room:
                     # a phone's casino op; the seat comes from the socket, never from the message
-                    op = {k: v for k, v in msg.items() if k not in ("type", "player")}
+                    op = {k: v for k, v in msg.items() if k not in ("type", "player", "seq")}
                     try:
                         await engine.action(room.app, "casino", {**op, "player": seat})
                     except (KeyError, ValueError, TypeError) as e:
                         log.debug("casino op from seat %s refused: %s", seat, e)
+                    seq = msg.get("seq")
+                    if type(seq) is int and 0 <= seq < 2**53:
+                        acked["seq"] = seq
                     poke.set()
                 elif "k" in msg and lobby.room is room:
                     k = str(msg["k"]).lower()[:8]

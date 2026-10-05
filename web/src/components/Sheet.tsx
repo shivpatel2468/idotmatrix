@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { sheetSound } from "../lib/sound";
 
 /**
  * A phone bottom sheet: slides up from the thumb zone, a grab handle you can drag down to close, the home-indicator
@@ -16,6 +17,8 @@ export function Sheet({ open, onClose, title, children, footer }: {
   const [drag, setDrag] = useState(0);
   const start = useRef<number | null>(null);
   const body = useRef<HTMLDivElement>(null);
+  const wasOpen = useRef(open);
+  useEffect(() => sheetSound(open, wasOpen), [open]);
   useEffect(() => {
     if (!open) return;
     setDrag(0);

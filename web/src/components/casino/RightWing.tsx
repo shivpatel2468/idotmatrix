@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "../../lib/store";
 import { AvatarPix, Chip, Credits, NumberInput, Section, Tabs } from "./bits";
 import {
-  type HistoryEntry, type PlayerRow, type Spot, TONE, casinoOp, fmt, seatLabel, short, useCasino, verifyRound,
+  type HistoryEntry, type PlayerRow, type Spot, type SpotBettor, TONE, casinoOp, fmt, seatLabel, short, useCasino, verifyRound,
 } from "./state";
 
 const BET_OPS = new Set(["bet", "unbet", "clear", "rebet", "done"]);
@@ -213,17 +213,26 @@ function isRoulette(spots: Spot[]) {
   return spots.filter((s) => s.kind === "straight" && /^\d+$/.test(s.label)).length >= 36;
 }
 
-function SpotButton({ s, mine, total, onBet, onUnbet, disabled, className, style }: {
-  s: Spot; mine: number; total: number; onBet: () => void; onUnbet: () => void; disabled: boolean; className?: string; style?: React.CSSProperties;
+function SpotButton({ s, mine, total, who, onBet, onUnbet, disabled, className, style }: {
+  s: Spot; mine: number; total: number; who?: SpotBettor[]; onBet: () => void; onUnbet: () => void; disabled: boolean; className?: string; style?: React.CSSProperties;
 }) {
+  // who is on this spot (status.spot_bets): the same dots, in the same order, as every phone shows
+  const list = who ?? [];
+  const names = list.map((w) => `${w.name} ${fmt(w.amount)}`).join(" · ");
   return (
     <button className={clsx("cz-spot", className)} disabled={disabled} style={style}
-      title={`${s.label} · pays ${s.pays}${total ? ` · table ${fmt(total)}` : ""}\nClick: add a chip · right-click: take one back`}
+      title={`${s.label} · pays ${s.pays}${total ? ` · table ${fmt(total)}` : ""}${names ? `\n${names}` : ""}\nClick: add a chip · right-click: take one back`}
       onClick={onBet} onContextMenu={(e) => { e.preventDefault(); onUnbet(); }}>
       <span className="cz-spot-l">{s.label}</span>
       <span className="cz-spot-p">{s.pays}</span>
       {mine > 0 && <span className="cz-spot-mine">{short(mine)}</span>}
-      {!mine && total > 0 && <span className="cz-spot-total" />}
+      {list.length > 0 ? (
+        <span className="cz-spot-who" aria-label={names}>
+          {list.slice(0, 4).map((w) => <i key={String(w.seat)} style={{ background: w.color }} data-host={w.seat === "host" || undefined} />)}
+          {list.length > 4 && <b>+{list.length - 4}</b>}
+          {total > mine && <b>{short(total)}</b>}
+        </span>
+      ) : !mine && total > 0 && <span className="cz-spot-total" />}
     </button>
   );
 }
@@ -277,6 +286,7 @@ function Play() {
   const amount = chip === "all" ? credits : chip;
   const bets = me.bets ?? {};
   const totals = st?.totals ?? {};
+  const who = st?.spot_bets ?? {};
   const gameOps = (me.ops ?? []).filter((o) => !BET_OPS.has(o));
 
   const bet = (id: string) => {
@@ -288,7 +298,7 @@ function Play() {
   const unbet = (id: string, amt?: number) => casinoOp("unbet", amt ? { spot: id, amount: amt } : { spot: id }).catch(() => undefined);
   const op = (o: string, extra: Record<string, unknown> = {}) => casinoOp(o, extra).catch(() => undefined);
   const btn = (s: Spot, cls?: string, style?: React.CSSProperties) => (
-    <SpotButton key={s.id} s={s} mine={bets[s.id] ?? 0} total={totals[s.id] ?? 0} disabled={!betting}
+    <SpotButton key={s.id} s={s} mine={bets[s.id] ?? 0} total={totals[s.id] ?? 0} who={who[s.id]} disabled={!betting}
       onBet={() => bet(s.id)} onUnbet={() => unbet(s.id, typeof chip === "number" ? chip : undefined)} className={cls} style={style} />
   );
 

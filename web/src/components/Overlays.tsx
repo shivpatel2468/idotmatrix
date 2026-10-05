@@ -8,11 +8,14 @@ import { openFriends } from "./Multiplayer";
 import { EMPTY_LIST, openSettings, toast, useStore } from "../lib/store";
 import type { Notice } from "../lib/types";
 import { Icon } from "./Icon";
+import { sheetSound } from "../lib/sound";
 
 export function Modal({ open, onClose, title, children, width = 440, header, bodyRef }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; width?: number;
   header?: React.ReactNode; bodyRef?: React.Ref<HTMLDivElement>;
 }) {
+  const wasOpen = useRef(open);
+  useEffect(() => sheetSound(open, wasOpen), [open]);
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();

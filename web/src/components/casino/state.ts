@@ -30,12 +30,27 @@ export type CasinoStatus = {
   phase?: string; round?: number | null; hash?: string | null;
   ends_in?: number | null; reveal_in?: number | null; next_in?: number | null;
   rules?: Record<string, unknown>; totals?: Record<string, number>;
+  /** who has chips on which spot, in table order (table.py spot_bets) — the same list every phone draws */
+  spot_bets?: Record<string, SpotBettor[]>;
+  /** the session's change counter: the newest status wins whichever feed delivers it */
+  rev?: number;
   bettors?: (number | string)[]; done?: (number | string)[];
   paused?: boolean; house?: House; players?: PlayerRow[]; history?: HistoryEntry[];
   edges?: Record<string, number>; rtp?: number; lobby?: boolean; max_players?: number;
   table_theme?: TableTheme;
   result?: { round: number; outcome: Record<string, unknown>; label?: string; tone?: string; winners?: { seat: number | string | null; name: string; net: number }[] };
   [k: string]: unknown;
+};
+export type SpotBettor = { seat: number | "host"; name: string; color: string; amount: number };
+/** Housie's own status block (`status.housie`, casino/games/housie.py). */
+export type HousiePrize = {
+  id: string; name: string; share: number; amount: number; state: "open" | "claimed" | "won"; call: number | null;
+  winners: { seat: number | string | null; name: string; color: string; ticket: number }[];
+};
+export type HousieStatus = {
+  price: number; max: number; pace: number; pot: number; rake: number; sold: number; called: number; calls: number[];
+  call_in: number | null; first_in: number | null; finished: boolean; returned: number; prizes: HousiePrize[];
+  buyers: { seat: number | string | null; name: string; color: string; n: number }[];
 };
 /** A table theme (apps/_casino.py TABLE_THEMES): CSS colours for the felt, the accent and the wings. */
 export type TableTheme = { id: string; name: string; css: Record<string, string> };
@@ -143,6 +158,19 @@ export async function casinoOp<T = Record<string, unknown>>(op: string, payload:
   return r.result;
 }
 
+/**
+ * The status arrives from two feeds (the engine's state stream and the host-view poll) that can overtake each other.
+ * Keep the newer one: an older `rev` is dropped unless the current status is a few seconds old (an engine restart
+ * starts the counter again) or belongs to another table.
+ */
+export function isFresher(next: CasinoStatus | null | undefined): boolean {
+  const c = useCasino.getState();
+  const cur = c.status;
+  if (!next || !cur || typeof next.rev !== "number" || typeof cur.rev !== "number") return true;
+  if (next.game !== cur.game) return true;
+  return next.rev >= cur.rev || performance.now() - c.at > 3000;
+}
+
 let inflight = false;
 /** Read the table: fresh status, the host seat's own view, and (when the rules changed) the spots. */
 export async function refreshView(): Promise<void> {
@@ -159,7 +187,8 @@ export async function refreshView(): Promise<void> {
     }).then((x) => (x.ok ? x.json() : null))) as { result: ViewReply } | null;
     if (!r || useStore.getState().state?.engine.current?.app !== app) return;
     const v = r.result;
-    const patch: Partial<CasinoStore> = { status: v.status, at: performance.now(), app, me: v.private, players: v.players ?? null };
+    const patch: Partial<CasinoStore> = { app, me: v.private, players: v.players ?? null };
+    if (isFresher(v.status)) Object.assign(patch, { status: v.status, at: performance.now() });
     if (v.spots) {
       patch.spots = v.spots;
       patch.spotsKey = `${app}|${JSON.stringify(v.status?.rules ?? null)}`;
@@ -183,7 +212,7 @@ export function useCasinoFeed(app: string | null) {
       const cur = s.state?.engine.current;
       if (cur?.app !== app) return;
       const st = cur.status as CasinoStatus;
-      if (st && st.casino) useCasino.setState({ status: st, at: s.stateAt });
+      if (st && st.casino && isFresher(st)) useCasino.setState({ status: st, at: s.stateAt });
     });
     refreshView();
     const iv = setInterval(() => document.visibilityState === "visible" && refreshView(), 900);

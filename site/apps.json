@@ -1,8 +1,8 @@
 {
  "version": "3.2.0",
- "count": 100,
- "games": 26,
- "multiplayer": 31,
+ "count": 102,
+ "games": 27,
+ "multiplayer": 32,
  "categories": [
   {
    "id": "time",
@@ -32,12 +32,12 @@
   {
    "id": "games",
    "label": "Games",
-   "count": 26
+   "count": 27
   },
   {
    "id": "casino",
    "label": "Casino",
-   "count": 9
+   "count": 10
   },
   {
    "id": "ambient",
@@ -987,6 +987,283 @@
      "type": "toggle",
      "description": "Off = European no-hole-card: a dealer blackjack also takes doubles and splits.",
      "default": true
+    }
+   ],
+   "game": {
+    "max_players": 9,
+    "controls": [
+     "casino"
+    ],
+    "modes": [],
+    "maps": [],
+    "themes": []
+   }
+  },
+  {
+   "id": "casino_housie",
+   "name": "Housie",
+   "category": "casino",
+   "icon": "grid",
+   "description": "Tambola / bingo, the Indian way: buy tickets, the caller draws 1-90, claim lines and Full House.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/casino_housie.html",
+   "preview": "media/apps/casino_housie.gif",
+   "poster": "media/apps/casino_housie.png",
+   "og_image": "media/apps/og/casino_housie.png",
+   "source": "src/deskdot/apps/casino_housie.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "view",
+     "title": "Panel view",
+     "type": "choice",
+     "description": "Live plays the real table. The others are a self-playing demo game or one frozen moment of it, to check the art (no credits move).",
+     "default": "live",
+     "options": [
+      {
+       "value": "live",
+       "label": "Live table"
+      },
+      {
+       "value": "demo",
+       "label": "Demo game"
+      },
+      {
+       "value": "betting",
+       "label": "Preview: buy-in"
+      },
+      {
+       "value": "locked",
+       "label": "Preview: tickets dealt"
+      },
+      {
+       "value": "calling",
+       "label": "Preview: calling"
+      },
+      {
+       "value": "claim",
+       "label": "Preview: a claim"
+      },
+      {
+       "value": "result",
+       "label": "Preview: Full House"
+      },
+      {
+       "value": "board",
+       "label": "Preview: winners board"
+      },
+      {
+       "value": "lobby",
+       "label": "Preview: join QR"
+      },
+      {
+       "value": "paused",
+       "label": "Preview: paused"
+      }
+     ],
+     "group": "Preview"
+    },
+    {
+     "key": "table_theme",
+     "title": "Table theme",
+     "type": "choice",
+     "description": "The table's colours on the panel, every phone and the studio. Card suits, roulette pockets and players' colours never change.",
+     "default": "classic",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic green"
+      },
+      {
+       "value": "royal",
+       "label": "Royal blue"
+      },
+      {
+       "value": "crimson",
+       "label": "Crimson velvet"
+      },
+      {
+       "value": "midnight",
+       "label": "Midnight neon"
+      },
+      {
+       "value": "strip",
+       "label": "Neon strip"
+      },
+      {
+       "value": "emerald",
+       "label": "Emerald & champagne"
+      },
+      {
+       "value": "burgundy",
+       "label": "Burgundy & ivory"
+      }
+     ],
+     "group": "Look"
+    },
+    {
+     "key": "ticket_price",
+     "title": "Ticket price (credits)",
+     "type": "integer",
+     "default": 10,
+     "min": 1,
+     "max": 100000
+    },
+    {
+     "key": "max_tickets",
+     "title": "Max tickets per player",
+     "type": "integer",
+     "default": 3,
+     "min": 1,
+     "max": 6
+    },
+    {
+     "key": "buy_seconds",
+     "title": "Buy-in time",
+     "type": "integer",
+     "description": "Seconds to buy tickets, from the first ticket.",
+     "default": 45,
+     "min": 10,
+     "max": 300
+    },
+    {
+     "key": "call_seconds",
+     "title": "Seconds between calls",
+     "type": "integer",
+     "description": "The caller's pace (also live from the host bar).",
+     "default": 6,
+     "min": 3,
+     "max": 20
+    },
+    {
+     "key": "rake",
+     "title": "House rake (%)",
+     "type": "integer",
+     "description": "The house's cut of the pot (0 = friendly).",
+     "default": 0,
+     "min": 0,
+     "max": 20
+    },
+    {
+     "key": "bogey",
+     "title": "False claim (bogey)",
+     "type": "choice",
+     "description": "What happens when someone claims a prize their ticket hasn't completed.",
+     "default": "none",
+     "options": [
+      {
+       "value": "none",
+       "label": "Just rejected"
+      },
+      {
+       "value": "prize",
+       "label": "That ticket can't win that prize"
+      },
+      {
+       "value": "ticket",
+       "label": "That ticket is out"
+      }
+     ]
+    },
+    {
+     "key": "auto_claim",
+     "title": "Claim for everyone automatically",
+     "type": "toggle",
+     "description": "The server claims the moment a pattern completes.",
+     "default": false
+    },
+    {
+     "key": "early5",
+     "title": "Early Five",
+     "type": "toggle",
+     "description": "The first five numbers on a ticket.",
+     "default": true
+    },
+    {
+     "key": "early5_share",
+     "title": "Early Five share (%)",
+     "type": "integer",
+     "default": 10,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "top",
+     "title": "Top Line",
+     "type": "toggle",
+     "description": "All five numbers of the top row.",
+     "default": true
+    },
+    {
+     "key": "top_share",
+     "title": "Top Line share (%)",
+     "type": "integer",
+     "default": 15,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "middle",
+     "title": "Middle Line",
+     "type": "toggle",
+     "description": "All five numbers of the middle row.",
+     "default": true
+    },
+    {
+     "key": "middle_share",
+     "title": "Middle Line share (%)",
+     "type": "integer",
+     "default": 15,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "bottom",
+     "title": "Bottom Line",
+     "type": "toggle",
+     "description": "All five numbers of the bottom row.",
+     "default": true
+    },
+    {
+     "key": "bottom_share",
+     "title": "Bottom Line share (%)",
+     "type": "integer",
+     "default": 15,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "corners",
+     "title": "Four Corners",
+     "type": "toggle",
+     "description": "The first and last numbers of the top and bottom rows.",
+     "default": true
+    },
+    {
+     "key": "corners_share",
+     "title": "Four Corners share (%)",
+     "type": "integer",
+     "default": 10,
+     "min": 0,
+     "max": 100
+    },
+    {
+     "key": "full",
+     "title": "Full House",
+     "type": "toggle",
+     "description": "All 15 numbers: the game ends.",
+     "default": true
+    },
+    {
+     "key": "full_share",
+     "title": "Full House share (%)",
+     "type": "integer",
+     "default": 35,
+     "min": 0,
+     "max": 100
     }
    ],
    "game": {
@@ -10605,6 +10882,205 @@
      {
       "value": "toxic",
       "label": "Toxic"
+     }
+    ]
+   }
+  },
+  {
+   "id": "penguin",
+   "name": "Penguin Escape",
+   "category": "games",
+   "icon": "snowflake",
+   "description": "A sliding-ice puzzle: guide a penguin out of the zoo through 16 levels. Ice slides you until something stops you; shove ice blocks (into water to bridge it), grab keys for doors and three fish for stars, and stay out of the keepers' torch beams. Arrows move, A undoes, B restarts / picks a level.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/penguin.html",
+   "preview": "media/apps/penguin.gif",
+   "poster": "media/apps/penguin.png",
+   "og_image": "media/apps/og/penguin.png",
+   "source": "src/deskdot/apps/games_penguin.py",
+   "actions": [
+    {
+     "id": "restart",
+     "label": "Restart"
+    },
+    {
+     "id": "demo",
+     "label": "Autoplay"
+    }
+   ],
+   "settings": [
+    {
+     "key": "speed",
+     "title": "Speed",
+     "type": "integer",
+     "default": 5,
+     "min": 1,
+     "max": 10
+    },
+    {
+     "key": "theme",
+     "title": "Theme",
+     "type": "choice",
+     "default": "ice",
+     "options": [
+      {
+       "value": "classic",
+       "label": "Classic"
+      },
+      {
+       "value": "neon",
+       "label": "Neon"
+      },
+      {
+       "value": "retro",
+       "label": "Retro"
+      },
+      {
+       "value": "mono",
+       "label": "Mono"
+      },
+      {
+       "value": "ice",
+       "label": "Ice"
+      },
+      {
+       "value": "night",
+       "label": "Night"
+      },
+      {
+       "value": "aurora",
+       "label": "Aurora"
+      }
+     ]
+    },
+    {
+     "key": "skill",
+     "title": "AI skill",
+     "type": "number",
+     "description": "How well the demo AI plays",
+     "default": 0.8,
+     "min": 0.0,
+     "max": 1.0
+    },
+    {
+     "key": "show_score",
+     "title": "Show score",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "effects",
+     "title": "Effects",
+     "type": "choice",
+     "default": "full",
+     "options": [
+      {
+       "value": "full",
+       "label": "Full (particles, shake, flashes)"
+      },
+      {
+       "value": "calm",
+       "label": "Calm (no shake or flashes)"
+      },
+      {
+       "value": "minimal",
+       "label": "Minimal"
+      }
+     ],
+     "group": "Graphics"
+    },
+    {
+     "key": "intro_outro",
+     "title": "Intro & results screens",
+     "type": "toggle",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "attract",
+     "title": "Play itself when idle",
+     "type": "toggle",
+     "description": "The AI plays while nobody does (great in a playlist)",
+     "default": true,
+     "group": "Game flow"
+    },
+    {
+     "key": "pilot",
+     "title": "Plays itself with",
+     "type": "choice",
+     "default": "ai",
+     "options": [
+      {
+       "value": "ai",
+       "label": "Built-in AI"
+      },
+      {
+       "value": "fly",
+       "label": "Fruit-fly brain (sees only the pixels; docs/FLY_BRAIN.md)"
+      }
+     ],
+     "group": "Game flow"
+    },
+    {
+     "key": "start_level",
+     "title": "Starting level",
+     "type": "integer",
+     "description": "Where the demo starts, and the lowest level you can always pick",
+     "default": 1,
+     "min": 1,
+     "max": 16,
+     "group": "Game"
+    }
+   ],
+   "game": {
+    "max_players": 1,
+    "controls": [
+     "dpad",
+     "swipe",
+     "gamepad",
+     "joystick"
+    ],
+    "modes": [
+     {
+      "id": "solo",
+      "name": "Solo",
+      "min_players": 1,
+      "max_players": 1,
+      "teams": "solo"
+     }
+    ],
+    "maps": [],
+    "themes": [
+     {
+      "value": "classic",
+      "label": "Classic"
+     },
+     {
+      "value": "neon",
+      "label": "Neon"
+     },
+     {
+      "value": "retro",
+      "label": "Retro"
+     },
+     {
+      "value": "mono",
+      "label": "Mono"
+     },
+     {
+      "value": "ice",
+      "label": "Ice"
+     },
+     {
+      "value": "night",
+      "label": "Night"
+     },
+     {
+      "value": "aurora",
+      "label": "Aurora"
      }
     ]
    }

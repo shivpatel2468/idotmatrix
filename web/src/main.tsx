@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { installDeepLinks } from "./lib/deeplink";
+import { installStudioSounds } from "./lib/studioSound";
 import "./index.css";
 
 // The studio was rebuilt while this page was open: its lazy chunks (e.g. the 3D code) have new names, so the old
@@ -25,3 +26,4 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 installDeepLinks();
+installStudioSounds();
