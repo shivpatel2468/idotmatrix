@@ -2,6 +2,7 @@ import { LayoutGrid, ListMusic, MonitorPlay, SlidersHorizontal } from "lucide-re
 import { useEffect, useRef, useState } from "react";
 import { AiCreator } from "./components/AiCreator";
 import { Boot } from "./components/Boot";
+import { CoinDrop } from "./components/CoinDrop";
 import { RoamingFly } from "./components/RoamingFly";
 import { FlyToggle, RoamSign } from "./components/FlyToggle";
 import { Inspector } from "./components/Inspector";
@@ -261,6 +262,7 @@ export default function App() {
       <DropZone />
       <Toasts />
       <RoamingFly />
+      <CoinDrop />
       <Boot />
     </div>
   );
