@@ -63,6 +63,12 @@ body {
   text-align: center;
 }
 
+/* the DeskDot logo in LEDs (join.js DeskDotLogo); its canvas has ~2 dots of glow room, pulled in here */
+.logo {
+  display: block;
+  max-width: 100%;
+  margin: -14px auto -6px;
+}
 .brand {
   font: 600 10px/1 var(--mono);
   letter-spacing: 0.2em;

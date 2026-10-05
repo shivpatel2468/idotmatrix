@@ -3,7 +3,7 @@ import { sfx } from "../../lib/sound";
 
 /** The intro / outro: a warm retro-synthwave sunset with a lo-fi finish. A plum-to-ember sky with twinkling
  *  stars, a striped retro sun breathing on the horizon, soft mountain silhouettes, a neon perspective grid gliding
- *  towards you, film grain, faint scanlines and a vignette. The idotmatrix logo is a neon sign in the sky.
+ *  towards you, film grain, faint scanlines and a vignette. The DeskDot logo is a neon sign in the sky.
  *
  *  It is one sealed scene (no seam while shut). Opening: the sun flares, a streak of light runs along the horizon,
  *  a crack of light splits the middle, and the two halves glide apart 50/50. Closing plays it back and the crack

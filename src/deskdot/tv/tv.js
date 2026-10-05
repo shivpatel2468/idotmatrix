@@ -10,6 +10,253 @@
 (function () {
   "use strict";
 
+  // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
+  // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
+  // in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The canvas
+  // redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between and
+  // stops while the page is hidden; reduced motion draws it lit once. DeskDotLogo.mount(canvas, { pitch, grid, dpr }).
+  const DeskDotLogo = (() => {
+    const GLYPHS = {
+      D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
+      e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
+      s: ["....", "....", ".###", "#...", ".##.", "...#", "###."],
+      k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
+      o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
+      t: ["...", ".#.", "###", ".#.", ".#.", ".#.", "..#"],
+    };
+    const TUBES = ["D", "esk", "Dot"];
+    const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
+    const STRIKE = [
+      [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
+      [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
+      [[0.03, 0.8], [0.05, 0], [0.04, 0.5], [0.09, 0], [0.05, 1], [0.03, 0], [0.12, 0.3], [0.04, 1], [0.08, 0.1], [0.06, 0.85]],
+    ];
+    const DELAY = [0, 0.28, 0.12];
+    const glitchLetter = 5;
+    const ROWS = 7;
+    const HEADER = { build: 1.5, hold: 14, off: 1.2 };
+    const PAD = 2.2; // dots of room round the word for the glow
+
+    const dots = [];
+    let cols = 0;
+    {
+      const parts = [];
+      let letter = 0;
+      TUBES.forEach((w, part) => {
+        if (part) cols += 1;
+        const from = cols;
+        [...w].forEach((ch, i) => {
+          const g = GLYPHS[ch];
+          if (i) cols += 1;
+          g.forEach((row, y) => [...row].forEach((c, dx) => {
+            if (c === "#") dots.push({ x: cols + dx, y, part, col: 0, seed: Math.random(), letter });
+          }));
+          cols += g[0].length;
+          letter++;
+        });
+        parts.push({ from, to: cols });
+      });
+      for (const d of dots) {
+        const p = parts[d.part];
+        d.col = (d.x - p.from) / Math.max(1, p.to - p.from - 1);
+      }
+    }
+
+    const strikeLen = (p) => STRIKE[p].reduce((n, [d]) => n + d, 0);
+    const strike = (p, t) => {
+      if (t < 0) return 0;
+      let acc = 0;
+      for (const [d, v] of STRIKE[p]) if (t < (acc += d)) return v;
+      return 1;
+    };
+    const easeOut = (k) => 1 - (1 - k) ** 3;
+    const bounce = (k) => {
+      const n = 7.5625, d = 2.75;
+      if (k < 1 / d) return n * k * k;
+      if (k < 2 / d) return n * (k -= 1.5 / d) * k + 0.75;
+      if (k < 2.5 / d) return n * (k -= 2.25 / d) * k + 0.9375;
+      return n * (k -= 2.625 / d) * k + 0.984375;
+    };
+    let glows = null;
+    const glowSprite = (color) => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 64;
+      const g = c.getContext("2d");
+      const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      r.addColorStop(0, color);
+      r.addColorStop(0.25, color + "aa");
+      r.addColorStop(0.6, color + "22");
+      r.addColorStop(1, color + "00");
+      g.fillStyle = r;
+      g.fillRect(0, 0, 64, 64);
+      return c;
+    };
+
+    const tl = HEADER;
+    const cycle = tl.build + 1.4 + tl.hold + tl.off;
+    const igniteAt = tl.build + 0.15;
+    const offAt = tl.build + 1.4 + tl.hold;
+    const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...[0, 1, 2].map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
+
+    /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop. */
+    function draw(ctx, lt, ox, oy, p, grid, still) {
+      if (!glows) glows = LOGO.map(glowSprite);
+      if (still) lt = tl.build + 3;
+      const r = p * 0.36;
+      if (grid) {
+        ctx.fillStyle = "rgba(255,255,255,0.045)";
+        for (let y = 0; y < ROWS; y++)
+          for (let x = 0; x < cols; x++) {
+            ctx.beginPath();
+            ctx.arc(ox + (x + 0.5) * p, oy + (y + 0.5) * p, r * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+      }
+      for (let part = 0; part < 3; part++) {
+        let level = strike(part, lt - igniteAt - DELAY[part]);
+        const lit = lt > igniteAt + DELAY[part] + strikeLen(part);
+        if (lit) level = still ? 1 : 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
+        let dying = 0;
+        if (lt > offAt) {
+          dying = Math.min(1, (lt - offAt) / tl.off);
+          const sputter = dying < 0.35 ? (Math.sin(lt * 90) > 0.2 ? 1 : 0.25) : 0;
+          level = Math.max(0, 1 - dying * 2.4) * (0.5 + sputter * 0.5);
+        }
+        const color = LOGO[part], glow = glows[part];
+        for (const d of dots) {
+          if (d.part !== part) continue;
+          let x = d.x, y = d.y, k, pop = 0;
+          if (part === 0) {
+            k = Math.min(1, Math.max(0, (lt - (6 - d.y) * 0.05) / 0.5));
+            y = d.y - (1 - bounce(k)) * 9;
+          } else if (part === 1) {
+            k = Math.min(1, Math.max(0, (lt - (d.col * tl.build * 0.75 + d.y * 0.012)) / 0.22));
+            pop = k > 0 && k < 1 ? Math.sin(k * Math.PI) : 0;
+            x = d.x - (1 - easeOut(k)) * 1.2;
+          } else {
+            k = Math.min(1, Math.max(0, (lt - ((1 - d.col) * tl.build * 0.55 + d.seed * tl.build * 0.3)) / 0.55));
+            y = d.y - (1 - bounce(k)) * (6 + d.y);
+          }
+          if (k <= 0) continue;
+          let fade = 1;
+          if (dying > 0.35) {
+            const q = Math.min(1, Math.max(0, (dying - 0.35) / 0.65 - (part === 2 ? d.seed * 0.3 : d.col * 0.4)));
+            fade = 1 - q;
+            if (part !== 2) x += easeOut(q) * 3;
+            else y += q * q * 9;
+            if (fade <= 0) continue;
+          }
+          let lv = level;
+          if (lit && !still && dying === 0 && d.letter === glitchLetter) {
+            const g = (lt * 0.37) % 1;
+            if (g > 0.62 && g < 0.645) lv *= 0.1;
+            else if (g > 0.66 && g < 0.672) lv *= 0.3;
+          }
+          const cx = ox + (x + 0.5) * p, cy = oy + (y + 0.5) * p;
+          ctx.globalAlpha = 0.22 * fade * Math.min(1, k * 2);
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
+          ctx.fill();
+          const light = Math.max(lv, pop * 0.9) * fade;
+          if (light > 0.02) {
+            ctx.globalCompositeOperation = "lighter";
+            ctx.globalAlpha = Math.min(0.5, light * 0.5);
+            const gs = p * 3.4;
+            ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
+            ctx.globalAlpha = Math.min(1, light);
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = Math.min(1, light * 0.5);
+            ctx.fillStyle = "#fff4e0";
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    /** Seconds until the picture changes again (0 = it is moving now): the hold only wakes for the loose letter. */
+    function wake(lt) {
+      if (lt < litAt || lt >= offAt) return 0;
+      const g = (lt * 0.37) % 1;
+      if (g > 0.61 && g < 0.68) return 0;
+      return Math.min(((1.61 - g) % 1) / 0.37, offAt - lt);
+    }
+
+    /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
+     *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+    function mount(canvas, opts) {
+      const o = opts || {};
+      const ctx = canvas && canvas.getContext && canvas.getContext("2d");
+      if (!ctx) return { resize() {}, restart() {} };
+      const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+      const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
+      let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
+      const size = () => {
+        const pp = o.pitch || (canvas.clientWidth || 0) / (cols + PAD * 2);
+        const kk = ratio();
+        if (!pp) return false;
+        if (pp === p && kk === k) return true;
+        p = pp;
+        k = kk;
+        w = (cols + PAD * 2) * p;
+        h = (ROWS + PAD * 2) * p;
+        canvas.width = Math.max(1, Math.round(w * k));
+        canvas.height = Math.max(1, Math.round(h * k));
+        if (o.pitch) canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+        return true;
+      };
+      const later = (s) => { timer = setTimeout(() => { timer = 0; kick(); }, s * 1000); };
+      const tick = () => {
+        raf = 0;
+        if (document.hidden) return; // visibilitychange wakes it
+        if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
+        if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
+        drawn = true;
+        const lt = ((performance.now() - t0) / 1000) % cycle;
+        ctx.setTransform(k, 0, 0, k, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
+        if (still) return;
+        const s = wake(lt);
+        if (s > 0) later(s);
+        else raf = requestAnimationFrame(tick);
+      };
+      function kick() {
+        if (!raf && !timer) raf = requestAnimationFrame(tick);
+      }
+      const now = () => {
+        clearTimeout(timer);
+        timer = 0;
+        kick();
+      };
+      function onVis() {
+        if (!document.hidden) return now();
+        clearTimeout(timer);
+        timer = 0;
+      }
+      document.addEventListener("visibilitychange", onVis);
+      if (window.ResizeObserver && !o.pitch) new ResizeObserver(now).observe(canvas);
+      kick();
+      return {
+        resize: now,
+        restart() {
+          t0 = performance.now();
+          now();
+        },
+      };
+    }
+
+    return { mount, cols, rows: ROWS, pad: PAD };
+  })();
+  // </deskdot-logo>
+
   const W = 1920;
   const H = 1080;
   const BAR = 96;
@@ -75,7 +322,9 @@
     TV.pixelRatio = pr;
     if (changed && current && current.scene.resize) safe(() => current.scene.resize(ctx));
     if (changed) redrawPanels();
+    if (changed) logos.forEach((l) => l.resize());
   }
+  const logos = []; // the LED logos in the bar and on the veil (DeskDotLogo, above), re-sized with the stage
 
   // =========================================================================================== QR encoder
   // byte mode, error correction L or M, versions 1–40 — after Project Nayuki's reference implementation (the same
@@ -1108,6 +1357,9 @@
       };
       watch();
     }
+    const ratio = () => TV.pixelRatio;
+    if ($("bar-logo")) logos.push(DeskDotLogo.mount($("bar-logo"), { pitch: 6, grid: true, dpr: ratio }));
+    if ($("veil-logo")) logos.push(DeskDotLogo.mount($("veil-logo"), { pitch: 22, grid: true, dpr: ratio }));
     tickClock();
     setInterval(tickClock, 1000);
     setInterval(sendPing, 5000);

@@ -34,7 +34,8 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
 - `#stage` is exactly **1920×1080 CSS px**, scaled uniformly to fit the window (letterboxed on black), so every TV
   shows the same layout. `TV.scale` is the current scale; `TV.pixelRatio = TV.scale × devicePixelRatio` is how many
   device pixels one stage pixel covers (canvases size their backing store with it, so they are crisp on a 4K TV).
-- **Top bar** (`#bar`, 96 px): the DeskDot wordmark ("Desk" `#ff3f78`, "Dot" `#ffcc33`), the app's name and
+- **Top bar** (`#bar`, 96 px): the animated DeskDot LED logo (`DeskDotLogo` in tv.js, a copy of the studio's
+  `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) with a small "TV" label, the app's name and
   category, the join QR + room code while a multiplayer lobby is open, a clock and the connection dot.
 - **Scene area** `#scene`: **1920×984**, below the bar. Exactly one scene is mounted in it.
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
