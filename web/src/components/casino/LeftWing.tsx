@@ -191,6 +191,10 @@ function ThemePicker({ app }: { app: string | null }) {
   const stored = useStore((s) => (app ? (s.state?.apps?.[app]?.table_theme as string | undefined) : undefined));
   const cur = stored ?? live;
   const [all, setAll] = useState(false);
+  useStore((s) => s.meta);
+  // an engine started before table themes existed silently drops the setting: say so instead of doing nothing
+  if (app && appMeta(app) && !appMeta(app)?.schema.properties?.table_theme)
+    return <p className="cz-empty">This engine is older than the studio and doesn't know table themes yet. Restart it (stop and run <code>uv run deskdot serve</code> again) to pick a theme.</p>;
   const pick = async (id: string) => {
     try {
       if (all) await Promise.all(casinoApps().map((g) => api.patchSettings(g.id, { table_theme: id })));
