@@ -54,6 +54,17 @@ export type HousieStatus = {
 };
 /** A table theme (apps/_casino.py TABLE_THEMES): CSS colours for the felt, the accent and the wings. */
 export type TableTheme = { id: string; name: string; css: Record<string, string> };
+/** Every table theme (mirror of apps/_casino.py TABLE_THEMES; tests/test_casino_themes.py checks they match), so the
+ *  studio can show the swatches before the table has sent its own list. */
+export const TABLE_THEMES: TableTheme[] = [
+  { id: "classic", name: "Classic green", css: {"felt": "#0d6b45", "felt2": "#0a5236", "felt3": "#063823", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#102a20", "wing2": "#0b1c16", "wing3": "#0a1512"} },
+  { id: "royal", name: "Royal blue", css: {"felt": "#1b4aa8", "felt2": "#123680", "felt3": "#0a1f4d", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#13214a", "wing2": "#0d1734", "wing3": "#0a1128"} },
+  { id: "crimson", name: "Crimson velvet", css: {"felt": "#8c1a2e", "felt2": "#691322", "felt3": "#3d0a14", "accent": "#e8b04a", "accent_hi": "#f6d38a", "accent_lo": "#c48a24", "accent_deep": "#3a2508", "accent_rgb": "232, 176, 74", "ink": "#1a1200", "wing": "#2c1016", "wing2": "#200b10", "wing3": "#170809"} },
+  { id: "midnight", name: "Midnight neon", css: {"felt": "#3a1d72", "felt2": "#29145a", "felt3": "#140a33", "accent": "#c77dff", "accent_hi": "#e2bcff", "accent_lo": "#9a4ae0", "accent_deep": "#2a1145", "accent_rgb": "199, 125, 255", "ink": "#12001f", "wing": "#1a1230", "wing2": "#120c22", "wing3": "#0c0818"} },
+  { id: "strip", name: "Neon strip", css: {"felt": "#5a1260", "felt2": "#410c47", "felt3": "#22052a", "accent": "#ff3fb0", "accent_hi": "#ff9ad6", "accent_lo": "#d81f8a", "accent_deep": "#3d0a2a", "accent_rgb": "255, 63, 176", "ink": "#1f0013", "wing": "#22102e", "wing2": "#170b22", "wing3": "#100717"} },
+  { id: "emerald", name: "Emerald & champagne", css: {"felt": "#0b5a43", "felt2": "#084431", "felt3": "#03241a", "accent": "#f1dca0", "accent_hi": "#fbefcc", "accent_lo": "#cdb26a", "accent_deep": "#352c12", "accent_rgb": "241, 220, 160", "ink": "#1a1200", "wing": "#0d2a22", "wing2": "#091e18", "wing3": "#071612"} },
+  { id: "burgundy", name: "Burgundy & ivory", css: {"felt": "#6b1f36", "felt2": "#521729", "felt3": "#2c0b16", "accent": "#f4ead2", "accent_hi": "#fffaf0", "accent_lo": "#d6c8a4", "accent_deep": "#3a3020", "accent_rgb": "244, 234, 210", "ink": "#1a1200", "wing": "#2a121a", "wing2": "#1e0d13", "wing3": "#16090e"} },
+];
 /** "How to play" + rulebook for one game (casino/rulebook.py); `**bold**` is the only markup. */
 export type Guide = { id: string; title: string; tagline: string; how: string[]; rules: { h: string; items: string[] }[] };
 export type Spot = { id: string; label: string; kind: string; pays: string; numbers: number[] };

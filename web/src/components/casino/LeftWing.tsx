@@ -6,7 +6,7 @@ import { appMeta, toast, useStore } from "../../lib/store";
 import type { JsonSchemaProp } from "../../lib/types";
 import { Slider, Toggle } from "../controls";
 import { NumberInput, Section, Tabs } from "./bits";
-import { type Guide, type House, type HousieStatus, casinoApps, casinoOp, fmt, useCasino } from "./state";
+import { type Guide, type House, type HousieStatus, TABLE_THEMES, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
 const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true };
@@ -185,12 +185,12 @@ function HouseForm({ house }: { house: House }) {
 // ------------------------------------------------------------------ table theme
 /** The table's look (the `table_theme` setting): the panel chrome, every phone and this studio follow it. */
 function ThemePicker({ app }: { app: string | null }) {
-  const themes = useCasino((s) => s.themes);
+  const sent = useCasino((s) => s.themes);
+  const themes = sent.length ? sent : TABLE_THEMES; // always pickable, even before the table is live
   const live = useCasino((s) => s.status?.table_theme?.id) ?? "classic";
   const stored = useStore((s) => (app ? (s.state?.apps?.[app]?.table_theme as string | undefined) : undefined));
   const cur = stored ?? live;
   const [all, setAll] = useState(false);
-  if (!themes.length) return <p className="cz-empty">The themes appear once the table is live.</p>;
   const pick = async (id: string) => {
     try {
       if (all) await Promise.all(casinoApps().map((g) => api.patchSettings(g.id, { table_theme: id })));
