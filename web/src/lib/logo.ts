@@ -1,7 +1,12 @@
-/** The "DeskDot" logo as LEDs: three neon tubes, a drop-cap "D", "esk" and "Dot", each its own colour (rose,
- *  tangerine, gold), built dot by dot at the same time (the D drops in, "esk" types in, "Dot" rains down), then struck
+/** The "DeskDot" logo as LEDs: three neon tubes, a drop-cap "D", "esk" and "Dot" ("Desk" rose, "Dot" gold),
+ *  built dot by dot at the same time (the D drops in, "esk" types in, "Dot" rains down), then struck
  *  like real neon — a stutter of flashes as the gas catches — a steady hum, a power-down, and round again. Canvas 2D;
- *  cheap enough for the header. */
+ *  cheap enough for the header.
+ *
+ *  Plain-JS copies of this renderer live in the pages that can't import it (src/deskdot/tv/tv.js, casino.html,
+ *  controller.html, web/webapp/join/join.js, web/webapp/host.js — between `// <deskdot-logo>` markers).
+ *  tests/test_logo_copies.py fails if their glyphs, tubes, colours or timings drift from this file: change them
+ *  everywhere at once. */
 
 // 7-row pixel font (rows 0–1 ascenders / cap height, 2–6 x-height)
 const GLYPHS: Record<string, string[]> = {
@@ -124,6 +129,20 @@ export class NeonLogo {
     return tl.build + 1.4 + tl.hold + tl.off;
   }
 
+  /** Seconds until the picture changes again (0 = it is moving now: build, strike, the loose letter's blink,
+   *  power-down). While lit it only wakes for the blink, so a caller can idle instead of redrawing every frame. */
+  wake(t: number, tl: LogoTimeline) {
+    const total = this.cycle(tl);
+    const lt = Number.isFinite(total) ? t % total : t;
+    const igniteAt = tl.build + 0.15;
+    const offAt = tl.build + 1.4 + tl.hold;
+    const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...([0, 1, 2] as Part[]).map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
+    if (lt < litAt || lt >= offAt) return 0;
+    const g = (lt * 0.37) % 1;
+    if (g > 0.61 && g < 0.68) return 0;
+    return Math.min(((1.61 - g) % 1) / 0.37, offAt - lt);
+  }
+
   /**
    * Draw at (ox, oy) with dot pitch `p` (CSS px). `t` = seconds since start (loops by itself).
    * `parts` limits drawing to one word (the boot doors draw each half on its own door). `flare` (0..1) is a
@@ -153,7 +172,7 @@ export class NeonLogo {
       // tube level: struck, humming, glitching, dying
       let level = strike(part, lt - igniteAt - DELAY[part]);
       const lit = lt > igniteAt + DELAY[part] + strikeLen(part);
-      if (lit) level = 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
+      if (lit) level = opts.still ? 1 : 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
       let dying = 0;
       if (lt > offAt) {
         dying = Math.min(1, (lt - offAt) / tl.off);
@@ -200,7 +219,7 @@ export class NeonLogo {
         }
         // the loose tube: one letter blinks out for a beat now and then
         let lv = level;
-        if (lit && dying === 0 && d.letter === this.glitchLetter) {
+        if (lit && !opts.still && dying === 0 && d.letter === this.glitchLetter) {
           const g = (lt * 0.37) % 1;
           if (g > 0.62 && g < 0.645) lv *= 0.1;
           else if (g > 0.66 && g < 0.672) lv *= 0.3;

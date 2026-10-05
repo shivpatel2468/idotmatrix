@@ -59,12 +59,10 @@
   align-items: center;
   gap: 8px;
 }
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ember);
-  box-shadow: 0 0 10px var(--ember);
+/* the DeskDot logo in LEDs (host.js DeskDotLogo); its canvas has ~2 dots of glow room, pulled in here */
+.logo {
+  display: block;
+  margin: -8px 0 -8px -8px;
 }
 h1 {
   font: 650 clamp(24px, 4.5vw, 34px) / 1.12 var(--display);
