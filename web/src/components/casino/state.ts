@@ -57,13 +57,13 @@ export type TableTheme = { id: string; name: string; css: Record<string, string>
 /** Every table theme (mirror of apps/_casino.py TABLE_THEMES; tests/test_casino_themes.py checks they match), so the
  *  studio can show the swatches before the table has sent its own list. */
 export const TABLE_THEMES: TableTheme[] = [
-  { id: "classic", name: "Classic green", css: {"felt": "#0d6b45", "felt2": "#0a5236", "felt3": "#063823", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#102a20", "wing2": "#0b1c16", "wing3": "#0a1512"} },
-  { id: "royal", name: "Royal blue", css: {"felt": "#1b4aa8", "felt2": "#123680", "felt3": "#0a1f4d", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#13214a", "wing2": "#0d1734", "wing3": "#0a1128"} },
-  { id: "crimson", name: "Crimson velvet", css: {"felt": "#8c1a2e", "felt2": "#691322", "felt3": "#3d0a14", "accent": "#e8b04a", "accent_hi": "#f6d38a", "accent_lo": "#c48a24", "accent_deep": "#3a2508", "accent_rgb": "232, 176, 74", "ink": "#1a1200", "wing": "#2c1016", "wing2": "#200b10", "wing3": "#170809"} },
-  { id: "midnight", name: "Midnight neon", css: {"felt": "#3a1d72", "felt2": "#29145a", "felt3": "#140a33", "accent": "#c77dff", "accent_hi": "#e2bcff", "accent_lo": "#9a4ae0", "accent_deep": "#2a1145", "accent_rgb": "199, 125, 255", "ink": "#12001f", "wing": "#1a1230", "wing2": "#120c22", "wing3": "#0c0818"} },
-  { id: "strip", name: "Neon strip", css: {"felt": "#5a1260", "felt2": "#410c47", "felt3": "#22052a", "accent": "#ff3fb0", "accent_hi": "#ff9ad6", "accent_lo": "#d81f8a", "accent_deep": "#3d0a2a", "accent_rgb": "255, 63, 176", "ink": "#1f0013", "wing": "#22102e", "wing2": "#170b22", "wing3": "#100717"} },
-  { id: "emerald", name: "Emerald & champagne", css: {"felt": "#0b5a43", "felt2": "#084431", "felt3": "#03241a", "accent": "#f1dca0", "accent_hi": "#fbefcc", "accent_lo": "#cdb26a", "accent_deep": "#352c12", "accent_rgb": "241, 220, 160", "ink": "#1a1200", "wing": "#0d2a22", "wing2": "#091e18", "wing3": "#071612"} },
-  { id: "burgundy", name: "Burgundy & ivory", css: {"felt": "#6b1f36", "felt2": "#521729", "felt3": "#2c0b16", "accent": "#f4ead2", "accent_hi": "#fffaf0", "accent_lo": "#d6c8a4", "accent_deep": "#3a3020", "accent_rgb": "244, 234, 210", "ink": "#1a1200", "wing": "#2a121a", "wing2": "#1e0d13", "wing3": "#16090e"} },
+  { id: "classic", name: "Classic green", css: {"felt": "#0d6b45", "felt2": "#0a5236", "felt3": "#063823", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#102a20", "wing2": "#0b1c16", "wing3": "#0a1512", "bg": "#060c0a", "surface": "#0f1a17", "surface2": "#172722", "surface3": "#1c352b", "surface4": "#2a4139", "felt_ink": "#e7f0ec", "accent_text": "#ffcc33"} },
+  { id: "royal", name: "Royal blue", css: {"felt": "#1b4aa8", "felt2": "#123680", "felt3": "#0a1f4d", "accent": "#ffcc33", "accent_hi": "#ffe08a", "accent_lo": "#e2a400", "accent_deep": "#3a2c08", "accent_rgb": "255, 204, 51", "ink": "#1a1200", "wing": "#13214a", "wing2": "#0d1734", "wing3": "#0a1128", "bg": "#060916", "surface": "#0f162c", "surface2": "#19233e", "surface3": "#1f2c53", "surface4": "#2d395e", "felt_ink": "#e8edf6", "accent_text": "#ffcc33"} },
+  { id: "crimson", name: "Crimson velvet", css: {"felt": "#8c1a2e", "felt2": "#691322", "felt3": "#3d0a14", "accent": "#e8b04a", "accent_hi": "#f6d38a", "accent_lo": "#c48a24", "accent_deep": "#3a2508", "accent_rgb": "232, 176, 74", "ink": "#1a1200", "wing": "#2c1016", "wing2": "#200b10", "wing3": "#170809", "bg": "#0d0405", "surface": "#1c0d0e", "surface2": "#2b171c", "surface3": "#371c22", "surface4": "#432a30", "felt_ink": "#f4e8ea", "accent_text": "#e8b04a"} },
+  { id: "midnight", name: "Midnight neon", css: {"felt": "#3a1d72", "felt2": "#29145a", "felt3": "#140a33", "accent": "#c77dff", "accent_hi": "#e2bcff", "accent_lo": "#9a4ae0", "accent_deep": "#2a1145", "accent_rgb": "199, 125, 255", "ink": "#12001f", "wing": "#1a1230", "wing2": "#120c22", "wing3": "#0c0818", "bg": "#07040d", "surface": "#110d1d", "surface2": "#1e182d", "surface3": "#251e3a", "surface4": "#332c47", "felt_ink": "#ebe8f1", "accent_text": "#c77dff"} },
+  { id: "strip", name: "Neon strip", css: {"felt": "#5a1260", "felt2": "#410c47", "felt3": "#22052a", "accent": "#ff3fb0", "accent_hi": "#ff9ad6", "accent_lo": "#d81f8a", "accent_deep": "#3d0a2a", "accent_rgb": "255, 63, 176", "ink": "#1f0013", "wing": "#22102e", "wing2": "#170b22", "wing3": "#100717", "bg": "#09040d", "surface": "#150c1c", "surface2": "#23172d", "surface3": "#2d1c38", "surface4": "#3a2a45", "felt_ink": "#eee7ef", "accent_text": "#ff5abb"} },
+  { id: "emerald", name: "Emerald & champagne", css: {"felt": "#0b5a43", "felt2": "#084431", "felt3": "#03241a", "accent": "#f1dca0", "accent_hi": "#fbefcc", "accent_lo": "#cdb26a", "accent_deep": "#352c12", "accent_rgb": "241, 220, 160", "ink": "#1a1200", "wing": "#0d2a22", "wing2": "#091e18", "wing3": "#071612", "bg": "#040c0a", "surface": "#0c1b17", "surface2": "#152924", "surface3": "#19352d", "surface4": "#28413a", "felt_ink": "#e7eeec", "accent_text": "#f1dca0"} },
+  { id: "burgundy", name: "Burgundy & ivory", css: {"felt": "#6b1f36", "felt2": "#521729", "felt3": "#2c0b16", "accent": "#f4ead2", "accent_hi": "#fffaf0", "accent_lo": "#d6c8a4", "accent_deep": "#3a3020", "accent_rgb": "244, 234, 210", "ink": "#1a1200", "wing": "#2a121a", "wing2": "#1e0d13", "wing3": "#16090e", "bg": "#0c0508", "surface": "#1b0e13", "surface2": "#29191f", "surface3": "#351e25", "surface4": "#412c33", "felt_ink": "#f0e9eb", "accent_text": "#f4ead2"} },
 ];
 /** "How to play" + rulebook for one game (casino/rulebook.py); `**bold**` is the only markup. */
 export type Guide = { id: string; title: string; tagline: string; how: string[]; rules: { h: string; items: string[] }[] };
@@ -306,7 +306,39 @@ export function themeVars(t: TableTheme | null | undefined): CSSProperties | und
   const v: Record<string, string | undefined> = {
     "--felt": c.felt, "--felt-2": c.felt2, "--felt-deep": c.felt3, "--felt-hi": c.felt,
     "--gold": c.accent, "--gold-2": c.accent_hi, "--gold-lo": c.accent_lo, "--gold-deep": c.accent_deep,
-    "--gold-rgb": c.accent_rgb, "--gold-ink": c.ink, "--cz-wing": c.wing, "--cz-wing-2": c.wing2, "--cz-wing-3": c.wing3,
+    "--gold-rgb": c.accent_rgb, "--gold-ink": c.ink, "--gold-text": c.accent_text, "--felt-ink": c.felt_ink,
+    "--cz-wing": c.wing, "--cz-wing-2": c.wing2, "--cz-wing-3": c.wing3,
+    "--cz-bg": c.bg, "--cz-s1": c.surface, "--cz-s2": c.surface2, "--cz-s3": c.surface3, "--cz-s4": c.surface4,
   };
   return Object.fromEntries(Object.entries(v).filter(([, x]) => !!x)) as CSSProperties;
+}
+
+/** `html[data-cz]` variables (casino.css): the page around the casino view — body, top bar keys, toasts — follows the
+ *  theme while the casino view is on screen. Classic sets nothing (the stylesheet's defaults are classic). */
+export function pageVars(t: TableTheme | null | undefined): Record<string, string> {
+  if (!t || t.id === "classic" || !t.css) return {};
+  const c = t.css;
+  const v: Record<string, string | undefined> = {
+    "--cz-page-bg": c.bg, "--cz-page-s1": c.surface, "--cz-page-s2": c.surface2, "--cz-page-s3": c.surface3,
+    "--cz-page-s4": c.surface4, "--cz-page-felt": c.felt, "--cz-page-accent": c.accent, "--cz-page-accent-2": c.accent_hi,
+    "--cz-page-deep": c.accent_deep, "--cz-page-ink": c.ink, "--cz-page-text": c.felt_ink,
+  };
+  return Object.fromEntries(Object.entries(v).filter(([, x]) => !!x)) as Record<string, string>;
+}
+
+/** Stamp the theme on <html> while the casino view is mounted (and take it off again when it closes). */
+export const PAGE_VAR_NAMES = ["--cz-page-bg", "--cz-page-s1", "--cz-page-s2", "--cz-page-s3", "--cz-page-s4", "--cz-page-felt",
+  "--cz-page-accent", "--cz-page-accent-2", "--cz-page-deep", "--cz-page-ink", "--cz-page-text"];
+export function stampPage(t: TableTheme | null | undefined): () => void {
+  const root = document.documentElement;
+  root.dataset.cz = t?.id ?? "classic";
+  const v = pageVars(t);
+  for (const k of PAGE_VAR_NAMES) {
+    if (v[k]) root.style.setProperty(k, v[k]);
+    else root.style.removeProperty(k);
+  }
+  return () => {
+    delete root.dataset.cz;
+    for (const k of PAGE_VAR_NAMES) root.style.removeProperty(k);
+  };
 }

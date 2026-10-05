@@ -86,7 +86,7 @@ export function Chip({ value, size = 34, active, onClick, title }: { value: numb
   const col = chipColor(value);
   const Tag = onClick ? "button" : "span";
   return (
-    <Tag className="cz-chip" data-active={active || undefined} onClick={onClick} title={title} aria-pressed={onClick ? !!active : undefined}
+    <Tag className="cz-chip" data-active={active || undefined} data-v={String(value)} onClick={onClick} title={title} aria-pressed={onClick ? !!active : undefined}
       style={{ width: size, height: size, ["--chip" as string]: col, fontSize: size * (value === "all" ? 0.26 : 0.3) }}>
       <span>{value === "all" ? "ALL" : value >= 1000 ? `${value / 1000}k` : value}</span>
     </Tag>

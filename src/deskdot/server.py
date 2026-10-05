@@ -72,6 +72,7 @@ from .providers import build_hub
 from .providers.custom import NAME as CUSTOM_NAME
 from .providers.custom import CustomApp
 from .providers.sports import LEAGUES
+from .tvlink import TvHub, TvLink, tv_page, tv_script
 
 log = logging.getLogger("deskdot.server")
 
@@ -319,6 +320,9 @@ def create_app(cfg: Config) -> FastAPI:
     lobby = Lobby(cfg.host, cfg.port, cfg.public_url)
     app.state.lobby = lobby
     phones: dict[int, WebSocket] = {}  # seat -> socket (one phone per seat)
+    tv_link = TvLink(cfg.host, cfg.port, cfg.public_url)
+    tv_hub = TvHub(engine, tv_link, lobby)
+    app.state.tv = tv_hub
 
     def game_class(app_id: str) -> Any:
         cls = REGISTRY.get(app_id)
@@ -344,7 +348,7 @@ def create_app(cfg: Config) -> FastAPI:
         """Open a lobby: the panel shows the game with a join QR code friends scan with their phones."""
         cls = game_class(app_id)
         await lobby_close()
-        room = lobby.open(app_id, int(cls.max_players))
+        room = lobby.open(app_id, int(cls.max_players), avoid=tv_link.code)
         engine.activate(app_id)
         await engine.action(app_id, "lobby", {"url": lobby.url()})
         snap = lobby.snapshot() or {}
@@ -435,8 +439,9 @@ def create_app(cfg: Config) -> FastAPI:
     @app.websocket("/ws/p/{code}")
     async def controller_ws(sock: WebSocket, code: str) -> None:
         """A phone controller. Messages in: {"k": key} (a press), {"type": "ping", "t"},
-        {"type": "profile", name?, color?, avatar?, team?, ready?}. Out: hello, state, pong, roster,
-        full, closed, replaced. Connect with ?cid=<client id> to get the same seat back after a reconnect."""
+        {"type": "profile", name?, color?, avatar?, team?, ready?}, {"type": "frames", "on": bool} (opt in to the
+        live panel). Out: hello, state, pong, roster, full, closed, replaced, and — only after opting in — binary
+        32x32x3 RGB panel frames (newest only, <= 10 fps). Connect with ?cid=<client id> to get the same seat back after a reconnect."""
         await sock.accept()
         room = lobby.room
         if room is None or not lobby.valid(code):
@@ -492,6 +497,34 @@ def create_app(cfg: Config) -> FastAPI:
         # the last casino op `seq` this socket has applied: echoed as `ack` so the phone knows which of its taps
         # the state already includes (its undo stack and chip animations reconcile against it)
         acked: dict[str, int] = {}
+
+        # the live panel, opt-in ({"type": "frames", "on": true}): binary 32x32x3 RGB, the newest frame only, at most
+        # 10 a second. Old pages never ask, so they never get a binary message.
+        frame_box: dict[str, Any] = {"data": None, "task": None}
+        frame_wake = asyncio.Event()
+
+        def on_frame(fr: Frame) -> None:
+            frame_box["data"] = fr.to_bytes()
+            frame_wake.set()
+
+        async def push_frames() -> None:
+            while True:
+                await frame_wake.wait()
+                frame_wake.clear()
+                data, frame_box["data"] = frame_box["data"], None
+                if data is not None:
+                    await sock.send_bytes(data)
+                await asyncio.sleep(0.1)
+
+        def frames(on: bool) -> None:
+            if on and frame_box["task"] is None:
+                engine.frame_listeners.add(on_frame)
+                on_frame(engine.frame)  # the panel as it is now, at once
+                frame_box["task"] = asyncio.create_task(push_frames())
+            elif not on and frame_box["task"] is not None:
+                engine.frame_listeners.discard(on_frame)
+                frame_box["task"].cancel()
+                frame_box["task"] = None
 
         async def push_state() -> None:
             # poll fast, send only on change (plus a heartbeat) so turn / flow changes reach the phone quickly
@@ -549,6 +582,8 @@ def create_app(cfg: Config) -> FastAPI:
                         )
                         engine.changed()
                     await broadcast_roster(room)  # also corrects a phone whose pick was refused
+                elif kind == "frames":
+                    frames(msg.get("on") is True)
                 elif kind == "casino" and lobby.room is room:
                     # a phone's casino op; the seat comes from the socket, never from the message
                     op = {k: v for k, v in msg.items() if k not in ("type", "player", "seq")}
@@ -568,6 +603,7 @@ def create_app(cfg: Config) -> FastAPI:
             pass
         finally:
             pusher.cancel()
+            frames(False)
             if phones.get(seat) is sock:
                 phones.pop(seat, None)
                 if lobby.room is room:
@@ -576,6 +612,56 @@ def create_app(cfg: Config) -> FastAPI:
                         await engine.action(room.app, "seat", {"player": seat, "joined": False})
                     await broadcast_roster(room)
             engine.changed()
+
+    # ------------------------------------------------------------ TV view (docs/TV_VIEW.md)
+    def tv_info() -> dict[str, Any] | None:
+        if tv_link.code is None:
+            return None
+        return {
+            "code": tv_link.code,
+            "url": tv_link.url(),
+            "lan_ready": tv_link.lan_ready,
+            "viewers": tv_hub.viewers,
+        }
+
+    @app.get("/api/tv")
+    async def tv_get() -> dict[str, Any]:
+        return {"tv": tv_info()}
+
+    @app.post("/api/tv")
+    async def tv_open(renew: bool = Body(False, embed=True)) -> dict[str, Any]:
+        """Open the TV link (or return the open one; `renew` replaces its code and drops every TV on the old one)."""
+        if tv_link.code is None or renew:
+            await tv_hub.close_all()
+            tv_link.open(avoid=lobby.room.code if lobby.room else None)
+        return {"ok": True, **(tv_info() or {})}
+
+    @app.delete("/api/tv")
+    async def tv_close() -> dict[str, Any]:
+        await tv_hub.close_all()
+        tv_link.close()
+        return {"ok": True}
+
+    @app.get("/tv/static/{name}")
+    async def tv_static(name: str) -> Response:
+        data = tv_script(name)
+        if data is None:
+            raise HTTPException(404, "no such TV script")
+        return Response(
+            data, media_type="text/javascript; charset=utf-8", headers={"Cache-Control": "no-cache"}
+        )
+
+    @app.get("/tv/{code}")
+    async def tv_view(code: str) -> HTMLResponse:
+        # an unknown code still gets the page (404): it says "This TV link has closed" and keeps checking
+        return HTMLResponse(
+            tv_page(), status_code=200 if tv_link.valid(code) else 404, headers={"Cache-Control": "no-store"}
+        )
+
+    @app.websocket("/ws/tv/{code}")
+    async def tv_ws(sock: WebSocket, code: str) -> None:
+        """A TV (read-only): hello / state text messages and binary panel frames. In: pings only."""
+        await tv_hub.serve(sock, code)
 
     @app.exception_handler(ValidationError)
     async def _validation(_r: Request, e: ValidationError) -> JSONResponse:

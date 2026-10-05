@@ -130,6 +130,7 @@ export function CommandPalette() {
       { id: "shuffle", label: "Shuffle presets on / off", hint: "Playback", icon: "shuffle", run: () => useStore.getState().prefs({ shuffle: !useStore.getState().shuffle }) },
       { id: "notify", label: "Send a message to the panel…", hint: "Create", icon: "bell", run: () => set({ notifyOpen: true }) },
       { id: "ai", label: "Make pixel art with AI…", hint: "Create", icon: "sparkles", run: () => set({ aiOpen: true }) },
+      { id: "tv", label: "Show on TV…", hint: "Big screen", icon: "tv", run: () => set({ tvOpen: true }) },
       { id: "draw", label: "Draw on the panel", hint: "Create", icon: "paintbrush", run: () => api.activate("canvas") },
       { id: "think", label: "Claude: thinking", hint: "Agent", icon: "bot", run: () => fetch("/api/agent/thinking", { method: "POST" }) },
       { id: "done", label: "Claude: done (5 s)", hint: "Agent", icon: "party-popper", run: () => fetch("/api/agent/done?hold=5", { method: "POST" }) },

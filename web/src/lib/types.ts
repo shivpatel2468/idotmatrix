@@ -238,6 +238,8 @@ export type LobbyInfo = {
   code: string; app: string; url: string | null; max_players: number; lan_ready: boolean; seats: LobbySeat[];
   warning?: string;
 };
+/** The TV view link (docs/TV_VIEW.md): `GET/POST /api/tv`. */
+export type TvInfo = { code: string; url: string | null; lan_ready: boolean; viewers: number };
 export type LobbyResponse = { lobby: LobbyInfo | null; lan_ready: boolean; games: { id: string; name: string; max_players: number }[] };
 /** `engine.current.status` extras for games with max_players > 1. */
 export type SeatStatus = { seat: number; human: boolean; name: string };

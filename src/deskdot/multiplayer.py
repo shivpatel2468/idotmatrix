@@ -13,8 +13,8 @@ a client id (`cid`) in localStorage and connects with `?cid=...`: a reconnect wi
 profile back.
 
 Security: the engine listens on the LAN so phones can reach it, but `LanGate` only lets non-local clients reach
-the controller page and its socket, and only with a valid room code. The studio and API stay local-only unless
-`lan_studio = true` is set in deskdot.toml.
+the controller page and its socket, and only with a valid room code (plus the read-only TV view, docs/TV_VIEW.md).
+The studio and API stay local-only unless `lan_studio = true` is set in deskdot.toml.
 """
 
 from __future__ import annotations
@@ -234,8 +234,12 @@ class Lobby:
         """Can phones reach us? Only if the server listens beyond loopback (or the web app's relay is on)."""
         return self.public_url is not None or not is_local(self.bind_host)
 
-    def open(self, app: str, max_players: int) -> Room:
-        code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(4))
+    def open(self, app: str, max_players: int, avoid: str | None = None) -> Room:
+        """`avoid`: a code that must not be reused (the open TV link's, docs/TV_VIEW.md)."""
+        while True:
+            code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(4))
+            if code != (avoid or "").upper():
+                break
         self.room = Room(code=code, app=app, max_players=max_players)
         return self.room
 
@@ -276,9 +280,10 @@ class Lobby:
 
 
 class LanGate:
-    """ASGI middleware: clients that aren't on this computer may only use the phone controller (/p/, /ws/p/)."""
+    """ASGI middleware: clients that aren't on this computer may only use the phone controller (/p/, /ws/p/) and
+    the read-only TV view (/tv/, /ws/tv/ — docs/TV_VIEW.md); both check their code."""
 
-    ALLOWED = ("/p/", "/ws/p/")
+    ALLOWED = ("/p/", "/ws/p/", "/tv/", "/ws/tv/")
 
     def __init__(self, app: Any, allow_all: bool = False) -> None:
         self.app = app
@@ -288,7 +293,7 @@ class LanGate:
         if scope["type"] in ("http", "websocket") and not self.allow_all:
             client = (scope.get("client") or (None, None))[0]
             path = scope.get("path", "")
-            if not is_local(client) and not path.startswith(self.ALLOWED):
+            if not is_local(client) and (not path.startswith(self.ALLOWED) or ".." in path or "\\" in path):
                 if scope["type"] == "websocket":
                     await send({"type": "websocket.close", "code": 1008})
                     return

@@ -12,7 +12,7 @@ import { LeftWing } from "./LeftWing";
 import { RightWing } from "./RightWing";
 import { closeCasinoLobby, hideCasinoQr, lobbyFor, openCasinoLobby } from "./lobby";
 import { useCasinoSounds } from "./sounds";
-import { type HousieStatus, PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, themeVars, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
+import { type HousieStatus, PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, stampPage, themeVars, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
 import "./casino.css";
 
 const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -66,7 +66,7 @@ function ChipCascade({ run }: { run: number }) {
       const x = Math.sin((i + 1) * 12.9898 * k + run * 0.001) * 43758.5453;
       return x - Math.floor(x);
     };
-    const col = ["#ffcc33", "#ffcc33", "#ff3f78", "#ff7419", "#13a65a", "#f3efe2"][Math.floor(r(1) * 6)];
+    const col = ["var(--gold)", "var(--gold)", "var(--gold-2)", "var(--felt-hi)", "#13a65a", "#f3efe2"][Math.floor(r(1) * 6)]; // theme chips + two classics
     return { left: `${4 + r(2) * 92}%`, delay: `${r(3) * 0.9}s`, dur: `${1.5 + r(4) * 0.9}s`, size: 16 + r(5) * 16, spin: `${(r(6) - 0.5) * 900}deg`, col };
   }), [run]);
   if (!on) return null;
@@ -328,6 +328,9 @@ export function CasinoStage() {
   const me = useCasino((s) => s.me);
   const theme = useCasino((s) => s.status?.table_theme);
   const root = useRef<HTMLDivElement>(null);
+  const themeKey = theme ? `${theme.id}:${JSON.stringify(theme.css ?? {})}` : "classic";
+  // the page around the casino view (body, top bar keys, toasts) follows the theme while this view is on screen
+  useEffect(() => stampPage(theme), [themeKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const [box, setBox] = useState(() => ({ w: window.innerWidth - 24, h: window.innerHeight - 220 }));
   useEffect(() => {
     const el = root.current;

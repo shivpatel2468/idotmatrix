@@ -371,3 +371,11 @@ async def test_panel_uses_picked_name_colour_and_team() -> None:
     game.draw_teams(Frame(), 0.0)
     game.result(winner_seat=2)
     game.draw_outro(Frame(), 0.0)
+
+
+@pytest.mark.parametrize("app_id", ["leafleap", "digworld"])
+async def test_phone_can_take_a_seat_in_world_games(engine, app_id: str) -> None:  # type: ignore[no-untyped-def]
+    """Leaf Leap and Dig World once shadowed GameApp._seat() with an int, so a phone joining crashed."""
+    game = engine._slot(app_id).app
+    await game.action("seat", {"player": 2, "joined": True, "name": "PHONE"})
+    assert game.seats[2]["name"] == "PHONE"
