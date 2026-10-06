@@ -1,3 +1,5 @@
+import { casinoAlert } from "./alert";
+import type { RackChip } from "./chips";
 import { untilAnchor } from "./sync";
 import { type CSSProperties, useEffect, useState } from "react";
 import { playCoinDrop } from "../CoinDrop";
@@ -43,6 +45,8 @@ export type CasinoStatus = {
   paused?: boolean; house?: House; players?: PlayerRow[]; history?: HistoryEntry[];
   edges?: Record<string, number>; rtp?: number; lobby?: boolean; max_players?: number;
   table_theme?: TableTheme;
+  /** the table's chip rack (casino/chips.py chip_rack): only the chips the house allows; older engines: absent */
+  chips?: RackChip[];
   result?: { round: number; outcome: Record<string, unknown>; label?: string; tone?: string; winners?: { seat: number | string | null; name: string; net: number }[] };
   [k: string]: unknown;
 };
@@ -219,10 +223,42 @@ type ViewReply = { status: CasinoStatus; private: HostPrivate; players: PlayerRo
 /** A host op (start_round, lock, settings, credits, kick, pause, reset_session, verify) or a play op as the host. */
 export async function casinoOp<T = Record<string, unknown>>(op: string, payload: Record<string, unknown> = {}, app?: string): Promise<T> {
   const id = app ?? useCasino.getState().app ?? useStore.getState().state?.engine.current?.app;
-  if (!id) throw new Error("no casino table is showing");
-  const r = (await api.action(id, "casino", { op, ...payload })) as { result: T };
+  if (!id) {
+    casinoAlert("No casino table is showing");
+    throw new Error("no casino table is showing");
+  }
+  // Not api.action: its errors go to the corner toast, which the host doesn't see over the table. Host ops answer
+  // HTTP 400 on bad input; play ops (bet, unbet, …, the host's own seat) answer 200 with {ok: false, error} — the
+  // engine's note for the host pid. Both become the centred casino alert (alert.tsx), and the promise rejects.
+  let r: Response;
+  try {
+    r = await fetch(`/api/apps/${id}/actions/casino`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ op, ...payload }),
+    });
+  } catch (e) {
+    casinoAlert("Can't reach DeskDot — is it still running?");
+    throw e;
+  }
+  if (!r.ok) {
+    let detail = r.statusText || `Request failed (${r.status})`;
+    try {
+      const j = await r.json();
+      detail = typeof j.detail === "string" ? j.detail : (j.detail?.[0]?.msg ?? detail);
+    } catch {
+      /* not json */
+    }
+    casinoAlert(detail);
+    throw new Error(detail);
+  }
+  const res = ((await r.json()) as { result: T }).result;
   if (op !== "view") refreshView().catch(() => undefined);
-  return r.result;
+  const rr = res as unknown as { ok?: unknown; error?: unknown } | null;
+  if (op !== "view" && op !== "verify" && rr && rr.ok === false) {
+    const msg = typeof rr.error === "string" && rr.error ? rr.error : "That didn't work";
+    casinoAlert(msg);
+    throw new Error(msg);
+  }
+  return res;
 }
 
 /**

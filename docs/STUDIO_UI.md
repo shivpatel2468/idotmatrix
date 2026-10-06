@@ -169,8 +169,34 @@ resizable wings open — **left** Tables (game picker with previews) · House (p
 auto-next, new session) · Rules (from the schema) · Odds (exact house edge per bet, slot RTP); **right** Players
 (seats, live credits, top-up / set / kick, everyone) · Ranking · Rounds (history + Verify) · Play (the host seat's
 chip rack and bets). Centre: title + round + commitment hash, the host bar (phase, countdown ring, Start / Next
-round, Lock now, Pause; the result replaces the phase on a result) and the room strip (open, QR, code, Hide QR,
-close). Below ~980 px of stage width the wings become two tabs under the table. Gold replaces ember inside `.cz`.
+round, Lock now, Pause; the result replaces the phase on a result) and the room strip right under the panel (open,
+QR, code, a gold **TV** key — `cz-gold`, like *Leave casino* — that opens the *Show on TV* sheet (`TvSheet.tsx`),
+then Hide QR / Show QR (Show QR only while no phone has a seat: the engine shows the QR only then), close). The TV
+key is in the strip whether or not a room is open. Below ~980 px of stage width the wings become two tabs under the
+table. Gold replaces ember inside `.cz`.
+
+- **Chip rack** (`casino/chips.ts`, a copy of `casino/chips.py`): the Play tab shows only the chips the table allows
+  — `status.chips` from the engine, or the same rack computed from `house.min_bet` / `max_bet` for older engines:
+  ladder chips 1 · 5 · 25 · 100 · 500 · 1K · 2K · 5K · 10K · 25K · 50K · 100K · 250K · 500K · 1M between the limits
+  (a table minimum off the ladder becomes the smallest chip), at most 7 spanning the range, plus *ALL in*. Chips
+  outside the limits are not shown. Each ladder chip has its own colour and edge stripes; labels use K / M. Flying
+  chips, the ghost and the stacks use the same ladder (a stack's edges are its greedy ladder breakdown).
+- **Errors are a centred alert** (`casino/alert.tsx`): `casinoOp` posts to `/api/apps/{id}/actions/casino` itself;
+  a play op the engine refuses answers 200 with `{ok: false, error}` (the engine's `_note` for the host pid) and a
+  host op answers 400 — both show the text ("Table min is 500", "Table max is …", "Not enough credits", "Bets are
+  closed", …) big and centred over the table in the theme's accent: pop-in + short shake, a tinted backdrop flash,
+  gone after 2.2 s or on a click, `role="alert"`, no motion with reduced motion, a fixed overlay (no layout shift).
+  While the casino view is on screen any other studio error toast (settings, room, table switch, TV) is routed
+  there too, and the host seat's `private.notice` errors that no reply showed. A refused bet's chip flies home.
+- **Roulette drop targets** (`casino/roulette.tsx`): the number grid resolves a click or a drop by geometry —
+  inside a number → straight; within 22 % of a cell of a line → split; a crossing of four → corner; the outer
+  edge → street, an outer crossing → six line; against the zero → zero splits, trios, first four / top line
+  (American: 00 beside 3, 0 beside 1). While dragging, a ghost chip snaps to the exact point and every covered
+  number lights up; chips on lines / crossings are drawn on the line. Pointer events: rAF-throttled moves, the
+  ghost moves by transform only, the grid's rects are read once per gesture, the pressed element captures the
+  pointer once the drag starts, `touch-action: none` on the grid, no text selection; on touch the drop point sits
+  34 px above the fingertip. Right-click (or drag a stack off) takes chips back; keyboard users still bet with the
+  number buttons and the inside-bet lists.
 
 ## Intro & outro (`components/Boot.tsx`, `components/boot/`, `lib/intro.ts`)
 

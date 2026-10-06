@@ -6,8 +6,7 @@
  * Web Animations on transform / opacity only (60 fps), in a fixed layer on <body>; nothing at all with reduced motion.
  */
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { chipColor } from "./bits";
-import { short } from "./state";
+import { breakInto, chipLabel, isLight, styleOf } from "./chips";
 
 export type Pt = [number, number];
 
@@ -32,26 +31,29 @@ function accent(): string {
   return (cz && getComputedStyle(cz).getPropertyValue("--gold").trim()) || "#ffcc33";
 }
 
-/** How tall a stack of `n` looks: one edge per chip it takes (greedy, at most 6 under the top one) — as on the phones. */
+/** How tall a stack of `n` looks: one edge per ladder chip it breaks into (greedy, largest first, at most 6 under the
+ *  top one), each edge in that chip's colour — as on the phones. */
 export function stackShadow(n: number): string {
-  let left = Math.max(0, Math.round(Number(n) || 0));
-  let k = 0;
-  for (const c of [500, 100, 25, 5, 1]) while (left >= c && k < 7) { left -= c; k++; }
+  const chips = breakInto(n, 7);
+  const k = chips.length;
   const edges: string[] = [];
-  for (let i = 1; i < Math.min(7, Math.max(1, k)); i++) edges.push(`0 ${i * 2}px 0 ${i % 2 ? "rgba(255,255,255,.55)" : "rgba(0,0,0,.35)"}`);
+  // the top chip is the badge itself; the ones under it peek out below, bottom chip last
+  for (let i = 1; i < Math.min(7, Math.max(1, k)); i++) edges.push(`0 ${i * 2}px 0 ${chips[i]?.color ?? "rgba(0,0,0,.35)"}`);
   return [...edges, `0 ${Math.max(1, k - 1) * 2 + 2}px 0 rgba(0,0,0,.5)`].join(",");
 }
 
-/** One flying chip element: a value chip, or a player's colour (`color`) for someone else's chip. */
+/** One flying chip element: a ladder chip for `amount`, or a player's colour (`color`) for someone else's chip. */
 export function chipEl(amount: number | "all", opts: { color?: string; ghost?: boolean } = {}): HTMLDivElement {
   const e = document.createElement("div");
   e.className = opts.ghost ? "cz-flychip cz-flychip-ghost" : "cz-flychip";
-  const col = opts.color ?? chipColor(amount === "all" ? "all" : amount);
+  const st = styleOf(amount === "all" ? "all" : amount);
+  const col = opts.color ?? st.color;
   e.style.setProperty("--chip", col);
-  if (col === chipColor(1)) e.dataset.light = "1"; // the white 1-chip: dark numerals
+  e.style.setProperty("--edge", opts.color ? "#f6f1e3" : st.edge);
+  if (isLight(col)) e.dataset.light = "1"; // light chips (1, 1K, 100K): dark numerals
   if (opts.ghost) e.style.setProperty("--ring", accent());
   const b = document.createElement("b");
-  b.textContent = amount === "all" ? "ALL" : short(amount);
+  b.textContent = amount === "all" ? "ALL" : chipLabel(amount);
   e.append(b);
   layer().append(e);
   return e;
@@ -63,9 +65,9 @@ export const centerOf = (el: Element | null | undefined): Pt | null => {
   return r.width || r.height ? [r.left + r.width / 2, r.top + r.height / 2] : null;
 };
 
-/** Put a ghost chip a little above the pointer (so the spot under it stays visible). */
+/** Put a ghost chip at (x, y) — client coords, the point it will land on (transform only: no layout per move). */
 export function placeGhost(g: HTMLElement, x: number, y: number) {
-  g.style.transform = `translate(${x}px,${y - 26}px)`;
+  g.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
 }
 
 /** A chip flies on an arc from `from` to `to` (client coords). */

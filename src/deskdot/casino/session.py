@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from . import fair
 from .bank import Bank
+from .chips import chip_rack
 
 if TYPE_CHECKING:
     from .table import CasinoGame, RoundResult
@@ -394,6 +395,8 @@ class CasinoSession:
             "casino": True,
             "paused": self.paused,
             "house": self.house.model_dump(),
+            # the chip rack every UI shows: only the chips the table limits allow (casino/chips.py)
+            "chips": chip_rack(self.house.min_bet, self.house.max_bet),
             "players": self.leaderboard(),
             # recent rounds with their revealed seeds: phones verify them on the spot (casino.html)
             "history": [

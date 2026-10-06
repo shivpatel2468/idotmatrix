@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { type RackChip, chipLabel, isLight, styleOf } from "./chips";
 import { type Avatar, fmt, useCasino } from "./state";
 
 const reduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -81,25 +82,25 @@ export function CountdownRing({ left, span, size = 44 }: { left: number | null; 
   );
 }
 
-/** One casino chip (the rack and the cascade). */
-export function Chip({ value, size = 34, active, onClick, title }: { value: number | "all"; size?: number; active?: boolean; onClick?: () => void; title?: string }) {
-  const col = chipColor(value);
+/** One casino chip (the rack): a ladder chip (chips.ts) in its colour and edge stripes, K / M label; or "ALL in". */
+export function Chip({ value, chip, size = 34, active, onClick, title }: {
+  value: number | "all"; chip?: RackChip; size?: number; active?: boolean; onClick?: () => void; title?: string;
+}) {
+  const c = chip ?? styleOf(value);
+  const label = value === "all" ? "ALL" : chip?.label ?? chipLabel(value);
   const Tag = onClick ? "button" : "span";
   return (
-    <Tag className="cz-chip" data-active={active || undefined} data-v={String(value)} onClick={onClick} title={title} aria-pressed={onClick ? !!active : undefined}
-      style={{ width: size, height: size, ["--chip" as string]: col, fontSize: size * (value === "all" ? 0.26 : 0.3) }}>
-      <span>{value === "all" ? "ALL" : value >= 1000 ? `${value / 1000}k` : value}</span>
+    <Tag className="cz-chip" data-active={active || undefined} data-v={String(value)} data-light={isLight(c.color) || undefined} onClick={onClick} title={title}
+      aria-pressed={onClick ? !!active : undefined}
+      style={{ width: size, height: size, ["--chip" as string]: c.color, ["--edge" as string]: c.edge, fontSize: size * (label.length >= 4 ? 0.24 : label.length === 3 ? 0.28 : 0.3) }}>
+      <span>{label}</span>
     </Tag>
   );
 }
 
+/** A chip's colour for any amount: the ladder chip, else the largest ladder chip under it (chips.ts). */
 export function chipColor(v: number | "all"): string {
-  if (v === "all") return "#ff3f78";
-  if (v >= 500) return "#7b3fe4";
-  if (v >= 100) return "#1d1d24";
-  if (v >= 25) return "#13a65a";
-  if (v >= 5) return "#e3263f";
-  return "#e9e6dc";
+  return styleOf(v).color;
 }
 
 /** Inline numeric entry that commits on Enter / blur. */

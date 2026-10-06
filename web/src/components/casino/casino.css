@@ -292,15 +292,17 @@
   position: relative; display: grid; place-items: center; flex: none; border-radius: 50%;
   font-family: var(--font-mono); font-weight: 700; color: #fff; letter-spacing: -0.02em;
   background:
-    repeating-conic-gradient(from 0deg, var(--chip) 0 22.5deg, #f6f1e3 22.5deg 30deg, var(--chip) 30deg 45deg);
+    repeating-conic-gradient(from 0deg, var(--chip) 0 22.5deg, var(--edge, #f6f1e3) 22.5deg 30deg, var(--chip) 30deg 45deg);
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(0, 0, 0, 0.25);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .cz-chip > span {
   display: grid; place-items: center; width: 66%; height: 66%; border-radius: 50%;
-  background: var(--chip); border: 1.5px dashed rgba(255, 255, 255, 0.55); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  background: var(--chip); border: 1.5px dashed color-mix(in srgb, var(--edge, #fff) 70%, transparent); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  white-space: nowrap; letter-spacing: -0.04em;
 }
-.cz-chip[style*="#e9e6dc"] > span { color: #222; text-shadow: none; border-color: rgba(0, 0, 0, 0.3); }
+/* light ladder chips (1, 1K, 100K): dark numerals */
+.cz-chip[data-light] > span { color: #1c1c22; text-shadow: none; }
 button.cz-chip:hover { transform: translateY(-2px); }
 .cz-chip[data-active="true"] { transform: translateY(-4px); box-shadow: 0 6px 0 rgba(0, 0, 0, 0.45), 0 0 0 2px var(--gold), 0 0 22px -2px var(--gold); }
 
@@ -579,10 +581,10 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 .cz-flychip {
   position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; display: grid; place-items: center;
   will-change: transform, opacity;
-  background: repeating-conic-gradient(from 0deg, var(--chip) 0 22.5deg, #f6f1e3 22.5deg 30deg, var(--chip) 30deg 45deg);
+  background: repeating-conic-gradient(from 0deg, var(--chip) 0 22.5deg, var(--edge, #f6f1e3) 22.5deg 30deg, var(--chip) 30deg 45deg);
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 8px 16px rgba(0, 0, 0, 0.4);
 }
-.cz-flychip::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--chip); border: 1.5px dashed rgba(255, 255, 255, 0.6); }
+.cz-flychip::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--chip); border: 1.5px dashed color-mix(in srgb, var(--edge, #fff) 70%, transparent); }
 .cz-flychip b { position: relative; font: 700 10px/1 var(--font-mono); color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7); letter-spacing: -0.03em; }
 .cz-flychip-ghost { width: 44px; height: 44px; margin: -22px 0 0 -22px; box-shadow: 0 14px 0 rgba(0, 0, 0, 0.28), 0 0 0 3px var(--ring), 0 0 26px var(--ring); }
 .cz-flychip-ghost b { font-size: 12px; }
@@ -593,5 +595,58 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 }
 .cz-spot.cz-dd-on { outline: 2px solid var(--gold); outline-offset: -2px; filter: brightness(1.2); }
 .cz-rack .cz-chip { touch-action: none; }
+.cz-rack, .cz-board { -webkit-user-select: none; user-select: none; }
+.cz-chip > span { font-size: inherit; }
 .cz-spot-mine { transition: box-shadow 0.2s; }
 .cz-flychip[data-light] b { color: #222; text-shadow: none; }
+
+/* ------------------------------------------------------------- roulette drop targets (roulette.tsx) */
+/* the grid takes the pointer itself (geometry: numbers, lines, crossings, the outer edge): no browser panning on it */
+.cz-wheelgrid { touch-action: none; position: relative; }
+.cz-outside { touch-action: none; }
+.cz-nums { position: relative; }
+.cz-wheelgrid .cz-spot:active { transform: none; }
+/* every number the dragged chip would cover lights up */
+.cz-n.cz-dd-on { outline: 2px solid var(--gold); outline-offset: -2px; filter: brightness(1.35); box-shadow: 0 0 14px -2px var(--gold); z-index: 1; }
+/* chips on a line / a crossing / the outer edge: centred on the point */
+.cz-linechip { position: absolute; z-index: 2; width: 0; height: 0; display: grid; place-items: center; pointer-events: none; }
+.cz-linechip .cz-spot-mine { position: static; transform: translateY(-1px); pointer-events: none; white-space: nowrap; }
+.cz-linechip-dots { display: flex; gap: 1px; padding: 2px; border-radius: 99px; background: rgba(0, 0, 0, 0.55); }
+.cz-linechip-dots i { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6); }
+.cz-linechip.cz-dd-on .cz-spot-mine { box-shadow: 0 0 0 2px var(--gold), 0 0 14px var(--gold) !important; }
+
+/* ------------------------------------------------------------- the centred casino alert (alert.tsx) */
+.cz-alert-wrap { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; pointer-events: none; padding: 16px; }
+.cz-alert-flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(60% 50% at 50% 50%, rgba(255, 63, 120, 0.28), rgba(var(--gold-rgb, 255, 204, 51), 0.08) 55%, transparent 80%);
+  animation: cz-alert-flash 2.2s ease-out forwards;
+}
+.cz-alert {
+  position: relative; pointer-events: auto; display: flex; align-items: center; gap: 14px; max-width: min(620px, 92vw);
+  padding: 18px 26px; border-radius: 18px; cursor: pointer; text-align: left;
+  color: var(--gold-ink, #1d1402);
+  background: linear-gradient(180deg, var(--gold-2, #ffe08a), var(--gold, #ffcc33) 60%, var(--gold-lo, #e0a91c));
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px rgba(255, 63, 120, 0.85), 0 22px 60px rgba(0, 0, 0, 0.6), 0 0 80px -6px rgba(var(--gold-rgb, 255, 204, 51), 0.9);
+  animation: cz-alert-in 0.42s cubic-bezier(.2, 1.4, .4, 1) both, cz-alert-out 0.3s ease-in 1.9s forwards;
+}
+.cz-alert svg { flex: none; color: #c4123f; }
+.cz-alert b { font-family: var(--font-display); font-size: clamp(20px, 2.6vw, 30px); font-weight: 750; line-height: 1.15; letter-spacing: -0.01em; }
+@keyframes cz-alert-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  55% { opacity: 1; transform: scale(1.06); }
+  68% { transform: scale(1) translateX(-10px); }
+  80% { transform: translateX(9px); }
+  90% { transform: translateX(-5px); }
+  100% { transform: none; }
+}
+@keyframes cz-alert-out { to { opacity: 0; transform: scale(0.94); } }
+@keyframes cz-alert-flash { 0% { opacity: 0; } 8% { opacity: 1; } 60% { opacity: 0.5; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .cz-alert { animation: none; }
+  .cz-alert-flash { animation: none; opacity: 0.6; }
+}
+
+/* the TV key under the panel (CasinoStage LobbyStrip): the gold key, lobby-row height */
+.cz-tvkey { height: 2rem; padding: 0 0.8rem; flex: none; }

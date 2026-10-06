@@ -61,7 +61,10 @@ FAIRNESS: Section = (
 )
 
 JOIN = "Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**."
-CHIPS = "Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL)."
+CHIPS = (
+    "Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table "
+    "minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have."
+)
 LOCK = (
     "Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're "
     "ready — the table locks at zero or once everyone is done."
@@ -75,8 +78,9 @@ GUIDES: dict[str, dict[str, Any]] = {
         "how": (
             JOIN,
             CHIPS,
-            "Tap the table to bet: a number for a straight bet, the line between two numbers for a split, a "
-            "corner for four numbers, or an outside box (red/black, odd/even, dozens, columns). Hold a finger on "
+            "Tap or drag a chip onto the table: a number for a straight bet, the line between two numbers for a "
+            "split, the point where four numbers meet for a corner, the outer edge of a row for a street (two rows: "
+            "six line), or an outside box (red/black, odd/even, dozens, columns). Hold a finger on "
             "a spot to see what it covers and what it pays.",
             LOCK,
             "**No more bets** — the panel spins the wheel. Winning bets are paid to your credits automatically.",
