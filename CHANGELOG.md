@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- 📺 **TV view** (docs/TV_VIEW.md): any screen — a smart-TV / Fire TV browser, a tablet, a projector — shows a
+  1920 × 1080 broadcast of what DeskDot is playing. Studio: Create → **Show on TV** (QR + code, up to 8 screens);
+  `/tv/<code>` on the LAN (LanGate allows `/tv/`), and over the internet in the web app through the WebRTC tunnel.
+  Bespoke scenes for all 10 casino tables (full roulette layout with every player's chips, wheels, dice, cards,
+  Housie board, slot cabinet) and for every game family (scores per seat, lives, teams, turn, winner banner,
+  controls legend, scan-to-join), a beautiful LED panel for everything else.
+- 🎯 **TV ↔ panel sync:** the TV gets the drawn outcome only from the lock (bets frozen) as a TV-only `tv.reveal`
+  and replays the panel's own motion 1:1 (roulette ball/wheel, Big Six, dice, reels, card deals) on a slewed clock;
+  rebuilt for 60 fps on a Fire TV Stick (pre-rendered wheel spun by CSS transforms, static layers). A rubber
+  **stamp** marks the winning number/tile. The TV top bar and page follow the table theme.
+- ⏱️ **One shared clock on every device:** public `status.clock` anchors (`phase_at`, `lock_at`, `ends_at`,
+  `reveal_at`…) and `pong.server_time`; phones, the studio and the TV count down and flip at the same moment.
+- 🎨 **Casino theme everywhere:** every colour on the phone page and the studio's casino view (buttons, sheets,
+  rules, tour, toasts, the studio's own controls inside `.cz`, the browser bar) derives from the table theme, with
+  AA-checked derived tokens; the host's theme change re-colours every device at once.
+- 🖱️ **Laptop as a friend:** mouse betting fixed on the phone page (pointer capture stole rack clicks, right-click
+  bet on roulette, unthrottled pointermove lagged); one click = one chip, drag works, right-click does nothing.
+- 🪙 **Host chip animations** in the studio's Play tab (fly, stack, drag-and-drop, take back, others' chips drop in)
+  and **the live panel on every phone** during no-more-bets / spin / result (opt-in binary frames on `/ws/p/`).
+- 🪙 **Casino key:** a gold **Casino** key in the top bar on every app and the library's **Casino** category both
+  enter casino mode (reopening the last table), with a silver **coin drop** animation; gold "Leave casino".
+- ✨ **Animated DeskDot LED logo everywhere** (studio header, every intro, TV, phone pages, join and landing cards),
+  two shades ("Desk" rose, "Dot" gold); copies kept identical by `tests/test_logo_copies.py`.
+- Fixed: phones joining **Leaf Leap** / **Dig World** crashed the game (an attribute shadowed `GameApp._seat`).
+- Table theme swatches are always pickable (built-in list mirrors the engine) and the studio says when the engine is
+  too old for themes.
+
 - 🎨 **14 new casino table themes** (Riviera noir, Imperial jade, Gilded deco, Marigold masala, Festival of lights, Cyber grid, Pixel arcade, Sakura night, Glacier, Desert oasis, Ocean abyss, Volcano, Galaxy, Riverboat mahogany): each a whole concept with LED-tuned panel colours, an
   AA-checked screen palette and a **felt motif** — the new `pattern` / `pattern_size` theme tokens (pure CSS
   gradients: clouds, sunburst fans, paisley, rangoli, circuit and pixel grids, petals, frost, tiles, starfield, wood

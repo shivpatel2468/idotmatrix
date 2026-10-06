@@ -69,9 +69,13 @@ that anyone, including an AI agent, can make a new app in one Python file.
     - Friends join with the QR code; the host sets everyone's credits.
     - The panel shows only the table, while phones show credits, the betting layout and private cards.
     - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
-    - Seven table themes (classic green, royal blue, crimson, midnight neon, neon strip, emerald, burgundy) recolour
-      the panel, every phone and the studio; a "?" on every phone opens How to play, the rulebook and the payouts.
+    - 21 table themes with their own felt patterns (from classic green and royal blue to Imperial jade, Gilded deco,
+      Festival of lights, Cyber grid, Sakura night and Galaxy) recolour the panel, every phone, the studio and the TV;
+      a "?" on every phone opens How to play, the rulebook and the payouts, with a guided tour for new players.
       See [docs/CASINO.md](docs/CASINO.md) and the player's rulebook [docs/CASINO_RULES.md](docs/CASINO_RULES.md).
+*   **📺 TV view:** put any screen in the room on it — a smart-TV or Fire TV browser, a tablet, a projector. Studio →
+    Create → Show on TV → scan. A 1920 × 1080 broadcast: the full casino table with everyone's chips, the wheel
+    synced to the panel, game scoreboards and the live panel. See [docs/TV_VIEW.md](docs/TV_VIEW.md).
 *   **✊ Rock Paper Scissors:** AI vs AI, you vs AI, 1v1 or a 3–8 player tournament, with pixel-hand pickers on phones.
 *   **🌐 No install:** open [idotmatrix.com/app](https://idotmatrix.com/app/) in Chrome or Edge and connect the panel
     over Web Bluetooth. The same engine runs in your browser. See [docs/WEB_APP.md](docs/WEB_APP.md).
