@@ -444,7 +444,7 @@
 .tvg *{box-sizing:border-box}
 .tvg-hero{position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
 .tvg-hero .tv-bezel{position:relative;padding:22px;border-radius:30px;line-height:0}
-.tvg-glow{position:absolute;inset:8%;border-radius:50%;filter:blur(90px);opacity:.35;background:var(--tvg-glow,#00c8ff);transition:background .8s}
+.tvg-glow{position:absolute;inset:-6%;opacity:.3;pointer-events:none;background:radial-gradient(closest-side,var(--tvg-glow,#00c8ff),transparent)}
 .tvg-badge{position:absolute;left:8px;top:2px;z-index:3}
 .tvg-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4}
 .tvg-count{font-size:360px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 60px var(--c,#ff4818),0 10px 0 rgba(0,0,0,.4);animation:tvg-pop .6s cubic-bezier(.2,.9,.25,1.15) both}
@@ -456,7 +456,7 @@
 .tvg-banner span{display:block;margin-top:10px;font-size:36px;color:var(--ink-2,#a9a7b0)}
 @keyframes tvg-ribbon{0%{transform:translateY(-50%) scaleX(.2);opacity:0}100%{transform:translateY(-50%) scaleX(1);opacity:1}}
 .tvg-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3}
-.tvg-confetti i{position:absolute;top:-30px;width:16px;height:26px;border-radius:3px;animation:tvg-fall linear infinite}
+.tvg-confetti i{position:absolute;top:-30px;width:16px;height:26px;border-radius:3px;animation:tvg-fall linear infinite;will-change:transform}
 @keyframes tvg-fall{to{transform:translateY(1060px) rotate(720deg)}}
 .tvg-side{display:flex;flex-direction:column;gap:22px;min-width:0;min-height:0}
 .tvg-head .tv-label{font-size:24px}
@@ -479,11 +479,12 @@
 .tvg-keys{display:flex;gap:5px}
 .tvg-key{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 8px;border-radius:9px;font-size:24px;font-weight:800;color:var(--ink-1,#efece4);
   background:linear-gradient(180deg,var(--chassis-4,#27272f),var(--chassis-2,#16161b));border:1px solid var(--line-2,#33333d);box-shadow:0 3px 0 rgba(0,0,0,.6)}
-.tvg-join{display:flex;gap:18px;align-items:center;padding:16px 22px 16px 16px;border:2px solid var(--gold,#ffcc33);animation:tvg-breathe 2.4s ease-in-out infinite}
+.tvg-join{position:relative;display:flex;gap:18px;align-items:center;padding:16px 22px 16px 16px;border:2px solid var(--gold,#ffcc33)}
+.tvg-join::after{content:"";position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;box-shadow:0 0 50px -12px var(--gold,#ffcc33);opacity:0;animation:tvg-breathe 2.4s ease-in-out infinite}
 .tvg-join canvas{width:170px;height:170px;border-radius:10px;background:#fff}
 .tvg-join b{display:block;font-size:44px;font-weight:900;letter-spacing:.12em;color:var(--gold,#ffcc33)}
 .tvg-join span{display:block;font-size:24px;color:var(--ink-2,#a9a7b0);max-width:200px}
-@keyframes tvg-breathe{50%{box-shadow:0 0 50px -12px var(--gold,#ffcc33)}}
+@keyframes tvg-breathe{50%{opacity:1}}
 /* scoreboard */
 .tvg-solo{display:flex;flex-direction:column;justify-content:center;flex:1;padding:24px 34px}
 .tvg-solo .tvg-score{font-size:180px;font-weight:900;line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
@@ -497,8 +498,9 @@
 .tvg-seat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:var(--c)}
 .tvg-seat.lead{border-color:var(--c);box-shadow:0 0 36px -8px var(--c)}
 .tvg-seat.out{opacity:.38;filter:grayscale(.8)}
-.tvg-seat.turn{border-color:var(--c);box-shadow:0 0 0 3px var(--c),0 0 50px -6px var(--c);animation:tvg-turn 1.4s ease-in-out infinite}
-@keyframes tvg-turn{50%{box-shadow:0 0 0 3px var(--c),0 0 80px 0 var(--c)}}
+.tvg-seat.turn{border-color:var(--c);box-shadow:0 0 0 3px var(--c),0 0 50px -6px var(--c)}
+.tvg-seat.turn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 40px -4px var(--c);opacity:.3;animation:tvg-turn 1.4s ease-in-out infinite}
+@keyframes tvg-turn{50%{opacity:1}}
 .tvg-av{flex:none;width:72px;height:72px;border-radius:14px;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:var(--c);image-rendering:pixelated}
 .tvg-seat .who{flex:1;min-width:0}
 .tvg-seat .nm{font-size:36px;font-weight:800;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -584,6 +586,17 @@
 .tvg-opt i{flex:none;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;background:var(--chassis-4,#27272f)}
 .tvg-opt.sel{border-color:var(--gold,#ffcc33);box-shadow:0 0 40px -8px var(--gold,#ffcc33)}
 .tvg-opt.sel i{background:var(--gold,#ffcc33);color:#000}
+/* the lite tier (tv.js): no blurred shadows or glows, they are full repaints on a weak TV stick */
+html[data-q=lite] .tvg-glow{display:none}
+html[data-q=lite] .tvg-count{text-shadow:0 8px 0 rgba(0,0,0,.4)}
+html[data-q=lite] .tvg-banner{box-shadow:none}
+html[data-q=lite] .tvg-banner b{text-shadow:none}
+html[data-q=lite] .tvg-seat.lead,html[data-q=lite] .tvg-team.win,html[data-q=lite] .tvg-duel.turn,html[data-q=lite] .tvg-opt.sel{box-shadow:none}
+html[data-q=lite] .tvg-seat.turn{box-shadow:0 0 0 3px var(--c)}
+html[data-q=lite] .tvg-seat.turn::after,html[data-q=lite] .tvg-join::after{display:none}
+html[data-q=lite] .tvg-duel .sym{text-shadow:none}
+html[data-q=lite] .tvg-hand.win canvas{filter:none}
+html[data-q=lite] .tvg-pips i.on{box-shadow:none}
 `;
 
   function ensureCss() {
@@ -817,7 +830,8 @@ ${t.members.length ? "" : '<div class="tvg-note">CPU fills this side</div>'}</di
       if (!el.confetti) return;
       if (!color) return put(el.confetti, "");
       const bits = [];
-      for (let i = 0; i < 36; i++) {
+      const n = typeof TV !== "undefined" && TV.quality === "lite" ? 12 : 36;
+      for (let i = 0; i < n; i++) {
         const c = i % 3 === 0 ? "#ffcc33" : i % 3 === 1 ? color : "#ffffff";
         bits.push(`<i style="left:${(i * 37) % 100}%;background:${c};animation-duration:${2.4 + ((i * 13) % 20) / 10}s;animation-delay:${-((i * 7) % 30) / 10}s"></i>`);
       }
@@ -895,7 +909,10 @@ ${t.members.length ? "" : '<div class="tvg-note">CPU fills this side</div>'}</di
       overlay(ctx, st, seats);
       if (el.glow) {
         const lead = seats[0] ? seats[0].color : "#00c8ff";
-        el.glow.style.setProperty("--tvg-glow", lead);
+        if (el.glow.__c !== lead) {
+          el.glow.__c = lead; // a 1100 px gradient: repaint it only when the colour changes
+          el.glow.style.setProperty("--tvg-glow", lead);
+        }
       }
       let main = "";
       const open = lobbyOpen(st, ctx.lobby);

@@ -20,7 +20,7 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   Response `{ok, code, url, lan_ready, viewers}`. `GET /api/tv` → `{tv: {code, url, lan_ready, viewers} | null}`.
   `DELETE /api/tv` closes it. One TV code at a time, separate from (and never equal to) the multiplayer lobby code.
 - The URL is `http://<this computer's LAN IP>:<port>/tv/<code>` on the desktop, or `<public_url>/tv/<code>` in the
-  web app (§6). The TV needs the same Wi-Fi as the computer (desktop) — exactly like a phone joining a game.
+  web app (§8). The TV needs the same Wi-Fi as the computer (desktop) — exactly like a phone joining a game.
 - **Security:** `LanGate` lets LAN clients reach only `/p/`, `/ws/p/`, `/tv/` and `/ws/tv/` (and never a path with
   `..`). `/tv/{code}` and `/ws/tv/{code}` check the code; `/tv/static/{name}` serves only the TV scripts (public code,
   no data). The TV socket is read-only: it accepts pings and nothing else. Everything it receives is what a phone in
@@ -38,6 +38,18 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) with a small "TV" label, the app's name and
   category, the join QR + room code while a multiplayer lobby is open, a clock and the connection dot.
 - **Scene area** `#scene`: **1920×984**, below the bar. Exactly one scene is mounted in it.
+- **Quality tier** (`TV.quality`, `html[data-q]`): `hq` (soft shadows and glows, the HD panel cross-fades,
+  full-resolution canvases) or `lite` (no blurred shadows or glows, fewer particles, table canvases at ¾ resolution,
+  no theme cross-fades). `?lite=1` / `?hq=1` (or `?quality=lite|hq`) force one. Otherwise the page starts in hq and
+  watches its own frame times while something animates (and for ~8 s after every scene change): a window of 120
+  frames whose median is over 22 ms, or with more than 20 % of frames over 34 ms, switches it to lite for the rest of
+  the visit (the scene is re-mounted at the new resolution). It never switches back by itself.
+- **Panel look** (`TV.look`): `hd` (default) or `led`. *HD* is the frame upscaled with a pixel-art upscaler (Scale2x /
+  EPX ×3: 32 → 256 px, then bilinear to the canvas) — smooth diagonals and round corners, but only ever the frame's
+  own colours in the frame's own places, so it always shows exactly what the panel shows — with a cheap bloom and, on
+  big panels in hq, a ~60 ms cross-fade between frames. *LED* is the classic realistic LED matrix. `?look=led|hd`
+  picks one; **L** on a keyboard, or the remote's **select / play-pause / menu** button, toggles it (a short notice
+  says which); the choice is remembered on that screen (localStorage).
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
   (the studio stopped it or the code is wrong; the page keeps checking every 20 s in case the same code comes back).
 - No scrollbars, the cursor hides after 3 s still, the screen never sleeps (Wake Lock API, re-acquired on
@@ -123,7 +135,7 @@ error is logged and the generic scene takes over for that app.
 | `connected` | the socket is up |
 | `now()` | local seconds (`performance.now()/1000` based, monotonic) |
 | `serverNow()` | the engine's clock in seconds (`time.time()`), estimated from `server_time` |
-| `drawPanel(canvas, opts)` | paints the LED panel big and realistic (below) |
+| `drawPanel(canvas, opts)` | paints the panel big: the HD look or the LED matrix (below) |
 | `drawAvatar(canvas, id, color)` | an 8×8 avatar, pixel-crisp, in a player colour |
 | `qr(text, canvas, opts)` | draws a QR code (`opts.size` CSS px, `opts.dark`, `opts.light`, `opts.quiet` modules) |
 | `fmt(n)` | credits / scores: `12,345` (`fmt(1234567, true)` → `1.2M`) |
@@ -132,12 +144,20 @@ error is logged and the generic scene takes over for that app.
 | `el(tag, className, text)` | tiny DOM helper |
 | `esc(s)` | HTML-escapes a string |
 
-`ctx.drawPanel(canvas, {pitch, glow, round, data, sizeToFit})`:
+`ctx.drawPanel(canvas, {pitch, glow, round, data, look})`:
 - sizes the canvas — `pitch` (stage px per LED) sets its CSS size to `32 × pitch`; otherwise it fills the canvas's
-  current CSS size (`clientWidth`) — and its backing store to that × `TV.pixelRatio` (crisp on 4K);
-- `glow` 0..1 (default 0.6) is the bloom, `round` (default true) draws round LEDs with a dark unlit dot and a soft
-  specular highlight (false = square pixels), `data` draws another 3072-byte frame instead of `ctx.panel`;
-- costs a handful of `drawImage` calls per frame (static layers are cached per size) — fine at 12 fps on a TV.
+  current CSS size (`clientWidth`) — and its backing store to the device pixels it covers (× `TV.pixelRatio`,
+  ¾ of that in lite, capped at 1600 px);
+- `look` `"hd"` / `"led"` overrides `TV.look` for this canvas; `glow` 0..1 (default 0.6) is the bloom (hq only),
+  `round` (LED look, default true) draws round LEDs with a dark unlit dot and a soft specular highlight (false =
+  square pixels), `data` draws another 3072-byte frame instead of `ctx.panel`;
+- costs a few `drawImage` calls per new frame (the upscale runs once per frame and is shared by every panel; static
+  LED layers are cached per size); a call without a new frame (a status update) draws nothing.
+
+Scene timing helpers: `TV.every(fn)` runs `fn(seconds)` on the page's **one** `requestAnimationFrame` loop (return
+`false` to stop; it returns an unsubscribe function) — scenes never start their own rAF loops or `setInterval`s for
+animation. Panel frames are drawn from the same loop (latest wins). A scene may implement `resize(ctx)` (the stage
+scale changed); a tier change re-mounts it.
 
 Shared CSS (in `tv.html`, use freely): tokens `--chassis-0…4`, `--line`, `--ink-1…4`, `--ember`, `--gold`, `--ok`,
 `--warn`, `--bad`, `--info`, `--font` (system UI), `--mono`; the table theme as `--felt`, `--felt2`, `--felt3`,
@@ -156,7 +176,34 @@ Every app falls back to it: the live panel centred as a huge LED matrix in a bez
 recessed well and diffuser sheen), the app's name, category and the status chips (the status's simple values:
 score, best, level, player, phase…) at the side, the lobby's players and the join QR when a lobby is open.
 
-## 6. The web app (browser version)
+## 6. Performance on TV sticks (Fire TV, Android TV, Chromecast)
+
+A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk on Fire TV) usually reports a
+960×540 CSS viewport at devicePixelRatio 2. What keeps the view smooth there — keep it that way:
+
+- **One loop, transforms for motion.** Everything that moves every frame (wheels, balls, dice, reels, stamps) is a
+  pre-rendered canvas moved by `transform` / `opacity`. Style writes are skipped when the value didn't change.
+- **Big canvases redraw rarely.** A casino scene's table layer redraws only when the status changed, while a chip or
+  card is in flight (30 Hz, 20 in lite), or at the scene's slow rate (≈1 Hz while betting, 2–4 Hz for turn games).
+  Countdown rings sweep in their own small canvases (`hudRing` in tv-casino.js), not in the table layer.
+- **No blur per frame.** No `shadowBlur` in per-frame drawing in lite; text casts a hard offset shadow (the text drawn
+  twice), never a blurred one. Chips, dice and housie balls are sprites drawn once (shadow baked in) and stamped.
+  No `filter: blur()` / `backdrop-filter` in CSS, no animated `box-shadow` (glows pulse a pseudo-element's opacity).
+- **Canvases match the screen.** Backing stores are sized to the device pixels they cover after the stage scale,
+  capped, and ¾ of that in lite.
+- **Measure.** A headless benchmark (CDP CPU throttling ×6 at 960×540 DPR 2, fixture statuses over a mocked TV socket)
+  compares p50 / p95 frame intervals before and after a change; the numbers are in the change's report.
+
+## 7. The casino chips
+
+Tables show the chips the house allows (docs/CASINO.md §5): the rail lists the table's rack — `status.chips`, or the
+same rack computed from `house.min_bet` / `max_bet` with a copy of the ladder when an older engine doesn't send it
+(`chipRack` in tv-casino.js, tested against `casino/chips.py`). Every stack on the felt is its amount broken into
+ladder chips (largest at the bottom, greedy), in the ladder's colours and edge stripes; the top chip's inlay is the
+player's colour with the amount in K / M. A winning spot's stamp lands with a short burst of sparks — like every
+reveal animation, a pure function of the shared clock, so every screen bursts in the same frame.
+
+## 8. The web app (browser version)
 
 In the web app the engine runs in the user's tab. The TV link's URL is `https://idotmatrix.com/tv/<code>`; Netlify
 rewrites `/tv/*` to the join page (`web/webapp/join/`), which links the TV to the host tab over WebRTC (the same

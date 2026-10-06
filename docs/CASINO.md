@@ -35,6 +35,7 @@ This spec is the contract every part follows: engine, panel apps, phone page, st
 | `bank.py` | Wallets per player id: credits, escrow, ledger, stats (won, lost, biggest win). The host can set base credits and adjust a wallet (each adjustment is logged). Persisted in the store under `casino`; bad stored data is dropped (rule 15). |
 | `cards.py` | Cards, decks, shoes (n decks, cut card), poker 5/7-card hand evaluator, Teen Patti 3-card ranking, baccarat values. |
 | `table.py` | `CasinoGame` base: a pydantic `Rules` model, phase machine, `place_bet()`, `action()`, `tick(now)`, `public_state()`, `private_state(seat)`, `settle()`. |
+| `chips.py` | The chip ladder (1 … 1M: value, K/M label, colour, edge colour) and `chip_rack(min_bet, max_bet)`: the chips a table offers, published as `status.chips`. |
 | `session.py` | `CasinoSession`: players (bound to lobby seats and the studio host seat), bank, the current game, house settings (base credits, min/max bet, timers), round history (with fairness proofs) and the leaderboard. Drives phase timers from the app's render clock (no sleeps). |
 | `games/*.py` | One file per game. These are pure rules, fully unit-tested, with no drawing. |
 
@@ -78,12 +79,42 @@ games) → result → idle`.
 
 - A single self-contained file, mobile-first, matching the controller's dark style.
 - Every colour comes from the table theme (§11: felt, accent, the derived surfaces); classic is felt green and gold.
-- **Always visible:** name, avatar, credits (animated count up and down), the phase and countdown.
-- **Bet controls:** a chip rack (1, 5, 25, 100, 500, all-in) with tap-to-place. Undo / clear / rebet are always reachable.
+- **Always visible:** the header is avatar · bank plaque · three icon keys (**?**, players, sound) on a 3-column grid
+  that never overlaps from 320 px phones to a laptop window: the plaque holds the name (and what you have on the
+  table, else the table and seat) over the credits (animated count up and down). Credits that don't fit the plaque
+  abbreviate (`1,250,000` → `1.25M`, measured on resize; the full number is the title / aria label). The network dot
+  sits on the avatar. Then the phase and countdown.
+- **Bet controls:** the table's chip rack plus **ALL IN**, tap-to-place or drag. Undo / clear / rebet are always
+  reachable.
+- **Chips (one ladder everywhere, `casino/chips.py`):**
+  `1 · 5 · 25 · 100 · 500 · 1K · 2K · 5K · 10K · 25K · 50K · 100K · 250K · 500K · 1M`, each with its own colour and
+  edge-stripe colour (also the label colour). A table offers only the chips its limits allow
+  (`min_bet ≤ value ≤ max_bet`); chips outside them are not shown at all. A table minimum that is not on the ladder
+  becomes the smallest chip (labelled with K / M, coloured like the next ladder chip up). At most 7 chips: the
+  smallest, the largest and 5 picked evenly by ladder index between them. The engine publishes the rack as
+  `status.chips: [{v, label, color, edge}]` (`chip_rack(min_bet, max_bet)`, in `CasinoSession.public_state`, so
+  phones, the studio and the TV all get it); the page rebuilds the rack when the host changes the limits and falls
+  back to the same rack computed locally (`chipRack`) on an older engine. Amounts on chips use K / M, never rounded
+  up (`2,500` → `2.5K`, `12,345` → `12.3K`); a stack on a spot is broken into ladder chips greedily (largest first):
+  the top chip is the biggest one, the edges under it the others' colours. Chips size themselves to fit one row
+  (34–54 px). `tests/test_casino_chips.py`, `tests/test_casino_phone_roulette.py` (page = engine).
+- **Rejected bets:** every rejection the engine sends (`Table min is …`, `Table max is …`, `Not enough credits`,
+  `Bets are closed`, …, `private.notice` with `kind: "error"`) and the page's own (`Sit down first`, `Out of credits`)
+  pop up **centered over the table**: big type in the theme's accent, a pop-in with a short shake over a tinted
+  flash, `role="alert"`, tap to close, gone after ~2.2 s, never moves the layout; reduced motion shows it still.
+  Plain info toasts sit low over the board, above the rack.
 - **Per game:**
-  - **Roulette:** a full clickable table layout. Tap a number for a straight bet; tap a line or corner for
-    split/street/corner/six-line; outside bets for dozens, columns, red/black, odd/even, low/high. Placed chips show
-    on the layout, the wheel result is highlighted, and recent results stream across.
+  - **Roulette:** a full clickable table layout. Tapping, clicking or dropping a chip resolves to the nearest legal
+    spot by geometry, like a real table (`rouletteSpot`, pure): inside a number → straight; within ~22 % of a cell
+    (never under 8 px) of the line between two numbers → split; where four numbers meet → corner (`c:<a>`); the
+    street's outer edge (and the rail beside it) → street (`st:<a>`); where two streets meet there → six line; the
+    zero line → `s:0-n` and the trios; the outer corner of 0 / 1 → first four (European) or top line (American);
+    outside boxes for dozens, columns, red/black, odd/even, low/high. While a chip is dragged every number the target
+    covers lights up, a tip names the bet and its payout, and the ghost chip snaps to the exact point the chip will
+    sit (line, intersection, rail). A mouse hovering the layout previews the spot a click would bet on. Placed chips
+    show on their line / intersection, the wheel result is highlighted, and recent results stream across.
+    `tests/test_casino_phone_roulette.py` sweeps the layout: every target is an engine spot and every inside bet is
+    reachable.
   - **7 Up 7 Down:** three big zones (UNDER 7, LUCKY 7, OVER 7).
   - **Blackjack:** own hand(s) with totals; buttons for hit / stand / double / split / surrender / insurance, enabled
     only when legal.
@@ -99,15 +130,18 @@ games) → result → idle`.
 - **Fair-play:** haptics on bet, lock, win; reduced-motion respected; no zooming or text selection.
 - **Gestures (core, every `[data-spot]` zone; roulette maps its own geometry):** pointer events only — a tap bets
   at `pointerup` (no click, no 300 ms delay, rapid taps each place a chip), hold 550 ms or drag the stack off a spot
-  to take it back, drag a chip from the rack onto a spot (a ghost chip follows the finger, the spot under it lights
-  up). `touch-action: manipulation` everywhere, `none` on the rack / roulette / zones holding my chips; double-tap,
+  to take it back, drag a chip from the rack onto a spot (a ghost chip follows the pointer, the spot under it lights
+  up). A drag aims right under a mouse or pen tip and 34 px above a finger (so the spot isn't hidden); each frame
+  reads first (the spot under the aim point, from a box measured once per drag: `module.measure`) and then writes
+  (highlight, the ghost's `translate3d`), so a mouse drag holds 60 fps. `touch-action: manipulation` everywhere, `none` on the rack / roulette / zones holding my chips; double-tap,
   `dblclick` and iOS `gesturestart` zoom are blocked. The rulebook has its own text zoom (A−/A+ or a two-finger
   pinch on the text). Chips fly rack → spot on an arc and the stack bounces (WAAPI, transform/opacity only;
   `prefers-reduced-motion` turns flights off); a stack's height follows the chips it takes (`--stk`).
   **Mouse and pen work the same as a finger** (a laptop can join as a friend): only the primary button bets
   (right / middle clicks never do), one click is exactly one chip (the click after a pointer press never bets again;
-  only a keyboard Enter / Space click does), the rack takes no pointer capture (with a mouse it retargeted the click
-  to `#rack`, so clicking a chip never picked it — the move / up listeners sit on the document instead), and every
+  only a keyboard Enter / Space click does), `#rack` takes no pointer capture (with a mouse it retargeted the click
+  to `#rack`, so clicking a chip never picked it) — the pressed chip captures the pointer itself and the move / up
+  listeners sit on the document, so a fast mouse leaving the rack is still followed — and every
   `pointermove` handler runs at most once per frame (`perFrame`). The countdown ring writes to the DOM only when a
   value changes. `tests/test_casino_phone_input.py` drives the real handlers with mouse / pen / touch events.
 - **Live panel:** after every `hello` the page sends `{"type": "frames", "on": true}` (off while the tab is hidden)

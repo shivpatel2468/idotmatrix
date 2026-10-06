@@ -3,14 +3,16 @@ import { Ban, Check, ChevronDown, CircleCheck, CircleX, Crown, Hand, Medal, Rota
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sfx } from "../../lib/sound";
 import { toast } from "../../lib/store";
+import { casinoAlert } from "./alert";
 import { AvatarPix, Chip, Credits, NumberInput, Section, Tabs } from "./bits";
 import { type Pt, bump, centerOf, chipEl, drop, fly, perFrame, placeGhost, primary, stackShadow } from "./chipfx";
+import { chipLabel, rackOf } from "./chips";
+import { type GridBox, type Hit, LineChips, gridBox, rouletteHit, toClient, anchorOf } from "./roulette";
 import {
   type HistoryEntry, type PlayerRow, type Spot, type SpotBettor, TONE, casinoOp, fmt, seatLabel, short, useCasino, verifyRound,
 } from "./state";
 
 const BET_OPS = new Set(["bet", "unbet", "clear", "rebet", "done"]);
-const CHIPS = [1, 5, 25, 100, 500] as const;
 
 const seatOrder = (p: PlayerRow) => (p.seat === "host" ? 0 : typeof p.seat === "number" && p.seat > 0 ? p.seat : 99);
 const target = (p: PlayerRow): Record<string, unknown> | null =>
@@ -215,25 +217,25 @@ function isRoulette(spots: Spot[]) {
   return spots.filter((s) => s.kind === "straight" && /^\d+$/.test(s.label)).length >= 36;
 }
 
-function SpotButton({ s, mine, total, who, onBet, onUnbet, onPress, disabled, className, style }: {
-  s: Spot; mine: number; total: number; who?: SpotBettor[]; onBet: () => void; onUnbet: () => void;
-  onPress?: (e: React.PointerEvent) => void; disabled: boolean; className?: string; style?: React.CSSProperties;
+function SpotButton({ s, mine, total, who, onBet, onUnbet, onPress, disabled, className, style, num }: {
+  s: Spot; mine: number; total: number; who?: SpotBettor[]; onBet: (e: React.MouseEvent) => void; onUnbet?: () => void;
+  onPress?: (e: React.PointerEvent) => void; disabled: boolean; className?: string; style?: React.CSSProperties; num?: number;
 }) {
   // who is on this spot (status.spot_bets): the same dots, in the same order, as every phone shows
   const list = who ?? [];
   const names = list.map((w) => `${w.name} ${fmt(w.amount)}`).join(" · ");
   return (
-    <button className={clsx("cz-spot", className)} disabled={disabled} style={style} data-spot={s.id}
+    <button className={clsx("cz-spot", className)} disabled={disabled} style={style} data-spot={s.id} data-num={num}
       title={`${s.label} · pays ${s.pays}${total ? ` · table ${fmt(total)}` : ""}${names ? `\n${names}` : ""}\nClick: add a chip · drag a chip here from the rack · right-click or drag your stack off: take it back`}
-      onClick={onBet} onPointerDown={onPress} onContextMenu={(e) => { e.preventDefault(); onUnbet(); }}>
+      onClick={onBet} onPointerDown={onPress} onContextMenu={onUnbet ? (e) => { e.preventDefault(); onUnbet(); } : undefined}>
       <span className="cz-spot-l">{s.label}</span>
       <span className="cz-spot-p">{s.pays}</span>
-      {mine > 0 && <span className="cz-spot-mine" style={{ boxShadow: stackShadow(mine) }}>{short(mine)}</span>}
+      {mine > 0 && <span className="cz-spot-mine" style={{ boxShadow: stackShadow(mine) }}>{chipLabel(mine)}</span>}
       {list.length > 0 ? (
         <span className="cz-spot-who" aria-label={names}>
           {list.slice(0, 4).map((w) => <i key={String(w.seat)} style={{ background: w.color }} data-host={w.seat === "host" || undefined} />)}
           {list.length > 4 && <b>+{list.length - 4}</b>}
-          {total > mine && <b>{short(total)}</b>}
+          {total > mine && <b>{chipLabel(total)}</b>}
         </span>
       ) : !mine && total > 0 && <span className="cz-spot-total" />}
     </button>
@@ -284,6 +286,11 @@ function Play() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const undo = useRef<[string, number][]>([]);
   const house = st?.house;
+  // the rack: only the chips this table allows (status.chips from the engine, else the same ladder rack computed here)
+  const rack = useMemo(() => rackOf(st?.chips, house?.min_bet, house?.max_bet), [st?.chips, house?.min_bet, house?.max_bet]);
+  useEffect(() => {
+    if (chip !== "all" && rack.length && !rack.some((c) => c.v === chip)) setChip(rack[0].v);
+  }, [rack, chip]);
   const credits = me.seated ? (me.credits ?? 0) : (house?.base_credits ?? 0);
   const betting = st?.phase === "betting";
   const amount = chip === "all" ? credits : chip;
@@ -291,12 +298,26 @@ function Play() {
   const totals = st?.totals ?? {};
   const who = st?.spot_bets ?? {};
   const gameOps = (me.ops ?? []).filter((o) => !BET_OPS.has(o));
+  const roulette = isRoulette(spots);
+  const us = roulette && spots.some((s) => s.id === "n:00");
+  const byId = useMemo(() => Object.fromEntries(spots.map((s) => [s.id, s])), [spots]);
 
   // ---- chip flights (chipfx.ts): the same feel as the phones
   const rackRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const wheelRef = useRef<HTMLDivElement>(null);
+  const numsRef = useRef<HTMLDivElement>(null);
+  const zerosRef = useRef<HTMLDivElement>(null);
   const spotEl = (id: string) => boardRef.current?.querySelector<HTMLElement>(`[data-spot="${CSS.escape(id)}"]`) ?? null;
-  const spotPoint = (id: string): Pt | null => centerOf(spotEl(id)?.querySelector(".cz-spot-mine") ?? spotEl(id));
+  const box = (): GridBox | null => (roulette ? gridBox(numsRef.current, zerosRef.current) : null);
+  const spotPoint = (id: string): Pt | null => {
+    const el = spotEl(id);
+    const badge = el?.querySelector(".cz-spot-mine");
+    if (badge) return centerOf(badge);
+    const a = roulette ? anchorOf(id, us) : null;
+    const b = a && box();
+    return a && b ? toClient(b, a) : centerOf(el);
+  };
   const rackPoint = (): Pt | null => centerOf(rackRef.current?.querySelector("[data-active]") ?? rackRef.current);
   const bumpWant = useRef<Record<string, number>>({});
   const land = (id: string) => {
@@ -314,11 +335,17 @@ function Play() {
   }, [bets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bet = (id: string, from?: Pt) => {
-    if (!betting) return toast("Bets are closed — wait for the next round", "error");
-    if (amount <= 0) return toast("No credits left", "error");
-    undo.current.push([id, amount]);
-    casinoOp("bet", { spot: id, amount }).catch(() => undefined);
-    fly(amount, from ?? rackPoint(), spotPoint(id), { s0: from ? 1.3 : 1.2, s1: 0.8, done: () => land(id) });
+    if (!betting) return casinoAlert(st?.phase === "idle" ? "The table is closed — press Start round" : "Bets are closed");
+    if (amount <= 0) return casinoAlert("Not enough credits");
+    const amt = amount;
+    undo.current.push([id, amt]);
+    const to = spotPoint(id);
+    fly(amt, from ?? rackPoint(), to, { s0: from ? 1.3 : 1.2, s1: 0.8, done: () => land(id) });
+    casinoOp("bet", { spot: id, amount: amt }).catch(() => {
+      // rejected (the centred alert says why): drop it from the undo list and send the chip home
+      for (let i = undo.current.length - 1; i >= 0; i--) if (undo.current[i][0] === id && undo.current[i][1] === amt) { undo.current.splice(i, 1); break; }
+      window.setTimeout(() => fly(amt, to, live.current.rackPoint(), { s0: 0.8, s1: 1.1, fade: true, ms: 320 }), 140);
+    });
   };
   const unbet = (id: string, amt?: number, from?: Pt) => {
     const m = amt ?? bets[id] ?? 0;
@@ -340,44 +367,79 @@ function Play() {
     op("rebet");
   };
 
-  // ---- drag a chip from the rack onto a spot, or a stack off its spot (pointer events: mouse, pen, touch).
-  // No pointer capture: the move / up listeners sit on the document while a drag is live, so a click still lands
-  // on the chip or spot under the pointer.
-  type Drag = { kind: "rack" | "stack"; pid: number; x0: number; y0: number; v: number | "all"; spot?: string; ghost?: HTMLDivElement; over?: string | null };
-  const drag = useRef<Drag | null>(null);
-  const lit = useRef<HTMLElement | null>(null);
-  const noClickUntil = useRef(0); // the click that ends a drag on a spot must not bet again
-  const amountOf = (v: number | "all") => (v === "all" ? credits : Math.min(v, credits));
-  const live = useRef({ bet, unbet, spotPoint, rackPoint, amountOf, betting });
-  live.current = { bet, unbet, spotPoint, rackPoint, amountOf, betting };
-  const light = (el: HTMLElement | null) => {
-    if (lit.current === el) return;
-    lit.current?.classList.remove("cz-dd-on");
-    lit.current = el;
-    el?.classList.add("cz-dd-on");
+  // ---- where a point lands: on the roulette grid by geometry (roulette.tsx: straight / split / corner / street /
+  // six line …), elsewhere the spot under it. `cover` = what lights up: every number the bet covers.
+  type Target = { id: string; at: Pt | null; cover: Element[] };
+  const coverOf = (id: string, self?: Element | null): Element[] => {
+    const sp = byId[id];
+    const w = wheelRef.current;
+    const out: Element[] = self ? [self] : [];
+    if (!sp || !w || !roulette) return out;
+    for (const n of sp.numbers) {
+      const c = w.querySelector(`[data-num="${n}"]`);
+      if (c && c !== self) out.push(c);
+    }
+    const line = w.querySelector(`.cz-linechip[data-spot="${CSS.escape(id)}"]`);
+    if (line) out.push(line);
+    return out;
   };
-  const spotAt = (x: number, y: number) => {
+  const resolve = (x: number, y: number, b: GridBox | null): Target | null => {
+    if (roulette && b) {
+      const h: Hit | null = rouletteHit(b, x, y, (id) => id in byId, us);
+      if (h) return { id: h.id, at: toClient(b, h), cover: coverOf(h.id) };
+    }
     const z = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-spot]");
-    return z && boardRef.current?.contains(z) ? z : null;
+    if (!z || !boardRef.current?.contains(z) || z.classList.contains("cz-linechip")) return null;
+    return { id: z.dataset.spot!, at: null, cover: coverOf(z.dataset.spot!, z) };
+  };
+
+  // ---- drag a chip from the rack onto the table, or a stack off its spot (pointer events: mouse, pen, touch).
+  // Moves are rAF-throttled and only move the ghost (a transform); the grid's rects are read once per gesture; the
+  // pointer is captured by the pressed element once the drag really starts (a plain click stays a click).
+  type Drag = {
+    kind: "rack" | "stack"; pid: number; x0: number; y0: number; v: number | "all"; spot?: string; el: Element;
+    dy: number; ghost?: HTMLDivElement; box?: GridBox | null;
+  };
+  const drag = useRef<Drag | null>(null);
+  const lit = useRef<Element[]>([]);
+  const noClickUntil = useRef(0); // the click that ends a drag must not bet again
+  const amountOf = (v: number | "all") => (v === "all" ? credits : Math.min(v, credits));
+  const live = useRef({ bet, unbet, spotPoint, rackPoint, amountOf, betting, resolve, box });
+  live.current = { bet, unbet, spotPoint, rackPoint, amountOf, betting, resolve, box };
+  const light = (els: Element[]) => {
+    const prev = lit.current;
+    if (prev.length === els.length && prev.every((e, i) => e === els[i])) return;
+    for (const e of prev) if (!els.includes(e)) e.classList.remove("cz-dd-on");
+    for (const e of els) e.classList.add("cz-dd-on");
+    lit.current = els;
   };
   const startDrag = (d: Drag) => {
     drag.current = d;
     const move = perFrame((e: PointerEvent) => {
       const g = drag.current;
       if (!g || e.pointerId !== g.pid) return;
+      const L = live.current;
       if (!g.ghost) {
-        if (Math.hypot(e.clientX - g.x0, e.clientY - g.y0) < (g.kind === "rack" ? 6 : 8) || !live.current.betting) return;
+        if (Math.hypot(e.clientX - g.x0, e.clientY - g.y0) < (g.kind === "rack" ? 5 : 7) || !L.betting) return;
         if (g.kind === "rack") setChip(g.v);
-        g.ghost = chipEl(g.kind === "rack" ? live.current.amountOf(g.v) : g.v, { ghost: true });
+        g.ghost = chipEl(g.kind === "rack" ? L.amountOf(g.v) : g.v, { ghost: true });
+        g.box = L.box();
+        try {
+          (g.el as HTMLElement).setPointerCapture(g.pid);
+        } catch {
+          /* the element went away: the document listeners still follow the pointer */
+        }
         sfx("click", { volume: 0.5 });
       }
-      placeGhost(g.ghost, e.clientX, e.clientY);
-      const z = spotAt(e.clientX, e.clientY - 26);
-      g.over = z?.dataset.spot ?? null;
+      const p: Pt = [e.clientX, e.clientY - g.dy];
+      const t = L.resolve(p[0], p[1], g.box ?? null);
+      const gp = t?.at ?? p; // the ghost snaps to the line / intersection it will land on
+      placeGhost(g.ghost, gp[0], gp[1]);
       if (g.kind === "stack") {
-        g.ghost.classList.toggle("rm", g.over !== g.spot);
-        light(g.over === g.spot ? z : null);
-      } else light(z);
+        const home = t?.id === g.spot;
+        g.ghost.classList.toggle("rm", !home);
+        light(home && t ? t.cover : []);
+      } else light(t?.cover ?? []);
     });
     const end = (e: PointerEvent) => {
       const g = drag.current;
@@ -386,32 +448,64 @@ function Play() {
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", end);
       document.removeEventListener("pointercancel", end);
-      light(null);
-      if (!g.ghost) return; // a plain click: the button's own onClick handles it
+      light([]);
+      try {
+        (g.el as HTMLElement).releasePointerCapture(g.pid);
+      } catch {
+        /* not captured */
+      }
+      if (!g.ghost) return; // a plain click: the click handlers take it
       noClickUntil.current = performance.now() + 400;
       g.ghost.remove();
-      const at: Pt = [e.clientX, e.clientY - 26];
-      const over = e.type === "pointerup" ? (spotAt(at[0], at[1])?.dataset.spot ?? null) : g.kind === "stack" ? g.spot! : null;
+      const L = live.current;
+      const p: Pt = [e.clientX, e.clientY - g.dy];
+      const t = e.type === "pointerup" ? L.resolve(p[0], p[1], g.box ?? null) : null;
+      const from = t?.at ?? p;
       if (g.kind === "rack") {
-        if (over) live.current.bet(over, at);
-        else fly(live.current.amountOf(g.v), at, live.current.rackPoint(), { s0: 1.3, s1: 1.2, fade: true, ms: 260 });
-      } else if (over !== g.spot) live.current.unbet(g.spot!, undefined, at);
-      else fly(g.v, at, live.current.spotPoint(g.spot!), { s0: 1.3, s1: 0.8, ms: 220 });
+        if (t) L.bet(t.id, from);
+        else fly(L.amountOf(g.v), p, L.rackPoint(), { s0: 1.3, s1: 1.2, fade: true, ms: 260 });
+      } else if (e.type === "pointerup" && t?.id !== g.spot) L.unbet(g.spot!, undefined, p);
+      else fly(g.v, from, L.spotPoint(g.spot!), { s0: 1.3, s1: 0.8, ms: 220 });
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", end);
     document.addEventListener("pointercancel", end);
   };
+  // a finger hides what's under it: on touch the chip lands a little above the fingertip; a mouse lands at the tip
+  const lift = (e: React.PointerEvent) => (e.pointerType === "touch" ? 34 : 0);
   const onRackDown = (e: React.PointerEvent) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>(".cz-chip[data-v]");
     if (!b || !primary(e) || drag.current) return;
+    if (e.pointerType === "mouse") e.preventDefault(); // no text selection while dragging
     const v = b.dataset.v === "all" ? "all" : Number(b.dataset.v);
-    startDrag({ kind: "rack", pid: e.pointerId, x0: e.clientX, y0: e.clientY, v });
+    startDrag({ kind: "rack", pid: e.pointerId, x0: e.clientX, y0: e.clientY, v, el: b, dy: lift(e) });
   };
   const onSpotDown = (id: string) => (e: React.PointerEvent) => {
     const m = bets[id] ?? 0;
     if (!m || !betting || !primary(e) || drag.current) return;
-    startDrag({ kind: "stack", pid: e.pointerId, x0: e.clientX, y0: e.clientY, v: m, spot: id });
+    if (e.pointerType === "mouse") e.preventDefault();
+    startDrag({ kind: "stack", pid: e.pointerId, x0: e.clientX, y0: e.clientY, v: m, spot: id, el: e.currentTarget, dy: lift(e) });
+  };
+  // the roulette grid handles its own pointer: a click / right-click / press anywhere on it — a number, a line, an
+  // intersection, the outer edge — resolves by geometry
+  const gridDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!primary(e)) return;
+    if (e.pointerType === "mouse") e.preventDefault();
+    if (drag.current || !betting) return;
+    const t = resolve(e.clientX, e.clientY, box());
+    const m = t ? (bets[t.id] ?? 0) : 0;
+    if (t && m > 0) startDrag({ kind: "stack", pid: e.pointerId, x0: e.clientX, y0: e.clientY, v: m, spot: t.id, el: e.currentTarget, dy: lift(e) });
+  };
+  const gridClick = (e: React.MouseEvent) => {
+    if (e.detail === 0) return; // the keyboard: the focused number's own button bets
+    if (performance.now() < noClickUntil.current) return;
+    const t = resolve(e.clientX, e.clientY, box());
+    if (t) bet(t.id);
+  };
+  const gridMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const t = resolve(e.clientX, e.clientY, box());
+    if (t && bets[t.id]) unbet(t.id, typeof chip === "number" ? chip : undefined);
   };
 
   // ---- other players' chips drop onto their spot in their colour (status.spot_bets going up)
@@ -440,6 +534,11 @@ function Play() {
       onBet={() => { if (performance.now() >= noClickUntil.current) bet(s.id); }}
       onUnbet={() => unbet(s.id, typeof chip === "number" ? chip : undefined)} onPress={onSpotDown(s.id)} className={cls} style={style} />
   );
+  /** A number on the roulette grid: the grid takes pointer clicks (geometry); the button keeps the keyboard. */
+  const cell = (s: Spot, cls: string) => (
+    <SpotButton key={s.id} s={s} mine={bets[s.id] ?? 0} total={totals[s.id] ?? 0} who={who[s.id]} disabled={!betting}
+      onBet={(e) => { if (e.detail === 0) bet(s.id); }} className={cls} num={s.numbers[0]} />
+  );
 
   const groups = useMemo(() => {
     const g: [string, Spot[]][] = [];
@@ -450,22 +549,24 @@ function Play() {
     }
     return g;
   }, [spots]);
-  const roulette = isRoulette(spots);
-  const byId = useMemo(() => Object.fromEntries(spots.map((s) => [s.id, s])), [spots]);
+  const lineSpots = useMemo(() => (roulette ? spots.filter((s) => s.kind !== "straight" && anchorOf(s.id, us)) : []), [spots, roulette, us]);
 
   let board: React.ReactNode;
   if (!spots.length && !gameOps.length) board = <p className="cz-empty">This table has no bets to place right now.</p>;
   else if (roulette) {
-    const zeros = spots.filter((s) => s.kind === "straight" && (s.label === "0" || s.label === "00"));
+    // American: 00 sits beside 3 (top), 0 beside 1 (bottom) — the engine's 0/1, 0/2, 00/2, 00/3 splits
+    const zeros = spots.filter((s) => s.kind === "straight" && (s.label === "0" || s.label === "00")).sort((a, b) => b.label.length - a.label.length);
     const num = (n: number) => byId[`n:${n}`];
     const outside = groups.filter(([k]) => ["dozen", "column", "red", "black", "odd", "even", "low", "high"].includes(k)).flatMap(([, v]) => v);
     const inside = groups.filter(([k]) => !["straight", "dozen", "column", "red", "black", "odd", "even", "low", "high"].includes(k));
     board = (
       <>
-        <div className="cz-wheelgrid">
-          <div className="cz-zeros">{zeros.map((s) => btn(s, "cz-n cz-n-g"))}</div>
-          <div className="cz-nums">
-            {[3, 2, 1].map((row) => Array.from({ length: 12 }, (_, c) => num(c * 3 + row)).filter(Boolean).map((s) => btn(s!, clsx("cz-n", RED.has(+s!.label) ? "cz-n-r" : "cz-n-b"))))}
+        <div ref={wheelRef} className="cz-wheelgrid" onPointerDown={gridDown} onClick={gridClick} onContextMenu={gridMenu}
+          title="Click or drop a chip on a number, a line (split), a crossing (corner) or the outer edge (street / six line) · right-click or drag your stack off: take it back">
+          <div ref={zerosRef} className="cz-zeros">{zeros.map((s) => cell(s, "cz-n cz-n-g"))}</div>
+          <div ref={numsRef} className="cz-nums">
+            {[3, 2, 1].map((r) => Array.from({ length: 12 }, (_, c) => num(c * 3 + r)).filter(Boolean).map((s) => cell(s!, clsx("cz-n", RED.has(+s!.label) ? "cz-n-r" : "cz-n-b"))))}
+            <LineChips spots={lineSpots} bets={bets} totals={totals} who={who} us={us} />
           </div>
         </div>
         <div className="cz-outside">{outside.map((s) => btn(s, "cz-out"))}</div>
@@ -500,9 +601,10 @@ function Play() {
       )}
       <MyCards me={me} />
       <div ref={rackRef} className="cz-rack" role="radiogroup" aria-label="Chip" onPointerDown={onRackDown}>
-        {CHIPS.map((v) => <Chip key={v} value={v} active={chip === v} onClick={() => setChip(v)} title={`${v} credits`} />)}
+        {rack.map((c) => <Chip key={c.v} value={c.v} chip={c} active={chip === c.v} onClick={() => setChip(c.v)} title={`${fmt(c.v)} credits`} />)}
         <Chip value="all" active={chip === "all"} onClick={() => setChip("all")} title="All in" />
         <span className="ml-auto text-right text-[10.5px] text-ink-3">
+          {house && <span className="block" title="Table limits per bet">{chipLabel(house.min_bet)} – {chipLabel(house.max_bet)}</span>}
           On the table<br /><b className="font-mono text-[12px] text-ink-1">{fmt(me.staked ?? 0)}</b>
         </span>
       </div>

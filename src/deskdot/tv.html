@@ -192,6 +192,23 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 #veil p { margin: 0; font: 400 34px/1.45 var(--font); color: var(--ink-2); }
 #veil .veil-code { font: 700 30px/1 var(--mono); letter-spacing: .3em; color: var(--ink-3); }
 @media (prefers-reduced-motion: reduce) { .veil-dots i { animation: none; opacity: .8; } }
+
+/* ------------------------------------------------------------------ a short notice (the panel look toggle) */
+#tv-toast { position: absolute; left: 50%; bottom: 48px; z-index: 30; padding: 16px 30px; border-radius: 999px;
+  background: rgba(12, 12, 16, .92); border: 1px solid var(--line-2); font: 700 30px/1 var(--font); color: var(--ink-1);
+  pointer-events: none; opacity: 0; transform: translate(-50%, 20px); transition: opacity .25s, transform .25s; }
+#tv-toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ------------------------------------------------------------------ the lite tier (tv.js: slow TV sticks, ?lite=1)
+   No blurred shadows, no animated theme cross-fades: every one of them is a full repaint on a weak GPU. */
+html[data-q="lite"] #stage, html[data-q="lite"] #stage::before, html[data-q="lite"] #bar,
+html[data-q="lite"] #bar::before { transition: none; }
+html[data-q="lite"] #bar { box-shadow: none; }
+html[data-q="lite"] .tv-bezel { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 0 0 1px #000; }
+html[data-q="lite"] .tv-well { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .9); }
+html[data-q="lite"] .tv-card { box-shadow: none; }
+html[data-q="lite"] .tv-chip::before, html[data-q="lite"] #bar-dot, html[data-q="lite"] .veil-dots i,
+html[data-q="lite"] .g-cat i { box-shadow: none !important; }
 </style>
 </head>
 <body>

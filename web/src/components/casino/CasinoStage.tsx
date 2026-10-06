@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Copy, DoorOpen, Lock, Pause, Play, QrCode as QrIcon, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Check, Copy, DoorOpen, Eye, EyeOff, Lock, Pause, Play, QrCode as QrIcon, ShieldCheck, Smartphone, Tv, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../lib/api";
 import { copyText } from "../../lib/compat";
@@ -7,10 +7,11 @@ import { appMeta, useStore } from "../../lib/store";
 import { LedPanel } from "../LedPanel";
 import { RoamSign } from "../FlyToggle";
 import { QrCode, useLobbyPoll } from "../Multiplayer";
+import { CasinoAlert, casinoAlert, shownRecently } from "./alert";
 import { CountdownRing, Credits, Tabs } from "./bits";
 import { LeftWing } from "./LeftWing";
 import { RightWing } from "./RightWing";
-import { closeCasinoLobby, hideCasinoQr, lobbyFor, openCasinoLobby } from "./lobby";
+import { closeCasinoLobby, hideCasinoQr, lobbyFor, openCasinoLobby, showCasinoQr } from "./lobby";
 import { useCasinoSounds } from "./sounds";
 import { type HousieStatus, PHASE, TONE, casinoOp, fmt, leaveCasino, saveWings, secondsLeft, stampPage, themeVars, useCasino, useCasinoApp, useCasinoFeed, useTick } from "./state";
 import "./casino.css";
@@ -180,21 +181,29 @@ function LobbyStrip({ app }: { app: string }) {
   const [big, setBig] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const setStore = useStore((s) => s.set);
   const run = async (f: () => Promise<unknown>) => {
     setBusy(true);
     try {
       await f();
     } catch {
-      /* toasted */
+      /* shown as the casino alert (alert.tsx) */
     } finally {
       setBusy(false);
     }
   };
+  // "Show on TV" (TvSheet.tsx): right under the panel, left of the QR key — gold like Leave casino
+  const tvKey = (
+    <button className="cz-gold cz-tvkey" onClick={() => setStore({ tvOpen: true })} title="Show on TV — any screen on your Wi-Fi shows the table, big" aria-label="Show on TV">
+      <Tv size={14} /> <span>TV</span>
+    </button>
+  );
   if (!lobby)
     return (
       <div className="cz-lobby">
         <Smartphone size={16} className="shrink-0 text-[var(--gold)]" />
         <span className="min-w-0 flex-1 text-[12px] leading-snug text-ink-2">Friends join from their phones — up to 8 seats.</span>
+        {tvKey}
         <button className="cz-gold" disabled={busy} onClick={() => run(() => openCasinoLobby(app))}><QrIcon size={14} /> Open the room</button>
       </div>
     );
@@ -222,7 +231,12 @@ function LobbyStrip({ app }: { app: string }) {
         </button>
         {!lobby.lan_ready && <span className="block text-[10.5px] text-[#ff6b8a]">Phones can't reach this computer: set host = "0.0.0.0" in deskdot.toml.</span>}
       </span>
-      {waiting && <button className="key !h-8" disabled={busy} onClick={() => run(hideCasinoQr)} title="Hide the QR on the panel and show the table (phones can still join with the code)">Hide QR</button>}
+      {tvKey}
+      {waiting ? (
+        <button className="key !h-8" disabled={busy} onClick={() => run(hideCasinoQr)} title="Hide the QR on the panel and show the table (phones can still join with the code)"><EyeOff size={13} /> Hide QR</button>
+      ) : lobby.url && phones === 0 && (
+        <button className="key !h-8" disabled={busy} onClick={() => run(() => showCasinoQr(app, lobby.url!))} title="Put the join QR back on the panel (the table keeps its seats)"><Eye size={13} /> Show QR</button>
+      )}
       <button className="key key-icon !h-8 !w-8" disabled={busy} onClick={() => run(closeCasinoLobby)} title="Close the room and disconnect the phones (wallets are kept)"><X size={14} /></button>
       {big && lobby.url && (
         <div className="cz-qrbig" role="dialog" aria-label="Join QR code" onClick={() => setBig(false)} onKeyDown={(e) => e.key === "Escape" && setBig(false)}>
@@ -327,6 +341,16 @@ export function CasinoStage() {
   const hot = useCasino((s) => s.status?.phase === "result" && !!s.status.result?.winners?.length);
   const me = useCasino((s) => s.me);
   const theme = useCasino((s) => s.status?.table_theme);
+  // the engine's note for the host seat (session.notify → private.notice): an error the op reply didn't already show
+  const notice = me.notice;
+  const noticeSeen = useRef<number | null>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const first = noticeSeen.current == null;
+    if (noticeSeen.current === notice.id) return;
+    noticeSeen.current = notice.id;
+    if (!first && notice.kind === "error" && !shownRecently(notice.text)) casinoAlert(notice.text);
+  }, [notice?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const root = useRef<HTMLDivElement>(null);
   const themeKey = theme ? `${theme.id}:${JSON.stringify(theme.css ?? {})}` : "classic";
   // the page around the casino view (body, top bar keys, toasts) follows the theme while this view is on screen
@@ -367,6 +391,7 @@ export function CasinoStage() {
   return (
     <div ref={root} className="cz" data-wide={wide || undefined} data-theme={theme?.id ?? "classic"} style={themeVars(theme)}>
       <ChipCascade run={entered} />
+      <CasinoAlert />
       {wide ? (
         <div className="cz-row3">
           <aside className="cz-wing cz-wing-l" style={{ flex: `${wl} 1 0%` }} aria-label="Casino settings"><LeftWing /></aside>

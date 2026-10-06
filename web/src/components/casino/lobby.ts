@@ -28,6 +28,12 @@ export async function hideCasinoQr() {
   await refreshLobby();
 }
 
+/** Put the join QR back on the panel (the casino app's `lobby` action with the room's address; seats are kept). */
+export async function showCasinoQr(app: string, url: string) {
+  await api.action(app, "lobby", { url });
+  await refreshLobby();
+}
+
 /** Move the open room to another casino table: phones keep their seats and wallets (POST /api/play/lobby/switch). */
 export async function lobbySwitch(app: string) {
   useStore.setState({ opening: { app, since: performance.now() } });
