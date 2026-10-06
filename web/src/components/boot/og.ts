@@ -1,6 +1,6 @@
-/** Intro theme "OG": the project's first boot animation, kept exactly as it moved — LEDs fly in from random
- *  points and settle into the wordmark, then breathe — just drawn better: round LEDs with soft glow halos, short
- *  motion trails while they fly, an ember-to-amber gradient across the word, and a faint reflection below. */
+/** Intro theme "OG": the project's first boot animation — LEDs fly in from random points and glide into the
+ *  wordmark — drawn clean for any screen: flat round LEDs in the brand's two shades ("DESK" rose, "DOT" gold), a
+ *  smooth ease-out, no glare, halos or reflection. */
 
 // "DESKDOT" in the same 3×5 font the original used
 const G: Record<string, string[]> = {
@@ -15,30 +15,17 @@ const WORD = "DESKDOT";
 const ROWS = 5;
 const COLS = WORD.length * 4 - 1;
 
-type Dot = { x: number; y: number; sx: number; sy: number; d: number; px: number; py: number };
+type Dot = { x: number; y: number; sx: number; sy: number; d: number; col: string };
 
-function sprite(color: string, size: number) {
-  const c = document.createElement("canvas");
-  c.width = c.height = size;
-  const g = c.getContext("2d")!;
-  const r = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  r.addColorStop(0, color);
-  r.addColorStop(0.3, color + "88");
-  r.addColorStop(1, color + "00");
-  g.fillStyle = r;
-  g.fillRect(0, 0, size, size);
-  return c;
-}
-
-const mix = (a: [number, number, number], b: [number, number, number], k: number) =>
-  `rgb(${Math.round(a[0] + (b[0] - a[0]) * k)},${Math.round(a[1] + (b[1] - a[1]) * k)},${Math.round(a[2] + (b[2] - a[2]) * k)})`;
-const EMBER: [number, number, number] = [255, 72, 24];
-const AMBER: [number, number, number] = [255, 176, 32];
+// the brand's two shades: "DESK" rose, "DOT" gold
+const ROSE = "#ff3f78";
+const GOLD = "#ffcc33";
+const FLY = 1.1; // seconds one LED takes to fly home
+const ease = (k: number) => (k >= 1 ? 1 : 1 - (1 - k) ** 4);
 
 export class OgIntro {
   private dots: Dot[] = [];
   private t0 = performance.now();
-  private glow = sprite("#ff5a1f", 64);
   private cell = 16;
   constructor(private cv: HTMLCanvasElement) {
     [...WORD].forEach((ch, i) =>
@@ -46,10 +33,10 @@ export class OgIntro {
         [...row].forEach((c, dx) => {
           if (c !== "#") return;
           const x = i * 4 + dx;
-          // the original motion: start anywhere in a tall band around the word, small random delays
+          // the original motion: start anywhere in a band around the word, small random delays
           const sx = Math.random() * COLS;
-          const sy = Math.random() * ROWS * 4 - ROWS * 1.5;
-          this.dots.push({ x, y, sx, sy, d: Math.random() * 0.5, px: sx, py: sy });
+          const sy = Math.random() * ROWS * 3 - ROWS;
+          this.dots.push({ x, y, sx, sy, d: Math.random() * 0.45, col: i < 4 ? ROSE : GOLD });
         }),
       ),
     );
@@ -64,7 +51,7 @@ export class OgIntro {
     this.cell = Math.max(window.innerWidth < 640 ? 4 : 9, Math.min(22, Math.floor((Math.min(window.innerWidth, 900) * (window.innerWidth < 640 ? 0.9 : 0.8)) / COLS)));
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = COLS * this.cell;
-    const h = ROWS * this.cell * 1.7; // room for the reflection
+    const h = ROWS * this.cell;
     this.cv.width = Math.round(w * dpr);
     this.cv.height = Math.round(h * dpr);
     this.cv.style.width = `${w}px`;
@@ -72,74 +59,37 @@ export class OgIntro {
     this.cv.getContext("2d")!.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  /** Clean, flat LEDs: no halos, no specular glints, no reflection — just crisp round dots gliding home. */
   frame() {
     const g = this.cv.getContext("2d")!;
     const c = this.cell;
-    const w = COLS * c;
-    const h = ROWS * c;
+    const r = c * 0.36;
     const t = (performance.now() - this.t0) / 1000;
-    g.clearRect(0, 0, w, h * 1.7);
-    // the dark matrix
+    g.clearRect(0, 0, COLS * c, ROWS * c);
+    // the unlit matrix, barely there
+    g.fillStyle = "#15151b";
+    g.beginPath();
     for (let y = 0; y < ROWS; y++)
       for (let x = 0; x < COLS; x++) {
-        const cx = x * c + c / 2;
-        const cy = y * c + c / 2;
-        g.fillStyle = "#17171d";
-        g.beginPath();
-        g.arc(cx, cy, c * 0.34, 0, Math.PI * 2);
-        g.fill();
-        g.fillStyle = "rgba(255,255,255,0.05)";
-        g.beginPath();
-        g.arc(cx - c * 0.08, cy - c * 0.1, c * 0.12, 0, Math.PI * 2);
-        g.fill();
+        g.moveTo(x * c + c / 2 + r, y * c + c / 2);
+        g.arc(x * c + c / 2, y * c + c / 2, r, 0, Math.PI * 2);
       }
-    const draw = (refl: boolean) => {
-      for (const p of this.dots) {
-        const k = Math.min(1, Math.max(0, (t - p.d) / 0.9));
-        const e = 1 - (1 - k) ** 3;
-        const x = p.sx + (p.x - p.sx) * e;
-        const y = p.sy + (p.y - p.sy) * e;
-        const glow = k >= 1 ? 0.75 + 0.25 * Math.sin(t * 3 + p.x * 0.4) : 0.4 + 0.6 * k;
-        const col = mix(EMBER, AMBER, p.x / COLS);
-        const cx = x * c + c / 2;
-        const cy = refl ? (2 * ROWS - y) * c + c / 2 + c * 0.25 : y * c + c / 2;
-        // the reflection fades away from the baseline (the top of each letter is the faintest)
-        const fade = refl ? 0.012 + 0.07 * Math.max(0, y / (ROWS - 1)) ** 1.6 : 1;
-        g.globalAlpha = refl ? glow * fade : 1;
-        if (!refl && k > 0 && k < 1) {
-          // a short trail behind a flying LED
-          g.strokeStyle = col;
-          g.globalAlpha = 0.35 * (1 - k);
-          g.lineWidth = c * 0.3;
-          g.lineCap = "round";
-          g.beginPath();
-          g.moveTo(p.px * c + c / 2, p.py * c + c / 2);
-          g.lineTo(cx, cy);
-          g.stroke();
-          g.globalAlpha = 1;
-        }
-        g.globalCompositeOperation = "lighter";
-        const gs = c * 2.6;
-        g.globalAlpha = (refl ? fade * 0.5 : 0.55) * glow;
-        g.drawImage(this.glow, cx - gs / 2, cy - gs / 2, gs, gs);
-        g.globalCompositeOperation = "source-over";
-        g.globalAlpha = refl ? glow * fade : Math.min(1, glow);
-        g.fillStyle = col;
-        g.beginPath();
-        g.arc(cx, cy, c * 0.36, 0, Math.PI * 2);
-        g.fill();
-        if (!refl) {
-          g.fillStyle = "rgba(255,240,220,0.55)";
-          g.beginPath();
-          g.arc(cx - c * 0.07, cy - c * 0.09, c * 0.13, 0, Math.PI * 2);
-          g.fill();
-          p.px = x;
-          p.py = y;
-        }
-        g.globalAlpha = 1;
-      }
-    };
-    draw(true);
-    draw(false);
+    g.fill();
+    // a slow, gentle shimmer across the word once everything has landed
+    const settled = Math.max(0, t - 0.45 - FLY);
+    for (const p of this.dots) {
+      const k = Math.min(1, Math.max(0, (t - p.d) / FLY));
+      if (k <= 0) continue;
+      const e = ease(k);
+      const cx = (p.sx + (p.x - p.sx) * e) * c + c / 2;
+      const cy = (p.sy + (p.y - p.sy) * e) * c + c / 2;
+      const shimmer = settled > 0 ? 0.9 + 0.1 * Math.sin(settled * 2.2 - p.x * 0.35) : 1;
+      g.globalAlpha = Math.min(1, 0.25 + k * 1.2) * shimmer;
+      g.fillStyle = p.col;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
   }
 }

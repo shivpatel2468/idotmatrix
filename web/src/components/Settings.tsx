@@ -436,6 +436,12 @@ function IntroThemePicker() {
           <button key={t.id} onClick={() => { setIntroTheme(t.id); setV(t.id); }} aria-pressed={v === t.id}
             className={clsx("rounded-[10px] border px-3 py-2.5 text-left transition", v === t.id ? "border-ember bg-ember-deep/40" : "border-line hover:border-line-2")}>
             <div className="text-[13px] font-[600]">{t.name}{t.id === "sunset" && <span className="ml-2 text-[10px] text-ink-3">default</span>}</div>
+            {/* a looping preview of the intro (recorded from the studio; "Off" has none) */}
+            <div className="my-2 aspect-video overflow-hidden rounded-[6px] border border-line bg-black">
+              {t.id === "off"
+                ? <div className="grid h-full place-items-center text-[11px] text-ink-3">No animation</div>
+                : <img src={`${import.meta.env.BASE_URL}intro/${t.id}.gif`} alt={`${t.name} intro preview`} loading="lazy" className="block h-full w-full object-cover" />}
+            </div>
             <div className="text-[11.5px] leading-snug text-ink-3">{t.hint}</div>
           </button>
         ))}
