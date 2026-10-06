@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from pathlib import Path
 from typing import Any
 
 import deskdot.apps  # noqa: F401 — registers built-in apps
 from deskdot.engine.app import REGISTRY
+from deskdot.gfx import Frame
 
 OUT = Path(__file__).with_name("casino_status.json")
 COLOURS = ("#ff3f78", "#33d1ff", "#7dff5a", "#ffcc33")
@@ -29,10 +31,16 @@ class Clock:
         return self.t
 
 
+_CLOCK: list[Clock] = []
+# the engine's wall clock follows the fake table clock, so `status.clock` anchors are as steady as on a real table
+time.time = lambda: 1_760_000_000.0 + (_CLOCK[-1].t if _CLOCK else 0.0)
+
+
 def _app(app_id: str) -> Any:
     cls = REGISTRY[app_id]
     app = cls(object(), cls.Settings())
     app.session.clock = Clock()
+    _CLOCK.append(app.session.clock)
     return app
 
 
@@ -51,6 +59,13 @@ async def _op(app: Any, seat: int | str, **kw: Any) -> Any:
 
 def _snap(app: Any, out: list[dict[str, Any]], tag: str) -> None:
     st = json.loads(json.dumps(app.status()))
+    tv = app.tv_extra() if hasattr(app, "tv_extra") else None
+    if tv:  # TV-only anchors, with their server times made relative to the snapshot (the test re-bases them)
+        wall = time.time()
+        for part in tv.values():
+            if isinstance(part, dict) and "at" in part:
+                part["at_age"] = round(wall - part.pop("at"), 4)
+    st["_tv"] = tv
     st["_tag"] = tag
     st["_t"] = round(app.session.clock.t, 2)
     out.append(st)
@@ -65,6 +80,9 @@ async def _run(app: Any, seconds: float, out: list[dict[str, Any]], step: float 
     while clk.t < end:
         clk.t += step
         app.game.tick(clk.t)
+        app.render(
+            Frame(), clk.t
+        )  # the panel draws (the roulette wheel's angle is integrated frame by frame)
         if bot is not None:
             await bot(app)
         ph = app.game.phase

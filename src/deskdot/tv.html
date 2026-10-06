@@ -138,6 +138,40 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 .g-player em.ready { color: var(--ok); }
 .g-hint { margin-top: auto; font: 500 24px/1.4 var(--font); color: var(--ink-3); }
 
+/* ------------------------------------------------------------------ the table theme on the bar and the page
+   While a casino table shows (stage[data-table]), the bar, the page behind the scene and the veil take the table
+   theme's wing / felt / accent tones (tv.js applyTheme); registered colours cross-fade on a theme change and the
+   bar fades back to the DeskDot look for any other app. The LED wordmark keeps its own two colours. */
+@property --wing { syntax: "<color>"; inherits: true; initial-value: #16161c; }
+@property --wing3 { syntax: "<color>"; inherits: true; initial-value: #0c0c10; }
+@property --felt3 { syntax: "<color>"; inherits: true; initial-value: #06301c; }
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #f2c14e; }
+@property --accent-hi { syntax: "<color>"; inherits: true; initial-value: #ffe08a; }
+@property --bar-line { syntax: "<color>"; inherits: true; initial-value: rgba(242, 193, 78, .35); }
+@property --bar-tint { syntax: "<color>"; inherits: true; initial-value: rgba(242, 193, 78, .14); }
+#stage { transition: --wing .8s ease, --wing3 .8s ease, --felt3 .8s ease, --accent .8s ease, --accent-hi .8s ease,
+  --bar-line .8s ease, --bar-tint .8s ease; }
+#stage::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease; pointer-events: none;
+  background: radial-gradient(1500px 1000px at 50% 45%, var(--wing) 0%, var(--wing3) 60%, #040405 100%); }
+#stage[data-table="1"]::before { opacity: 1; }
+#bar { isolation: isolate; transition: border-color .8s ease; }
+#bar::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .8s ease;
+  background: radial-gradient(1000px 150px at 50% 0%, var(--bar-tint), transparent 75%),
+    linear-gradient(180deg, var(--wing), var(--wing3)); }
+#stage[data-table="1"] #bar::before { opacity: 1; }
+#stage[data-table="1"] #bar { border-bottom-color: var(--bar-line); }
+#stage[data-table="1"] .bar-sep { background: var(--bar-line); }
+#stage[data-table="1"] #bar-cat, #stage[data-table="1"] #bar-join .jl, #stage[data-table="1"] .wordmark small { color: var(--accent-hi); opacity: .85; }
+#stage[data-table="1"] #bar-clock { color: var(--accent-hi); }
+#stage[data-table="1"] #bar-join { background: rgba(0, 0, 0, .38); border-color: var(--bar-line); }
+#stage[data-table="1"] #bar-join .jc { color: var(--accent); }
+#stage[data-table="1"] #bar-dot { box-shadow: 0 0 0 3px var(--bar-line); }
+#stage[data-table="1"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--ok); }
+#stage[data-table="1"] #bar-dot[data-on="warn"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--warn); }
+#stage[data-table="1"] #bar-dot[data-on="bad"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--bad); }
+#stage[data-table="1"] #veil { background: radial-gradient(1200px 800px at 50% 45%, var(--wing), var(--wing3) 70%); }
+#scene { z-index: 1; }
+
 /* ------------------------------------------------------------------ veil (waiting / closed) */
 #veil { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
   background: radial-gradient(1200px 800px at 50% 45%, #15151b, #050506 70%); transition: opacity .6s; }

@@ -66,6 +66,7 @@ class CasinoBaccarat(CasinoApp):
     Game = Baccarat
     Settings = BaccaratSettings
     table_seconds = 4.2
+    tv_reveal = True
 
     def draw_table(self, f: Frame, v: View, now: float) -> None:
         f.clear(INK)

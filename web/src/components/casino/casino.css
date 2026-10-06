@@ -49,6 +49,9 @@
   --cz-s2: #172722;
   --cz-s3: #1c352b;
   --cz-s4: #2a4139;
+  /* the felt's motif (table theme `pattern` / `pattern_size`: pure CSS gradients, one size per layer) */
+  --cz-pat: none;
+  --cz-pat-size: auto;
   /* derived once: text tones (tinted by the theme; AA on the wings, tests/test_casino_themes.py) and lines */
   --cz-ink-1: color-mix(in srgb, #fff 75%, var(--gold-2));
   --cz-ink-2: color-mix(in srgb, var(--felt-ink) 80%, var(--gold-2));
@@ -107,10 +110,10 @@
   box-shadow: inset 0 1px 0 rgba(var(--gold-rgb), 0.07), inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
   overflow: hidden;
 }
-.cz-wing::before { /* felt grain */
+.cz-wing::before { /* felt grain + the theme's motif, faint (text sits on the wings) */
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.35; border-radius: inherit;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.045) 1px, transparent 0);
-  background-size: 5px 5px;
+  background-image: var(--cz-pat), radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.045) 1px, transparent 0);
+  background-size: var(--cz-pat-size), 5px 5px;
 }
 .cz-wing-l, .cz-wing-r { min-width: 270px; animation: cz-wing-in 0.95s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 0.38s; }
 .cz-wing-l { --from: -56px; --tilt: 14deg; transform-origin: right center; }
@@ -301,7 +304,7 @@
 button.cz-chip:hover { transform: translateY(-2px); }
 .cz-chip[data-active="true"] { transform: translateY(-4px); box-shadow: 0 6px 0 rgba(0, 0, 0, 0.45), 0 0 0 2px var(--gold), 0 0 22px -2px var(--gold); }
 
-.cz-board { padding: 8px; border-radius: 12px; background: radial-gradient(120% 90% at 50% 20%, var(--felt-hi), var(--felt) 55%, var(--felt-2)); border: 1px solid rgba(var(--gold-rgb), 0.35); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), inset 0 2px 14px rgba(0, 0, 0, 0.5); transition: filter 0.3s; }
+.cz-board { padding: 8px; border-radius: 12px; background: var(--cz-pat), radial-gradient(120% 90% at 50% 20%, var(--felt-hi), var(--felt) 55%, var(--felt-2)); background-size: var(--cz-pat-size), 100% 100%; border: 1px solid rgba(var(--gold-rgb), 0.35); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), inset 0 2px 14px rgba(0, 0, 0, 0.5); transition: filter 0.3s; }
 .cz-board-closed { filter: saturate(0.55) brightness(0.8); }
 .cz-spots { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 4px; }
 .cz-spots-big { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
@@ -397,7 +400,8 @@ button.cz-chip:hover { transform: translateY(-2px); }
 
 .cz-table {
   position: relative; border-radius: 30px;
-  background: radial-gradient(90% 90% at 50% 40%, var(--felt-hi), var(--felt) 50%, var(--felt-deep));
+  background: var(--cz-pat), radial-gradient(90% 90% at 50% 40%, var(--felt-hi), var(--felt) 50%, var(--felt-deep));
+  background-size: var(--cz-pat-size), 100% 100%;
   box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.55), inset 0 0 0 7px color-mix(in srgb, var(--gold-deep) 70%, #000), inset 0 0 0 9px rgba(var(--gold-rgb), 0.25), inset 0 10px 40px rgba(0, 0, 0, 0.55), 0 40px 90px -40px rgba(0, 0, 0, 0.95);
 }
 .cz-bezel { position: relative; z-index: 1; }
@@ -484,7 +488,12 @@ button.cz-chip:hover { transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) { .cz { transition: none; } }
 
 /* ------------------------------------------------------------- table theme picker + rulebook (LeftWing) */
-.cz-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+/* ~20 themes: a scrolling grid of swatches; each swatch shows the felt, its motif (drawn twice so it reads at
+   swatch size) and the accent; the hovered / focused theme's description shows under the grid */
+.cz-themes {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; max-height: 300px; overflow-y: auto;
+  padding: 2px 4px 2px 2px; margin: -2px -4px 0 -2px; overscroll-behavior: contain; scrollbar-width: thin;
+}
 .cz-theme {
   display: flex; flex-direction: column; align-items: stretch; gap: 5px; padding: 5px; border-radius: 10px; text-align: left;
   background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.06); transition: border-color 0.15s, transform 0.15s;
@@ -492,11 +501,14 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz-theme:hover { border-color: rgba(var(--gold-rgb), 0.45); transform: translateY(-1px); }
 .cz-theme[data-on="true"] { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 18px -6px rgba(var(--gold-rgb), 0.8); }
 .cz-theme > i {
-  position: relative; display: block; height: 30px; border-radius: 7px;
-  background: radial-gradient(120% 100% at 50% 20%, var(--sw-felt), var(--sw-felt3)); box-shadow: inset 0 0 0 2px var(--sw-acc);
+  position: relative; display: block; height: 34px; border-radius: 7px;
+  background: var(--sw-pat, none), var(--sw-pat, none), radial-gradient(120% 100% at 50% 20%, var(--sw-felt), var(--sw-felt3));
+  background-size: var(--sw-pat-size, auto), var(--sw-pat-size, auto), 100% 100%; box-shadow: inset 0 0 0 2px var(--sw-acc);
 }
 .cz-theme > i::after { content: ""; position: absolute; right: 6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--sw-acc); box-shadow: 0 0 8px var(--sw-acc); }
 .cz-theme > b { font-size: 10.5px; font-weight: 600; color: var(--cz-ink-2); line-height: 1.2; }
+.cz-theme-desc { min-height: 2.9em; margin: 8px 2px 0; font-size: 11.5px; line-height: 1.45; color: var(--cz-ink-3); }
+.cz-theme-desc b { color: var(--cz-ink-2); font-weight: 600; }
 .cz-guide-tag { font-size: 12px; line-height: 1.45; color: var(--cz-ink-3); margin-bottom: 8px; }
 .cz-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; counter-reset: st; }
 .cz-steps li {

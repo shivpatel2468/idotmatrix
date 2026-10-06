@@ -50,7 +50,7 @@ Server → TV only (the TV sends `{"type":"ping","t":…}`; the server answers `
 | Message | When | Shape |
 | --- | --- | --- |
 | `hello` (text) | on connect and whenever the app on the panel changes | `{"type":"hello","app":id\|null,"meta":{id,name,category,icon,max_players},"avatars":{id:{name,px}},"server_time":t}` |
-| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"server_time":t}` |
+| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"tv":{…}\|null,"server_time":t}` |
 | frame (binary) | every new panel frame, ≤ 12 fps, latest wins | 32×32×3 RGB bytes, row-major (3072 B) |
 | `closed` (text) | the TV link closed or the code is wrong | `{"type":"closed"}` then the socket closes |
 
@@ -64,6 +64,35 @@ Server → TV only (the TV sends `{"type":"ping","t":…}`; the server answers `
   name, color, avatar, ready}]}` (no client ids), else `null`.
 - `avatars` is the 8×8 avatar art (`gfx/avatars.py`): rows of codes `c` player colour, `d` darker player colour,
   `w` white, `k` black, `y` yellow, `r` red, `.` transparent — draw with `ctx.drawAvatar`.
+
+### TV-only anchors: `tv` and the shared clock
+
+`tv` is the app's `tv_extra()` (TV only — never in `status`, never sent to phones). For the casino tables whose
+round has nothing left to decide once bets lock (roulette, big six, 7 up 7 down, baccarat, andar bahar —
+`CasinoApp.tv_reveal`), it carries, **from the lock until the next round opens**:
+
+```json
+"tv": {"reveal": {"game": "roulette", "round": 12, "outcome": {"pocket": 27, ...}, "since_lock": 3.4012,
+                  "at": 1760000000.123, "paused": false, "lock_s": 1.0, "spin_s": 7.5, ...per game},
+       "wheel": {"rot": -812.33012, "at": 1760000000.101}}   // roulette: the panel wheel's angle when last drawn
+```
+
+- Bets are frozen at the lock, so knowing the outcome then gives nobody an edge; the commit–reveal proof is
+  unchanged (the server seed is committed before betting and revealed at the result). Before the lock there is no
+  `reveal`. Turn games (blackjack, hold'em, teen patti) and housie never send one.
+- Per game: big six adds `end`, `travel`, `stop_s` (its cosmetic spin constants), 7 up 7 down adds `faces` (the
+  tumbling faces). Slots send `{"game": "slots", "spin", "stops", "t", "at", "stops_at"}` for the spin on the panel
+  (staked and fixed at the pull).
+- **The shared clock.** `since_lock` was true at server time `at`, so the lock happened at `at − since_lock` on
+  the engine's clock. A client keeps one synced clock — local `performance.now()` plus the offset to `server_time`,
+  **slewed** (≤ 30 % of real time, never backwards; a jump > 1 s snaps) — and evaluates every animation as a pure
+  function of `T − lock`: the same functions the panel apps use (`casino_roulette.ball` / `wheel_step`,
+  `casino_bigsix.wheel_angle`, `casino_sevens.dice_at`, `casino_slots.reel_pos`, `Baccarat.deal_times`,
+  `andarbahar.deal_pace`), ported 1:1 in `tv-casino.js` and checked against Python reference values in
+  `tests/js/tv_casino.test.mjs`. So the TV's ball lands in its pocket in the same frame as the panel's. The
+  roulette wheel is integrated frame by frame on the panel; the TV integrates the same exact step and slews onto
+  the reported `wheel` angle.
+- Phones and the studio can adopt the same clock (`casino.html` / `web/src/components/casino/sync.ts`).
 
 ## 4. Writing a scene — the registry
 
@@ -90,6 +119,7 @@ error is logged and the generic scene takes over for that app.
 | `status`, `lobby` | the latest public status (`{}` before the first state) and lobby snapshot or null |
 | `panel` | the newest frame, `Uint8Array(3072)` RGB, or null; `frameAt` = `ctx.now()` when it arrived |
 | `stateAt` | `ctx.now()` when the latest state arrived (deadline = `stateAt + status.ends_in`) |
+| `tv` | the latest state's TV-only anchors (`{reveal, wheel}` above) or null |
 | `connected` | the socket is up |
 | `now()` | local seconds (`performance.now()/1000` based, monotonic) |
 | `serverNow()` | the engine's clock in seconds (`time.time()`), estimated from `server_time` |
@@ -97,7 +127,7 @@ error is logged and the generic scene takes over for that app.
 | `drawAvatar(canvas, id, color)` | an 8×8 avatar, pixel-crisp, in a player colour |
 | `qr(text, canvas, opts)` | draws a QR code (`opts.size` CSS px, `opts.dark`, `opts.light`, `opts.quiet` modules) |
 | `fmt(n)` | credits / scores: `12,345` (`fmt(1234567, true)` → `1.2M`) |
-| `theme` | the casino table theme's `css` dict (`felt`, `felt2`, `felt3`, `accent`, `accent_hi`, `accent_lo`, `accent_deep`, `accent_rgb`, `ink`, `wing*`) or `{}` |
+| `theme` | the casino table theme's `css` dict (`felt`, `felt2`, `felt3`, `accent`, `accent_hi`, `accent_lo`, `accent_deep`, `accent_rgb`, `ink`, `wing*`, `pattern`, `pattern_size`) or `{}` — `pattern` is the felt's motif: a gradient-only CSS `background-image` (no `url()`), `pattern_size` its `background-size` with one entry per layer; a canvas scene can paint it by drawing the felt through a DOM layer / `CanvasPattern`, or ignore it (see docs/CASINO.md §11) |
 | `seatColor(n)` | a lobby seat's colour (the player's pick, else the seat default) |
 | `el(tag, className, text)` | tiny DOM helper |
 | `esc(s)` | HTML-escapes a string |

@@ -177,6 +177,16 @@
     }
   }
 
+  /**
+   * Seconds left to a round timer: to its `status.clock` anchor on the shared clock (so the TV's countdown hits zero
+   * with the panel's, the phones' and the studio's), else the whole-second countdown estimate.
+   */
+  function leftTo(S, key, cd, t) {
+    const a = obj(S.st.clock)[key];
+    if (typeof a === "number" && S.ctx && typeof S.ctx.serverNow === "function") return Math.max(0, a - S.T);
+    return cd.left(t);
+  }
+
   /** When betting closed for a bet-then-reveal game: reveal deadline − (LOCK + spin), else from the phase start. */
   function lockTime(clk, spin) {
     const r = clk.reveal.at;
@@ -335,16 +345,6 @@
         return i >= 0 ? [L + (2 * i + 1) * B.cw, bottom + B.dzH + B.emH / 2] : null;
       }
     }
-  }
-
-  const travelExp = (x, w0, tau) => (x <= 0 ? 0 : w0 * tau * (1 - Math.exp(-x / tau)));
-
-  /** Cubic Hermite from 0 (speed v0 per second) to d (speed 0) over T seconds: the settle of a wheel / ball. */
-  function settle(d, v0, T, s) {
-    const u = clamp(s / T, 0, 1);
-    const h10 = u * u * u - 2 * u * u + u;
-    const h01 = -2 * u * u * u + 3 * u * u;
-    return h10 * v0 * T + h01 * d;
   }
 
   // ================================================================================================ big six / sevens / slots data
@@ -658,9 +658,16 @@
     const t0 = S.seen.get(key);
     if (t0 == null) {
       S.seen.set(key, S.firstIngest ? -1e9 : t);
+      if (!S.firstIngest) S.animUntil = Math.max(S.animUntil, t + (dur || 0.55));
       return { x: S.firstIngest ? x : fx, y: S.firstIngest ? y : fy, flip: S.firstIngest ? 1 : 0, rot: 0 };
     }
-    const u = clamp((t - t0) / (dur || 0.55), 0, 1);
+    return flyAge(S, t - t0, fx, fy, x, y, dur);
+  }
+  /** A card `age` s into its flight (dur s) from (fx, fy) to (x, y), turning over on the way. */
+  function flyAge(S, age, fx, fy, x, y, dur) {
+    const d = dur || 0.55;
+    if (age < d) S.animUntil = Math.max(S.animUntil, S.t + 0.05);
+    const u = clamp(age / d, 0, 1);
     const e = easeOut(u);
     return { x: lerp(fx, x, e), y: lerp(fy, y, e) - Math.sin(u * Math.PI) * 40, flip: clamp((u - 0.35) / 0.65, 0, 1), rot: (1 - e) * -0.5 };
   }
@@ -730,7 +737,7 @@
       const u = t0 == null ? 1 : clamp((t - t0) / 0.38, 0, 1);
       let cx = x + (i - (n - 1) / 2) * r * 0.9;
       let cy = y + (i - (n - 1) / 2) * r * 0.25 - (u < 1 ? (1 - easeOut(u)) * 60 : 0);
-      let alpha = u < 1 ? 0.3 + 0.7 * u : 1;
+      let alpha = (u < 1 ? 0.3 + 0.7 * u : 1) * (o.dim ? 0.3 : 1);
       if (o.sweep) {
         const k = easeInOut(o.sweep);
         cx = lerp(cx, (o.to || [x, y - 200])[0], k);
@@ -879,6 +886,11 @@
     S.th = Object.assign({}, CLASSIC, obj(ctx.theme && Object.keys(ctx.theme).length ? ctx.theme : obj(st.table_theme).css));
     S.preview = st.view != null && st.view !== "live";
     S.clk.observe(st, t);
+    const sig = sigOf(st);
+    if (sig !== S.sig) {
+      S.sig = sig;
+      S.ver += 1;
+    }
     S.players = tablePlayers(st);
     S.bySeat = new Map();
     for (const p of arr(st.players)) if (p) S.bySeat.set(String(p.seat), p);
@@ -890,7 +902,10 @@
         const key = `${spot}|${e.seat}`;
         seenNow.add(key);
         const prev = S.chipAmt.get(key);
-        if (prev == null || num(e.amount) > prev) S.chipT.set(key, S.firstIngest ? -1e9 : t);
+        if (prev == null || num(e.amount) > prev) {
+          S.chipT.set(key, S.firstIngest ? -1e9 : t);
+          if (!S.firstIngest) S.animUntil = Math.max(S.animUntil, t + 0.45);
+        }
         S.chipAmt.set(key, num(e.amount));
       }
     }
@@ -903,6 +918,7 @@
       S.round = st.round;
     }
     if (S.def.ingest) S.def.ingest(S, st, t);
+    bgWanted(S);
     S.firstIngest = false;
   }
 
@@ -933,6 +949,190 @@
     return arr(r.winners).map((w) => ({ ...w, color: seatColor(S, w.seat), avatar: (playerOf(S, w.seat) || {}).avatar }));
   }
 
+  /** An absolutely placed canvas layer (stage px), backing store × k. Moving layers get their own GPU layer. */
+  function layer(parent, x, y, w, h, k, moving) {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.ceil(w * k));
+    c.height = Math.max(1, Math.ceil(h * k));
+    const st = c.style;
+    st.position = "absolute";
+    st.left = `${x}px`;
+    st.top = `${y}px`;
+    st.width = `${w}px`;
+    st.height = `${h}px`;
+    st.pointerEvents = "none";
+    if (moving) {
+      st.willChange = "transform, opacity";
+      st.transformOrigin = "50% 50%";
+    }
+    parent.appendChild(c);
+    const g = c.getContext("2d");
+    g.setTransform(k, 0, 0, k, 0, 0);
+    return { c, g, w, h, k, x, y };
+  }
+
+  /** A status signature for redraw decisions: countdown seconds and other per-tick values left out. */
+  const VOLATILE = new Set(["rev", "reveal_in", "next_in", "ends_in", "age", "t", "call_in", "first_in", "turn_in", "in", "insurance_in", "at"]);
+  const sigOf = (st) => JSON.stringify(st, (k, v) => (VOLATILE.has(k) ? (v == null ? null : 1) : v));
+
+  /**
+   * The engine's clock on this TV (seconds): local monotonic time + the offset tv.js estimates from server_time,
+   * slewed at ≤ 30 % of real time so it never jumps (a jump > 1 s — first sync, a sleep — snaps) and never runs
+   * backwards. Every reveal animation is a function of this clock, as the panel's is of the engine's.
+   */
+  function serverClock(S, tl) {
+    const c = S.ctx || {};
+    let off = 0;
+    try {
+      if (typeof c.serverNow === "function" && typeof c.now === "function") off = c.serverNow() - c.now();
+    } catch (e) {
+      off = 0;
+    }
+    if (!Number.isFinite(off)) off = 0;
+    const k = S.sclk;
+    if (k.off == null || Math.abs(off - k.off) > 1) k.off = off;
+    else {
+      const dt = clamp(tl - k.last, 0, 0.5);
+      k.off += clamp(off - k.off, -0.3 * dt, 0.3 * dt);
+    }
+    k.last = tl;
+    let T = tl + k.off;
+    if (k.T != null && T < k.T) T = k.T;
+    k.T = T;
+    return T;
+  }
+
+  /** The TV-only reveal of the locked round (ctx.tv.reveal, docs/TV_VIEW.md §3) for `game`, or null. */
+  function revealOf(S, game) {
+    const rv = obj(obj(S.ctx && S.ctx.tv).reveal);
+    return rv.game === game && (rv.outcome || rv.stops) ? rv : null;
+  }
+  /** Seconds since betting closed, on the engine's clock (frozen while the host pauses). */
+  const sinceLockOf = (rv, T) => (rv.paused ? num(rv.since_lock) : T - (num(rv.at) - num(rv.since_lock)));
+
+  // ------------------------------------------------------------------------------------------------ the stamp
+  // A rubber stamp slammed onto the winning spot: it drops in at ×1.6, squashes on impact, splashes an ink ring
+  // and settles slightly rotated, then stays (ink texture, worn edge) until the round clears. Two pre-rendered
+  // layers animated by transform / opacity only (60 fps on a TV stick).
+  const STAMP = 150;
+  function stampLayers(S, root, name) {
+    const k = wheelK();
+    const st = layer(root, 0, 0, STAMP, STAMP, k, true);
+    const ink = layer(root, 0, 0, STAMP, STAMP, k, true);
+    st.c.style.opacity = "0";
+    ink.c.style.opacity = "0";
+    S.L[name] = { st, ink, key: null };
+  }
+  /** Draw the stamp's face (once per text / colour). */
+  function stampPaint(S, name, text, color) {
+    const L = S.L[name];
+    const key = `${text}|${color}`;
+    if (L.key === key) return;
+    L.key = key;
+    const c = STAMP / 2;
+    for (const l of [L.st, L.ink]) {
+      l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+      l.g.clearRect(0, 0, STAMP, STAMP);
+    }
+    const g = L.st.g;
+    g.save();
+    g.globalAlpha = 0.9;
+    g.lineWidth = 7;
+    g.strokeStyle = color;
+    circle(g, c, c, c - 8);
+    g.stroke();
+    g.lineWidth = 2.5;
+    circle(g, c, c, c - 19);
+    g.stroke();
+    // the stars between the rings
+    g.fillStyle = color;
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * TAU;
+      circle(g, c + Math.cos(a) * (c - 13.5), c + Math.sin(a) * (c - 13.5), 2);
+      g.fill();
+    }
+    const s = String(text);
+    const size = s.length > 3 ? 34 : s.length > 2 ? 44 : 60;
+    g.font = `900 ${size}px ${FONT}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(s, c, c + 3);
+    // worn ink: knock a speckle of holes out of the print
+    g.globalCompositeOperation = "destination-out";
+    let r = 1234567;
+    for (let i = 0; i < 260; i++) {
+      r = (r * 16807) % 2147483647;
+      const x = (r % 1000) / 1000;
+      r = (r * 16807) % 2147483647;
+      const y = (r % 1000) / 1000;
+      g.globalAlpha = 0.25 + ((i * 37) % 10) / 20;
+      circle(g, x * STAMP, y * STAMP, 0.8 + (i % 3) * 0.7);
+      g.fill();
+    }
+    g.restore();
+    const ig = L.ink.g;
+    ig.save();
+    ig.lineWidth = 5;
+    ig.strokeStyle = rgba(color, 0.55);
+    circle(ig, c, c, c - 6);
+    ig.stroke();
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * TAU + 0.3;
+      ig.fillStyle = rgba(color, 0.5);
+      circle(ig, c + Math.cos(a) * (c - 4), c + Math.sin(a) * (c - 4), 3 + (i % 3));
+      ig.fill();
+    }
+    ig.restore();
+  }
+  /**
+   * Place the stamp: centre (x, y) on the stage, `age` seconds since it hit (< 0: not yet; null: hidden),
+   * `size` px across, its resting tilt `rot` (radians).
+   */
+  function stampMove(S, name, x, y, age, size, rot) {
+    const L = S.L[name];
+    const st = L.st.c.style;
+    const ink = L.ink.c.style;
+    if (age == null || age < -0.22) {
+      if (st.opacity !== "0") st.opacity = "0";
+      if (ink.opacity !== "0") ink.opacity = "0";
+      L.on = false;
+      return;
+    }
+    const base = size / STAMP;
+    let sc;
+    let sx = 1;
+    let sy = 1;
+    let op;
+    let r;
+    if (age < 0) {
+      const u = (age + 0.22) / 0.22; // falling: big and faint → full size
+      sc = 1.6 - 0.6 * u * u;
+      op = u;
+      r = rot - 0.35 * (1 - u);
+    } else if (age < 0.09) {
+      const u = age / 0.09; // impact: squash
+      sc = 1;
+      sx = 1 + 0.14 * Math.sin(u * Math.PI);
+      sy = 1 - 0.16 * Math.sin(u * Math.PI);
+      op = 1;
+      r = rot;
+    } else {
+      const u = Math.min(1, (age - 0.09) / 0.35); // settle with a little wobble
+      sc = 1 + 0.04 * Math.sin(u * Math.PI * 2) * (1 - u);
+      op = 1 - 0.12 * u;
+      r = rot + 0.05 * Math.sin(u * Math.PI * 3) * (1 - u);
+    }
+    const tx = `translate(${(x - STAMP / 2).toFixed(1)}px,${(y - STAMP / 2).toFixed(1)}px)`;
+    st.transform = `${tx} rotate(${r.toFixed(3)}rad) scale(${(base * sc * sx).toFixed(3)},${(base * sc * sy).toFixed(3)})`;
+    st.opacity = op.toFixed(3);
+    if (age >= 0 && age < 0.6) {
+      const u = age / 0.6;
+      ink.transform = `${tx} scale(${(base * (0.9 + 0.9 * u)).toFixed(3)})`;
+      ink.opacity = (0.9 * (1 - u)).toFixed(3);
+    } else if (ink.opacity !== "0") ink.opacity = "0";
+    L.on = true;
+  }
+
   function makeScene(def) {
     let S = null;
     const scene = {
@@ -941,15 +1141,22 @@
       mount(root, ctx) {
         const k = clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
         root.style.position = "absolute";
-        const cv = document.createElement("canvas");
-        cv.width = Math.round(SW * k);
-        cv.height = Math.round(SH * k);
-        cv.style.position = "absolute";
-        cv.style.left = "0px";
-        cv.style.top = "0px";
-        cv.style.width = `${SW}px`;
-        cv.style.height = `${SH}px`;
-        root.appendChild(cv);
+        S = {
+          def, root, k, ctx, st: {}, th: Object.assign({}, CLASSIC), clk: new PhaseTracker(), players: [],
+          bySeat: new Map(), chipT: new Map(), chipAmt: new Map(), seen: new Map(), fx: {}, L: {}, bg: null,
+          round: undefined, firstIngest: true, alive: true, raf: 0, t: 0, T: 0, err: null, sclk: {}, ver: 0,
+          sig: "", lastKey: "", railKey: "", animUntil: 0,
+        }; // fmt: skip
+        S.bgl = layer(root, 0, 0, SW, SH, k, false); // felt, printed layout, rail frame: redrawn on theme / layout
+        // the theme's felt motif (css.pattern: CSS gradients) as a static DOM layer clipped to the felt
+        S.pat = document.createElement("div");
+        Object.assign(S.pat.style, { position: "absolute", left: "0px", top: "0px", width: `${RAIL_X}px`, height: `${SH}px`, pointerEvents: "none" });
+        root.appendChild(S.pat);
+        if (def.layers) def.layers(S, root); // the moving parts: wheels, balls, dice, reels (transforms only)
+        S.top = layer(root, 0, 0, SW, SH, k, false); // chips, cards, text: redrawn only when they change
+        S.g = S.top.g;
+        if (def.overlays) def.overlays(S, root); // stamps: above the chips, transforms only
+        S.rail = layer(root, RAIL_X, 0, RAIL_W, SH, k, false);
         const pcv = document.createElement("canvas");
         pcv.style.position = "absolute";
         pcv.style.left = `${PANEL_X}px`;
@@ -958,11 +1165,7 @@
         pcv.style.height = `${PANEL_SIZE}px`;
         pcv.style.borderRadius = "6px";
         root.appendChild(pcv);
-        S = {
-          def, root, cv, pcv, k, g: cv.getContext("2d"), ctx, st: {}, th: Object.assign({}, CLASSIC),
-          clk: new PhaseTracker(), players: [], bySeat: new Map(), chipT: new Map(), chipAmt: new Map(),
-          seen: new Map(), fx: {}, bg: null, round: undefined, firstIngest: true, alive: true, raf: 0, t: 0, err: null,
-        }; // fmt: skip
+        S.pcv = pcv;
         if (def.init) def.init(S);
         ingest(S, ctx);
         const raf = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (f) => setTimeout(() => f(), 16);
@@ -993,9 +1196,17 @@
         const k = clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
         if (Math.abs(k - S.k) < 1e-3) return;
         S.k = k;
-        S.cv.width = Math.round(SW * k);
-        S.cv.height = Math.round(SH * k);
+        for (const l of [S.bgl, S.top]) {
+          l.c.width = Math.round(SW * k);
+          l.c.height = Math.round(SH * k);
+          l.k = k;
+        }
+        S.rail.c.width = Math.round(RAIL_W * k);
+        S.rail.c.height = Math.round(SH * k);
+        S.rail.k = k;
         S.bg = null;
+        bgWanted(S);
+        S.lastKey = S.railKey = "";
         cardCache.clear();
         if (ctx && ctx.panel) scene.frame(ctx);
       },
@@ -1012,11 +1223,15 @@
     return scene;
   }
 
+  function bgWanted(S) {
+    S.bgWant = `${JSON.stringify(S.th)}|${S.k}|${S.def.bgKey ? S.def.bgKey(S) : ""}`;
+  }
   function background(S) {
-    const key = `${JSON.stringify(S.th)}|${S.k}|${S.def.bgKey ? S.def.bgKey(S) : ""}`;
-    if (S.bg && S.bg.key === key) return S.bg.c;
-    const m = makeCanvas(SW, SH, S.k);
-    const g = m.g;
+    if (S.bg === S.bgWant) return; // the key is built on each state (ingest), never per frame
+    S.bg = S.bgWant;
+    const g = S.bgl.g;
+    g.setTransform(S.k, 0, 0, S.k, 0, 0);
+    g.clearRect(0, 0, SW, SH);
     const th = S.th;
     const gr = g.createLinearGradient(0, 0, 0, SH);
     gr.addColorStop(0, th.wing);
@@ -1031,21 +1246,46 @@
     g.fillRect(0, 0, RAIL_X, SH);
     S.def.bg(S, g);
     railBackground(S, g);
-    S.bg = { key, c: m.c };
-    return m.c;
+    const ps = S.pat.style;
+    ps.backgroundImage = th.pattern || "none";
+    ps.backgroundSize = th.pattern_size || "auto";
+    ps.clipPath = S.def.feltClip ? S.def.feltClip(S) : "inset(18px 16px 18px 18px round 60px)"; // rr(18, 18, RAIL_X - 34, SH - 36, 60)
+    if (S.def.layersRedraw) S.def.layersRedraw(S);
   }
 
+  /**
+   * One animation frame. The moving parts only get new transforms (def.move — compositor work, no repaint); the
+   * table layer is redrawn only when something on it changed (the status signature, a tick of a countdown, a chip
+   * or card still in flight), so a spinning wheel holds 60 fps on a TV stick.
+   */
   function paint(S, t) {
     S.t = t;
-    const g = S.g;
-    g.setTransform(S.k, 0, 0, S.k, 0, 0);
-    g.globalAlpha = 1;
-    g.globalCompositeOperation = "source-over";
-    g.drawImage(background(S), 0, 0, SW, SH);
-    S.def.draw(S, g, t);
-    drawRail(S, g, t);
-    if (S.st.paused) paused(S, g, t);
-    if (S.preview) previewNote(S, g);
+    S.T = serverClock(S, t);
+    background(S);
+    if (S.def.move) S.def.move(S, t);
+    const hz = t < S.animUntil ? 30 : S.def.slowHz ? S.def.slowHz(S, t) : 4;
+    const tick = hz > 0 ? Math.floor(t * hz) : 0;
+    const key = `${S.ver}|${S.def.key ? S.def.key(S, t) : ""}|${hz}|${tick}|${S.k}`;
+    if (key !== S.lastKey) {
+      S.lastKey = key;
+      const g = S.g;
+      g.setTransform(S.k, 0, 0, S.k, 0, 0);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = "source-over";
+      g.clearRect(0, 0, SW, SH);
+      S.def.draw(S, g, t);
+      if (S.st.paused) paused(S, g, t);
+      if (S.preview) previewNote(S, g);
+    }
+    const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
+    const rk = `${S.ver}|${turn}|${S.k}`;
+    if (rk !== S.railKey) {
+      S.railKey = rk;
+      const g = S.rail.g;
+      g.setTransform(S.k, 0, 0, S.k, -RAIL_X * S.k, 0);
+      g.clearRect(RAIL_X, 0, RAIL_W, SH);
+      drawRail(S, g, t);
+    }
   }
 
   function paused(S, g) {
@@ -1178,7 +1418,7 @@
     const c = custom ? custom(ph) : null;
     if (c) return c;
     if (ph === "betting") {
-      const left = S.clk.ends.left(t);
+      const left = leftTo(S, "ends_at", S.clk.ends, t);
       const total = Object.values(obj(st.totals)).reduce((a, b) => a + num(b), 0);
       const n = arr(st.bettors).length;
       if (st.ends_in == null || left == null)
@@ -1193,7 +1433,7 @@
     }
     if (ph === "locked") return { title: "NO MORE BETS", sub: "Bets are locked", tone: BAD, flash: true };
     if (ph === "result") {
-      const next = S.clk.next.left(t);
+      const next = leftTo(S, "next_at", S.clk.next, t);
       const ws = winners(S);
       return {
         title: String(obj(st.result).label || "RESULT"),
@@ -1226,7 +1466,7 @@
     o = o || {};
     const ws = winners(S);
     const max = o.max || 4;
-    const k = easeOut((S.clk.since(t) - (o.delay || 0)) / 0.5);
+    const k = o.instant ? 1 : easeOut((S.clk.since(t) - (o.delay || 0)) / 0.5);
     if (k <= 0) return;
     g.save();
     g.globalAlpha *= k;
@@ -1281,21 +1521,15 @@
   const R_POCK_IN = 184;
   const R_TRACK = 281;
   const R_POCKET = 203;
-  const RW = { W0: 2.3, TAU: 5.5, DRIFT: 0.32 };
-  const RBALL = { W0: 6.4, TAU: 3.3 };
-
   function rouletteWheel(S) {
     return obj(S.st.rules).wheel === "american" ? US_WHEEL : EU_WHEEL;
   }
 
-  function wheelHead(S) {
+  /** The wheel head (pockets, numbers, cone, turret) centred at (c, c) of `g`: drawn once, spun by CSS. */
+  function drawWheelHead(S, g, c) {
     const wheel = rouletteWheel(S);
-    const key = `${wheel.length}|${S.k}`;
-    if (S.fx.head && S.fx.head.key === key) return S.fx.head.c;
-    const D = R_HEAD * 2 + 8;
-    const m = makeCanvas(D, D, S.k);
-    const g = m.g;
-    g.translate(D / 2, D / 2);
+    g.save();
+    g.translate(c, c);
     const N = wheel.length;
     const seg = TAU / N;
     for (let i = 0; i < N; i++) {
@@ -1369,99 +1603,202 @@
     tg.addColorStop(1, "#b38a2a");
     g.fillStyle = tg;
     g.fill();
-    S.fx.head = { key, c: m.c };
-    return m.c;
+    g.restore();
   }
 
-  function rouletteWheelRot(fx, t) {
-    const spin = fx.lockAt != null ? travelExp(t - fx.lockAt, RW.W0, RW.TAU) : 0;
-    return -(RW.DRIFT * t + fx.wOff + spin);
+  // The panel's motion (apps/casino_roulette.py), ported 1:1: angles in radians clockwise from 12 o'clock, radii in
+  // panel pixels (mapped onto the HD bowl by `panelR`), times in seconds since betting closed (since_lock).
+  const RP = { TRACK: 14.5, POCKET: 11.7, BW0: 6.4, BTAU: 3.3, WW0: 2.3, WTAU: 5.5, DRIFT: 0.32 };
+  const ballTravel = (t) => RP.BW0 * RP.BTAU * (1 - Math.exp(-t / RP.BTAU));
+  const wheelTravel = (t) => RP.WW0 * RP.WTAU * (1 - Math.exp(-t / RP.WTAU)) + RP.DRIFT * t;
+  const panelR = (r) => R_POCKET + (r - RP.POCKET) * ((R_TRACK - R_POCKET) / (RP.TRACK - RP.POCKET));
+
+  /** casino_roulette.wheel_step: how far the wheel turns (anticlockwise) in the dt s that end at since_lock. */
+  function wheelStep(sinceLock, dt) {
+    let out = RP.DRIFT * dt;
+    if (sinceLock != null && sinceLock > 0) {
+      const s0 = Math.max(0, sinceLock - dt);
+      out += RP.WW0 * RP.WTAU * (Math.exp(-s0 / RP.WTAU) - Math.exp(-sinceLock / RP.WTAU));
+    }
+    return out;
   }
 
-  function rouletteBall(S, t) {
+  /** casino_roulette.ball with rot = 0: the ball's angle relative to the wheel, and its radius (panel px). */
+  function rouletteBallRel(t, pocket, n, spin, lock) {
+    const tSettle = lock + spin - 1.0;
+    const tDrop = tSettle - 1.3;
+    const target = (pocket * TAU) / n;
+    if (t >= tSettle) {
+      const u = t - tSettle;
+      return { a: target + 0.09 * Math.sin(u * 19) * Math.exp(-u * 4.5), r: RP.POCKET, settled: true };
+    }
+    const psi0 = target - ballTravel(tSettle) - wheelTravel(tSettle);
+    const psi = psi0 + ballTravel(t) + wheelTravel(t);
+    let r = RP.TRACK;
+    if (t > tDrop) {
+      const u = (t - tDrop) / (tSettle - tDrop);
+      const ease = u * u * (3 - 2 * u);
+      r = RP.TRACK - (RP.TRACK - RP.POCKET) * ease + 1.6 * Math.abs(Math.sin(u * 2.6 * Math.PI)) * (1 - u) * (1 - u);
+    }
+    return { a: psi, r, settled: false };
+  }
+
+  /**
+   * The wheel's angle on the TV: integrated with the panel's own step (wheelStep) on the engine's clock, and pulled
+   * onto the angle the panel reports (tv.wheel: its rot when it last drew, at server time `at`) — the first report
+   * snaps, later ones are slewed in over ~0.3 s, so the wheel never jumps and always matches the panel's.
+   */
+  function rouletteRot(S, T) {
     const fx = S.fx;
-    const N = rouletteWheel(S).length;
-    const seg = TAU / N;
-    const wr = rouletteWheelRot(fx, t);
-    if (fx.pending != null) {
-      // the outcome is public: settle the ball into its pocket from wherever it is now
-      const cur = fx.spinning ? rouletteFreeBall(fx, t) : null;
-      const target = fx.pending * seg;
-      if (cur) {
-        const rel0 = cur.a - wr;
-        const d = wrapPi(target - rel0);
-        fx.land = { t0: t, rel0, d, T: 1.0 + (0.9 * Math.abs(d)) / Math.PI, pocket: fx.pending, r0: cur.r };
-      } else {
-        fx.landed = fx.pending;
-        fx.landedAt = t;
-      }
-      fx.pending = null;
-      fx.spinning = false;
+    const rv = revealOf(S, "roulette");
+    const sl = rv ? sinceLockOf(rv, T) : null;
+    if (fx.R == null) {
+      fx.R = 0;
+      fx.lastT = T;
     }
-    if (fx.land) {
-      const L = fx.land;
-      const u = clamp((t - L.t0) / L.T, 0, 1);
-      if (u >= 1) {
-        fx.landed = L.pocket;
-        fx.landedAt = t;
-        fx.land = null;
-      } else {
-        const rel = L.rel0 + L.d * easeOut(u);
-        const hop = (1 - u) * Math.abs(Math.sin(u * Math.PI * 3.2));
-        return { a: wr + rel, r: lerp(L.r0, R_POCKET, easeOut(u * 1.6)) + 18 * hop, landing: true };
-      }
+    const dt = clamp(T - fx.lastT, 0, 0.5);
+    fx.lastT = T;
+    if (rv && fx.spinRound !== rv.round) {
+      // the lock reached us a moment after it happened: the spin the wheel already made is slewed in, not jumped
+      fx.spinRound = rv.round;
+      const missed = Math.max(0, sl - dt);
+      if (missed > 0 && missed < 3) fx.err -= wheelStep(missed, missed) - RP.DRIFT * missed;
     }
-    if (fx.spinning) return rouletteFreeBall(fx, t);
-    if (fx.landed != null) return { a: wr + fx.landed * seg, r: R_POCKET, rest: true };
+    fx.R -= wheelStep(sl, dt);
+    const w = obj(obj(S.ctx && S.ctx.tv).wheel);
+    if (typeof w.rot === "number" && typeof w.at === "number" && w.at !== fx.anchorAt) {
+      fx.anchorAt = w.at;
+      const err = w.rot - wheelStep(sl, Math.max(0, T - w.at)) - fx.R; // where the panel's wheel is now, minus ours
+      if (!fx.synced || Math.abs(err) > 0.8) {
+        fx.R += err;
+        fx.err = 0;
+        fx.synced = true;
+      } else fx.err = err;
+    }
+    if (fx.err) {
+      const c = fx.err * (1 - Math.exp(-dt / 0.3));
+      fx.R += c;
+      fx.err -= c;
+    }
+    return fx.R;
+  }
+
+  /** The ball: {a, r (HD px), alpha, settled} — launched at the lock on the panel's path; none while betting. */
+  function rouletteBallNow(S, T, rot, n) {
+    const fx = S.fx;
+    const rv = revealOf(S, "roulette");
+    const pocket = rv ? obj(rv.outcome).pocket : null;
+    if (rv && typeof pocket === "number" && pocket < n) {
+      const sl = sinceLockOf(rv, T);
+      const b = rouletteBallRel(Math.max(0, sl), pocket, n, num(rv.spin_s, 7.5), num(rv.lock_s, LOCK));
+      fx.lastBall = { pocket, T };
+      return { a: rot + b.a, r: panelR(b.r), alpha: clamp(sl / 0.25, 0, 1), settled: b.settled };
+    }
+    if (fx.lastBall && T - fx.lastBall.T < 0.5) {
+      // a new round opened: the croupier lifts the ball out (the panel simply stops drawing it)
+      return { a: rot + (fx.lastBall.pocket * TAU) / n, r: R_POCKET, alpha: 1 - (T - fx.lastBall.T) / 0.5, settled: true };
+    }
     return null;
   }
 
-  function rouletteFreeBall(fx, t) {
-    const x = Math.max(0, t - fx.lockAt);
-    const a = fx.launch + travelExp(x, RBALL.W0, RBALL.TAU);
-    let r = R_TRACK + Math.sin(x * 13) * 1.2;
-    if (x > 6.2) {
-      const k = clamp((x - 6.2) / 1.0, 0, 1);
-      r = lerp(R_TRACK, R_POCKET + 16, easeIn(k)) + (k >= 1 ? 9 * Math.abs(Math.sin(x * 8)) : 0);
-    }
-    return { a, r };
-  }
+  const wheelK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 2); // the spinning bitmaps stay crisp
 
   const roulette = makeScene({
     id: "casino-roulette",
     app: "casino_roulette",
     init(S) {
-      S.fx = { lockAt: null, lockRound: null, wOff: 0, launch: 0, spinning: false, land: null, landed: null, pending: null };
+      S.fx = { R: null, err: 0, synced: false };
     },
     bgKey: (S) => (obj(S.st.rules).wheel === "american" ? "us" : "eu"),
-    ingest(S, st, t) {
-      const fx = S.fx;
-      const ph = st.phase;
-      if (ph === "locked" || ph === "spinning") {
-        const est = lockTime(S.clk, 7.5);
-        if (fx.lockRound !== st.round) {
-          if (fx.lockAt != null) fx.wOff += travelExp(t - fx.lockAt, RW.W0, RW.TAU);
-          fx.lockAt = est;
-          fx.lockRound = st.round;
-          fx.launch = hash01(`ball${st.round}`) * TAU;
-          fx.spinning = true;
-          fx.land = null;
-          fx.landed = null;
-          fx.pending = null;
-        } else if (Math.abs(est - fx.lockAt) > 1.5) fx.lockAt = est;
-        else fx.lockAt += (est - fx.lockAt) * 0.35;
-      }
-      const out = obj(obj(st.result).outcome);
-      if (ph === "result" && typeof out.pocket === "number" && fx.resultRound !== st.round) {
-        fx.resultRound = st.round;
-        fx.pending = out.pocket;
-      }
-      if (fx.landed == null && !fx.spinning && fx.pending == null && fx.land == null) {
-        const last = arr(st.history).filter((h) => h.game === "roulette").slice(-1)[0];
-        const lo = obj(last && last.outcome);
-        if (typeof lo.pocket === "number" && lo.pocket < rouletteWheel(S).length) fx.landed = lo.pocket;
+    // the wheel head (pre-rendered once, spun by a CSS rotate), the winning-pocket ring (rides with it), the ball
+    layers(S, root) {
+      const k = wheelK();
+      const D = 2 * R_HEAD + 8;
+      S.L.wheel = layer(root, R_CX - D / 2, R_CY - D / 2, D, D, k, true);
+      S.L.hit = layer(root, R_CX - D / 2, R_CY - D / 2, D, D, k, true);
+      S.L.hit.c.style.opacity = "0";
+      S.L.ball = layer(root, 0, 0, 34, 34, k, true);
+      S.L.ball.c.style.opacity = "0";
+      const g = S.L.ball.g;
+      g.save();
+      g.shadowColor = "rgba(0,0,0,.6)";
+      g.shadowBlur = 6;
+      g.shadowOffsetY = 3;
+      circle(g, 17, 16, 10.5);
+      const bg = g.createRadialGradient(13, 12, 1, 17, 16, 11);
+      bg.addColorStop(0, "#ffffff");
+      bg.addColorStop(1, "#b9bcc6");
+      g.fillStyle = bg;
+      g.fill();
+      g.restore();
+    },
+    layersRedraw(S) {
+      const l = S.L.wheel;
+      l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+      l.g.clearRect(0, 0, l.w, l.h);
+      drawWheelHead(S, l.g, l.w / 2);
+      S.fx.hitKey = null;
+    },
+    move(S) {
+      const st = S.st;
+      const wheel = rouletteWheel(S);
+      const N = wheel.length;
+      const T = S.T;
+      const rot = rouletteRot(S, T);
+      const tr = `rotate(${((rot * 180) / Math.PI).toFixed(3)}deg)`;
+      S.L.wheel.c.style.transform = tr;
+      S.L.hit.c.style.transform = tr;
+      const ball = rouletteBallNow(S, T, rot, N);
+      const bs = S.L.ball.c.style;
+      if (ball && ball.alpha > 0) {
+        const x = R_CX + Math.sin(ball.a) * ball.r - 17;
+        const y = R_CY - Math.cos(ball.a) * ball.r - 17;
+        bs.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`;
+        bs.opacity = ball.alpha.toFixed(3);
+      } else if (bs.opacity !== "0") bs.opacity = "0";
+      S.def.stamp(S);
+      // the winning pocket glows (on the wheel) once the round's result is public
+      const pocket = obj(obj(st.result).outcome).pocket;
+      const hitKey = st.phase === "result" && typeof pocket === "number" ? `${N}|${pocket}` : null;
+      if (hitKey !== S.fx.hitKey) {
+        S.fx.hitKey = hitKey;
+        const l = S.L.hit;
+        l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+        l.g.clearRect(0, 0, l.w, l.h);
+        if (hitKey) {
+          const seg = TAU / N;
+          const a = pocket * seg - Math.PI / 2;
+          const c = l.w / 2;
+          l.g.save();
+          l.g.beginPath();
+          l.g.arc(c, c, R_HEAD + 2, a - seg / 2, a + seg / 2);
+          l.g.arc(c, c, R_POCK_IN, a + seg / 2, a - seg / 2, true);
+          l.g.closePath();
+          l.g.lineWidth = 4;
+          l.g.strokeStyle = "#ffffff";
+          l.g.shadowColor = S.th.accent;
+          l.g.shadowBlur = 18;
+          l.g.stroke();
+          l.g.restore();
+        }
+        l.c.style.opacity = hitKey ? "1" : "0";
       }
     },
+    overlays(S, root) {
+      stampLayers(S, root, "stamp");
+    },
+    // the winning number gets stamped the moment the ball settles in its pocket (the panel's t_settle)
+    stamp(S) {
+      const rv = revealOf(S, "roulette");
+      const n = rv ? rouletteWheel(S)[obj(rv.outcome).pocket] : undefined;
+      if (n == null) return stampMove(S, "stamp", 0, 0, null);
+      const tSettle = num(rv.lock_s, LOCK) + num(rv.spin_s, 7.5) - 1.0;
+      const [x, y] = rouletteCenter(n, rouletteBoard(rouletteWheel(S).length === 38));
+      stampPaint(S, "stamp", rLabel(n), S.th.accent);
+      stampMove(S, "stamp", x, y, sinceLockOf(rv, S.T) - tSettle, 112, -0.18 + 0.36 * hash01(`st${rv.round}`));
+    },
+    // the table layer only redraws for a countdown tick while betting; never while the wheel is spinning
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
     bg(S, g) {
       const th = S.th;
       // the table
@@ -1587,19 +1924,12 @@
     },
     draw(S, g, t) {
       const st = S.st;
-      const fx = S.fx;
       const th = S.th;
       const wheel = rouletteWheel(S);
       const N = wheel.length;
       const seg = TAU / N;
       const B = rouletteBoard(N === 38);
-      // the wheel head
-      const wr = rouletteWheelRot(fx, t);
-      g.save();
-      g.translate(R_CX, R_CY);
-      g.rotate(wr);
-      g.drawImage(wheelHead(S), -(R_HEAD + 4), -(R_HEAD + 4), 2 * R_HEAD + 8, 2 * R_HEAD + 8);
-      g.restore();
+      // the sheen over the wheel (the head spins in its own layer underneath)
       const sheen = g.createRadialGradient(R_CX - 110, R_CY - 140, 10, R_CX, R_CY, R_HEAD);
       sheen.addColorStop(0, "rgba(255,255,255,.16)");
       sheen.addColorStop(0.5, "rgba(255,255,255,.03)");
@@ -1607,46 +1937,15 @@
       circle(g, R_CX, R_CY, R_HEAD);
       g.fillStyle = sheen;
       g.fill();
-      const ball = rouletteBall(S, t);
-      const showResult = st.phase === "result" && fx.landed != null && fx.land == null;
+      const resPocket = obj(obj(st.result).outcome).pocket;
+      const landed = st.phase === "result" && typeof resPocket === "number" ? resPocket : null;
+      const showResult = landed != null;
+      // the number, big, on the cone (drawn once: the table layer doesn't redraw while the wheel turns)
       if (showResult) {
-        // the winning pocket glows
-        const a = wr + fx.landed * seg - Math.PI / 2;
-        g.save();
-        g.beginPath();
-        g.arc(R_CX, R_CY, R_HEAD + 6, a - seg / 2, a + seg / 2);
-        g.arc(R_CX, R_CY, R_POCK_IN, a + seg / 2, a - seg / 2, true);
-        g.closePath();
-        g.lineWidth = 4;
-        g.strokeStyle = "#ffffff";
-        g.shadowColor = th.accent;
-        g.shadowBlur = 24;
-        g.stroke();
-        g.restore();
-      }
-      if (ball) {
-        const bx = R_CX + Math.sin(ball.a) * ball.r;
-        const by = R_CY - Math.cos(ball.a) * ball.r;
-        g.save();
-        g.shadowColor = "rgba(0,0,0,.6)";
-        g.shadowBlur = 8;
-        g.shadowOffsetY = 3;
-        circle(g, bx, by, 10.5);
-        const bg = g.createRadialGradient(bx - 4, by - 4, 1, bx, by, 11);
-        bg.addColorStop(0, "#ffffff");
-        bg.addColorStop(1, "#b9bcc6");
-        g.fillStyle = bg;
-        g.fill();
-        g.restore();
-      }
-      // the number, big, on the cone
-      if (showResult) {
-        const n = wheel[fx.landed];
-        const k = easeOut((t - (fx.landedAt || t - 1)) / 0.4);
+        const n = wheel[landed];
         const col = { red: "#d0182f", black: "#1b1b22", green: "#0e9a4c" }[rColor(n)];
         g.save();
-        g.globalAlpha = k;
-        circle(g, R_CX, R_CY, 116 * (0.7 + 0.3 * k));
+        circle(g, R_CX, R_CY, 116);
         g.fillStyle = col;
         g.shadowColor = rgba(th.accent, 0.8);
         g.shadowBlur = 40;
@@ -1655,7 +1954,7 @@
         g.strokeStyle = th.accent;
         g.stroke();
         g.restore();
-        txt(g, rLabel(n), R_CX, R_CY + 40, 120 * (0.7 + 0.3 * k), "#fff", { align: "center", weight: 850, alpha: k });
+        txt(g, rLabel(n), R_CX, R_CY + 40, 120, "#fff", { align: "center", weight: 850 });
       }
       // last numbers
       const hist = arr(st.history).filter((h) => h.game === "roulette" && h.outcome).slice(-13).reverse();
@@ -1675,9 +1974,8 @@
       // the headline
       const head = headline(S, t, (ph) => {
         if (ph === "spinning") return { title: "SPINNING…", sub: "No more bets — watch the wheel", tone: th.accent_hi };
-        if (ph === "result" && !showResult) return { title: "THE BALL DROPS…", sub: "", tone: th.accent_hi };
-        if (ph === "result") {
-          const n = wheel[fx.landed];
+                if (ph === "result") {
+          const n = wheel[landed];
           const words = n === 0 || n === 37 ? "ZERO" : `${rColor(n).toUpperCase()} · ${n % 2 ? "ODD" : "EVEN"} · ${n <= 18 ? "LOW" : "HIGH"}`;
           const hh = headline(S, t);
           return { ...hh, title: `${rLabel(n)} ${words}`, tone: { red: "#ff5a6e", black: INK1, green: "#3ddc84" }[rColor(n)] };
@@ -1686,7 +1984,7 @@
       });
       drawHeadline(S, g, B.x0, 160, 740, t, head, { size: 58 });
       // winning areas
-      const win = showResult ? wheel[fx.landed] : null;
+      const win = showResult ? wheel[landed] : null;
       if (win != null) {
         const pulse = 0.6 + 0.4 * Math.sin(t * 6);
         const L = B.x0 + B.zw;
@@ -1707,29 +2005,12 @@
       }
       // everyone's chips on the layout
       const sb = obj(st.spot_bets);
-      const sweep = win != null ? clamp((t - (fx.landedAt || t) - 1.4) / 0.8, 0, 1) : 0;
+
       for (const spot of Object.keys(sb)) {
         const p = rouletteSpotXY(spot, B);
         if (!p) continue;
         const wins = win != null && rouletteCovers(spot).includes(win);
-        spotChips(S, g, spot, sb[spot], p[0], p[1], t, { r: 21, glow: wins ? th.accent : null, sweep: win != null && !wins ? sweep : 0, to: [B.x0 + 300, 150] });
-      }
-      // the dolly
-      if (win != null) {
-        const [dx, dy] = rouletteCenter(win, B);
-        const k = easeOut((t - (fx.landedAt || t)) / 0.5);
-        g.save();
-        g.globalAlpha = k;
-        g.shadowColor = "rgba(0,0,0,.6)";
-        g.shadowBlur = 10;
-        rr(g, dx - 14, dy - 34 - (1 - k) * 60, 28, 40, 8);
-        const dg = g.createLinearGradient(dx - 14, 0, dx + 14, 0);
-        dg.addColorStop(0, "#d8d8e0");
-        dg.addColorStop(0.5, "#ffffff");
-        dg.addColorStop(1, "#a8a8b4");
-        g.fillStyle = dg;
-        g.fill();
-        g.restore();
+        spotChips(S, g, spot, sb[spot], p[0], p[1], t, { r: 21, glow: wins ? th.accent : null, dim: win != null && !wins });
       }
       // the foot: totals and winners
       const total = Object.values(obj(st.totals)).reduce((a, b) => a + num(b), 0);
@@ -1738,7 +2019,7 @@
       txt(g, fmt(S, total), B.x0, fy + 82, 56, INK1, { font: "mono", weight: 750 });
       const house = obj(st.house);
       txt(g, `Limits ${fmt(S, num(house.min_bet, 1))} – ${fmt(S, num(house.max_bet, 500))} · straight up pays 35 to 1`, B.x0, fy + 122, 22, INK2, { weight: 600 });
-      if (st.phase === "result" && showResult) winnersCard(S, g, B.x0 + 400, fy - 6, 380, t, { delay: 1.2, max: 3 });
+      if (st.phase === "result" && showResult) winnersCard(S, g, B.x0 + 400, fy - 6, 380, t, { instant: true, max: 3 });
     },
   });
 
@@ -1747,36 +2028,56 @@
   const BY = 500;
   const BR = 410;
   const B6_SEG = TAU / 54;
-  const B6S = { v0: 7.5, vEnd: 2.6, T: 7.0 };
 
-  function b6Rot(fx, t) {
-    if (fx.land) {
-      const L = fx.land;
-      return L.p0 + settle(L.d, L.v, L.T, t - L.t0);
-    }
-    if (fx.spinFrom == null) return fx.rest;
-    const x = clamp(t - fx.spinFrom, 0, 1e9);
-    const xs = Math.min(x, B6S.T);
-    const p = fx.rest + B6S.vEnd * xs + ((B6S.v0 - B6S.vEnd) * B6S.T) / 3 * (1 - Math.pow(1 - xs / B6S.T, 3));
-    return p + B6S.vEnd * Math.max(0, x - B6S.T);
+  /**
+   * The wheel's rotation (radians, clockwise) on the engine's clock — apps/casino_bigsix.py wheel_angle, 1:1:
+   * φ(ts) = end − travel·(1 − ts/stop)², ts = since_lock − LOCK, with the round's `end` / `travel` from tv.reveal.
+   * During the lock second (the panel shows NO MORE BETS) the TV wheel spins up from where it rested to the
+   * panel's start angle with the panel's launch speed (a Hermite ramp), so it never jumps. {phi, ts, stop}
+   */
+  /** apps/casino_bigsix.py wheel_angle for ts ≥ 0, from the round's end angle and travel. */
+  function b6Phi(end, travel, stop, ts) {
+    const u = clamp(ts / stop, 0, 1);
+    return end - travel * (1 - u) * (1 - u);
   }
-  function b6Speed(fx, t) {
-    if (fx.land) {
-      const L = fx.land;
-      const u = clamp((t - L.t0) / L.T, 0, 1);
-      return Math.max(0, L.v * (3 * u * u - 4 * u + 1) + (L.d / L.T) * (-6 * u * u + 6 * u));
+  function b6Now(S, T) {
+    const fx = S.fx;
+    const rv = revealOf(S, "bigsix");
+    if (rv) {
+      const lock = num(rv.lock_s, LOCK);
+      const stop = num(rv.stop_s, 6.4);
+      const end = num(rv.end);
+      const travel = num(rv.travel);
+      const ts = sinceLockOf(rv, T) - lock;
+      if (fx.rvRound !== rv.round) {
+        fx.rvRound = rv.round;
+        fx.from = fx.phi == null || ts > 0 ? end - travel : fx.phi;
+      }
+      let phi;
+      if (ts >= 0) phi = b6Phi(end, travel, stop, ts);
+      else {
+        const V = (2 * travel) / stop;
+        const s = clamp((ts + lock) / lock, 0, 1);
+        let d = mod(end - travel - fx.from, TAU);
+        while (d < V * lock * 0.5) d += TAU;
+        phi = fx.from + d * (3 * s * s - 2 * s * s * s) + V * lock * (s * s * s - s * s);
+      }
+      fx.phi = phi;
+      return { phi, ts, stop };
     }
-    if (fx.spinFrom == null) return 0;
-    const x = t - fx.spinFrom;
-    if (x < 0) return 0;
-    return x >= B6S.T ? B6S.vEnd : B6S.vEnd + (B6S.v0 - B6S.vEnd) * Math.pow(1 - x / B6S.T, 2);
+    if (fx.phi == null) {
+      const last = arr(S.st.history).filter((h) => h.game === "bigsix").slice(-1)[0];
+      const seg = obj(last && last.outcome).segment;
+      fx.phi = typeof seg === "number" ? -(seg + 0.5) * B6_SEG : 0;
+    }
+    return { phi: fx.phi, ts: null, stop: 6.4 };
   }
 
   function b6Wheel(S) {
-    const key = `${S.k}`;
+    const key = `${wheelK()}`;
     if (S.fx.img && S.fx.img.key === key) return S.fx.img.c;
     const D = 2 * BR + 10;
-    const m = makeCanvas(D, D, S.k);
+    const m = makeCanvas(D, D, wheelK());
     const g = m.g;
     g.translate(D / 2, D / 2);
     for (let i = 0; i < 54; i++) {
@@ -1831,34 +2132,60 @@
     id: "casino-bigsix",
     app: "casino_bigsix",
     init(S) {
-      S.fx = { rest: 0, spinFrom: null, spinRound: null, land: null, pending: null, landed: null };
+      S.fx = { phi: null };
     },
-    ingest(S, st, t) {
-      const fx = S.fx;
-      if (st.phase === "locked" || st.phase === "spinning") {
-        const from = lockTime(S.clk, 7.0) + LOCK;
-        if (fx.spinRound !== st.round) {
-          fx.rest = b6Rot(fx, t);
-          fx.land = null;
-          fx.landed = null;
-          fx.spinFrom = from;
-          fx.spinRound = st.round;
-        } else if (Math.abs(from - fx.spinFrom) < 1.5) fx.spinFrom += (from - fx.spinFrom) * 0.3;
-      }
-      const out = obj(obj(st.result).outcome);
-      if (st.phase === "result" && typeof out.segment === "number" && fx.resRound !== st.round) {
-        fx.resRound = st.round;
-        fx.pending = out.segment;
-      }
-      if (fx.spinFrom == null && fx.landed == null && fx.pending == null) {
-        const last = arr(st.history).filter((h) => h.game === "bigsix").slice(-1)[0];
-        const seg = obj(last && last.outcome).segment;
-        if (typeof seg === "number") {
-          fx.rest = -(seg + 0.5) * B6_SEG;
-          fx.landed = seg;
-        }
+    // the wheel (pre-rendered once, spun by a CSS rotate) and the clapper (a CSS rotate about its pivot)
+    layers(S, root) {
+      const k = wheelK();
+      const D = 2 * BR + 10;
+      S.L.wheel = layer(root, BX - D / 2, BY - D / 2, D, D, k, true);
+      S.L.clap = layer(root, BX - 20, BY - BR - 54, 40, 112, k, true);
+      S.L.clap.c.style.transformOrigin = "20px 8px";
+      const g = S.L.clap.g;
+      g.save();
+      g.translate(20, 8);
+      g.beginPath();
+      g.moveTo(-16, 0);
+      g.lineTo(16, 0);
+      g.lineTo(3, 92);
+      g.lineTo(-3, 92);
+      g.closePath();
+      g.fillStyle = "#d6283a";
+      g.shadowColor = "rgba(0,0,0,.6)";
+      g.shadowBlur = 8;
+      g.fill();
+      g.restore();
+    },
+    layersRedraw(S) {
+      const l = S.L.wheel;
+      l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+      l.g.clearRect(0, 0, l.w, l.h);
+      l.g.drawImage(b6Wheel(S), 0, 0, l.w, l.h);
+    },
+    move(S) {
+      const m = b6Now(S, S.T);
+      S.L.wheel.c.style.transform = `rotate(${((m.phi * 180) / Math.PI).toFixed(3)}deg)`;
+      // the clapper flicks while a peg passes under it (the panel's kick: the first 30 % of each segment)
+      const f = (mod(-m.phi, TAU) / B6_SEG) % 1;
+      const kick = m.ts != null && m.ts >= 0 && m.ts < m.stop && f < 0.3 ? 0.32 * (1 - f / 0.3) : 0;
+      S.L.clap.c.style.transform = `rotate(${((-kick * 180) / Math.PI).toFixed(2)}deg)`;
+      S.fx.stopped = m.ts != null && m.ts >= m.stop;
+      S.fx.under = mod(Math.floor(mod(-m.phi, TAU) / B6_SEG), 54);
+      const rv = revealOf(S, "bigsix");
+      const seg = rv ? obj(rv.outcome).segment : null;
+      if (typeof seg !== "number") stampMove(S, "stamp", 0, 0, null);
+      else {
+        const i = B6.findIndex((x) => x.sym === B6_WHEEL[seg]);
+        const [x, y] = b6Tile(Math.max(0, i));
+        stampPaint(S, "stamp", "WIN", S.th.accent);
+        stampMove(S, "stamp", x + 206, y + 70, m.ts - m.stop, 104, -0.2);
       }
     },
+    overlays(S, root) {
+      stampLayers(S, root, "stamp");
+    },
+    key: (S) => (S.fx.stopped ? `stop${S.fx.under}` : ""),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
@@ -1896,92 +2223,50 @@
       const st = S.st;
       const fx = S.fx;
       const th = S.th;
-      if (fx.pending != null) {
-        const p0 = b6Rot(fx, t);
-        const v = Math.max(1.2, b6Speed(fx, t) || 2.6);
-        const off = (hash01(`b6${st.round}`) - 0.5) * 0.5 * B6_SEG;
-        const target = -(fx.pending + 0.5) * B6_SEG + off;
-        let d = mod(target - p0, TAU);
-        if (v > 0 && d < 0.25) d += TAU;
-        const T = fx.spinFrom == null ? 0.001 : clamp((2 * d) / v, 0.8, 3.0);
-        fx.land = { t0: t, p0, d, v: fx.spinFrom == null ? 0 : v, T, seg: fx.pending };
-        fx.pending = null;
-      }
-      if (fx.land && t - fx.land.t0 >= fx.land.T) {
-        fx.rest = fx.land.p0 + fx.land.d;
-        fx.landed = fx.land.seg;
-        fx.landedAt = t;
-        fx.land = null;
-        fx.spinFrom = null;
-      }
-      const phi = b6Rot(fx, t);
-      const speed = b6Speed(fx, t);
-      // bulbs round the housing
+      // bulbs round the housing (lit, alternate, all on at the result)
       for (let i = 0; i < 36; i++) {
         const a = (i / 36) * TAU;
-        const lit = speed > 0.2 ? (i + Math.floor(t * 12)) % 3 === 0 : st.phase === "result" ? (i + Math.floor(t * 6)) % 2 === 0 : i % 2 === 0;
+        const lit = st.phase === "result" || i % 2 === 0;
         circle(g, BX + Math.sin(a) * (BR + 30), BY - Math.cos(a) * (BR + 30), lit ? 8 : 6);
         g.fillStyle = lit ? "#fff2c0" : "rgba(255,220,140,.25)";
         g.fill();
       }
-      g.save();
-      g.translate(BX, BY);
-      g.rotate(phi);
-      g.drawImage(b6Wheel(S), -BR - 5, -BR - 5, 2 * BR + 10, 2 * BR + 10);
-      g.restore();
       const sheen = g.createRadialGradient(BX - 140, BY - 160, 20, BX, BY, BR);
       sheen.addColorStop(0, "rgba(255,255,255,.18)");
       sheen.addColorStop(1, "rgba(0,0,0,.15)");
       circle(g, BX, BY, BR);
       g.fillStyle = sheen;
       g.fill();
-      // the clapper, flicked by the pegs
-      const rel = mod(-phi, B6_SEG) / B6_SEG;
-      const kick = speed > 0.05 ? Math.exp(-rel * 5) * clamp(speed / 3, 0.25, 1) * 0.35 : 0;
-      g.save();
-      g.translate(BX, BY - BR - 46);
-      g.rotate(-kick);
-      g.beginPath();
-      g.moveTo(-16, 0);
-      g.lineTo(16, 0);
-      g.lineTo(3, 92);
-      g.lineTo(-3, 92);
-      g.closePath();
-      g.fillStyle = "#d6283a";
-      g.shadowColor = "rgba(0,0,0,.6)";
-      g.shadowBlur = 10;
-      g.fill();
-      g.restore();
       circle(g, BX, BY - BR - 46, 14);
       g.fillStyle = "#e6c46a";
       g.fill();
-      // the hub shows the symbol under the clapper
-      const under = mod(Math.floor(mod(-phi, TAU) / B6_SEG), 54);
-      const sym = B6_BY[B6_WHEEL[under]];
-      const showRes = st.phase === "result" && fx.landed != null && !fx.land;
-      txt(g, showRes ? (sym.sym === "joker" ? "JOKER" : sym.sym === "logo" ? "LOGO" : sym.sym) : "BIG SIX", BX, BY + (showRes ? 30 : 14), showRes ? (sym.sym.length > 2 ? 52 : 110) : 46, showRes ? sym.col : th.accent, { align: "center", weight: 850, glow: showRes ? sym.col : null });
+      // the hub: the symbol under the clapper once the wheel has stopped (as on the panel)
+      const resSeg = obj(obj(st.result).outcome).segment;
+      const landed = st.phase === "result" && typeof resSeg === "number" ? resSeg : null;
+      const stopSeg = landed != null ? landed : fx.stopped ? fx.under : null;
+      const sym = stopSeg != null ? B6_BY[B6_WHEEL[stopSeg]] : null;
+      txt(g, sym ? (sym.sym === "joker" ? "JOKER" : sym.sym === "logo" ? "LOGO" : sym.sym) : "BIG SIX", BX, BY + (sym ? 30 : 14), sym ? (sym.sym.length > 2 ? 52 : 110) : 46, sym ? sym.col : th.accent, { align: "center", weight: 850, glow: sym ? sym.col : null });
+      const showRes = landed != null;
       // headline
       drawHeadline(S, g, 990, 150, 510, t, headline(S, t, (ph) => {
         if (ph === "spinning") return { title: "SPINNING…", sub: "Listen for the clapper", tone: th.accent_hi };
-        if (ph === "result" && !showRes) return { title: "SLOWING…", sub: "", tone: th.accent_hi };
         if (ph === "result") {
-          const s = B6_BY[B6_WHEEL[fx.landed]];
+          const s = B6_BY[B6_WHEEL[landed]];
           return { ...headline(S, t), title: `${s.sym === "joker" ? "JOKER" : s.sym === "logo" ? "LOGO" : s.sym} PAYS ${s.pays}:1`, tone: s.col };
         }
         return null;
       }), { size: 50 });
       const sb = obj(st.spot_bets);
-      const winSym = showRes ? B6_WHEEL[fx.landed] : null;
-      const sw = winSym != null ? clamp((t - (fx.landedAt || t) - 1.4) / 0.8, 0, 1) : 0;
+      const winSym = showRes ? B6_WHEEL[landed] : null;
       B6.forEach((s, i) => {
         const [x, y] = b6Tile(i);
         const isWin = winSym === s.sym;
-        if (isWin) glowBox(g, x, y, 250, 140, s.col, 0.6 + 0.4 * Math.sin(t * 6));
+        if (isWin) glowBox(g, x, y, 250, 140, s.col, 1);
         const tot = num(obj(st.totals)[s.id]);
         if (tot) txt(g, fmt(S, tot), x + 120, y + 116, 20, INK2, { font: "mono", weight: 700 });
-        spotChips(S, g, s.id, sb[s.id], x + 206, y + 74, t, { r: 24, glow: isWin ? th.accent : null, sweep: winSym != null && !isWin ? sw : 0, to: [BX, BY] });
+        spotChips(S, g, s.id, sb[s.id], x + 206, y + 74, t, { r: 24, glow: isWin ? th.accent : null, dim: winSym != null && !isWin });
       });
-      if (showRes) winnersCard(S, g, 1255, 740, 250, t, { delay: 1.2, max: 2 });
+      if (showRes) winnersCard(S, g, 1255, 740, 250, t, { instant: true, max: 2 });
     },
   });
   function b6Tile(i) {
@@ -2029,27 +2314,90 @@
   }
 
   const TRAY = { x: 70, y: 180, w: 900, h: 400 };
+  // apps/casino_sevens.py dice_at, ported: panel px → stage px (one LED = SEV.SC px, the 12 px die = 188 px)
+  const SEV = { REST: [[3, 1], [17, 1]], ROLL_Y: 10, DIE: 12, SC: 15.7, X0: 268.7, Y0: 128.8 };
+  /** [{x, y, face, h}] in panel px for both dice, `sl` s after the lock (rv: the TV reveal). */
+  function sevensDice(rv, sl) {
+    const final = arr(obj(rv.outcome).dice);
+    const u = clamp((sl - num(rv.lock_s, LOCK)) / num(rv.spin_s, 2.6), 0, 1);
+    return [0, 1].map((i) => {
+      const lag = 0.06 * i;
+      const k = clamp((u - lag) / (1 - lag), 0, 1);
+      const hop = 9 * Math.exp(-2.6 * k) * Math.abs(Math.cos(Math.PI * 2.5 * k));
+      const ease = 1 - Math.pow(1 - k, 3);
+      const x = SEV.REST[i][0] + (26 - 6 * i) * (1 - ease);
+      const y = SEV.ROLL_Y - hop;
+      const squash = hop < 0.8 && k < 0.92 && k > 0.05 ? SEV.DIE - 2 : SEV.DIE;
+      const face = k >= 0.86 ? num(final[i], 1) : num(arr(arr(rv.faces)[i])[Math.floor(18 * (1 - (1 - k) * (1 - k)))], 1);
+      return { x, y: y + (SEV.DIE - squash), face, h: squash, k };
+    });
+  }
+  const restDice = (faces) => [0, 1].map((i) => ({ x: SEV.REST[i][0], y: SEV.ROLL_Y, face: num(faces[i], i ? 4 : 3), h: SEV.DIE, k: 1 }));
   const sevens = makeScene({
     id: "casino-sevens",
     app: "casino_sevens",
     init(S) {
-      S.fx = { lockAt: null, round: null, res: null };
+      S.fx = { faces: [0, 0] };
     },
-    ingest(S, st, t) {
-      const fx = S.fx;
-      if (st.phase === "locked" || st.phase === "spinning") {
-        const est = lockTime(S.clk, 2.6);
-        if (fx.round !== st.round) {
-          fx.round = st.round;
-          fx.lockAt = est;
-          fx.res = null;
-        } else if (Math.abs(est - fx.lockAt) < 1) fx.lockAt += (est - fx.lockAt) * 0.3;
-      }
-      const out = obj(obj(st.result).outcome);
-      if (st.phase === "result" && Array.isArray(out.dice) && (!fx.res || fx.res.round !== st.round)) {
-        fx.res = { round: st.round, dice: out.dice, sum: out.sum, zone: out.zone, t0: fx.round === st.round ? t : -1e9 };
-      }
+    layers(S, root) {
+      const box = document.createElement("div");
+      const bs = box.style;
+      bs.position = "absolute";
+      bs.left = `${TRAY.x}px`;
+      bs.top = "0px";
+      bs.width = `${TRAY.w}px`;
+      bs.height = `${TRAY.y + TRAY.h}px`;
+      bs.overflow = "hidden";
+      bs.pointerEvents = "none";
+      root.appendChild(box);
+      const D = SEV.DIE * SEV.SC;
+      S.L.dice = [0, 1].map(() => {
+        const l = layer(box, 0, 0, D + 24, D + 24, wheelK(), true);
+        l.c.style.transformOrigin = "0 0";
+        return l;
+      });
     },
+    overlays(S, root) {
+      stampLayers(S, root, "stamp");
+    },
+    move(S) {
+      const st = S.st;
+      const rv = revealOf(S, "sevens");
+      const lastHist = arr(st.history).filter((h) => h.game === "sevens" && h.outcome).slice(-1)[0];
+      let dice;
+      let alpha = 1;
+      if (rv) {
+        const sl = sinceLockOf(rv, S.T);
+        const lock = num(rv.lock_s, LOCK);
+        if (sl < lock) {
+          dice = restDice(arr(obj(lastHist && lastHist.outcome).dice));
+          alpha = 1 - clamp(sl / 0.3, 0, 1); // the old dice are picked up during NO MORE BETS
+        } else {
+          dice = sevensDice(rv, sl);
+          alpha = clamp((sl - lock) / 0.12, 0, 1);
+        }
+        const z = SEVENS.findIndex((x) => x.id === obj(rv.outcome).zone);
+        stampPaint(S, "stamp", "WIN", S.th.accent);
+        stampMove(S, "stamp", 60 + Math.max(0, z) * 478 + 380, 806, sl - lock - num(rv.spin_s, 2.6), 112, 0.16);
+      } else {
+        dice = restDice(arr(obj(lastHist && lastHist.outcome).dice));
+        stampMove(S, "stamp", 0, 0, null);
+      }
+      dice.forEach((d, i) => {
+        const l = S.L.dice[i];
+        if (S.fx.faces[i] !== d.face) {
+          S.fx.faces[i] = d.face;
+          l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+          l.g.clearRect(0, 0, l.w, l.h);
+          die(l.g, l.w / 2, l.h / 2, SEV.DIE * SEV.SC, d.face, 0);
+        }
+        const x = SEV.X0 + d.x * SEV.SC - TRAY.x - 12;
+        const y = SEV.Y0 + d.y * SEV.SC - 12;
+        l.c.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(1,${(d.h / SEV.DIE).toFixed(3)})`;
+        l.c.style.opacity = alpha.toFixed(3);
+      });
+    },
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
@@ -2075,53 +2423,13 @@
     },
     draw(S, g, t) {
       const st = S.st;
-      const fx = S.fx;
       const th = S.th;
       const ph = st.phase;
       const cx = TRAY.x + TRAY.w / 2;
       const cy = TRAY.y + TRAY.h / 2;
-      const restA = [cx - 110, cy + 10];
-      const restB = [cx + 110, cy - 6];
-      const rolling = (ph === "locked" || ph === "spinning") && fx.lockAt != null;
-      const res = fx.res && fx.res.round === st.round && ph === "result" ? fx.res : null;
-      const last = arr(st.history).filter((h) => h.game === "sevens" && h.outcome).slice(-1)[0];
-      const shown = res ? res.dice : arr(obj(last && last.outcome).dice);
-      if (rolling || (res && t - res.t0 < 0.45)) {
-        const x = rolling ? t - fx.lockAt : 9;
-        const u = clamp(x / (LOCK + 2.6), 0, 1);
-        const seed = hash01(`d${st.round}`);
-        [restA, restB].forEach((rest, i) => {
-          const sx = TRAY.x + 90;
-          const sy = TRAY.y + 90 + i * 200;
-          const e = easeOut(u);
-          const bx = lerp(sx, rest[0], e) + Math.sin(x * 9 + i) * 30 * (1 - u);
-          const by = lerp(sy, rest[1], e) - Math.abs(Math.sin(x * (7 + i) + seed * 6)) * 110 * (1 - u) * (1 - u);
-          const face = 1 + Math.floor(hash01(`${st.round}|${i}|${Math.floor(x * 14)}`) * 6);
-          let fxp = bx;
-          let fyp = by;
-          let f = face;
-          let rot = x * (8 - i * 2) * (1 - u) + seed * 3 + Math.sin(x * 3) * 0.2;
-          if (res) {
-            const k = easeOut((t - res.t0) / 0.45);
-            fxp = lerp(bx, rest[0], k);
-            fyp = lerp(by, rest[1], k);
-            f = k > 0.4 ? res.dice[i] : face;
-            rot = lerp(rot, i ? 0.08 : -0.06, k);
-          }
-          die(g, fxp, fyp, 150, f, rot);
-        });
-      } else if (shown.length === 2) {
-        die(g, restA[0], restA[1], 150, shown[0], -0.06, { glow: res ? th.accent : null });
-        die(g, restB[0], restB[1], 150, shown[1], 0.08, { glow: res ? th.accent : null });
-      } else {
-        die(g, restA[0], restA[1], 150, 3, -0.06);
-        die(g, restB[0], restB[1], 150, 4, 0.08);
-      }
-      if (res && t - res.t0 >= 0.45) {
-        const z = SEVENS.find((s) => s.id === res.zone) || SEVENS[0];
-        const k = easeOut((t - res.t0 - 0.45) / 0.4);
-        txt(g, String(res.sum), cx, TRAY.y + 120, 110 * (0.6 + 0.4 * k), "#fff", { align: "center", weight: 900, glow: z.col, alpha: k });
-      }
+      const out = obj(obj(st.result).outcome);
+      const res = ph === "result" && Array.isArray(out.dice) ? out : null;
+      if (res) txt(g, String(res.sum), cx, TRAY.y + 98, 110, "#fff", { align: "center", weight: 900, glow: (SEVENS.find((s) => s.id === res.zone) || SEVENS[0]).col });
       drawHeadline(S, g, 70, 40, 900, t, headline(S, t, (p) => {
         if (p === "spinning") return { title: "ROLLING…", sub: "Under, seven or over?", tone: th.accent_hi };
         if (p === "result" && res) {
@@ -2145,16 +2453,15 @@
         pill(g, z.name, 1190, y + 22, 18, rgba(z.col, 0.85), "#fff");
       });
       const sb = obj(st.spot_bets);
-      const sw = sweepK(S, t, 1.6);
       SEVENS.forEach((z, i) => {
         const x = 60 + i * 478;
-        const isWin = res && res.zone === z.id && t - res.t0 > 0.5;
-        if (isWin) glowBox(g, x, 640, 456, 300, z.col, 0.6 + 0.4 * Math.sin(t * 6));
+        const isWin = res && res.zone === z.id;
+        if (isWin) glowBox(g, x, 640, 456, 300, z.col, 1);
         const tot = num(obj(st.totals)[z.id]);
         if (tot) txt(g, `${fmt(S, tot)} on it`, x + 426, 712, 24, INK2, { align: "right", font: "mono", weight: 700 });
-        spotChips(S, g, z.id, sb[z.id], x + 228, 820, t, { r: 34, glow: isWin ? th.accent : null, sweep: res && !isWin ? sw : 0, to: [cx, cy] });
+        spotChips(S, g, z.id, sb[z.id], x + 228, 820, t, { r: 34, glow: isWin ? th.accent : null, dim: res && !isWin });
       });
-      if (res && t - res.t0 > 1) winnersCard(S, g, 1020, 40, 480, t, { delay: 1.4, max: 2 });
+      if (res) winnersCard(S, g, 1020, 40, 480, t, { instant: true, max: 2 });
     },
   });
 
@@ -2175,6 +2482,20 @@
     const s = BAC_SLOTS[side];
     if (i === 2) return [s.x + s.w - 120, 300, Math.PI / 2];
     return [s.x + 110 + i * 150, 300, 0];
+  }
+  /** casino/games/baccarat.py deal_times: when each card lands, seconds after the deal starts (lock + LOCK). */
+  function bacDealTimes(o) {
+    const out = [["player", 0, 0.3], ["banker", 0, 0.9], ["player", 1, 1.5], ["banker", 1, 2.1]];
+    let t = 2.1;
+    if (arr(o.player).length === 3) out.push(["player", 2, (t += 1.6)]);
+    if (arr(o.banker).length === 3) out.push(["banker", 2, (t += 1.6)]);
+    return out;
+  }
+  /** Seconds into the deal on the engine's clock (99 once the coup is settled), or null without a reveal. */
+  function bacDealT(S) {
+    const rv = revealOf(S, "baccarat");
+    if (!rv) return null;
+    return S.st.phase === "result" ? 99 : sinceLockOf(rv, S.T) - num(rv.lock_s, LOCK);
   }
   function bacWinSpots(out) {
     const w = String(out.winner || "");
@@ -2234,18 +2555,57 @@
       g.stroke();
       txt(g, "SHOE", BAC_SHOE[0], BAC_SHOE[1] - 56, 22, th.accent, { align: "center", weight: 850 });
     },
+    overlays(S, root) {
+      stampLayers(S, root, "stamp");
+    },
+    // the coup is dealt on the panel's clock (deal_times); the table layer redraws as each card lands
+    key: (S) => {
+      const rv = revealOf(S, "baccarat");
+      const td = bacDealT(S);
+      return rv && td != null ? bacDealTimes(obj(rv.outcome)).filter((c) => td >= c[2]).length : "";
+    },
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : revealOf(S, "baccarat") ? 0 : 4),
+    move(S) {
+      const rv = revealOf(S, "baccarat");
+      const o = rv ? obj(rv.outcome) : null;
+      if (!o || !o.winner) return stampMove(S, "stamp", 0, 0, null);
+      const times = bacDealTimes(o);
+      const td = bacDealT(S);
+      const b = BAC_BETS.find((x) => x.id === o.winner) || BAC_BETS[1];
+      stampPaint(S, "stamp", o.winner === "tie" ? "TIE" : "WIN", S.th.accent);
+      stampMove(S, "stamp", b.x + b.w / 2, 600, (S.st.phase === "result" ? 99 : td) - (times[times.length - 1][2] + 0.6), 116, -0.15);
+    },
     draw(S, g, t) {
       const st = S.st;
       const th = S.th;
       const ph = st.phase;
       const res = ph === "result" ? obj(obj(st.result).outcome) : null;
-      const cards = res ? { player: arr(res.player), banker: arr(res.banker) } : ph === "dealing" ? { player: arr(obj(st.cards).player), banker: arr(obj(st.cards).banker) } : { player: [], banker: [] };
+      const rv = revealOf(S, "baccarat");
+      const td = bacDealT(S);
+      const cards = { player: [], banker: [] };
+      const ages = {};
+      if (rv && td != null) {
+        const o = obj(rv.outcome);
+        for (const [side, i, at] of bacDealTimes(o))
+          if (td >= at) {
+            cards[side][i] = arr(o[side])[i];
+            ages[`${side}${i}`] = td - at;
+          }
+      } else if (res) {
+        cards.player = arr(res.player);
+        cards.banker = arr(res.banker);
+      } else if (ph === "dealing") {
+        cards.player = arr(obj(st.cards).player);
+        cards.banker = arr(obj(st.cards).banker);
+      }
       const totals = {};
       for (const side of ["player", "banker"]) {
         const shownCodes = [];
         cards[side].forEach((code, i) => {
+          if (!code) return;
           const [x, y, rot] = bacCardXY(side, i);
-          const f = cardFly(S, `${side}${i}`, BAC_SHOE[0], BAC_SHOE[1] - 60, x, y, t, 0.6);
+          const age = ages[`${side}${i}`];
+          const f = age != null ? flyAge(S, age, BAC_SHOE[0], BAC_SHOE[1] - 60, x, y, 0.5) : cardFly(S, `${side}${i}`, BAC_SHOE[0], BAC_SHOE[1] - 60, x, y, t, 0.6);
           if (f.flip >= 0.5) shownCodes.push(code);
           drawCard(S, g, code, f.x, f.y, 118, 166, { rot: rot + f.rot, flip: f.flip });
         });
@@ -2263,7 +2623,7 @@
         }
       }
       if (res && res.winner) {
-        for (const side of ["player", "banker"]) if (res.winner === side || res.winner === "tie") glowBox(g, BAC_SLOTS[side].x, 150, BAC_SLOTS[side].w, 300, res.winner === "tie" ? "#3ddc84" : BAC_SLOTS[side].col, 0.6 + 0.4 * Math.sin(t * 5));
+        for (const side of ["player", "banker"]) if (res.winner === side || res.winner === "tie") glowBox(g, BAC_SLOTS[side].x, 150, BAC_SLOTS[side].w, 300, res.winner === "tie" ? "#3ddc84" : BAC_SLOTS[side].col, 1);
       }
       drawHeadline(S, g, 760, 40, 900, t, headline(S, t, (p) => {
         if (p === "dealing") return { title: "THE COUP IS DEALT", sub: `Player ${totals.player} · Banker ${totals.banker}`, tone: th.accent_hi };
@@ -2280,7 +2640,7 @@
       const sw = sweepK(S, t, 1.5);
       BAC_BETS.forEach((b) => {
         const isWin = wins.has(b.id) || (res && res.winner === "tie" && (b.id === "player" || b.id === "banker"));
-        if (res && wins.has(b.id)) glowBox(g, b.x, 480, b.w, 200, th.accent, 0.6 + 0.4 * Math.sin(t * 6), 8);
+        if (res && wins.has(b.id)) glowBox(g, b.x, 480, b.w, 200, th.accent, 1, 8);
         const tot = num(obj(st.totals)[b.id]);
         if (tot) txt(g, fmt(S, tot), b.x + b.w / 2, 560, 22, INK2, { align: "center", font: "mono", weight: 700 });
         spotChips(S, g, b.id, sb[b.id], b.x + b.w / 2, 610, t, { r: 28, glow: res && wins.has(b.id) ? th.accent : null, sweep: res && !isWin ? sw : 0, to: [BAC_SHOE[0], 100] });
@@ -2345,6 +2705,22 @@
   // ================================================================================================ ANDAR BAHAR
   const AB_ROW = { andar: 270, bahar: 540 };
   const AB_SHOE = [760, 120];
+  // casino/games/andarbahar.py deal_pace / DEAL_LEAD and the panel's FLY: card j lands at LEAD + j·pace
+  const AB_LEAD = 0.9;
+  const AB_FLY = 0.25;
+  const abPace = (n) => Math.max(0.18, Math.min(0.6, 9 / Math.max(1, n)));
+  /** The deal on the panel's clock: {t (s into the deal), k (cards dealt), n, done} or null without a reveal. */
+  function abDeal(S) {
+    const rv = revealOf(S, "andarbahar");
+    if (!rv) return null;
+    const o = obj(rv.outcome);
+    const n = num(o.count, arr(o.cards).length);
+    if (S.st.phase === "result") return { o, t: 99, k: n, n, done: true };
+    const t = sinceLockOf(rv, S.T) - num(rv.lock_s, LOCK);
+    const pace = abPace(n);
+    const k = t < AB_LEAD ? 0 : Math.min(n, 1 + Math.floor((t - AB_LEAD) / pace));
+    return { o, t, k, n, done: k >= n && t >= AB_LEAD + (n - 1) * pace + AB_FLY };
+  }
   function abCardX(i, n) {
     const step = Math.min(70, (1020 - 110) / Math.max(1, n - 1));
     return 470 + 55 + i * step;
@@ -2367,18 +2743,35 @@
       }
       txt(g, "ANDAR BAHAR", 70, 120, 40, th.accent, { weight: 900 });
     },
+    overlays(S, root) {
+      stampLayers(S, root, "stamp");
+    },
+    key: (S) => {
+      const d = abDeal(S);
+      return d ? `${d.k}|${d.done}|${d.t < 0.5}` : "";
+    },
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : revealOf(S, "andarbahar") ? 0 : 4),
+    move(S) {
+      const d = abDeal(S);
+      if (!d) return stampMove(S, "stamp", 0, 0, null);
+      const w = String(d.o.winner);
+      const pace = abPace(d.n);
+      stampPaint(S, "stamp", "WIN", S.th.accent);
+      stampMove(S, "stamp", w === "andar" ? 400 : 860, 790, d.t - (AB_LEAD + (d.n - 1) * pace + AB_FLY), 120, 0.14);
+    },
     draw(S, g, t) {
       const st = S.st;
       const th = S.th;
       const ph = st.phase;
+      const d = abDeal(S);
       const out = ph === "result" ? obj(obj(st.result).outcome) : null;
-      const deal = ph === "dealing" ? obj(st.deal) : null;
+      const deal = d ? d.o : ph === "dealing" ? obj(st.deal) : null;
       const joker = out ? out.joker : deal ? deal.joker : null;
       const first = (out || deal || {}).first || obj(st.rules).first || "andar";
-      const cards = out ? arr(out.cards) : deal ? arr(deal.cards) : [];
-      const matched = out ? true : deal ? !!deal.matched : false;
+      const cards = out ? arr(out.cards) : d ? arr(d.o.cards).slice(0, d.k) : deal ? arr(deal.cards) : [];
+      const matched = out ? true : d ? d.done : deal ? !!deal.matched : false;
       if (joker) {
-        const f = cardFly(S, "joker", AB_SHOE[0], AB_SHOE[1], 235, 400, t, 0.7);
+        const f = d ? flyAge(S, d.t, 235, 400, 235, 400, 0.5) : cardFly(S, "joker", AB_SHOE[0], AB_SHOE[1], 235, 400, t, 0.7);
         drawCard(S, g, joker, f.x, f.y, 200, 280, { flip: f.flip, glow: rgba(th.accent, 0.7) });
       }
       const other = first === "andar" ? "bahar" : "andar";
@@ -2388,13 +2781,13 @@
         const list = rows[side];
         list.forEach(({ c, i }, j) => {
           const x = abCardX(j, Math.max(list.length, 8));
-          const f = cardFly(S, `ab${i}`, AB_SHOE[0], AB_SHOE[1], x, AB_ROW[side], t, 0.45);
+          const f = d ? flyAge(S, d.t - (AB_LEAD + i * abPace(d.n)), AB_SHOE[0], AB_SHOE[1], x, AB_ROW[side], AB_FLY + 0.15) : cardFly(S, `ab${i}`, AB_SHOE[0], AB_SHOE[1], x, AB_ROW[side], t, 0.45);
           const isMatch = matched && i === cards.length - 1;
           drawCard(S, g, c, f.x, f.y, 110, 154, { flip: f.flip, rot: f.rot, glow: isMatch && f.flip >= 1 ? th.accent : null });
         });
       }
       const winner = out ? out.winner : matched && cards.length ? (cards.length % 2 === 1 ? first : other) : null;
-      if (winner && (out || matched)) glowBox(g, 430, AB_ROW[winner] - 110, 1080, 220, TONE[winner], 0.6 + 0.4 * Math.sin(t * 6));
+      if (winner && (out || matched)) glowBox(g, 430, AB_ROW[winner] - 110, 1080, 220, TONE[winner], 1);
       if (cards.length) txt(g, `${cards.length} ${cards.length === 1 ? "CARD" : "CARDS"}`, 235, 600, 30, INK1, { align: "center", font: "mono", weight: 800 });
       drawHeadline(S, g, 430, 20, 1080, t, headline(S, t, (p) => {
         if (p === "dealing") return matched ? { title: `${String(winner).toUpperCase()} MATCHES!`, sub: "", tone: TONE[winner] } : { title: "DEALING…", sub: `First card to ${first === "andar" ? "Andar" : "Bahar"} · find the joker's ${obj(st.deal).match === "card" ? "twin" : "rank"}`, tone: th.accent_hi };
@@ -2472,6 +2865,14 @@
   const blackjack = makeScene({
     id: "casino-blackjack",
     app: "casino_blackjack",
+    // the felt as bg() draws it: a flat top and the big arc round the seats
+    feltClip: () => {
+      const R = BJ_R + 180;
+      const a1 = Math.atan2(360 - BJ_C[1], RAIL_X - 40 - BJ_C[0]);
+      const a2 = Math.atan2(360 - BJ_C[1], 40 - BJ_C[0]);
+      const p = (a) => `${(BJ_C[0] + Math.cos(a) * R).toFixed(1)} ${(BJ_C[1] + Math.sin(a) * R).toFixed(1)}`;
+      return `path("M 40 18 L ${RAIL_X - 40} 18 L ${RAIL_X - 40} 360 L ${p(a1)} A ${R} ${R} 0 0 1 ${p(a2)} Z")`;
+    },
     bg(S, g) {
       const th = S.th;
       g.beginPath();
@@ -2762,7 +3163,7 @@
     const st = S.st;
     const th = S.th;
     const n = arr(st.sitting).length;
-    const left = S.clk.ends.left(t);
+    const left = leftTo(S, "ends_at", S.clk.ends, t);
     if (left != null) {
       txt(g, "NEXT HAND IN", PK.cx, PK.cy - 40, 30, INK2, { align: "center", weight: 800 });
       txt(g, String(Math.ceil(left - 1e-6)), PK.cx, PK.cy + 60, 110, th.accent, { align: "center", font: "mono", weight: 800, glow: rgba(th.accent, 0.5) });
@@ -2772,9 +3173,11 @@
     }
   }
 
+  const pokerClip = () => `ellipse(${PK.rx}px ${PK.ry}px at ${PK.cx}px ${PK.cy}px)`;
   const holdem = makeScene({
     id: "casino-holdem",
     app: "casino_holdem",
+    feltClip: pokerClip,
     bg(S, g) {
       pokerBg(S, g, "TEXAS HOLD'EM");
     },
@@ -2852,6 +3255,7 @@
   const teenpatti = makeScene({
     id: "casino-teenpatti",
     app: "casino_teenpatti",
+    feltClip: pokerClip,
     bg(S, g) {
       pokerBg(S, g, "TEEN PATTI");
     },
@@ -3036,7 +3440,7 @@
       } else {
         drawHeadline(S, g, 950, 140, 550, t, headline(S, t, (p) => {
           if (p === "betting") {
-            const left = S.clk.ends.left(t);
+            const left = leftTo(S, "ends_at", S.clk.ends, t);
             const span = num(obj(st.rules).buy_seconds, 45);
             return { title: "BUY TICKETS", sub: `${fmt(S, h.price)} a ticket · up to ${num(h.max, 1)} each`, tone: th.accent, pulse: st.ends_in == null, ring: left != null ? { frac: left / span, label: Math.ceil(left - 1e-6), color: left < 6 ? BAD : th.accent } : null };
           }
@@ -3125,25 +3529,68 @@
     id: "casino-slots",
     app: "casino_slots",
     init(S) {
-      S.fx = { spin: null, reels: [null, null, null] };
+      S.fx = { pos: [null, null, null], spinT: null };
     },
     ingest(S, st, t) {
       const p = st.playing;
       const fx = S.fx;
       const sp = obj(obj(st.machine).sprites);
       if (sp.symbols) fx.lastSprites = sp;
-      if (p && typeof p.t === "number") {
-        if (!fx.spin || fx.spin.id !== p.id) {
-          fx.spin = { id: p.id, start: t - p.t, seat: p.seat };
-          fx.reels = [null, null, null];
-          fx.winAt = null;
-        } else {
-          const est = t - p.t;
-          if (Math.abs(est - fx.spin.start) < 0.6) fx.spin.start += (est - fx.spin.start) * 0.3;
-        }
-        if (p.win != null && fx.winAt == null) fx.winAt = t;
+      if (!p || p.id !== fx.winId) fx.winAt = null;
+      if (p && p.win != null && fx.winAt == null) {
+        fx.winAt = t;
+        fx.winId = p.id;
       }
     },
+    // the three reels: small canvases of their own, repainted only while they turn
+    layers(S, root) {
+      S.L.reels = [0, 1, 2].map((i) => layer(root, SL.rx + i * 230, SL.ry, 210, 3 * SL.cell, S.k, false));
+    },
+    layersRedraw(S) {
+      S.fx.pos = [null, null, null];
+    },
+    /** The reels on the panel's clock: reel_pos(stop, n, t, i) with the playing spin's stops from tv.reveal. */
+    move(S) {
+      const st = S.st;
+      const fx = S.fx;
+      const strips = arr(obj(st.machine).strips).map(String);
+      const p = st.playing;
+      const rv = revealOf(S, "slots");
+      const live = rv && p && rv.spin === p.id;
+      const spinT = live ? (rv.paused ? num(rv.t) : S.T - (num(rv.at) - num(rv.t))) : null;
+      fx.spinT = spinT;
+      const recent = arr(st.recent);
+      const last = !p && recent.length ? arr(recent[0].stops) : null;
+      for (let i = 0; i < 3; i++) {
+        const strip = strips[i] || "";
+        const n = Math.max(1, strip.length);
+        let pos = 0;
+        if (live) pos = reelPos(num(arr(rv.stops)[i]), n, spinT, i);
+        else if (p) pos = arr(p.stops)[i] != null ? p.stops[i] : num(fx.pos[i]);
+        else if (last && last[i] != null) pos = last[i];
+        const prev = fx.pos[i];
+        if (prev != null && Math.abs(pos - prev) < 1e-4 && fx.strip !== undefined) continue;
+        const moving = prev != null && Math.abs(pos - prev) > 0.08;
+        fx.pos[i] = pos;
+        const l = S.L.reels[i];
+        const g = l.g;
+        g.setTransform(l.k, 0, 0, l.k, 0, 0);
+        g.clearRect(0, 0, l.w, l.h);
+        const base = Math.floor(pos);
+        const frac = pos - base;
+        for (let r = -2; r <= 2; r++) {
+          const ch = strip[mod(base + r, n)] || "_";
+          if (ch === "_") continue;
+          const y = (1 + r - frac) * SL.cell + SL.cell / 2;
+          g.globalAlpha = moving ? 0.75 : 1;
+          g.drawImage(slotSprite(S, ch, 20), 105 - 70, y - 70, 140, 140);
+        }
+        g.globalAlpha = 1;
+      }
+      fx.strip = strips.join("|");
+    },
+    key: (S) => `${S.st.playing ? S.st.playing.id : "-"}|${S.fx.spinT != null && S.fx.spinT > SLOT_STOPS[2]}`,
+    slowHz: (S) => (S.fx.spinT != null && S.fx.spinT <= SLOT_STOPS[2] ? 0 : 4),
     bgKey: (S) => String(obj(S.st.machine).theme || ""),
     bg(S, g) {
       const th = S.th;
@@ -3226,56 +3673,10 @@
       const strips = arr(m.strips).map(String);
       const p = st.playing;
       const recent = arr(st.recent);
-      const spinT = p && fx.spin && fx.spin.id === p.id ? t - fx.spin.start : null;
-      const lastStops = p ? null : recent.length ? arr(recent[0].stops) : null;
-      const pos = [0, 1, 2].map((i) => {
-        const n = Math.max(1, (strips[i] || "").length);
-        if (p && spinT != null) {
-          const stop = arr(p.stops)[i];
-          if (stop == null) {
-            if (fx.reels[i]) return fx.reels[i].from;
-            return (hash01(`r${p.id}${i}`) * n) - 9 * Math.max(0, spinT); // free spin until the stop is public
-          }
-          if (spinT < SLOT_STOPS[i] + 0.6 && !fx.reels[i]) {
-            const free = hash01(`r${p.id}${i}`) * n - 9 * Math.max(0, Math.min(spinT, SLOT_STOPS[i]));
-            fx.reels[i] = { from: free, t0: t, stop };
-          }
-          if (fx.reels[i]) {
-            const R = fx.reels[i];
-            const u = clamp((t - R.t0) / 0.32, 0, 1);
-            let target = R.stop;
-            while (target > R.from) target -= n;
-            const k = 1 - Math.pow(1 - u, 3);
-            const wob = u >= 1 ? 0.3 * Math.exp(-(t - R.t0 - 0.32) * 9) * Math.sin((t - R.t0 - 0.32) * 26) : 0;
-            return u >= 1 ? stop + wob : lerp(R.from, target, k);
-          }
-          return reelPos(stop, n, spinT, i);
-        }
-        if (lastStops && lastStops[i] != null) return lastStops[i];
-        return 0;
-      });
-      // the reels
+      const spinT = fx.spinT;
+      // the glass over the reels (the reels turn in their own layers below)
       for (let i = 0; i < 3; i++) {
-        const strip = strips[i] || "";
-        const n = Math.max(1, strip.length);
         const x = SL.rx + i * 230;
-        g.save();
-        rr(g, x, SL.ry, 210, 3 * SL.cell, 14);
-        g.clip();
-        const base = Math.floor(pos[i]);
-        const frac = pos[i] - base;
-        const moving = p && spinT != null && (arr(p.stops)[i] == null || (fx.reels[i] && t - fx.reels[i].t0 < 0.3));
-        for (let r = -2; r <= 2; r++) {
-          const idx = mod(base + r, n);
-          const ch = strip[idx] || "_";
-          const y = SL.ry + (1 + r - frac) * SL.cell + SL.cell / 2;
-          if (ch !== "_") {
-            g.save();
-            if (moving) g.globalAlpha = 0.7;
-            g.drawImage(slotSprite(S, ch, 20), x + 105 - 70, y - 70, 140, 140);
-            g.restore();
-          }
-        }
         const shadeG = g.createLinearGradient(0, SL.ry, 0, SL.ry + 3 * SL.cell);
         shadeG.addColorStop(0, "rgba(0,0,0,.45)");
         shadeG.addColorStop(0.2, "rgba(0,0,0,0)");
@@ -3283,7 +3684,6 @@
         shadeG.addColorStop(1, "rgba(0,0,0,.45)");
         g.fillStyle = shadeG;
         g.fillRect(x, SL.ry, 210, 3 * SL.cell);
-        g.restore();
       }
       // winning lines
       const winLines = p && p.win != null ? arr(p.wins) : [];
@@ -3311,7 +3711,7 @@
         });
       }
       // the lever knob (pulled at the start of a spin)
-      const pull = spinT != null && spinT < 0.6 ? Math.sin((spinT / 0.6) * Math.PI) : 0;
+      const pull = 0;
       circle(g, SL.x + SL.w + 19, 360 + pull * 220, 30);
       g.fillStyle = "#d0182f";
       g.fill();
@@ -3351,8 +3751,9 @@
   const SCENES = [roulette, blackjack, baccarat, slots, holdem, teenpatti, andarbahar, bigsix, sevens, housie];
   const API = {
     SCENES, Countdown, PhaseTracker, lockTime, parseCard, baccaratTotal, rouletteCovers, rouletteBoard, rouletteSpotXY,
-    rouletteCenter, reelPos, settle, bigRoad, hash01, hexRgb, shade, wrapPi, bjSeatXY, pokerSeatXY, EU_WHEEL, US_WHEEL,
-    B6_WHEEL, B6, travelExp,
+    rouletteCenter, reelPos, bigRoad, hash01, hexRgb, shade, wrapPi, bjSeatXY, pokerSeatXY, EU_WHEEL, US_WHEEL,
+    B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
+    R_CX, R_CY, BX, BY, SEV,
   }; // fmt: skip
   if (TV) {
     TV.casino = API;
