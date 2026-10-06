@@ -880,6 +880,7 @@
     meta: null,
     status: {},
     lobby: null,
+    tv: null,
     panel: null,
     frameAt: 0,
     stateAt: 0,
@@ -1156,6 +1157,7 @@
       if ((m.app || null) !== ctx.app) ctx.app = m.app || null;
       ctx.status = m.status && typeof m.status === "object" ? m.status : {};
       ctx.lobby = m.lobby || null;
+      ctx.tv = m.tv || null; // TV-only anchors (docs/TV_VIEW.md §3): e.g. a locked casino round's outcome + clock
       ctx.stateAt = now();
       applyTheme(ctx.status.table_theme);
       renderBar();
@@ -1202,12 +1204,18 @@
       "--accent-deep": css.accent_deep,
       "--accent-rgb": css.accent_rgb,
       "--ink": css.ink,
+      // the bar and the page around the scene (tv.html: stage[data-table])
+      "--wing": css.wing2 || css.wing,
+      "--wing3": css.wing3,
+      "--bar-line": css.accent_rgb ? `rgba(${css.accent_rgb}, .38)` : null,
+      "--bar-tint": css.accent_rgb ? `rgba(${css.accent_rgb}, .16)` : null,
     };
     for (const [k, v] of Object.entries(map)) {
       if (v) st.setProperty(k, v);
       else st.removeProperty(k);
     }
     $("stage").dataset.theme = id || "";
+    $("stage").dataset.table = id ? "1" : ""; // a casino table: the bar and the page take its theme
   }
 
   // =========================================================================================== generic scene

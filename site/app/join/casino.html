@@ -13,6 +13,8 @@
   --gold:#ffcc33;--gold2:#e2a400;--gold-hi:#ffe08a;--gold-deep:#3a2c08;--gold-ink:#1a1200;--gold-rgb:255,204,51;--gold-text:#ffcc33;
   --felt:#0d6b45;--felt2:#0a5236;--felt3:#063823;--felt-ink:#e7f0ec;
   --bg:#060c0a;--s1:#0f1a17;--s2:#172722;--s3:#1c352b;--s4:#2a4139;
+  /* the felt's motif (css.pattern / pattern_size: pure CSS gradients, one size per layer; set for every theme) */
+  --pat:none;--pat-size:auto;
   /* derived once from the theme — use these, never a literal accent */
   --accent-soft:rgba(var(--gold-rgb),.14);--glow:rgba(var(--gold-rgb),.35);--well:color-mix(in srgb,var(--bg) 70%,#000);
   --veil:color-mix(in srgb,var(--bg) 94%,transparent);--toastbg:color-mix(in srgb,var(--s2) 96%,transparent);
@@ -68,6 +70,9 @@ canvas.av{display:block;image-rendering:pixelated}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 /* ---------- join ---------- */
+/* the table's motif behind the join screen, fading out toward the bottom */
+#s-join::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:var(--pat);background-size:var(--pat-size);
+  -webkit-mask-image:linear-gradient(180deg,#000,transparent 85%);mask-image:linear-gradient(180deg,#000,transparent 85%)}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
   padding:calc(var(--st) + 24px) calc(var(--sr) + 24px) calc(var(--sb) + 24px) calc(var(--sl) + 24px)}
 .stack{position:relative;width:120px;height:120px}
@@ -330,7 +335,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .rt{position:absolute;inset:0;touch-action:none}
 .rt .cell{position:absolute;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);font:900 15px/1 var(--mono);color:#fff;
   transition:background-color .15s,box-shadow .15s,opacity .2s}
-.rt .felt{position:absolute;border-radius:14px;background:radial-gradient(120% 80% at 50% 30%,var(--felt),var(--felt2) 70%,var(--felt3));box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.35),inset 0 0 30px rgba(0,0,0,.45),0 10px 30px rgba(0,0,0,.5)}
+.rt .felt{position:absolute;border-radius:14px;background:var(--pat),radial-gradient(120% 80% at 50% 30%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.35),inset 0 0 30px rgba(0,0,0,.45),0 10px 30px rgba(0,0,0,.5)}
 .rt .n-red{background:linear-gradient(180deg,#e8344a,#b51a2f)}.rt .n-black{background:linear-gradient(180deg,#2c2c35,#16161c)}
 .rt .n-green{background:linear-gradient(180deg,#15a95e,#0b7a42)}
 .rt .out{font:850 12.5px/1.1 var(--disp);letter-spacing:.04em;text-transform:uppercase;text-align:center;color:var(--felt-ink)}
@@ -356,7 +361,7 @@ html,body,.board,.dock{touch-action:manipulation}
 /* ================= 7 up 7 down ================= */
 .sv{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
 .tray{flex:none;height:min(28vh,150px);border-radius:18px;display:flex;align-items:center;justify-content:center;gap:18px;position:relative;
-  background:radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
+  background:var(--pat),radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
 .die{width:min(18vh,84px);aspect-ratio:1;border-radius:20%;background:linear-gradient(145deg,#ff5a66,#c0182c 55%,#8a0c1c);box-shadow:inset 0 -5px 0 rgba(0,0,0,.25),0 10px 18px rgba(0,0,0,.45);
   display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14%;gap:4%}
 .die i{border-radius:50%;background:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);opacity:0}
@@ -410,7 +415,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .pv-seat .tag.ai{background:var(--red);color:#fff}.pv-seat .tag.sn{background:#28d8ff}.pv-seat .tag.bl{background:#8a8aa0;color:#fff}
 .pv-seat small{display:block;color:var(--dim)}
 .pv-felt{flex:none;border-radius:20px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
+  background:var(--pat),radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
 .pv-row{display:flex;gap:6px;justify-content:center}
 .pv-pot{font:900 22px/1 var(--mono);color:var(--gold-hi);text-shadow:0 2px 0 rgba(0,0,0,.4)}
 .pv-pot small{font:800 11px/1 var(--mono);color:var(--felt-ink);letter-spacing:.12em;margin-right:6px;opacity:.8}
@@ -453,7 +458,7 @@ html,body,.board,.dock{touch-action:manipulation}
 /* bet zones for the house games */
 .hz{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-bottom:4px;touch-action:pan-y}
 .hz-top{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;min-height:84px;border-radius:18px;padding:8px;
-  background:radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3)}
+  background:var(--pat),radial-gradient(120% 90% at 50% 20%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3)}
 .hz-top .pc{--cw:44px}
 .hz-top .lbl{font:800 12px/1.3 var(--mono);color:var(--felt-ink);text-align:center}
 .hz-grid{display:grid;gap:8px}
@@ -479,7 +484,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .hg-chp{position:relative;flex:none;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5)}
 .hg-chp::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .hg-chp b{position:relative;font:900 10.5px/1 var(--mono);color:var(--ct,#fff)}
-.hg-felt{border-radius:18px;background:radial-gradient(120% 90% at 50% 15%,var(--felt),var(--felt2) 70%,var(--felt3));box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
+.hg-felt{border-radius:18px;background:var(--pat),radial-gradient(120% 90% at 50% 15%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
 .hg-clock{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;flex:none}
 .hg-clock i{display:block;height:100%;width:100%;background:var(--c);border-radius:3px;transition:width .25s linear}
 .hg-clock.hurry i{background:var(--red)}
@@ -779,5 +784,5 @@ html,body,.board,.dock{touch-action:manipulation}
 <div class="end" id="end" hidden><div class="endcard"><canvas class="ddlogo" id="end-logo" role="img" aria-label="DeskDot"></canvas><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
-<script src="/app/join/casino.js?v=e485b4c6d674"></script>
+<script src="/app/join/casino.js?v=2d10d7a86400"></script>
 </body></html>

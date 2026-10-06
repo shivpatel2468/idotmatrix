@@ -258,6 +258,40 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const code = location.pathname.split("/").filter(Boolean).pop() || "";
 const now = () => performance.now();
+
+/* ===== BEGIN shared sync clock — the same model as the TV (tv/tv-casino.js serverClock) and the studio
+   (web/src/components/casino/sync.ts); docs/TV_VIEW.md §3. The engine publishes the round's timers as wall-clock
+   anchors (status.clock: ends_at, lock_at, reveal_at, next_at, turn_at …); this page keeps one clock synced to the
+   engine from ping/pong (server_time), slewed (≤ 30 % of real time, never backwards; > 1 s snaps), and counts
+   down to the anchors — so the panel, the TV, every phone and the studio flip at the same moment. ===== */
+const SYNC = (() => {
+  let est = null, off = null, lastL = 0, lastT = null;
+  const local = () => performance.now() / 1000;
+  return {
+    /** a pong: server_time seen between local times sent / recv (s) */
+    sample(serverTime, sent, recv) {
+      const rtt = recv - sent;
+      if (typeof serverTime !== "number" || !(rtt >= 0 && rtt <= 1.5)) return;
+      const o = serverTime - (sent + recv) / 2;
+      est = est == null ? o : est + (o - est) * (rtt < 0.15 ? 0.3 : 0.1);
+    },
+    get ready() { return est != null; },
+    /** the engine's clock now (s): smooth and monotonic */
+    now() {
+      const l = local(), target = est == null ? Date.now() / 1000 - l : est;
+      if (off == null || Math.abs(target - off) > 1) off = target;
+      else { const dt = Math.min(0.5, Math.max(0, l - lastL)); off += Math.max(-0.3 * dt, Math.min(0.3 * dt, target - off)); }
+      lastL = l;
+      let t = l + off;
+      if (lastT != null && t < lastT) t = lastT;
+      lastT = t;
+      return t;
+    },
+    /** seconds until a status.clock anchor, or null */
+    until(at) { return at == null || est == null ? null : Math.max(0, at - this.now()); },
+  };
+})();
+/* ===== END shared sync clock ===== */
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (n) => Math.round(Number(n) || 0).toLocaleString("en-US");
 const short = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1000 ? (n / 1e3).toFixed(n % 1000 ? 1 : 0) + "K" : String(n);
@@ -507,7 +541,7 @@ for (const ev of ["pointerdown", "keydown", "touchend"]) document.addEventListen
 let spinT = 0;
 function spinTicks(on) {
   clearTimeout(spinT); if (!on) return;
-  const t0 = now(), span = Math.max(1.5, (S.pub.reveal_in || 5)) * 1000;
+  const r = SYNC.until((S.pub.clock || {}).reveal_at), t0 = now(), span = Math.max(1.5, r != null ? r : S.pub.reveal_in || 5) * 1000;
   const step = () => { if (!["locked", "spinning"].includes(S.pub.phase)) return; const k = clamp((now() - t0) / span, 0, 1); SFX.tick(); spinT = setTimeout(step, 55 + 380 * k * k); };
   spinT = setTimeout(step, 600);
 }
@@ -788,7 +822,19 @@ function renderPhase() {
 function tickCountdown() {
   const p = S.pub, ring = $("#ring"), cd = $("#cd"), pr = $("#ring-p");
   let left = null;
-  if (p.phase === "betting" && S.countdown.left != null && !p.paused) left = Math.max(0, S.countdown.left - (now() - S.countdown.at) / 1000);
+  if (p.phase === "betting" && S.countdown.left != null && !p.paused) {
+    const a = SYNC.until((p.clock || {}).ends_at); // the shared clock: every device hits zero together
+    left = a != null ? a : Math.max(0, S.countdown.left - (now() - S.countdown.at) / 1000);
+    // the lock is due now: say so at once (the state saying "locked" is on its way)
+    if (a === 0 && S.lockSaid !== p.round && !p.pvp) {
+      // the deadline passed on the shared clock: the table locks now on every device — flip to the locked view at
+      // once (bets frozen, the live panel up) instead of waiting for the "locked" state, which confirms it
+      S.lockSaid = p.round;
+      S.pub = { ...p, phase: "locked", ends_in: null };
+      renderAll();
+      Live.update();
+    }
+  }
   const span = (p.house || {}).bet_seconds || 20;
   let txt = "", off = p.phase === "betting" ? "0" : "138.2", hurry = false;
   if (left != null) { txt = String(Math.ceil(left - 1e-6)); off = (138.2 * (1 - clamp(left / span, 0, 1))).toFixed(1); hurry = left <= 5; }
@@ -829,6 +875,8 @@ function onState(m) {
   const prevPhase = S.pub.phase, prevRound = S.pub.round;
   S.pub = m.status || {}; S.priv = m.private || {};
   applyTheme(S.pub.table_theme);
+  // shared clock: a "betting" state that crossed the lock on the wire doesn't flip this phone back
+  if (S.pub.phase === "betting" && S.lockSaid === S.pub.round && SYNC.until((S.pub.clock || {}).ends_at) === 0) S.pub = { ...S.pub, phase: "locked", ends_in: null };
   Live.update();
   const p = S.pub;
   if (!p.casino) return;
@@ -906,6 +954,9 @@ function applyTheme(t) {
   themeId = id;
   const st = document.documentElement.style, css = (t && t.css) || {};
   for (const [k, v] of Object.entries(THEME_VARS)) { const x = css[v]; if (id !== "classic" && x) st.setProperty(k, x); else st.removeProperty(k); } // classic = the stylesheet's own look
+  // the felt's motif: every theme has one (classic too); an older engine sends none
+  if (css.pattern) { st.setProperty("--pat", css.pattern); st.setProperty("--pat-size", css.pattern_size || "auto"); }
+  else { st.removeProperty("--pat"); st.removeProperty("--pat-size"); }
   document.documentElement.dataset.theme = id;
   const meta = document.querySelector('meta[name="theme-color"]'); // the phone's browser bar follows the felt
   if (meta) meta.setAttribute("content", (id !== "classic" && css.felt3) || "#063823");
@@ -2363,6 +2414,7 @@ function connect() {
     let m; try { m = JSON.parse(ev.data); } catch (_) { return; }
     if (m.type === "hello") onHello(m);
     else if (m.type === "state") onState(m);
+    else if (m.type === "pong" && typeof m.t === "number") SYNC.sample(m.server_time, m.t / 1000, now() / 1000); // the shared clock
     else if (m.type === "roster") onRoster(m.players);
     else if (m.type === "full") { end("The table is full", "Every seat is taken. Ask the host to make room, then scan the QR code on the panel again.", "Try again"); sock.close(); }
     else if (m.type === "closed") { end("The table closed", "The host closed this game. Your credits are kept — scan the QR code on the panel to join the next one.", "Rejoin"); sock.close(); }
