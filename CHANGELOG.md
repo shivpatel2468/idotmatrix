@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Intro & outro: each theme in Settings now shows a small moving preview under its name. The OG intro was
+  redrawn: clean flat LEDs in the two logo colours that glide smoothly into place, with no glare, halos or reflection.
 - 📺 **TV view** (docs/TV_VIEW.md): any screen — a smart-TV / Fire TV browser, a tablet, a projector — shows a
   1920 × 1080 broadcast of what DeskDot is playing. Studio: Create → **Show on TV** (QR + code, up to 8 screens);
   `/tv/<code>` on the LAN (LanGate allows `/tv/`), and over the internet in the web app through the WebRTC tunnel.
