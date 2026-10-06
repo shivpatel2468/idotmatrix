@@ -36,7 +36,10 @@ The panel can also show the brain's own activity as it plays. Play against a fly
 - **Pixel editor upgrades**: layers, onion-skin frames → save as GIF to the gallery.
 
 ## Later
-
+- **4K party games on the TV** (future scope from the user): the host renders real high-resolution games and streams
+  them as low-latency video (GPU H.264/AV1 over WebRTC, ~30–80 ms on home Wi-Fi) to the TV view, with 4-player
+  split screen and phones / Bluetooth gamepads as controllers — the TV view and the phone controllers are the first
+  building blocks.
 - Plugin index: install community apps from a URL into `plugins/` with a manifest and version checks.
 - Multi-panel walls: several `Device`s composed into 64×32 / 64×64 canvases.
 - Linux/macOS media providers (MPRIS / MediaRemote).
