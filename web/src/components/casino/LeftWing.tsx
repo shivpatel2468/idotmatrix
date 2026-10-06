@@ -6,7 +6,7 @@ import { appMeta, toast, useStore } from "../../lib/store";
 import type { JsonSchemaProp } from "../../lib/types";
 import { Slider, Toggle } from "../controls";
 import { NumberInput, Section, Tabs } from "./bits";
-import { type Guide, type House, type HousieStatus, TABLE_THEMES, casinoApps, casinoOp, fmt, useCasino } from "./state";
+import { type Guide, type House, type HousieStatus, TABLE_THEMES, type TableTheme, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
 const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true };
@@ -191,6 +191,7 @@ function ThemePicker({ app }: { app: string | null }) {
   const stored = useStore((s) => (app ? (s.state?.apps?.[app]?.table_theme as string | undefined) : undefined));
   const cur = stored ?? live;
   const [all, setAll] = useState(false);
+  const [peek, setPeek] = useState<string | null>(null); // the hovered / focused swatch: its description shows below
   useStore((s) => s.meta);
   // an engine started before table themes existed silently drops the setting: say so instead of doing nothing
   if (app && appMeta(app) && !appMeta(app)?.schema.properties?.table_theme)
@@ -205,15 +206,20 @@ function ThemePicker({ app }: { app: string | null }) {
   };
   return (
     <>
-      <div className="cz-themes" role="radiogroup" aria-label="Table theme">
+      <div className="cz-themes" role="radiogroup" aria-label="Table theme" onMouseLeave={() => setPeek(null)}>
         {themes.map((t) => (
           <button key={t.id} role="radio" aria-checked={t.id === cur} className="cz-theme" data-on={t.id === cur || undefined} onClick={() => pick(t.id)}
-            style={{ ["--sw-felt" as string]: t.css.felt, ["--sw-felt3" as string]: t.css.felt3, ["--sw-acc" as string]: t.css.accent }}>
+            aria-describedby="cz-theme-desc" onMouseEnter={() => setPeek(t.id)} onFocus={() => setPeek(t.id)} onBlur={() => setPeek(null)}
+            style={{
+              ["--sw-felt" as string]: t.css.felt, ["--sw-felt3" as string]: t.css.felt3, ["--sw-acc" as string]: t.css.accent,
+              ["--sw-pat" as string]: t.css.pattern || "none", ["--sw-pat-size" as string]: t.css.pattern_size || "auto",
+            }}>
             <i aria-hidden />
             <b>{t.name}</b>
           </button>
         ))}
       </div>
+      <ThemeDesc theme={themes.find((t) => t.id === (peek ?? cur))} />
       <div className="cz-row !border-0">
         <div className="min-w-[130px] flex-1">
           <div className="cz-row-label">Every table</div>
@@ -222,6 +228,19 @@ function ThemePicker({ app }: { app: string | null }) {
         <Toggle on={all} onChange={setAll} label="Apply the theme to every table" />
       </div>
     </>
+  );
+}
+
+/** One line on the theme under the pointer / focus (else the current one); an older engine's list has no
+ *  descriptions, so fall back to the studio's mirror. */
+function ThemeDesc({ theme }: { theme: TableTheme | undefined }) {
+  if (!theme) return null;
+  const text = theme.description || TABLE_THEMES.find((x) => x.id === theme.id)?.description || "";
+  return (
+    <p id="cz-theme-desc" className="cz-theme-desc" aria-live="polite">
+      <b>{theme.name}</b>
+      {text ? ` — ${text}` : ""}
+    </p>
   );
 }
 

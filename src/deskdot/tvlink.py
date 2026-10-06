@@ -4,8 +4,9 @@ The studio opens a TV link (`POST /api/tv`) and shows its QR code; a TV browser 
 the scripts in `tv/`), whose socket `/ws/tv/<code>` receives
 
 - `hello` when it connects and whenever the app on the panel changes,
-- `state` — the app's public `status()` (exactly what phones in a lobby get, never `private_status()`) and the
-  lobby snapshot — about 5 times a second when something changed, else a heartbeat every 2 s,
+- `state` — the app's public `status()` (exactly what phones in a lobby get, never `private_status()`), the
+  lobby snapshot and `tv` (the app's `tv_extra()`: TV-only animation anchors, e.g. a casino round's outcome once
+  bets are locked) — about 5 times a second when something changed, else a heartbeat every 2 s,
 - binary frames: the panel, 32×32×3 RGB, at most 12 a second, newest wins (no backlog per TV).
 
 One TV code at a time, never equal to the lobby code. The socket is read-only: a TV can only ping.
@@ -176,12 +177,17 @@ class TvHub:
         """The state without its timestamp (compared to decide whether anything changed)."""
         app_id, app = self._current()
         status: dict[str, Any] = {}
+        tv: dict[str, Any] | None = None
         if app is not None:
             try:
                 status = app.status() or {}  # the public status only — never private_status()
+                extra = getattr(app, "tv_extra", None)  # TV-only animation anchors (casino: the locked round)
+                tv = extra() if callable(extra) else None
             except Exception:
                 log.exception("%s.status() failed", app_id)
-        return json.dumps({"app": app_id, "status": status, "lobby": self.lobby.snapshot()}, default=str)
+        return json.dumps(
+            {"app": app_id, "status": status, "lobby": self.lobby.snapshot(), "tv": tv}, default=str
+        )
 
     @staticmethod
     def _stamp(body: str) -> str:

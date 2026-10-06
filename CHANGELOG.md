@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- 🎨 **14 new casino table themes** (Riviera noir, Imperial jade, Gilded deco, Marigold masala, Festival of lights, Cyber grid, Pixel arcade, Sakura night, Glacier, Desert oasis, Ocean abyss, Volcano, Galaxy, Riverboat mahogany): each a whole concept with LED-tuned panel colours, an
+  AA-checked screen palette and a **felt motif** — the new `pattern` / `pattern_size` theme tokens (pure CSS
+  gradients: clouds, sunburst fans, paisley, rangoli, circuit and pixel grids, petals, frost, tiles, starfield, wood
+  grain…). The original seven got motifs too. Phones draw the motif on every felt and behind the join screen; the
+  studio on the stage felt and wings. The studio's theme picker is a scrolling swatch grid with the motif in each
+  swatch and the theme's one-line description on hover / focus. Themes carry a `description`.
 - Andar Bahar: host option **Winning card** — Value (standard, any suit) or Exact card (same value and suit, dealt
   from a second deck; both sides 0.95:1, bands to 52). Phones replay and explain both.
 - 🎱 **Housie (Tambola), the 10th casino table.** Players buy 1–N tickets into a pot (host: price, max tickets,

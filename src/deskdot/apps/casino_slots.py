@@ -9,6 +9,7 @@ waiting. With nobody spinning the machine shows its last result and a blinking P
 from __future__ import annotations
 
 import math
+import time
 from functools import lru_cache
 from typing import Any
 
@@ -272,6 +273,28 @@ class CasinoSlots(CasinoApp):
         if isinstance(st.get("machine"), dict):  # the phone draws the very same pixel symbols
             st["machine"]["sprites"] = sprite_table(str(st["machine"]["theme"]))
         return st
+
+    def tv_extra(self) -> dict[str, Any] | None:
+        """TV-only: the spin on the panel with all its stops (fixed and staked at the pull, so nothing left to
+        decide) and its clock, so a TV turns the reels exactly with the panel (`reel_pos`)."""
+        if self.settings.view != "live":
+            return None
+        g = self.game
+        now = self.clock()
+        sp = g.now_playing(now)
+        if sp is None or sp.start is None:
+            return None
+        return {
+            "reveal": {
+                "game": "slots",
+                "spin": sp.nonce,
+                "stops": list(sp.stops),
+                "t": round(now - sp.start, 4),
+                "at": round(time.time(), 4),
+                "paused": self.session.paused,
+                "stops_at": list(SPIN_STOPS),
+            }
+        }
 
     def lobby_waiting(self) -> bool:
         g = self.game

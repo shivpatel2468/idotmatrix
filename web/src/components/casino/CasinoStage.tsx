@@ -87,8 +87,8 @@ function HostBar() {
   const phase = st?.phase ?? "idle";
   const ph = PHASE[phase] ?? { label: phase, hint: "", tone: "dim" as const };
   const paused = !!st?.paused;
-  const ends = secondsLeft(st?.ends_in, at);
-  const next = secondsLeft(st?.next_in, at);
+  const ends = secondsLeft(st?.ends_in, at, st?.clock?.ends_at);
+  const next = secondsLeft(st?.next_in, at, st?.clock?.next_at);
   const span = st?.house?.bet_seconds ?? 20;
   const canStart = phase === "idle" || phase === "result";
   const anyBets = Object.keys(st?.totals ?? {}).length > 0;
@@ -157,7 +157,7 @@ function RoundInfo() {
 /** The result, big, while the table shows it. */
 function ResultBanner() {
   const r = useCasino((s) => (s.status?.phase === "result" ? s.status.result : undefined));
-  const next = secondsLeft(useCasino((s) => s.status?.next_in), useCasino((s) => s.at));
+  const next = secondsLeft(useCasino((s) => s.status?.next_in), useCasino((s) => s.at), useCasino((s) => s.status?.clock?.next_at));
   if (!r) return null;
   const winners = r.winners ?? [];
   return (

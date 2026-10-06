@@ -565,7 +565,13 @@ def create_app(cfg: Config) -> FastAPI:
                 if kind == "ping":
                     t = msg.get("t")
                     await sock.send_text(
-                        json.dumps({"type": "pong", "t": t if isinstance(t, (int, float)) else None})
+                        json.dumps(
+                            {
+                                "type": "pong",
+                                "t": t if isinstance(t, (int, float)) else None,
+                                "server_time": time.time(),
+                            }
+                        )
                     )
                 elif kind == "profile" and lobby.room is room:
                     if room.apply_profile(seat, msg):

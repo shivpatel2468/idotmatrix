@@ -77,6 +77,11 @@ class CasinoSevens(CasinoApp):
     Game = Sevens
     Settings = SevensSettings
     table_seconds = 3.6
+    tv_reveal = True
+
+    def tv_reveal_extra(self, outcome: dict[str, Any], nonce: int) -> dict[str, Any]:
+        """The faces each die shows while it tumbles (`dice_at`: flip 0…18), so a TV rolls the same dice."""
+        return {"faces": [[1 + int(cosmetic(nonce, i, k) * 6) for k in range(19)] for i in range(2)]}
 
     def dice_at(self, v: View) -> list[tuple[int, int, int, int]]:
         """[(x, y, face, height)] for both dice at this moment of the roll."""

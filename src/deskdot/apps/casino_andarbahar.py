@@ -65,6 +65,7 @@ class CasinoAndarBahar(CasinoApp):
     Game = AndarBahar
     Settings = AndarBaharSettings
     table_seconds = 3.4
+    tv_reveal = True
 
     def dealt_at(self, v: View) -> tuple[float, int]:
         """(seconds since the deal began, cards dealt so far)."""
