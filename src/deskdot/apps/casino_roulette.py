@@ -10,6 +10,7 @@ animation is smooth and always honest. Rules live in ``deskdot.casino.games.roul
 from __future__ import annotations
 
 import math
+import time
 from typing import Any
 
 import numpy as np
@@ -65,6 +66,17 @@ def _wheel_travel(t: float) -> float:
     return WHEEL_W0 * WHEEL_TAU * (1 - math.exp(-t / WHEEL_TAU)) + DRIFT * t
 
 
+def wheel_step(since_lock: float | None, dt: float) -> float:
+    """How far the wheel turns (anticlockwise) in the `dt` seconds ending `since_lock` after the croupier's spin:
+    the exact integral of DRIFT + WHEEL_W0·e^(−t/WHEEL_TAU), so the TV view (tv-casino.js) gets the same angle
+    from any frame rate."""
+    out = DRIFT * dt
+    if since_lock is not None and since_lock > 0:
+        s0 = max(0.0, since_lock - dt)
+        out += WHEEL_W0 * WHEEL_TAU * (math.exp(-s0 / WHEEL_TAU) - math.exp(-since_lock / WHEEL_TAU))
+    return out
+
+
 class RouletteSettings(CasinoSettings):
     wheel: str = Choice(
         "european",
@@ -88,6 +100,7 @@ class CasinoRoulette(CasinoApp):
     Game = Roulette
     Settings = RouletteSettings
     table_seconds = 3.6
+    tv_reveal = True
 
     def __init__(self, ctx: Any, settings: Any) -> None:
         super().__init__(ctx, settings)
@@ -97,6 +110,19 @@ class CasinoRoulette(CasinoApp):
     @property
     def wheel(self) -> tuple[int, ...]:
         return US_WHEEL if self.game.rules.wheel == "american" else EU_WHEEL
+
+    def tv_extra(self) -> dict[str, Any] | None:
+        """Adds the panel's wheel angle and when it was drawn, so a TV turns the wheel exactly with the panel (the
+        live wheel is integrated frame by frame: `wheel_step`)."""
+        out = super().tv_extra()
+        if self.settings.view != "live" or self._rot_t is None:
+            return out
+        age = max(0.0, self.clock() - self._rot_t)
+        return {**(out or {}), "wheel": {"rot": round(self._rot, 5), "at": round(time.time() - age, 4)}}
+
+    def on_frame(self, v: View, now: float) -> None:
+        # the wheel turns on under the NO MORE BETS card and the QR too, so it never catches up
+        self.wheel_angle(v, now)
 
     # ------------------------------------------------------------- the motion
     def wheel_angle(self, v: View, now: float) -> float:
@@ -108,10 +134,7 @@ class CasinoRoulette(CasinoApp):
             )
         dt = 0.0 if self._rot_t is None else max(0.0, min(0.3, now - self._rot_t))
         self._rot_t = now
-        w = DRIFT
-        if v.since_lock is not None:
-            w += WHEEL_W0 * math.exp(-v.since_lock / WHEEL_TAU)
-        self._rot -= w * dt
+        self._rot -= wheel_step(v.since_lock, dt)
         return self._rot
 
     def ball(self, v: View, rot: float) -> tuple[float, float] | None:

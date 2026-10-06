@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_themes_are_led_safe() -> None:
-    assert "classic" in TABLE_THEMES and len(TABLE_THEMES) >= 7
+    assert "classic" in TABLE_THEMES and len(TABLE_THEMES) >= 19
     for t in TABLE_THEMES.values():
         if t is not CLASSIC:  # classic keeps the original look byte for byte
             for k in (
@@ -193,9 +193,9 @@ def test_studio_theme_list_mirrors_the_engine() -> None:
     from deskdot.apps._casino import TABLE_THEMES
 
     ts = (Path(__file__).parents[1] / "web/src/components/casino/state.ts").read_text(encoding="utf-8")
-    rows = re.findall(r'\{ id: ("[^"]+"), name: ("[^"]+"), css: (\{[^}]*\}) \}', ts)
-    studio = {json.loads(i): (json.loads(n), json.loads(c)) for i, n, c in rows}
-    assert studio == {k: (t.name, t.css) for k, t in TABLE_THEMES.items()}
+    rows = re.findall(r'\{ id: ("[^"]+"), name: ("[^"]+"), description: ("[^"]*"), css: (\{[^}]*\}) \}', ts)
+    studio = {json.loads(i): (json.loads(n), json.loads(d), json.loads(c)) for i, n, d, c in rows}
+    assert studio == {k: (t.name, t.description, t.css) for k, t in TABLE_THEMES.items()}
 
 
 # ------------------------------------------------------------------ the theme on every surface (phone + studio)
@@ -323,3 +323,58 @@ def test_studio_casino_follows_the_theme_everywhere() -> None:
     body = ts[ts.index("export function themeVars") :]
     for k in CLASSIC.css:
         assert f"c.{k}" in body, f"state.ts themeVars/pageVars: {k}"
+
+
+# ------------------------------------------------------------------ the felt's motif (css.pattern)
+def _layers(value: str) -> list[str]:
+    """Top-level comma-separated layers of a CSS background value."""
+    out, depth, cur = [], 0, ""
+    for ch in value:
+        depth += ch == "("
+        depth -= ch == ")"
+        if ch == "," and depth == 0:
+            out.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    return [*out, cur.strip()]
+
+
+def test_every_theme_has_a_concept_and_a_gradient_only_pattern() -> None:
+    gradient = re.compile(r"(repeating-)?(linear|radial|conic)-gradient\(.*\)", re.S)
+    names = set()
+    for t in TABLE_THEMES.values():
+        assert t.description and len(t.description) <= 120 and '"' not in t.description, t.id
+        assert t.name not in names, t.id
+        names.add(t.name)
+        pat, size = t.css["pattern"], t.css["pattern_size"]
+        assert pat != "none", (t.id, "every table has a motif")
+        assert "url(" not in pat.lower() and "image-set" not in pat and "element(" not in pat, t.id
+        assert "}" not in pat and '"' not in pat and ";" not in pat, (
+            t.id
+        )  # safe inside a style / the TS mirror
+        layers = _layers(pat)
+        assert all(gradient.fullmatch(layer) for layer in layers), (t.id, layers)
+        assert pat.count("(") == pat.count(")"), t.id
+        assert len(_layers(size)) == len(layers), (t.id, "one background-size entry per pattern layer")
+        assert all(re.fullmatch(r"auto|[\d.]+px [\d.]+px", s) for s in _layers(size)), (t.id, size)
+        for a in re.findall(r"rgba\([^)]*,\s*([\d.]+)\)", pat):  # subtle: the felt stays the felt
+            assert float(a) <= 0.36, (t.id, a)
+
+
+def test_the_pattern_reaches_the_phone_and_the_studio() -> None:
+    html = PHONE.read_text(encoding="utf-8")
+    assert "--pat:none;--pat-size:auto;" in html
+    assert 'st.setProperty("--pat", css.pattern)' in html
+    style = html[html.index("<style>") : html.index("</style>")]
+    for sel in (".rt .felt{", ".tray{", ".pv-felt{", ".hz-top{", ".hg-felt{", "#s-join::before{"):
+        rule = style[style.index(sel) :]
+        rule = rule[: rule.index("}")]
+        assert "var(--pat)" in rule, sel
+    css = STUDIO_CSS.read_text(encoding="utf-8")
+    for sel in (".cz-table {", ".cz-board {", ".cz-wing::before {", ".cz-theme > i {"):
+        rule = css[css.index(sel) :]
+        rule = rule[: rule.index("}")]
+        assert "-pat" in rule, sel
+    ts = STUDIO_TS.read_text(encoding="utf-8")
+    assert '"--cz-pat": c.pattern' in ts and '"--cz-pat-size": c.pattern_size' in ts

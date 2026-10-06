@@ -72,7 +72,7 @@ export function useCasinoSounds(app: string | null) {
     const iv = window.setInterval(() => {
       const { status, at } = useCasino.getState();
       if (status?.phase !== "betting" || status.paused) return;
-      const left = secondsLeft(status.ends_in, at);
+      const left = secondsLeft(status.ends_in, at, status.clock?.ends_at);
       const n = left == null ? 0 : Math.ceil(left);
       if (n >= 1 && n <= 3 && n !== lastTick) sfx("tick");
       lastTick = n;

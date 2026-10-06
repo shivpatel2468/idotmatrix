@@ -355,9 +355,38 @@ same pixel symbols (`machine.sprites`) and lands its reels on the revealed stops
 ## 11. Table themes and the rulebook
 
 **Table themes.** Every casino app has a `table_theme` setting (group "Look", default `classic` = the original
-look): `classic` (green felt + gold), `royal` (deep blue + gold), `crimson` (red velvet + brass), `midnight` (purple
-neon), `strip` (neon pink + cyan), `emerald` (dark emerald + champagne), `burgundy` (burgundy + ivory). The palettes
-live in one place, `TABLE_THEMES` in `apps/_casino.py`:
+look). Twenty-one tables, each a whole concept — felt, metal, a motif woven into the felt — tuned twice: for the
+LEDs (saturated, every dark tone lit) and for screens (AA contrast). No brand names: they're imaginary rooms.
+
+| id | Name | Concept | Palette (screen felt · accent · LED accent) | Felt motif |
+| --- | --- | --- | --- | --- |
+| `classic` | Classic green | The original: green baize with a fine twill and gold trim. | felt `#0d6b45` · accent `#ffcc33` · LED accent `(255, 200, 30)` | fine baize twill |
+| `royal` | Royal blue | Deep blue baize under a gold diamond lattice, like a palace card room. | felt `#1b4aa8` · accent `#ffcc33` · LED accent `(255, 205, 50)` | gold diamond lattice |
+| `crimson` | Crimson velvet | Red velvet with brass medallions: an old-world salon. | felt `#8c1a2e` · accent `#e8b04a` · LED accent `(235, 175, 60)` | brass medallions |
+| `midnight` | Midnight neon | Violet after-hours felt with faint neon scan lines. | felt `#3a1d72` · accent `#c77dff` · LED accent `(190, 90, 255)` | neon scan lines |
+| `strip` | Neon strip | Hot-pink boulevard felt with a neon chevron and cyan sparks. | felt `#5a1260` · accent `#ff3fb0` · LED accent `(255, 50, 170)` | neon chevron |
+| `emerald` | Emerald & champagne | Dark emerald with a champagne harlequin check: the high-limit room. | felt `#0b5a43` · accent `#f1dca0` · LED accent `(250, 215, 140)` | champagne harlequin check |
+| `burgundy` | Burgundy & ivory | Burgundy felt quilted in ivory thread, like a members' club. | felt `#6b1f36` · accent `#f4ead2` · LED accent `(245, 232, 200)` | ivory quilting |
+| `noir` | Riviera noir | Black baize, silver rails and champagne pinstripes: a seaside salon after midnight. | felt `#26282e` · accent `#e8d7a8` · LED accent `(232, 214, 168)` | champagne + silver pinstripes |
+| `jade` | Imperial jade | Deep jade felt, red-gold trim and rolling auspicious clouds. | felt `#0c6655` · accent `#f2c14e` · LED accent `(255, 190, 40)` | auspicious cloud scallops |
+| `deco` | Gilded deco | Jazz-age black lacquer with gold sunburst fans. | felt `#24211b` · accent `#e9c46a` · LED accent `(255, 195, 60)` | gold sunburst fans |
+| `marigold` | Marigold masala | Magenta silk felt, saffron gold and a scatter of paisley buds — the big-screen wedding table. | felt `#7c1452` · accent `#ffa21f` · LED accent `(255, 150, 20)` | paisley buds |
+| `diwali` | Festival of lights | Deep maroon felt, diya-gold flames and a rangoli of dots. | felt `#6a1424` · accent `#ffbf3c` · LED accent `(255, 180, 40)` | rangoli dots on a lattice |
+| `cyber` | Cyber grid | Graphite felt traced with a teal circuit grid and magenta nodes. | felt `#1f2a33` · accent `#2ff3e0` · LED accent `(40, 240, 220)` | circuit grid with magenta nodes |
+| `arcade` | Pixel arcade | Cabinet-black felt on a neon-green pixel grid, coin-yellow chips. | felt `#14201a` · accent `#39ff6a` · LED accent `(40, 255, 90)` | 8 px pixel grid + checker |
+| `sakura` | Sakura night | Indigo felt under drifting blossom-pink petals. | felt `#26306e` · accent `#ffa3c7` · LED accent `(255, 120, 170)` | drifting petals |
+| `arctic` | Glacier | Glacier-blue felt with silver frost crystals, like a table carved in ice. | felt `#164e6c` · accent `#d8ecf6` · LED accent `(190, 235, 255)` | frost-crystal lattice |
+| `oasis` | Desert oasis | Turquoise pool felt framed in sand gold, laid with star-and-diamond tiles. | felt `#0d5c63` · accent `#f0cf8e` · LED accent `(255, 200, 110)` | star-and-diamond tiles |
+| `abyss` | Ocean abyss | Deep-sea teal with bioluminescent aqua sparks and rising bubbles. | felt `#08424f` · accent `#5cf2ff` · LED accent `(60, 240, 255)` | bioluminescent sparks + bubbles |
+| `volcano` | Volcano | Charcoal basalt felt split by glowing lava seams. | felt `#2e2420` · accent `#ff6a1f` · LED accent `(255, 100, 20)` | lava seams |
+| `galaxy` | Galaxy | Deep-space purple felt scattered with a cyan starfield. | felt `#2a1a55` · accent `#59e3ff` · LED accent `(80, 220, 255)` | starfield |
+| `riverboat` | Riverboat mahogany | Paddle-steamer mahogany grain with polished brass and ivory chips. | felt `#5a2e1c` · accent `#d9a648` · LED accent `(240, 170, 50)` | mahogany wood grain |
+
+A light felt (an ivory "baccarat cream" table, say) doesn't fit the model: text on felt must read (`felt_ink` AA) and
+the LED felt would wash out the chrome, so every felt is a deep tone and light colours live in the accent.
+
+The palettes live in one place, `TABLE_THEMES` in `apps/_casino.py` (each theme also has a one-line `description`,
+in `public()` and the studio's picker):
 - **Panel:** `TableTheme` holds LED colours (accent, accent_dim, text, alert, chip, rim, wood, felt, felt_dark; every
   dark tone ≥ 45 so it stays lit). `CasinoApp.th` is the active theme; the betting board, the waiting chip, the timer
   bar, NO MORE BETS, the paused card, the win bulbs, the history highlight, the roulette rim / ball track, the Big Six
@@ -378,8 +407,18 @@ live in one place, `TABLE_THEMES` in `apps/_casino.py`:
   view closed and stays classic gold. Both register the colours with `@property`, so a change cross-fades (instant
   with reduced motion). Classic sets nothing — the stylesheets are the classic look (a test checks the registered
   initial values equal classic's tokens, that no warm accent literal is left outside the token blocks, and the
-  contrast of every theme). The studio's House tab has a theme picker (swatches from the host view's
-  `themes`), optionally applied to every table; the setting is also in the normal schema form.
+  contrast of every theme). The studio's House tab has a theme picker (a scrolling grid of swatches from the host
+  view's `themes`, each showing the felt, its motif and the accent; the hovered / focused theme's description shows
+  under the grid), optionally applied to every table; the setting is also in the normal schema form.
+- **The felt's motif** (`css.pattern` + `css.pattern_size`): a CSS `background-image` made **only of gradients**
+  (`linear` / `radial` / `conic`, plain or `repeating-`; no `url()`, no images) at low alpha (≈ 4–16 %, tiny stars up
+  to ~35 %), and its `background-size` with **one entry per layer** (`auto` or `Wpx Hpx`) — so a consumer can put it
+  on top of its own felt gradient as `background: <pattern>, <felt>; background-size: <pattern_size>, 100% 100%`.
+  Every theme has one (classic too; `_css()` defaults to `none` / `auto`). The phone sets `--pat` / `--pat-size` for
+  every theme in `applyTheme` and draws them on the felt surfaces (roulette felt, dice tray, poker / Teen Patti felt,
+  Housie top, blackjack / baccarat felt) and, fading out, behind the join screen; the studio maps them to
+  `--cz-pat` / `--cz-pat-size` (`themeVars`) on the stage felt (`.cz-table`), the play board and, faintly (35 %), the
+  wings. `tests/test_casino_themes.py` checks gradient-only layers, the size count and the alpha cap.
 
 **Rulebook.** "How to play" (3–6 steps for a first-timer) and the rules of every game — and of Rock Paper Scissors —
 live in **one** place, `casino/rulebook.py` (`GUIDES`; `**bold**` is the only markup). Payouts there are checked

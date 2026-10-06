@@ -50,11 +50,17 @@ class BigSixSettings(CasinoSettings):
     pass
 
 
-def wheel_angle(since_spin: float, segment: int, nonce: int) -> float:
-    """Rotation of the wheel (radians, clockwise) `since_spin` seconds after the croupier's spin."""
+def wheel_params(segment: int, nonce: int) -> tuple[float, float]:
+    """(end angle, travel) of a round's spin: where it stops (inside the drawn segment) and how far it turns."""
     off = (cosmetic(nonce, "b6") - 0.5) * 0.6 * SEG  # rest somewhere inside the segment, not dead centre
     end = -(segment + 0.5) * SEG + off
     travel = 2 * math.pi * (3 + cosmetic(nonce, "turns")) + 0.0
+    return end, travel
+
+
+def wheel_angle(since_spin: float, segment: int, nonce: int) -> float:
+    """Rotation of the wheel (radians, clockwise) `since_spin` seconds after the croupier's spin."""
+    end, travel = wheel_params(segment, nonce)
     u = max(0.0, min(1.0, since_spin / SPIN_T))
     return end - travel * (1 - u) ** 2
 
@@ -127,6 +133,11 @@ class CasinoBigSix(CasinoApp):
     Game = BigSix
     Settings = BigSixSettings
     table_seconds = 3.4
+    tv_reveal = True
+
+    def tv_reveal_extra(self, outcome: dict[str, Any], nonce: int) -> dict[str, Any]:
+        end, travel = wheel_params(int(outcome["segment"]), nonce)
+        return {"end": round(end, 6), "travel": round(travel, 6), "stop_s": SPIN_T}
 
     @property
     def edge(self) -> RGB3:
