@@ -11,8 +11,8 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 **How to play**
 
 1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
-2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
-3. Tap the table to bet: a number for a straight bet, the line between two numbers for a split, a corner for four numbers, or an outside box (red/black, odd/even, dozens, columns). Hold a finger on a spot to see what it covers and what it pays.
+2. Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have.
+3. Tap or drag a chip onto the table: a number for a straight bet, the line between two numbers for a split, the point where four numbers meet for a corner, the outer edge of a row for a street (two rows: six line), or an outside box (red/black, odd/even, dozens, columns). Hold a finger on a spot to see what it covers and what it pays.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
 5. **No more bets** — the panel spins the wheel. Winning bets are paid to your credits automatically.
 
@@ -65,7 +65,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 **How to play**
 
 1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
-2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
+2. Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have.
 3. Tap one of the three zones: **UNDER 7**, **LUCKY 7** or **OVER 7**. You can bet on more than one.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
 5. The panel rolls two dice. The zone that matches the total pays out.
@@ -158,7 +158,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 **How to play**
 
 1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
-2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
+2. Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have.
 3. Tap **PLAYER**, **BANKER** or **TIE**, and if you like a pair side bet. Player and Banker are just the two hands' names — you can back either.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
 5. The panel deals both hands by fixed rules — there is nothing to decide. The hand closest to 9 wins.
@@ -208,7 +208,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 **How to play**
 
 1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
-2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
+2. Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have.
 3. Tap **ANDAR** (inside) or **BAHAR** (outside). You can also bet on how many cards it takes.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
 5. At the lock the joker is turned up. Cards are dealt to Andar and Bahar in turn until one matches the joker's **value — any suit** (a 7♥ joker is matched by any 7) — that side wins.
@@ -254,7 +254,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 **How to play**
 
 1. Scan the QR code on the panel with your phone camera, pick a name, colour and character, and tap **Sit down**.
-2. Pick a chip value in the rack at the bottom (1, 5, 25, 100, 500 or ALL).
+2. Pick a chip in the rack at the bottom. The rack shows only the chips this table allows (between the table minimum and maximum, e.g. 1K, 2K, 5K at a high-roller table), plus **ALL** for everything you have.
 3. Tap the symbol you think the wheel will stop on: **1**, **2**, **5**, **10**, **20**, **Joker** or **Logo**. Rarer symbols pay more.
 4. Your first chip starts the countdown. **Undo**, **Clear** and **Rebet** fix your bets; tap **Done** when you're ready — the table locks at zero or once everyone is done.
 5. The panel spins the wheel; the leather clapper picks the winning segment.

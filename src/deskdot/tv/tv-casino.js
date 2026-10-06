@@ -1,9 +1,11 @@
 /* DeskDot TV view — the casino tables (docs/TV_VIEW.md §4, docs/CASINO.md).
  *
  * One bespoke 1920×984 broadcast scene per casino game: roulette, blackjack, baccarat, slots, Texas hold'em,
- * teen patti, andar bahar, big six, 7 up 7 down and housie. Each scene is one canvas redrawn every animation frame
- * over a cached background (felt, printed layout, rail), in the table's theme (status.table_theme → ctx.theme), plus
- * the live LED panel as a small inset in the right-hand rail.
+ * teen patti, andar bahar, big six, 7 up 7 down and housie. Each scene is a table layer redrawn only when something on
+ * it changed, over a cached background (felt, printed layout, rail), with the moving parts (wheels, balls, dice,
+ * reels, stamps, countdown rings) in small canvases of their own moved by transforms, in the table's theme
+ * (status.table_theme → ctx.theme), plus the live panel as a small inset in the right-hand rail. Chips follow the
+ * table's chip ladder (status.chips). The lite tier (TV.quality) drops blurred shadows and glows (docs/TV_VIEW.md §6).
  *
  * Only public information is drawn — it is all the TV receives: the public casino status phones get (spot_bets,
  * totals, players, history, the result after the reveal, face-up cards; hole cards only at a showdown).
@@ -100,6 +102,95 @@
     return Number.isFinite(v) ? Math.round(v).toLocaleString("en-US") : "–";
   }
   const signed = (S, n) => (n > 0 ? "+" : n < 0 ? "−" : "±") + fmt(S, Math.abs(n));
+
+  /** The lite tier (tv.js TV.quality): no blurred shadows / glows, fewer particles, canvases at 3/4 resolution. */
+  const lite = () => !!(TV && TV.quality === "lite");
+  /** A soft glow / shadow — hq only (shadowBlur is the most expensive thing a canvas does on a TV stick). */
+  function glowOn(g, color, blur, oy) {
+    if (lite()) return false;
+    g.shadowColor = color;
+    g.shadowBlur = blur;
+    if (oy) g.shadowOffsetY = oy;
+    return true;
+  }
+
+  // ================================================================================================ the chip ladder
+  // casino/chips.py LADDER / chip_rack / break_into, copied (docs/CASINO.md §5): the TV reads status.chips and falls
+  // back to this when an older engine doesn't send it. value, label, chip colour, edge-stripe colour.
+  const LADDER = [
+    [1, "1", "#f2efe8", "#2b6cd6"], [5, "5", "#d23a3a", "#ffffff"], [25, "25", "#2e9a55", "#ffffff"],
+    [100, "100", "#1c1c22", "#e8e8e8"], [500, "500", "#7b3fc4", "#ffffff"], [1000, "1K", "#f2c230", "#5a3d00"],
+    [2000, "2K", "#e85d9f", "#ffffff"], [5000, "5K", "#c9772b", "#ffffff"], [10000, "10K", "#2f6fd6", "#ffffff"],
+    [25000, "25K", "#18a39a", "#ffffff"], [50000, "50K", "#9a2f4d", "#ffd36b"], [100000, "100K", "#c9a227", "#1c1c22"],
+    [250000, "250K", "#5b2a86", "#ffd36b"], [500000, "500K", "#0f3d2e", "#ffd36b"], [1000000, "1M", "#111111", "#ffd36b"],
+  ]; // fmt: skip
+  const RACK_MAX = 7;
+
+  /** A chip amount with K / M (casino/chips.py short): 1000 → 1K, 2500 → 2.5K, 1250 → 1.25K, 750 → 750. */
+  function shortChip(v) {
+    v = Math.round(num(Number(v)));
+    const a = Math.abs(v);
+    for (const [unit, suf] of [[1e6, "M"], [1e3, "K"]]) {
+      if (a >= unit) return (v / unit).toFixed(2).replace(/0+$/, "").replace(/\.$/, "") + suf;
+    }
+    return String(v);
+  }
+  /** Python's round(): halves go to the even neighbour (chip_rack picks its rack with it). */
+  function pyRound(x) {
+    const f = Math.floor(x);
+    const d = x - f;
+    if (Math.abs(d - 0.5) < 1e-9) return f % 2 === 0 ? f : f + 1;
+    return Math.round(x);
+  }
+  const chipOf = (c) => ({ v: c[0], label: c[1], color: c[2], edge: c[3] });
+
+  /** casino/chips.py chip_rack: the chips a table offers, smallest first, at most RACK_MAX. */
+  function chipRack(minBet, maxBet) {
+    const lo = Math.max(1, Math.floor(num(Number(minBet), 1)));
+    const hi = Math.max(lo, Math.floor(num(Number(maxBet), lo)));
+    const allowed = LADDER.filter((c) => lo <= c[0] && c[0] <= hi).map(chipOf);
+    if (!allowed.length || allowed[0].v !== lo) {
+      const above = LADDER.find((c) => c[0] > lo) || LADDER[LADDER.length - 1];
+      allowed.unshift({ v: lo, label: shortChip(lo), color: above[2], edge: above[3] });
+    }
+    const n = allowed.length;
+    if (n <= RACK_MAX) return allowed;
+    const picks = [...new Set(Array.from({ length: RACK_MAX }, (_, i) => pyRound((i * (n - 1)) / (RACK_MAX - 1))))].sort((a, b) => a - b);
+    return picks.map((i) => allowed[i]);
+  }
+
+  /** The table's rack: status.chips when the engine sends a valid one, else the same rack computed here. */
+  function rackOf(st) {
+    const c = arr(st && st.chips).filter((x) => x && typeof x.v === "number" && x.v > 0 && typeof x.color === "string");
+    if (c.length) return c.map((x) => ({ v: x.v, label: String(x.label || shortChip(x.v)), color: x.color, edge: x.edge || "#ffffff" }));
+    const h = obj(st && st.house);
+    return chipRack(num(h.min_bet, 1), num(h.max_bet, 500));
+  }
+
+  /** An amount as chip values, largest first: greedy over the ladder (plus the rack's off-ladder table minimum). */
+  function breakInto(amount, rack) {
+    const vals = [...new Set([...LADDER.map((c) => c[0]), ...arr(rack).map((c) => c.v)])].sort((a, b) => b - a);
+    const out = [];
+    let left = Math.max(0, Math.round(num(Number(amount))));
+    for (const v of vals) {
+      while (left >= v && out.length < 64) {
+        out.push(v);
+        left -= v;
+      }
+    }
+    if (left > 0) out.push(left);
+    return out;
+  }
+
+  /** {color, edge, label} for a chip value: the rack's own chip, else the ladder's, else coloured like the next up. */
+  function chipStyle(v, rack) {
+    const r = arr(rack).find((c) => c.v === v);
+    if (r) return r;
+    const l = LADDER.find((c) => c[0] === v);
+    if (l) return chipOf(l);
+    const above = LADDER.find((c) => c[0] > v) || LADDER[LADDER.length - 1];
+    return { v, label: shortChip(v), color: above[2], edge: above[3] };
+  }
 
   // ================================================================================================ timing
   /**
@@ -428,17 +519,23 @@
     g.textAlign = o.align || "left";
     g.textBaseline = o.base || "alphabetic";
     if (o.alpha != null) g.globalAlpha *= o.alpha;
-    if (o.glow) {
-      g.shadowColor = o.glow;
-      g.shadowBlur = o.glowBlur || size * 0.45;
-    } else if (o.shadow !== false) {
-      g.shadowColor = "rgba(0,0,0,.55)";
-      g.shadowBlur = size * 0.12;
-      g.shadowOffsetY = Math.max(1, size * 0.05);
+    const str = String(s);
+    let glowing = false;
+    if (o.glow) glowing = glowOn(g, o.glow, o.glowBlur || size * 0.45);
+    if (!glowing && o.shadow !== false) {
+      // a hard drop shadow: the text once more, offset and dark — no blur (a blurred shadow per text is the
+      // costliest thing on a TV stick, and at 3 m it reads the same)
+      const dy = Math.max(1, size * 0.05);
+      const a = g.globalAlpha;
+      g.globalAlpha = a * 0.5;
+      g.fillStyle = "#000";
+      if (o.maxW) g.fillText(str, x, y + dy, o.maxW);
+      else g.fillText(str, x, y + dy);
+      g.globalAlpha = a;
     }
     g.fillStyle = color;
-    if (o.maxW) g.fillText(String(s), x, y, o.maxW);
-    else g.fillText(String(s), x, y);
+    if (o.maxW) g.fillText(str, x, y, o.maxW);
+    else g.fillText(str, x, y);
     g.restore();
   }
   function measure(g, s, size, o) {
@@ -480,11 +577,58 @@
     g.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(frac, 0, 1));
     g.strokeStyle = color;
     g.lineCap = "round";
-    g.shadowColor = color;
-    g.shadowBlur = 16;
+    glowOn(g, color, 16);
     g.stroke();
     g.restore();
     if (label != null) txt(g, label, x, y + r * 0.2, r * 0.62, INK1, { align: "center", font: "mono", weight: 700 });
+  }
+
+  /**
+   * A countdown ring that sweeps smoothly: drawn into a small canvas of its own every animation frame (so the big
+   * table layer doesn't have to redraw for it). `left` s were left at local time `t` out of `span`; it turns
+   * `low` under `lowBelow` s. Rings drawn with hudRing in a table redraw stay; the others are hidden after it.
+   */
+  function hudRing(S, id, x, y, r, o) {
+    S.hud = S.hud || new Map();
+    let h = S.hud.get(id);
+    const pad = 14;
+    const D = 2 * (r + pad);
+    if (!h || h.r !== r || h.k !== S.k) {
+      if (h) h.l.c.remove();
+      const l = layer(S.root, x - D / 2, y - D / 2, D, D, S.k, false);
+      h = { l, r, k: S.k, key: "" };
+      S.hud.set(id, h);
+    }
+    if (h.x !== x || h.y !== y) {
+      h.l.c.style.left = `${x - D / 2}px`;
+      h.l.c.style.top = `${y - D / 2}px`;
+      h.x = x;
+      h.y = y;
+    }
+    Object.assign(h, { seen: S.drawGen, t0: S.t, left: o.left, span: o.span || 1, color: o.color, low: o.low || o.color,
+      lowBelow: o.lowBelow || 0, label: o.label !== false, width: o.width }); // fmt: skip
+    h.l.c.style.display = "";
+  }
+  /** Every frame: sweep the rings (redrawing one only when it visibly moved); hide the ones no longer drawn. */
+  function hudFrame(S, t) {
+    if (!S.hud) return;
+    for (const h of S.hud.values()) {
+      if (h.seen !== S.drawGen) {
+        if (h.l.c.style.display !== "none") h.l.c.style.display = "none";
+        continue;
+      }
+      const left = h.left == null ? null : Math.max(0, h.left - (t - h.t0));
+      const frac = left == null ? 1 : clamp(left / h.span, 0, 1);
+      const label = h.label && left != null ? Math.ceil(left - 1e-6) : null;
+      const color = left != null && left < h.lowBelow ? h.low : h.color;
+      const key = `${Math.round(frac * (lite() ? 120 : 360))}|${label}|${color}`; // ≈ 1–3 px of arc per step
+      if (key === h.key) continue;
+      h.key = key;
+      const l = h.l;
+      l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+      l.g.clearRect(0, 0, l.w, l.h);
+      ring(l.g, l.w / 2, l.h / 2, h.r, frac, color, label, { width: h.width });
+    }
   }
 
   // suits drawn as paths (no font dependence)
@@ -630,9 +774,12 @@
     if (o.rot) g.rotate(o.rot);
     if (o.alpha != null) g.globalAlpha *= o.alpha;
     g.scale(Math.max(0.02, sx), 1);
-    if (o.glow) {
-      g.shadowColor = o.glow;
-      g.shadowBlur = 28;
+    if (o.glow && !glowOn(g, o.glow, 28)) {
+      // lite: a crisp outline instead of the soft glow
+      rr(g, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8, w * 0.12);
+      g.lineWidth = 4;
+      g.strokeStyle = o.glow;
+      g.stroke();
     }
     g.drawImage(im, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
     if (o.dim) {
@@ -672,59 +819,127 @@
     return { x: lerp(fx, x, e), y: lerp(fy, y, e) - Math.sin(u * Math.PI) * 40, flip: clamp((u - 0.35) / 0.65, 0, 1), rot: (1 - e) * -0.5 };
   }
 
-  // chips: a casino chip in the player's colour with white edge inserts
-  function chip(g, x, y, r, color, label, o) {
-    o = o || {};
+  // chips: a casino chip — body and edge inserts in the ladder's colours (casino/chips.py), an inlay that can carry a
+  // player's colour and the amount. Pre-rendered once per look as a sprite (drop shadow baked in), then stamped.
+  const chipCache = new Map();
+  function chipSprite(r, color, edge, inlay, label, k, glow) {
+    const key = `${r}|${color}|${edge}|${inlay || ""}|${label == null ? "" : label}|${k}|${glow || ""}|${lite() ? 1 : 0}`;
+    let c = chipCache.get(key);
+    if (c) return c;
+    if (chipCache.size > 500) chipCache.clear();
+    const pad = Math.ceil(r * 0.6) + (glow ? Math.ceil(r * 0.5) : 0);
+    const D = 2 * (r + pad);
+    const m = makeCanvas(D, D, k);
+    const g = m.g;
+    const x = D / 2;
+    const y = D / 2;
+    if (glow) {
+      g.save();
+      if (!glowOn(g, glow, r * 0.9)) {
+        circle(g, x, y, r * 1.18);
+        g.fillStyle = rgba(glow, 0.35);
+        g.fill();
+      }
+      circle(g, x, y, r * 1.04);
+      g.lineWidth = Math.max(2, r * 0.12);
+      g.strokeStyle = glow;
+      g.stroke();
+      g.restore();
+    }
+    // drop shadow (soft once, here), body with a little light from the top left
     g.save();
-    if (o.alpha != null) g.globalAlpha *= o.alpha;
-    g.shadowColor = "rgba(0,0,0,.55)";
-    g.shadowBlur = r * 0.35;
-    g.shadowOffsetY = r * 0.12;
+    if (!glowOn(g, "rgba(0,0,0,.55)", r * 0.35, r * 0.12)) {
+      circle(g, x, y + r * 0.12, r * 1.02);
+      g.fillStyle = "rgba(0,0,0,.35)";
+      g.fill();
+    }
     circle(g, x, y, r);
     g.fillStyle = color;
     g.fill();
     g.restore();
-    g.save();
-    if (o.alpha != null) g.globalAlpha *= o.alpha;
+    const lg = g.createRadialGradient(x - r * 0.4, y - r * 0.45, r * 0.1, x, y, r);
+    lg.addColorStop(0, "rgba(255,255,255,.22)");
+    lg.addColorStop(0.6, "rgba(255,255,255,0)");
+    lg.addColorStop(1, "rgba(0,0,0,.22)");
+    circle(g, x, y, r);
+    g.fillStyle = lg;
+    g.fill();
+    // the edge inserts
     g.lineWidth = r * 0.22;
-    g.strokeStyle = "rgba(255,255,255,.92)";
+    g.strokeStyle = edge;
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * TAU + 0.26;
       g.beginPath();
       g.arc(x, y, r * 0.86, a, a + 0.42);
       g.stroke();
     }
+    // the inlay
+    const ink = inlay || shade(color, 0.86);
     circle(g, x, y, r * 0.62);
-    g.fillStyle = shade(color, 0.82);
+    g.fillStyle = ink;
     g.fill();
     g.lineWidth = Math.max(1, r * 0.06);
     g.setLineDash([r * 0.16, r * 0.12]);
-    g.strokeStyle = "rgba(255,255,255,.65)";
+    g.strokeStyle = rgba(edge, 0.75);
     circle(g, x, y, r * 0.55);
     g.stroke();
     g.setLineDash([]);
-    if (o.glow) {
-      g.shadowColor = o.glow;
-      g.shadowBlur = r;
-      circle(g, x, y, r * 1.02);
-      g.lineWidth = 3;
-      g.strokeStyle = o.glow;
-      g.stroke();
-    }
-    g.restore();
+    circle(g, x, y, r - 0.5);
+    g.lineWidth = 1;
+    g.strokeStyle = "rgba(0,0,0,.35)";
+    g.stroke();
     if (label != null && label !== "") {
-      const [rr2, gg, bb] = hexRgb(color);
+      const [rr2, gg, bb] = hexRgb(inlay || color); // the inlay is the owner's colour, or the chip's own a shade darker
       const light = rr2 * 0.3 + gg * 0.59 + bb * 0.11 > 150;
       const s = String(label);
-      const size = r * (s.length >= 4 ? 0.5 : s.length === 3 ? 0.6 : 0.72);
-      txt(g, s, x, y + size * 0.36, size, light ? "#141414" : "#ffffff", { align: "center", font: "mono", weight: 800, shadow: false, alpha: o.alpha });
+      const size = r * (s.length >= 5 ? 0.42 : s.length === 4 ? 0.5 : s.length === 3 ? 0.6 : 0.72);
+      txt(g, s, x, y + size * 0.36, size, light ? "#141414" : "#ffffff", { align: "center", font: "mono", weight: 800, shadow: false });
+    }
+    c = { c: m.c, D };
+    chipCache.set(key, c);
+    return c;
+  }
+
+  /** One chip at (x, y). o: {alpha, glow, edge, inlay}. */
+  function chip(g, x, y, r, color, label, o) {
+    o = o || {};
+    const sp = chipSprite(r, color, o.edge || "#ffffff", o.inlay || null, label, chipK(g), o.glow || null);
+    const a = g.globalAlpha;
+    if (o.alpha != null) g.globalAlpha = a * o.alpha;
+    g.drawImage(sp.c, x - sp.D / 2, y - sp.D / 2, sp.D, sp.D);
+    g.globalAlpha = a;
+  }
+  /** The device px per stage px a context draws at (its transform's scale; 1 in tests). */
+  function chipK(g) {
+    try {
+      const m = g.getTransform && g.getTransform();
+      const k = m && typeof m.a === "number" ? Math.hypot(m.a, m.b) : 1;
+      return Math.round(clamp(k, 0.5, 3) * 4) / 4;
+    } catch (e) {
+      return 1;
     }
   }
-  const shortAmt = (v) => (v >= 1e6 ? `${Math.round(v / 1e5) / 10}M` : v >= 1e4 ? `${Math.round(v / 100) / 10}K` : String(v));
 
   /**
-   * Everyone's chips on one spot: one chip per player in their colour, fanned, the amount on each and a stack height
-   * that grows with the amount. New chips drop in. o: {r, sweep (0..1 → slides to `to`, fades), glow, to: [x, y]}.
+   * A stack worth `amount`: the amount broken into ladder chips (largest at the bottom), the top chip's inlay in the
+   * owner's colour with the total on it. o: {alpha, glow, rack}.
+   */
+  function stack(S, g, x, y, r, amount, owner, o) {
+    o = o || {};
+    const parts = breakInto(amount, o.rack || S.rack).slice(0, 8);
+    if (!parts.length) return;
+    const n = parts.length;
+    for (let j = 0; j < n - 1; j++) {
+      const cs = chipStyle(parts[j], o.rack || S.rack);
+      chip(g, x, y + (n - 1 - j) * r * 0.17, r, cs.color, null, { alpha: o.alpha, edge: cs.edge });
+    }
+    const top = chipStyle(parts[n - 1], o.rack || S.rack);
+    chip(g, x, y, r, top.color, shortChip(amount), { alpha: o.alpha, edge: top.edge, inlay: owner || null, glow: o.glow });
+  }
+
+  /**
+   * Everyone's chips on one spot: a stack per player (their colour on the inlay), fanned, the amount on each, broken
+   * into the ladder's chips. New chips drop in. o: {r, sweep (0..1 → slides to `to`, fades), glow, to: [x, y]}.
    */
   function spotChips(S, g, spot, entries, x, y, t, o) {
     o = o || {};
@@ -736,8 +951,10 @@
       const t0 = S.chipT.get(key);
       const u = t0 == null ? 1 : clamp((t - t0) / 0.38, 0, 1);
       let cx = x + (i - (n - 1) / 2) * r * 0.9;
-      let cy = y + (i - (n - 1) / 2) * r * 0.25 - (u < 1 ? (1 - easeOut(u)) * 60 : 0);
-      let alpha = (u < 1 ? 0.3 + 0.7 * u : 1) * (o.dim ? 0.3 : 1);
+      // drop in with a small bounce (easeOutBack)
+      const drop = u < 1 ? 1 - (1 + 2.2 * Math.pow(u - 1, 3) + 1.2 * Math.pow(u - 1, 2)) : 0;
+      let cy = y + (i - (n - 1) / 2) * r * 0.25 - drop * 60;
+      let alpha = (u < 1 ? 0.3 + 0.7 * Math.min(1, u * 2) : 1) * (o.dim ? 0.3 : 1);
       if (o.sweep) {
         const k = easeInOut(o.sweep);
         cx = lerp(cx, (o.to || [x, y - 200])[0], k);
@@ -745,9 +962,7 @@
         alpha *= 1 - k;
       }
       if (alpha <= 0.01) return;
-      const h = clamp(Math.ceil(Math.log2(num(e.amount, 1) + 1)), 1, 6);
-      for (let j = h - 1; j > 0; j--) chip(g, cx, cy + j * r * 0.16, r, shade(e.color || "#f0f0f0", 0.75), null, { alpha });
-      chip(g, cx, cy, r, e.color || "#f0f0f0", shortAmt(num(e.amount)), { alpha, glow: o.glow });
+      stack(S, g, cx, cy, r, num(e.amount), e.color || "#f0f0f0", { alpha, glow: o.glow });
     });
   }
 
@@ -762,10 +977,7 @@
     g.fill();
     g.lineWidth = Math.max(3, r * 0.12);
     g.strokeStyle = color;
-    if (o.glow) {
-      g.shadowColor = color;
-      g.shadowBlur = r * 0.8;
-    }
+    if (o.glow) glowOn(g, color, r * 0.8);
     g.stroke();
     g.shadowBlur = 0;
     const art = obj(obj(S.ctx && S.ctx.avatars)[p && p.avatar]).px;
@@ -854,8 +1066,13 @@
   /** A glow around a rounded box (winning area). */
   function glowBox(g, x, y, w, h, color, k, r) {
     g.save();
-    g.shadowColor = color;
-    g.shadowBlur = 40 * k;
+    if (!glowOn(g, color, 40 * k)) {
+      // lite: a wide faint stroke under the line stands in for the blur
+      rr(g, x, y, w, h, r == null ? 18 : r);
+      g.lineWidth = 16;
+      g.strokeStyle = rgba(color, 0.18 * k);
+      g.stroke();
+    }
     g.lineWidth = 5;
     g.strokeStyle = rgba(color, 0.4 + 0.6 * k);
     rr(g, x, y, w, h, r == null ? 18 : r);
@@ -892,6 +1109,7 @@
       S.ver += 1;
     }
     S.players = tablePlayers(st);
+    S.rack = rackOf(st); // the table's chips (status.chips, or computed from the limits on an older engine)
     S.bySeat = new Map();
     for (const p of arr(st.players)) if (p) S.bySeat.set(String(p.seat), p);
     // chips that just landed (drop-in animation)
@@ -1019,9 +1237,55 @@
     const k = wheelK();
     const st = layer(root, 0, 0, STAMP, STAMP, k, true);
     const ink = layer(root, 0, 0, STAMP, STAMP, k, true);
+    const burst = layer(root, 0, 0, BURST, BURST, Math.min(k, 1), false);
     st.c.style.opacity = "0";
     ink.c.style.opacity = "0";
-    S.L[name] = { st, ink, key: null };
+    burst.c.style.display = "none";
+    S.L[name] = { st, ink, burst, key: null };
+  }
+  /**
+   * The result moment: gold sparks burst from the stamp as it hits and fall away (a small canvas of its own, drawn
+   * only for those 0.9 s). A pure function of the stamp's age on the shared clock, so every screen bursts together.
+   */
+  const BURST = 420;
+  function burstDraw(S, name, x, y, age, color) {
+    const L = S.L[name];
+    const b = L.burst;
+    if (!b) return;
+    const on = age != null && age >= 0 && age < 0.9;
+    if (!on) {
+      if (L.burstOn) {
+        b.c.style.display = "none";
+        L.burstOn = false;
+      }
+      return;
+    }
+    if (!L.burstOn) {
+      b.c.style.display = "";
+      L.burstOn = true;
+    }
+    b.c.style.left = `${(x - BURST / 2).toFixed(1)}px`;
+    b.c.style.top = `${(y - BURST / 2).toFixed(1)}px`;
+    const g = b.g;
+    g.setTransform(b.k, 0, 0, b.k, 0, 0);
+    g.clearRect(0, 0, BURST, BURST);
+    const n = lite() ? 10 : 26;
+    const c = BURST / 2;
+    const u = age / 0.9;
+    for (let i = 0; i < n; i++) {
+      const h = hash01(`${name}${i}`);
+      const a = (i / n) * TAU + h * 0.6;
+      const v = 120 + 110 * hash01(`${i}${name}v`);
+      const d = v * easeOut(u) * 1.25;
+      const px = c + Math.cos(a) * d;
+      const py = c + Math.sin(a) * d + 90 * u * u; // a little gravity
+      const r = (i % 3 === 0 ? 6 : 4) * (1 - u * 0.7);
+      g.globalAlpha = 1 - u;
+      g.fillStyle = i % 4 === 0 ? "#ffffff" : color;
+      circle(g, px, py, r);
+      g.fill();
+    }
+    g.globalAlpha = 1;
   }
   /** Draw the stamp's face (once per text / colour). */
   function stampPaint(S, name, text, color) {
@@ -1093,9 +1357,10 @@
     const st = L.st.c.style;
     const ink = L.ink.c.style;
     if (age == null || age < -0.22) {
-      if (st.opacity !== "0") st.opacity = "0";
+      if (st.opacity !== "0") st.opacity = L.op = "0";
       if (ink.opacity !== "0") ink.opacity = "0";
       L.on = false;
+      burstDraw(S, name, x, y, null);
       return;
     }
     const base = size / STAMP;
@@ -1123,15 +1388,21 @@
       r = rot + 0.05 * Math.sin(u * Math.PI * 3) * (1 - u);
     }
     const tx = `translate(${(x - STAMP / 2).toFixed(1)}px,${(y - STAMP / 2).toFixed(1)}px)`;
-    st.transform = `${tx} rotate(${r.toFixed(3)}rad) scale(${(base * sc * sx).toFixed(3)},${(base * sc * sy).toFixed(3)})`;
-    st.opacity = op.toFixed(3);
+    const tf = `${tx} rotate(${r.toFixed(3)}rad) scale(${(base * sc * sx).toFixed(3)},${(base * sc * sy).toFixed(3)})`;
+    const o = op.toFixed(3);
+    if (L.tf !== tf) st.transform = L.tf = tf; // resting: no style writes at all
+    if (L.op !== o) st.opacity = L.op = o;
     if (age >= 0 && age < 0.6) {
       const u = age / 0.6;
       ink.transform = `${tx} scale(${(base * (0.9 + 0.9 * u)).toFixed(3)})`;
       ink.opacity = (0.9 * (1 - u)).toFixed(3);
     } else if (ink.opacity !== "0") ink.opacity = "0";
     L.on = true;
+    burstDraw(S, name, x, y, age, S.th.accent_hi || S.th.accent);
   }
+
+  /** Device px per stage px for the table's canvases: the stage's own (≤ 1.5), ¾ of it in the lite tier. */
+  const tableK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 1.5) * (lite() ? 0.75 : 1);
 
   function makeScene(def) {
     let S = null;
@@ -1139,7 +1410,7 @@
       id: def.id,
       match: (app) => app === def.app,
       mount(root, ctx) {
-        const k = clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
+        const k = tableK();
         root.style.position = "absolute";
         S = {
           def, root, k, ctx, st: {}, th: Object.assign({}, CLASSIC), clk: new PhaseTracker(), players: [],
@@ -1168,9 +1439,9 @@
         S.pcv = pcv;
         if (def.init) def.init(S);
         ingest(S, ctx);
-        const raf = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (f) => setTimeout(() => f(), 16);
+        const me = S;
         const step = () => {
-          if (!S || !S.alive) return;
+          if (!S || !S.alive || S !== me) return false;
           if (!(typeof document !== "undefined" && document.hidden)) {
             try {
               paint(S, nowOf(S.ctx));
@@ -1179,9 +1450,16 @@
               S.err = e;
             }
           }
-          S.raf = raf(step);
+          return true;
         };
-        S.raf = raf(step);
+        if (TV && typeof TV.every === "function") S.stop = TV.every(step); // the page's one animation loop (tv.js)
+        else {
+          const raf = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (f) => setTimeout(() => f(), 16);
+          const loop = () => {
+            if (step() !== false) S.raf = raf(loop);
+          };
+          S.raf = raf(loop);
+        }
       },
       update(ctx) {
         if (S) ingest(S, ctx);
@@ -1193,7 +1471,7 @@
       },
       resize(ctx) {
         if (!S) return;
-        const k = clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
+        const k = tableK();
         if (Math.abs(k - S.k) < 1e-3) return;
         S.k = k;
         for (const l of [S.bgl, S.top]) {
@@ -1207,12 +1485,15 @@
         S.bg = null;
         bgWanted(S);
         S.lastKey = S.railKey = "";
+        if (S.hud) for (const h of S.hud.values()) h.k = -1; // re-made at the new resolution on the next redraw
         cardCache.clear();
+        chipCache.clear();
         if (ctx && ctx.panel) scene.frame(ctx);
       },
       unmount() {
         if (!S) return;
         S.alive = false;
+        if (S.stop) S.stop();
         if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(S.raf);
         S = null;
       },
@@ -1263,11 +1544,15 @@
     S.T = serverClock(S, t);
     background(S);
     if (S.def.move) S.def.move(S, t);
-    const hz = t < S.animUntil ? 30 : S.def.slowHz ? S.def.slowHz(S, t) : 4;
+    // how often the table layer redraws: 30 Hz (20 in lite) while chips drop / cards fly, else the scene's own
+    // slow rate (countdown rings sweep in their own small canvases — hudRing — so betting needs ~1 Hz), default 4
+    const L = lite();
+    const hz = t < S.animUntil ? (L ? 20 : 30) : S.def.slowHz ? S.def.slowHz(S, t) : L ? 2 : 4;
     const tick = hz > 0 ? Math.floor(t * hz) : 0;
     const key = `${S.ver}|${S.def.key ? S.def.key(S, t) : ""}|${hz}|${tick}|${S.k}`;
     if (key !== S.lastKey) {
       S.lastKey = key;
+      S.drawGen = (S.drawGen || 0) + 1;
       const g = S.g;
       g.setTransform(S.k, 0, 0, S.k, 0, 0);
       g.globalAlpha = 1;
@@ -1277,6 +1562,8 @@
       if (S.st.paused) paused(S, g, t);
       if (S.preview) previewNote(S, g);
     }
+    hudFrame(S, t);
+    if (S.def.fx) S.def.fx(S, t);
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
     const rk = `${S.ver}|${turn}|${S.k}`;
     if (rk !== S.railKey) {
@@ -1320,7 +1607,8 @@
     g.strokeStyle = rgba(th.accent, 0.22);
     g.stroke();
     txt(g, "AT THE TABLE", RAIL_X + 22, 54, 22, th.accent, { weight: 800, shadow: false });
-    txt(g, "RECENT", RAIL_X + 22, 586, 18, INK3, { weight: 800, shadow: false });
+    txt(g, "CHIPS", RAIL_X + 22, 528, 18, INK3, { weight: 800, shadow: false });
+    txt(g, "RECENT", RAIL_X + 22, 602, 18, INK3, { weight: 800, shadow: false });
     // the panel's housing
     rr(g, PANEL_X - 14, PANEL_Y - 14, PANEL_SIZE + 28, PANEL_SIZE + 28, 16);
     const bz = g.createLinearGradient(0, PANEL_Y - 14, 0, PANEL_Y + PANEL_SIZE + 14);
@@ -1357,7 +1645,7 @@
     const list = S.players;
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
     txt(g, `${list.length}`, RAIL_X + RAIL_W - 36, 54, 22, INK3, { align: "right", weight: 800, shadow: false });
-    const rows = Math.min(list.length, 8);
+    const rows = Math.min(list.length, 7);
     const rowH = 62;
     if (!list.length) {
       txt(g, "Nobody yet — scan the code", RAIL_X + 22, 104, 24, INK3, { weight: 600 });
@@ -1384,7 +1672,12 @@
       if (info.text) txt(g, info.text, RAIL_X + 76, y + 50, 17, info.color || INK3, { weight: 800, maxW: 260, shadow: false, alpha });
       else if (num(p.net) !== 0) txt(g, `SESSION ${signed(S, num(p.net))}`, RAIL_X + 76, y + 50, 17, num(p.net) > 0 ? rgba(OK, 0.8) : INK3, { weight: 700, shadow: false, alpha });
     }
-    if (list.length > rows) txt(g, `+ ${list.length - rows} more`, RAIL_X + 22, 76 + rows * rowH + 18, 20, INK3, { weight: 700 });
+    if (list.length > rows) txt(g, `+ ${list.length - rows} more`, RAIL_X + RAIL_W - 36, 528, 18, INK3, { align: "right", weight: 700, shadow: false });
+    // the table's chip rack (status.chips: only what the limits allow — 1K, 5K… at a high-roller table)
+    const rack = arr(S.rack);
+    const cr = rack.length > 6 ? 17 : 19;
+    const step = Math.min(2 * cr + 8, (RAIL_W - 60) / Math.max(1, rack.length));
+    rack.forEach((c, i) => chip(g, RAIL_X + 22 + cr + i * step, 556, cr, c.color, c.label, { edge: c.edge }));
     // the recent results strip
     const hist = arr(S.st.history).filter((h) => h && (!S.st.game || h.game === S.st.game)).slice(-7).reverse();
     let x = RAIL_X + 22;
@@ -1392,7 +1685,7 @@
       const lbl = String(h.label == null ? "?" : h.label);
       const w = Math.max(40, measure(g, lbl, 22, { font: "mono" }) + 18);
       if (x + w > RAIL_X + RAIL_W - 24) return;
-      rr(g, x, 600, w, 44, 10);
+      rr(g, x, 612, w, 40, 10);
       g.fillStyle = TONE[h.tone] || TONE.white;
       g.fill();
       if (i === 0) {
@@ -1400,10 +1693,10 @@
         g.strokeStyle = th.accent;
         g.stroke();
       }
-      txt(g, lbl, x + w / 2, 630, 22, "#fff", { align: "center", font: "mono", weight: 800, alpha: i === 0 ? 1 : 0.8 });
+      txt(g, lbl, x + w / 2, 640, 22, "#fff", { align: "center", font: "mono", weight: 800, alpha: i === 0 ? 1 : 0.8 });
       x += w + 8;
     });
-    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 22, 630, 20, INK3, { weight: 600 });
+    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 22, 640, 20, INK3, { weight: 600 });
   }
 
   // ------------------------------------------------------------------------------------------------ shared headline
@@ -1428,7 +1721,7 @@
         title: "PLACE YOUR BETS",
         sub: `${n} ${n === 1 ? "player" : "players"} in · ${fmt(S, total)} on the table`,
         tone: left <= 5 ? BAD : th.accent,
-        ring: { frac: left / span, label: Math.ceil(left - 1e-6), color: left <= 5 ? BAD : th.accent },
+        ring: { frac: left / span, label: Math.ceil(left - 1e-6), color: left <= 5 ? BAD : th.accent, left, span, base: th.accent, low: BAD, lowBelow: 5.0001 },
       };
     }
     if (ph === "locked") return { title: "NO MORE BETS", sub: "Bets are locked", tone: BAD, flash: true };
@@ -1439,7 +1732,7 @@
         title: String(obj(st.result).label || "RESULT"),
         sub: ws.length ? `${ws.length} ${ws.length === 1 ? "winner" : "winners"}` : "The house wins this one",
         tone: th.accent,
-        ring: next != null ? { frac: next / num(obj(st.house).result_seconds, 7), label: Math.ceil(next - 1e-6), color: INK3 } : null,
+        ring: next != null ? { frac: next / num(obj(st.house).result_seconds, 7), label: Math.ceil(next - 1e-6), color: INK3, left: next, span: num(obj(st.house).result_seconds, 7) } : null,
       };
     }
     if (ph === "idle") return { title: "TABLE CLOSED", sub: "Waiting for the host to open a round", tone: INK3 };
@@ -1458,7 +1751,13 @@
     const tx = align === "center" ? x : x;
     txt(g, h.title, tx, y + size * 0.8, size, h.tone || INK1, { weight: 850, align, alpha, maxW: w - (h.ring && align !== "center" ? 130 : 0), glow: rgba(h.tone || INK1, 0.45) });
     if (h.sub) txt(g, h.sub, tx, y + size * 0.8 + 40, 26, INK2, { weight: 600, align, maxW: w - (h.ring && align !== "center" ? 130 : 0) });
-    if (h.ring && align !== "center") ring(g, rx, y + size * 0.55, o.ringR || 50, h.ring.frac, h.ring.color || S.th.accent, h.ring.label);
+    if (h.ring && align !== "center") {
+      const R = o.ringR || 50;
+      if (h.ring.left != null) {
+        // the countdown sweeps every frame in its own small canvas (no table redraw for it)
+        hudRing(S, "head", rx, y + size * 0.55, R, { left: h.ring.left, span: h.ring.span, color: h.ring.base || h.ring.color || S.th.accent, low: h.ring.low, lowBelow: h.ring.lowBelow });
+      } else ring(g, rx, y + size * 0.55, R, h.ring.frac, h.ring.color || S.th.accent, h.ring.label);
+    }
   }
 
   /** The winners card: up to `max` winners with avatar, name and net, or "House wins". */
@@ -1701,7 +2000,7 @@
     return null;
   }
 
-  const wheelK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 2); // the spinning bitmaps stay crisp
+  const wheelK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 2) * (lite() ? 0.75 : 1); // the spinning bitmaps stay crisp
 
   const roulette = makeScene({
     id: "casino-roulette",
@@ -1798,7 +2097,7 @@
       stampMove(S, "stamp", x, y, sinceLockOf(rv, S.T) - tSettle, 112, -0.18 + 0.36 * hash01(`st${rv.round}`));
     },
     // the table layer only redraws for a countdown tick while betting; never while the wheel is spinning
-    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : 0),
     bg(S, g) {
       const th = S.th;
       // the table
@@ -1947,8 +2246,7 @@
         g.save();
         circle(g, R_CX, R_CY, 116);
         g.fillStyle = col;
-        g.shadowColor = rgba(th.accent, 0.8);
-        g.shadowBlur = 40;
+        glowOn(g, rgba(th.accent, 0.8), 40);
         g.fill();
         g.lineWidth = 6;
         g.strokeStyle = th.accent;
@@ -2185,7 +2483,7 @@
       stampLayers(S, root, "stamp");
     },
     key: (S) => (S.fx.stopped ? `stop${S.fx.under}` : ""),
-    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : 0),
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
@@ -2277,7 +2575,28 @@
   // ================================================================================================ 7 UP 7 DOWN
   const PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]],
     5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }; // fmt: skip
+  /** A die (face 1–6, s px, rot rad), stamped from a sprite drawn once per size / face / glow. o: {glow} */
+  const dieCache = new Map();
   function die(g, x, y, s, face, rot, o) {
+    o = o || {};
+    const k = chipK(g);
+    const key = `${s}|${face}|${o.glow || ""}|${k}|${lite() ? 1 : 0}`;
+    let sp = dieCache.get(key);
+    if (!sp) {
+      if (dieCache.size > 120) dieCache.clear();
+      const D = Math.ceil(s * 1.6);
+      const m = makeCanvas(D, D, k);
+      dieRaw(m.g, D / 2, D / 2, s, face, 0, o);
+      sp = { c: m.c, D };
+      dieCache.set(key, sp);
+    }
+    g.save();
+    g.translate(x, y);
+    if (rot) g.rotate(rot);
+    g.drawImage(sp.c, -sp.D / 2, -sp.D / 2, sp.D, sp.D);
+    g.restore();
+  }
+  function dieRaw(g, x, y, s, face, rot, o) {
     o = o || {};
     g.save();
     g.translate(x, y);
@@ -2397,7 +2716,7 @@
         l.c.style.opacity = alpha.toFixed(3);
       });
     },
-    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : 0),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : 0),
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
@@ -2564,7 +2883,7 @@
       const td = bacDealT(S);
       return rv && td != null ? bacDealTimes(obj(rv.outcome)).filter((c) => td >= c[2]).length : "";
     },
-    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : revealOf(S, "baccarat") ? 0 : 4),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : revealOf(S, "baccarat") ? 0 : 2),
     move(S) {
       const rv = revealOf(S, "baccarat");
       const o = rv ? obj(rv.outcome) : null;
@@ -2750,7 +3069,7 @@
       const d = abDeal(S);
       return d ? `${d.k}|${d.done}|${d.t < 0.5}` : "";
     },
-    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 4 : revealOf(S, "andarbahar") ? 0 : 4),
+    slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : revealOf(S, "andarbahar") ? 0 : 2),
     move(S) {
       const d = abDeal(S);
       if (!d) return stampMove(S, "stamp", 0, 0, null);
@@ -2961,14 +3280,13 @@
         if (isTurn) {
           const tc = S.fx.turn || (S.fx.turn = new Countdown());
           tc.observe(`${seat.seat}|${turn.hand}`, turn.ends_in, S.ctx.stateAt || t);
-          const left = tc.left(t);
-          ring(g, x, y, 62, left == null ? 1 : left / num(obj(st.house).turn_seconds, 20), left != null && left < 5 ? BAD : th.accent, null, { width: 7 });
+          hudRing(S, `turn${seat.seat}`, x, y, 62, { left: tc.left(t), span: num(obj(st.house).turn_seconds, 20), color: th.accent, low: BAD, lowBelow: 5, label: false, width: 7 });
         }
         const hands = arr(seat.hands);
         const bet = hands.length ? hands.reduce((a, h) => a + num(h.bet), 0) : num(seat.bet);
         const entries = arr(sb.main).filter((e) => String(e.seat) === String(seat.seat));
         if (entries.length) spotChips(S, g, `main`, entries.map((e) => ({ ...e, amount: bet || e.amount })), x, y, t, { r: 30 });
-        else if (bet) chip(g, x, y, 30, p.color, shortAmt(bet));
+        else if (bet) stack(S, g, x, y, 30, bet, p.color);
         // the hands, toward the dealer
         const dx = BJ_C[0] - x;
         const dy = BJ_C[1] - y;
@@ -3009,7 +3327,7 @@
             const ic = S.fx.ins || (S.fx.ins = new Countdown());
             ic.observe(`ins${st.round}`, table.insurance_in, S.ctx.stateAt || t);
             const left = ic.left(t);
-            return { title: "INSURANCE?", sub: "The dealer shows an ace", tone: "#4a86ff", ring: left != null ? { frac: left / 12, label: Math.ceil(left - 1e-6), color: "#4a86ff" } : null };
+            return { title: "INSURANCE?", sub: "The dealer shows an ace", tone: "#4a86ff", ring: left != null ? { frac: left / 12, label: Math.ceil(left - 1e-6), color: "#4a86ff", left, span: 12 } : null };
           }
           if (turn.seat != null) {
             const who = playerOf(S, turn.seat);
@@ -3104,7 +3422,7 @@
     if (num(seat.bet) > 0 && !(o.finished && S.st.phase === "result")) {
       const bx = x + ux * 225;
       const by = y + uy * 200;
-      chip(g, bx, by, 24, p.color, null);
+      stack(S, g, bx, by, 24, num(seat.bet), p.color);
       txt(g, fmt(S, seat.bet), bx + 32, by + 9, 24, INK1, { font: "mono", weight: 800 });
     }
     // avatar + plate
@@ -3113,16 +3431,14 @@
       const tc = S.fx.turnCd || (S.fx.turnCd = new Countdown());
       const tb = obj(S.st.table);
       tc.observe(`${seat.seat}|${arr(tb.log).length}|${tb.hand}`, tb.turn_in, S.ctx.stateAt || t);
-      const left = tc.left(t);
-      ring(g, x, y, 58, left == null ? 1 : left / num(tb.turn_span, 20), left != null && left < 5 ? BAD : th.accent, null, { width: 8 });
+      hudRing(S, `turn${seat.seat}`, x, y, 58, { left: tc.left(t), span: num(tb.turn_span, 20), color: th.accent, low: BAD, lowBelow: 5, label: false, width: 8 });
     }
     if (winner) {
       g.save();
       circle(g, x, y, 62 + 4 * Math.sin(t * 6));
       g.strokeStyle = th.accent;
       g.lineWidth = 6;
-      g.shadowColor = th.accent;
-      g.shadowBlur = 30;
+      glowOn(g, th.accent, 30);
       g.stroke();
       g.restore();
     }
@@ -3213,7 +3529,7 @@
       if (live) {
         const pots = arr(tb.pots);
         const pot = num(tb.pot);
-        chip(g, PK.cx - 90, PK.cy - 125, 26, th.accent, null);
+        if (pot > 0) stack(S, g, PK.cx - 90, PK.cy - 125, 26, pot, th.accent);
         txt(g, `POT ${fmt(S, pot)}`, PK.cx - 54, PK.cy - 114, 34, INK1, { font: "mono", weight: 800 });
         if (pots.length > 1) txt(g, pots.map((p, i) => `${i ? `Side ${i}` : "Main"} ${fmt(S, p.amount)}`).join(" · "), PK.cx, PK.cy + 116, 22, INK2, { align: "center", weight: 700 });
       } else pokerLobby(S, g, t, `blinds ${arr(tb.blinds).join("/") || "–"}`);
@@ -3277,7 +3593,7 @@
       const result = st.phase === "result" || tb.finished;
       const winSet = new Set(arr(tb.winners).map((w) => String(w.seat)));
       if (live) {
-        chip(g, PK.cx - 80, PK.cy - 20, 30, th.accent, null);
+        if (num(tb.pot) > 0) stack(S, g, PK.cx - 80, PK.cy - 20, 30, num(tb.pot), th.accent);
         txt(g, `POT ${fmt(S, tb.pot)}`, PK.cx - 38, PK.cy - 6, 40, INK1, { font: "mono", weight: 800 });
         txt(g, `BOOT ${fmt(S, tb.boot)} · STAKE ${fmt(S, tb.stake)}`, PK.cx, PK.cy + 44, 24, INK2, { align: "center", weight: 750 });
         const hands = obj(tb.hands);
@@ -3332,7 +3648,23 @@
     const i = n - 1;
     return [HB.x + (i % 10) * HB.cw, HB.y + Math.floor(i / 10) * HB.ch];
   }
+  /** A housie ball (number n, radius r), stamped from a sprite drawn once per number / size. */
+  const ballCache = new Map();
   function ball(g, x, y, r, n, color) {
+    const k = chipK(g);
+    const key = `${r}|${n}|${color}|${k}|${lite() ? 1 : 0}`;
+    let sp = ballCache.get(key);
+    if (!sp) {
+      if (ballCache.size > 200) ballCache.clear();
+      const D = Math.ceil(r * 2.8);
+      const m = makeCanvas(D, D, k);
+      ballRaw(m.g, D / 2, D / 2, r, n, color);
+      sp = { c: m.c, D };
+      ballCache.set(key, sp);
+    }
+    g.drawImage(sp.c, x - sp.D / 2, y - sp.D / 2, sp.D, sp.D);
+  }
+  function ballRaw(g, x, y, r, n, color) {
     g.save();
     g.shadowColor = "rgba(0,0,0,.6)";
     g.shadowBlur = r * 0.4;
@@ -3405,10 +3737,7 @@
         rr(g, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
         g.fillStyle = isLast ? th.accent : rgba(housieColor(n), 0.85);
         g.save();
-        if (isLast) {
-          g.shadowColor = th.accent;
-          g.shadowBlur = 30 * (0.6 + 0.4 * Math.sin(t * 5));
-        }
+        if (isLast) glowOn(g, th.accent, 30 * (0.6 + 0.4 * Math.sin(t * 5)));
         g.globalAlpha = k;
         g.fill();
         g.restore();
@@ -3442,7 +3771,7 @@
           if (p === "betting") {
             const left = leftTo(S, "ends_at", S.clk.ends, t);
             const span = num(obj(st.rules).buy_seconds, 45);
-            return { title: "BUY TICKETS", sub: `${fmt(S, h.price)} a ticket · up to ${num(h.max, 1)} each`, tone: th.accent, pulse: st.ends_in == null, ring: left != null ? { frac: left / span, label: Math.ceil(left - 1e-6), color: left < 6 ? BAD : th.accent } : null };
+            return { title: "BUY TICKETS", sub: `${fmt(S, h.price)} a ticket · up to ${num(h.max, 1)} each`, tone: th.accent, pulse: st.ends_in == null, ring: left != null ? { frac: left / span, label: Math.ceil(left - 1e-6), color: left < 6 ? BAD : th.accent, left, span, base: th.accent, low: BAD, lowBelow: 6 } : null };
           }
           return null;
         }), { size: 56 });
@@ -3704,8 +4033,7 @@
           g.lineTo(SL.rx + 2 * 230 + 225, SL.ry + rows[2] * SL.cell + SL.cell / 2);
           g.lineWidth = 8;
           g.strokeStyle = LINE_COLORS[li] || th.accent;
-          g.shadowColor = LINE_COLORS[li] || th.accent;
-          g.shadowBlur = 20;
+          glowOn(g, LINE_COLORS[li] || th.accent, 20);
           g.stroke();
           g.restore();
         });
@@ -3753,7 +4081,7 @@
     SCENES, Countdown, PhaseTracker, lockTime, parseCard, baccaratTotal, rouletteCovers, rouletteBoard, rouletteSpotXY,
     rouletteCenter, reelPos, bigRoad, hash01, hexRgb, shade, wrapPi, bjSeatXY, pokerSeatXY, EU_WHEEL, US_WHEEL,
     B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
-    R_CX, R_CY, BX, BY, SEV,
+    R_CX, R_CY, BX, BY, SEV, LADDER, RACK_MAX, chipRack, rackOf, breakInto, shortChip, chipStyle, pyRound,
   }; // fmt: skip
   if (TV) {
     TV.casino = API;

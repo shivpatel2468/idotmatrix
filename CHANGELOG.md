@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Casino chips: high-roller tables now offer 1K, 2K, 5K … up to 1M chips, and chips the table doesn't allow are
+  no longer shown at all — the same rack on phones, the laptop and the TV.
+- Casino: a rejected bet ("Table min is …", "Not enough credits") now pops up big in the middle of the screen. Before,
+  the host on the laptop saw nothing and phones showed it tucked into the header.
+- Phones: a new top bar — the credits no longer run into the avatar and buttons; big balances shorten (1.25M).
+- Roulette: chips can be dropped or clicked onto a line (split), a crossing of four numbers (corner), a row's edge
+  (street) and between rows (six line); dragging with a mouse is smooth on the laptop and on phones.
+- Studio: a gold TV key under the panel (next to the QR key) opens Show on TV; "Show QR" brings the join code back.
+- TV view: much smoother on a Fire TV (heavy effects removed, a lighter mode kicks in by itself on slow TVs), games
+  shown as a sharp HD picture of the panel instead of big glowing dots (select on the remote toggles the classic
+  LED look), chips in the table's colours, and a burst of sparks when the winning number is stamped.
 - Intro & outro: each theme in Settings now shows a small moving preview under its name. The OG intro was
   redrawn: clean flat LEDs in the two logo colours that glide smoothly into place, with no glare, halos or reflection.
 - 📺 **TV view** (docs/TV_VIEW.md): any screen — a smart-TV / Fire TV browser, a tablet, a projector — shows a

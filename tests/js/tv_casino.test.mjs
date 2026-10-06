@@ -353,3 +353,67 @@ test("one clock model on every device: the phone page's and the studio's shared 
     Object.defineProperty(globalThis, "performance", { value: realPerf, configurable: true });
   }
 });
+
+// ------------------------------------------------------------------ the chip ladder (casino/chips.py, docs/CASINO.md §5)
+// Expected racks: uv run python -c "from deskdot.casino.chips import chip_rack; print([c['v'] for c in chip_rack(a, b)])"
+const eq = (a, b, m) => assert.deepEqual(JSON.parse(JSON.stringify(a)), JSON.parse(JSON.stringify(b)), m); // across the vm realm
+const RACKS = {
+  "1-500": [1, 5, 25, 100, 500], "5-500": [5, 25, 100, 500], "1-1000000": [1, 25, 1000, 5000, 25000, 250000, 1000000],
+  "10-100000": [10, 100, 500, 2000, 10000, 25000, 100000], "1000-50000": [1000, 2000, 5000, 10000, 25000, 50000],
+  "2-300": [2, 5, 25, 100], "250-250": [250], "7-7": [7], "100-10000": [100, 500, 1000, 2000, 5000, 10000],
+  "1-5000": [1, 5, 25, 500, 1000, 2000, 5000], "3-2000000": [3, 25, 1000, 5000, 25000, 250000, 1000000],
+  "500-1000000": [500, 2000, 5000, 25000, 100000, 250000, 1000000], "50-25000": [50, 100, 500, 2000, 5000, 10000, 25000],
+};
+
+test("chip rack: the same chips as casino/chips.py chip_rack (fallback for an engine without status.chips)", () => {
+  for (const [k, want] of Object.entries(RACKS)) {
+    const [lo, hi] = k.split("-").map(Number);
+    eq(C.chipRack(lo, hi).map((c) => c.v), want, k);
+    assert.ok(C.chipRack(lo, hi).length <= C.RACK_MAX);
+  }
+  // an off-ladder table minimum is the smallest chip, coloured like the next ladder chip up
+  eq(C.chipRack(2, 300)[0], { v: 2, label: "2", color: "#d23a3a", edge: "#ffffff" });
+  eq(C.chipRack(7, 7), [{ v: 7, label: "7", color: "#2e9a55", edge: "#ffffff" }]);
+  const hr = C.chipRack(1000, 50000);
+  eq(hr.map((c) => c.label), ["1K", "2K", "5K", "10K", "25K", "50K"]);
+  eq(hr.map((c) => c.color), ["#f2c230", "#e85d9f", "#c9772b", "#2f6fd6", "#18a39a", "#9a2f4d"]);
+  assert.equal(C.pyRound(4.5), 4);
+  assert.equal(C.pyRound(1.5), 2);
+});
+
+test("chip rack: status.chips wins, the house limits are the fallback, K / M labels", () => {
+  const sent = [{ v: 1000, label: "1K", color: "#f2c230", edge: "#5a3d00" }, { v: 5000, label: "5K", color: "#c9772b", edge: "#ffffff" }];
+  eq(C.rackOf({ chips: sent, house: { min_bet: 1, max_bet: 500 } }), sent);
+  eq(C.rackOf({ house: { min_bet: 1000, max_bet: 50000 } }).map((c) => c.v), RACKS["1000-50000"]);
+  eq(C.rackOf({ chips: "nonsense", house: {} }).map((c) => c.v), RACKS["1-500"]);
+  eq(C.rackOf({}).map((c) => c.v), RACKS["1-500"]);
+  for (const [v, s] of [[1000, "1K"], [2500, "2.5K"], [1250, "1.25K"], [1000000, "1M"], [750, "750"], [25000, "25K"]]) assert.equal(C.shortChip(v), s);
+});
+
+test("stacks break into ladder chips, largest first (casino/chips.py break_into)", () => {
+  eq(C.breakInto(12345), [10000, 2000, 100, 100, 100, 25, 5, 5, 5, 5]);
+  eq(C.breakInto(2600), [2000, 500, 100]);
+  eq(C.breakInto(0), []);
+  // a table whose minimum is off the ladder uses that chip too
+  eq(C.breakInto(7, C.chipRack(7, 7)), [7]);
+  assert.equal(C.chipStyle(5000).color, "#c9772b");
+  assert.equal(C.chipStyle(7, C.chipRack(7, 7)).color, "#2e9a55");
+});
+
+test("a high-roller table draws its stacks without errors (status.chips from a new engine)", () => {
+  bad.length = 0;
+  const scene = registered.find((s) => s.match("casino_roulette"));
+  const ctx = ctxFor("casino_roulette");
+  const st = JSON.parse(JSON.stringify(FIX.statuses.casino_roulette.find((s) => Object.keys(s.spot_bets || {}).length)));
+  st.house = { ...st.house, min_bet: 1000, max_bet: 50000 };
+  st.chips = C.chipRack(1000, 50000);
+  for (const list of Object.values(st.spot_bets)) for (const e of list) e.amount = 12500;
+  ctx.status = st;
+  scene.mount(element(), ctx);
+  scene.update(ctx);
+  scene._paint(1000);
+  assert.equal(scene._state().err, null);
+  eq(scene._state().rack.map((c) => c.label), ["1K", "2K", "5K", "10K", "25K", "50K"]);
+  eq(bad.slice(0, 5), []);
+  scene.unmount();
+});

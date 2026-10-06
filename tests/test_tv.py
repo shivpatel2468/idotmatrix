@@ -152,7 +152,7 @@ def test_lan_gate_tv(path: str, allowed: bool) -> None:
 
 
 def test_tv_page_built_for_the_join_page() -> None:
-    """The web app (docs/TV_VIEW.md §6): tv.html's scripts move to /app/join/tv/, and /tv/* reaches the join page."""
+    """The web app (docs/TV_VIEW.md §8): tv.html's scripts move to /app/join/tv/, and /tv/* reaches the join page."""
     import importlib.util
 
     root = Path(__file__).resolve().parents[1]
