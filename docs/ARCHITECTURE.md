@@ -93,6 +93,19 @@ paced by `max_fps`). Before a frame or pixels the scheduler sends `diy_mode(1)` 
 in DIY mode (entering DIY blanks the panel for ~300 ms). After a reconnect it replays brightness and the last
 visual. Link stats (`frames_sent`, `frames_dropped` = superseded, `link_fps`, `last_write_ms`) are exposed in state.
 
+## Screens beyond the panel
+
+The engine is no longer only a panel driver; every screen in the room reads the same state:
+
+- **Phones** join a lobby by QR (`/p/<code>`, `/ws/p/<code>`; `multiplayer.py`, `casino.html`, `controller.html`) and
+  may opt in to the live panel frames.
+- **TVs** open a code-gated, read-only `/tv/<code>` (`tvlink.py`, `tv.html`, `tv/*.js`): the public `status()`, the
+  panel frames, and an app's TV-only `tv_extra()` (a casino round's outcome from the lock on) — docs/TV_VIEW.md.
+- **One clock:** casino statuses carry wall-clock anchors (`status.clock`) and sockets answer pings with
+  `server_time`, so the studio, phones and TVs slew to the engine's time and flip at the same moment.
+- `LanGate` keeps the studio/API local-only; from the LAN only `/p/`, `/ws/p/`, `/tv/`, `/ws/tv/` are reachable.
+- In the browser build (docs/WEB_APP.md) the same routes run inside the tab and reach phones/TVs over WebRTC.
+
 ## State and persistence
 
 `data/state.json` (debounced 0.4 s): brightness, power, flip, transition, units, location, per-app settings,
