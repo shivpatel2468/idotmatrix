@@ -1,6 +1,6 @@
 [project]
 name = "deskdot"
-version = "3.2.0"
+version = "3.5.0"
 description = "DeskDot — a real-time engine, studio and MCP bridge for the iDotMatrix 32x32 RGB LED panel."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"

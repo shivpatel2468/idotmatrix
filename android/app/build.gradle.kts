@@ -24,7 +24,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "3.2.0-beta"
+        versionName = "3.5.0-beta"
         ndk {
             abiFilters += listOf("arm64-v8a") // every phone from the last ~8 years; the only ABI we vendor wheels for
         }

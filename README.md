@@ -17,8 +17,9 @@ _1,024 pixels. Zero subscriptions._
 [![React + Vite](https://img.shields.io/badge/studio-React%20%2B%20Vite-61dafb.svg?logo=react&logoColor=white)](web)
 [![MCP](https://img.shields.io/badge/MCP-21%20tools-8a2be2.svg)](docs/MCP.md)
 [![Website](https://img.shields.io/badge/web-idotmatrix.com-111.svg)](https://idotmatrix.com)
+[![Version 3.5.0](https://img.shields.io/badge/version-3.5.0-ffcc33.svg)](WHATS_NEW.md)
 
-**[Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next)**
+**[Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next) · [What's New](WHATS_NEW.md)**
 
 </div>
 
