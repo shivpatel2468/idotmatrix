@@ -64,3 +64,6 @@ web/tsconfig.tsbuildinfo
 
 # Local Netlify folder
 .netlify
+
+# private legal notes never go in the public repo
+docs/LEGAL_REVIEW*.md
