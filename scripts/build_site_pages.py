@@ -6,8 +6,8 @@
 Run after scripts/build_site_media.py (previews) and scripts/build_site_data.py (apps.json).
 
 Two kinds of page:
-  * hand-written pages (index, setup, guide, apps, features, studio, specs, faq, download, privacy, terms,
-    license, licenses, 404): edit the HTML between
+  * hand-written pages (index, setup, guide, apps, features, studio, specs, faq, whats-new, download, privacy,
+    terms, license, licenses, 404): edit the HTML between
     `<!-- page:start -->` and `<!-- page:end -->` in site/<page>.html. This script rewrites everything around it
     (head, meta tags, header, footer) so the chrome is identical everywhere, fills the `<!-- gen:NAME -->` regions
     (app cards, preview reels) and refreshes `data-count` numbers.
@@ -60,6 +60,7 @@ NAV = [
     ("studio", "/studio.html", "Studio"),
     ("specs", "/specs.html", "Specs"),
     ("faq", "/faq.html", "FAQ"),
+    ("whatsnew", "/whats-new.html", "What's new"),
 ]
 
 PAGES: dict[str, dict[str, Any]] = {
@@ -111,6 +112,12 @@ PAGES: dict[str, dict[str, Any]] = {
         "title": "DeskDot FAQ",
         "description": "Is DeskDot official? Which panels work? Does it cost anything? Is it allowed? Answers about "
         "the casino, MCP and AI agents, smooth animation and writing your own app.",
+    },
+    "whats-new.html": {
+        "nav": "whatsnew",
+        "title": "What's new in DeskDot",
+        "description": "Every DeskDot update in plain words: what it was like before and what changed — new "
+        "features, a better look and feel, and fixes, version by version.",
     },
     "download.html": {
         "nav": None,
@@ -384,7 +391,8 @@ def footer() -> str:
         <ul>
           <li><a href="{REPO}">Source code (MIT)</a></li>
           <li><a href="{REPO}/issues">Issues</a></li>
-          <li><a href="{REPO}/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="/whats-new.html">What's new</a></li>
+          <li><a href="{REPO}/releases">Releases</a></li>
           <li><a href="/license.html">Licence</a></li>
           <li><a href="{REPO}/blob/main/SECURITY.md">Security</a></li>
         </ul>
@@ -767,6 +775,76 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
     )
     return document(app["page"], head_html, "apps", body)
 
+# ------------------------------------------------------------------ what's new (from WHATS_NEW.md)
+_KIND = {"New": ("new", "New"), "Better": ("better", "Better"), "Fixed": ("fixed", "Fixed")}
+
+
+def _md_inline(text: str) -> str:
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", e(text))
+
+
+def whats_new() -> list[dict[str, Any]]:
+    """WHATS_NEW.md → [{version, date, headline, groups: [{kind, items: [{title, before, now}]}]}], newest first."""
+    src = re.sub(r"<!--.*?-->", "", (ROOT / "WHATS_NEW.md").read_text(encoding="utf-8"), flags=re.S)
+    out: list[dict[str, Any]] = []
+    for block in re.split(r"^## ", src, flags=re.M)[1:]:
+        head, body = block.split("\n", 1)
+        m = re.match(r"(\S+)\s+—\s+(.+?)\s+·\s+(.+)", head.strip())
+        if not m:
+            raise SystemExit(f"WHATS_NEW.md: bad version heading {head!r}")
+        rel: dict[str, Any] = {"version": m[1], "date": m[2], "headline": m[3], "groups": []}
+        for g in re.split(r"^### ", body, flags=re.M)[1:]:
+            kind, items_src = g.split("\n", 1)
+            items = []
+            for it in re.split(r"^- ", items_src, flags=re.M)[1:]:
+                lines = [ln.strip() for ln in it.strip().splitlines()]
+                fields: dict[str, list[str]] = {"before": [], "now": []}
+                cur = None
+                for ln in lines[1:]:
+                    for key, tag in (("before", "- Before:"), ("now", "- Now:")):
+                        if ln.startswith(tag):
+                            cur, ln = key, ln[len(tag):]
+                    if cur:
+                        fields[cur].append(ln.strip())
+                items.append(
+                    {"title": lines[0].strip("*").strip(), "before": " ".join(fields["before"]), "now": " ".join(fields["now"])}
+                )
+            rel["groups"].append({"kind": kind.strip(), "items": items})
+        out.append(rel)
+    return out
+
+
+def whats_new_html() -> str:
+    rels = whats_new()
+    toc = "".join(
+        f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(r["date"])}</span></a></li>' for r in rels
+    )
+    parts = [f'<nav class="wn-toc" aria-label="Versions"><ol>{toc}</ol></nav>']
+    for i, r in enumerate(rels):
+        groups = []
+        for g in r["groups"]:
+            cls, label = _KIND.get(g["kind"], ("new", g["kind"]))
+            cards = "".join(
+                f'<li class="wn-item"><h4>{_md_inline(it["title"])}</h4>'
+                f'<p class="wn-before"><span>Before</span>{_md_inline(it["before"])}</p>'
+                f'<p class="wn-now"><span>Now</span>{_md_inline(it["now"])}</p></li>'
+                for it in g["items"]
+            )
+            groups.append(
+                f'<div class="wn-group wn-{cls}"><h3><i aria-hidden="true"></i>{label} <small>{len(g["items"])}</small>'
+                f"</h3><ul>{cards}</ul></div>"
+            )
+        latest = '<span class="wn-latest">Latest</span>' if i == 0 else ""
+        summary = (
+            f'<span class="wn-ver">v{e(r["version"])}</span><span class="wn-head">{e(r["headline"])}</span>'
+            f'<span class="wn-date">{e(r["date"])}</span>{latest}'
+        )
+        parts.append(
+            f'<details class="wn-rel" id="v{r["version"]}"{" open" if i < 2 else ""}><summary>{summary}</summary>'
+            f'<div class="wn-body">{"".join(groups)}</div></details>'
+        )
+    return "\n".join(parts)
+
 
 # =============================================================================================== hand pages
 def fill(body: str, name: str, content: str) -> str:
@@ -865,6 +943,8 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
     if any(a["category"] == "casino" for a in games[:8]):
         game_cards.insert(0, casino_note())
     body = fill(body, "games", "\n".join(game_cards))
+    if "<!-- gen:whatsnew -->" in body:
+        body = fill(body, "whatsnew", whats_new_html())
     lic = legal.licences_html()
     if lic is not None:
         body = fill(body, "licences", lic)
