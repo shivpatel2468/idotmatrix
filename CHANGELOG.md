@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+The technical log for developers. For the same updates in plain words (before → now), see
+[WHATS_NEW.md](WHATS_NEW.md).
+
+## 3.3.0 – 3.5.0 — 2026-10-02 to 2026-10-07
+
+(3.3.0 = up to 2 Oct, 3.4.0 = 4 Oct, 3.5.0 = 5–7 Oct; newest first.)
 
 - Casino chips: high-roller tables now offer 1K, 2K, 5K … up to 1M chips, and chips the table doesn't allow are
   no longer shown at all — the same rack on phones, the laptop and the TV.
