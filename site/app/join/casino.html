@@ -115,24 +115,35 @@ canvas.av{display:block;image-rendering:pixelated}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--gold-deep)}
 .go:disabled{filter:grayscale(.8) brightness(.6)}
 
-/* ---------- table: HUD ---------- */
-.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;
-  padding:calc(var(--st) + 10px) calc(var(--sr) + 12px) 8px calc(var(--sl) + 12px)}
-.meb{width:46px;height:46px;border-radius:14px;border:2px solid var(--c);background:var(--well);padding:4px;box-shadow:0 0 16px var(--ca)}
-.who{min-width:0}.who b{display:block;font:850 15px/1.1 var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--c)}
-.who small{display:flex;gap:6px;align-items:center;color:var(--dim);font-size:12px;white-space:nowrap}
+/* ---------- table: HUD — avatar · the bank plaque (name, credits) · icon buttons; nothing overlaps from 320 px up ---------- */
+.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
+  padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 8px calc(var(--sl) + 10px)}
+.meb{position:relative;width:46px;height:46px;border-radius:14px;border:2px solid var(--c);background:var(--well);padding:4px;box-shadow:0 0 16px var(--ca)}
+.meb .dot{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border:2px solid var(--bg)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);flex:none}
 .dot.off{background:var(--warn);box-shadow:0 0 8px var(--warn);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
-.bank{text-align:right;line-height:1}
-.bank .lbl{display:block;font:800 9.5px/1 var(--mono);letter-spacing:.18em;color:var(--mute);text-transform:uppercase}
-@media (max-width:380px){.bank b{font-size:21px!important}.hud{gap:6px}.hud .ib,.hud .hb{width:40px}}
-.bank b{display:block;font:900 26px/1.05 var(--mono);font-variant-numeric:tabular-nums;color:var(--gold-text);text-shadow:0 0 18px var(--glow);transition:color .3s}
-.bank b.up{color:var(--ok);text-shadow:0 0 22px rgba(77,255,138,.55)}.bank b.down{color:#ff8a9c}
-.bank small{display:block;margin-top:3px;font:700 11px/1 var(--mono);color:var(--dim)}
-.ib{width:46px;height:46px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);display:grid;place-items:center;position:relative}
+/* the bank plaque: who you are on top, your credits big underneath (abbreviated when they don't fit: 1.25M) */
+.bank{min-width:0;max-width:380px;height:50px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 12px 5px 10px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(var(--gold-rgb),.11),rgba(var(--gold-rgb),.02)),var(--well);border:1px solid rgba(var(--gold-rgb),.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 18px rgba(var(--gold-rgb),.08)}
+.bk-who{display:flex;align-items:baseline;gap:6px;min-width:0}
+.bk-who b{flex:0 1 auto;min-width:0;font:850 11.5px/1.1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-who span{flex:1 1 0;min-width:0;font:700 11px/1.1 var(--disp);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-who span.staked{color:var(--gold-text);font-family:var(--mono);font-weight:800}
+.bk-bal{display:flex;align-items:center;gap:7px;min-width:0}
+.bk-coin{flex:none;width:15px;height:15px;border-radius:50%;background:repeating-conic-gradient(var(--gold) 0 30deg,var(--gold-deep) 0 45deg);box-shadow:inset 0 0 0 3.5px var(--gold),0 0 8px var(--glow)}
+#credits{display:block;min-width:0;white-space:nowrap;overflow:hidden;font:900 22px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--gold-text);text-shadow:0 0 18px var(--glow);transition:color .3s}
+#credits.up{color:var(--ok);text-shadow:0 0 22px rgba(77,255,138,.55)}#credits.down{color:#ff8a9c}
+.hud-btns{display:flex;gap:6px}
+.ib{width:44px;height:46px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);display:grid;place-items:center;position:relative}
 .ib svg{width:22px;height:22px}
 .ib .n{position:absolute;right:-4px;top:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--gold);color:var(--gold-ink);font:800 11px/18px var(--mono)}
+@media (max-width:400px){.hud{gap:6px;padding-left:calc(var(--sl) + 8px);padding-right:calc(var(--sr) + 8px)}.hud-btns{gap:4px}
+  .hud .ib,.hud .hb{width:38px;height:42px;border-radius:12px}.hud .ib svg{width:20px;height:20px}.meb{width:42px;height:42px}
+  .bank{padding:4px 9px 4px 8px;height:46px}#credits{font-size:20px}.bk-coin{width:13px;height:13px}}
+@media (max-width:340px){.hud .ib,.hud .hb{width:34px}.hud .hb{font-size:18px}.meb{width:40px;height:40px}}
+@media (min-width:700px){.bank{height:54px}#credits{font-size:25px}}
 
 /* phase strip */
 .phase{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;margin:0 calc(var(--sr) + 12px) 8px calc(var(--sl) + 12px);
@@ -168,16 +179,16 @@ canvas.av{display:block;image-rendering:pixelated}
 
 /* dock: chip rack + actions */
 .dock{padding:8px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:8px}
-.rack{display:flex;gap:6px;justify-content:center;align-items:flex-end;min-height:62px}
-.chip{--cc:#d9d9d9;--ct:#111;position:relative;flex:none;width:54px;height:54px;border-radius:50%;
-  background:repeating-conic-gradient(var(--cc) 0 20deg,#fff 0 30deg,var(--cc) 0 45deg);
+.rack{display:flex;gap:5px;justify-content:center;align-items:flex-end;min-height:62px}
+.chip{--cc:#d9d9d9;--ct:#111;position:relative;flex:none;width:var(--cw,54px);height:var(--cw,54px);border-radius:50%;
+  background:repeating-conic-gradient(var(--cc) 0 20deg,var(--ce,#fff) 0 30deg,var(--cc) 0 45deg);
   box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 0 2px rgba(0,0,0,.25);transition:transform .15s var(--ease),box-shadow .15s;display:grid;place-items:center}
-.chip::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
-.chip span{position:relative;font:900 13px/1 var(--mono);color:var(--ct);letter-spacing:-.02em}
+.chip::before{content:"";position:absolute;inset:15%;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 2px var(--ce,rgba(255,255,255,.6))}
+.chip span{position:relative;font:900 calc(var(--cw,54px) * .25)/1 var(--mono);color:var(--ct);letter-spacing:-.03em;text-align:center}
+.chip.call span{font-size:calc(var(--cw,54px) * .21)}
 .chip[aria-checked=true]{transform:translateY(-8px) scale(1.06);box-shadow:0 13px 0 rgba(0,0,0,.35),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.55)}
 .chip:disabled{opacity:.28;filter:grayscale(1)}
-.c1{--cc:#e8e4da;--ct:#1a1a1a}.c5{--cc:#d8203a;--ct:#fff}.c25{--cc:#119a54;--ct:#fff}.c100{--cc:#1e1e26;--ct:#fff}
-.c500{--cc:#7a35d6;--ct:#fff}.call{--cc:var(--gold);--ct:var(--gold-ink)}
+.call{--cc:var(--gold);--ct:var(--gold-ink);--ce:#fff}
 .acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.5fr);gap:8px}
 .act{min-height:48px;border-radius:14px;border:1px solid rgba(var(--gold-rgb),.2);background:var(--s2);font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px}
 .act svg{width:18px;height:18px}
@@ -195,15 +206,31 @@ canvas.av{display:block;image-rendering:pixelated}
   .board{grid-area:board;margin:0 4px calc(var(--sb) + 8px) calc(var(--sl) + 8px)}
   .dock{grid-area:dock;justify-content:flex-end}
   .rack{flex-wrap:wrap}
-  .chip{width:48px;height:48px}
   .acts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 /* ---------- toasts, sheets, overlays ---------- */
-.toast{position:absolute;left:50%;top:calc(var(--st) + 70px);z-index:60;transform:translateX(-50%);max-width:min(92vw,420px);padding:11px 16px;border-radius:14px;
+.toast{position:absolute;left:50%;top:auto;bottom:calc(var(--sb) + 150px);z-index:60;transform:translateX(-50%);max-width:min(92vw,420px);padding:11px 16px;border-radius:14px;
   background:var(--toastbg);border:1px solid rgba(var(--gold-rgb),.35);box-shadow:0 14px 40px rgba(0,0,0,.6);font-weight:750;text-align:center;animation:drop .3s var(--ease)}
-.toast.error{border-color:rgba(255,77,106,.6);color:#ffd0d8}
 @keyframes drop{from{opacity:0;transform:translate(-50%,-10px)}}
+/* a rejected bet (Table min is …, Not enough credits, Bets are closed): centered over the table, big, in the theme's
+   accent, pops in with a shake over a tinted flash; never moves the layout, tap to dismiss, gone after ~2.2 s */
+.alert{position:absolute;inset:0;z-index:62;display:grid;place-items:center;padding:24px calc(var(--sr) + 20px) 24px calc(var(--sl) + 20px);pointer-events:none}
+.alert::before{content:"";position:absolute;inset:0;opacity:.45;background:radial-gradient(75% 55% at 50% 50%,rgba(var(--gold-rgb),.26),color-mix(in srgb,var(--bad) 16%,transparent) 62%,transparent)}
+.alert.go::before{animation:alflash .9s ease-out both}
+@keyframes alflash{0%{opacity:0}15%{opacity:1}100%{opacity:.45}}
+.al-card{position:relative;pointer-events:auto;cursor:pointer;max-width:min(88vw,380px);padding:18px 22px 14px;border-radius:22px;text-align:center;
+  background:radial-gradient(120% 90% at 50% 0,rgba(var(--gold-rgb),.22),transparent 70%),var(--veil);border:2px solid var(--gold);
+  box-shadow:0 0 0 6px rgba(var(--gold-rgb),.14),0 0 60px rgba(var(--gold-rgb),.35),0 24px 60px rgba(0,0,0,.7)}
+.alert.go .al-card{animation:alpop .55s var(--ease) both}
+.al-ic{width:46px;height:46px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:var(--gold-ink);
+  font:900 28px/1 var(--disp);box-shadow:0 0 0 4px rgba(var(--gold-rgb),.25),0 0 26px var(--glow)}
+.al-t{display:block;font:900 clamp(21px,6.6vw,30px)/1.15 var(--disp);color:var(--gold-text);text-shadow:0 0 22px rgba(var(--gold-rgb),.35);text-wrap:balance;overflow-wrap:anywhere}
+.al-k{display:block;margin-top:9px;font:800 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+@keyframes alpop{0%{opacity:0;transform:scale(.55)}40%{opacity:1;transform:scale(1.07)}52%{transform:translateX(-9px) scale(1.02)}64%{transform:translateX(8px)}76%{transform:translateX(-5px)}88%{transform:translateX(3px)}100%{transform:none}}
+.alert.out .al-card{animation:alout .2s ease-in forwards}.alert.out::before{animation:alfade .2s ease-in forwards}
+@keyframes alout{to{opacity:0;transform:scale(.92)}}
+@keyframes alfade{to{opacity:0}}
 .win{position:absolute;inset:0;z-index:55;display:grid;place-items:center;pointer-events:none}
 .win .card{padding:22px 30px;border-radius:26px;text-align:center;background:radial-gradient(circle at 50% 0,rgba(var(--gold-rgb),.28),transparent 70%),var(--veil);
   border:2px solid var(--gold);box-shadow:0 0 80px rgba(var(--gold-rgb),.45);animation:winpop .55s var(--ease) both}
@@ -296,11 +323,12 @@ html,body,.board,.dock{touch-action:manipulation}
 .rack{touch-action:none}
 .fx{position:fixed;inset:0;z-index:65;pointer-events:none;overflow:hidden}
 .fly{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;will-change:transform,opacity;display:grid;place-items:center;
-  background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 4px 0 rgba(0,0,0,.45),0 8px 16px rgba(0,0,0,.4)}
+  background:repeating-conic-gradient(var(--cc) 0 22deg,var(--ce,#fff) 0 32deg,var(--cc) 0 45deg);box-shadow:0 4px 0 rgba(0,0,0,.45),0 8px 16px rgba(0,0,0,.4)}
 .fly::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .fly b{position:relative;font:900 11px/1 var(--mono);color:var(--ct,#fff);letter-spacing:-.03em}
 .fly.ghost{width:52px;height:52px;margin:-26px 0 0 -26px;box-shadow:0 16px 0 rgba(0,0,0,.28),0 0 0 3px var(--gold),0 0 30px rgba(var(--gold-rgb),.55)}
 .fly.ghost b{font-size:13px}
+.fly.ghost.snap{width:42px;height:42px;margin:-21px 0 0 -21px}.fly.ghost.snap b{font-size:11.5px}
 .fly.ghost.rm{box-shadow:0 16px 0 rgba(0,0,0,.28),0 0 0 3px var(--bad),0 0 30px rgba(255,77,106,.5)}
 .fly.ghost.rm::after{content:"\2715";position:absolute;right:-6px;top:-6px;width:20px;height:20px;border-radius:50%;background:var(--bad);color:#fff;font:900 12px/20px var(--disp);text-align:center}
 .dd-on{outline:3px solid var(--gold);outline-offset:-3px;filter:brightness(1.18)}
@@ -345,7 +373,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .rt .won{animation:won .5s ease-in-out infinite alternate;z-index:3}
 @keyframes won{to{box-shadow:inset 0 0 0 4px #fff,0 0 26px 6px var(--gold)}}
 .rt .chp{position:absolute;z-index:5;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;pointer-events:none;display:grid;place-items:center;
-  background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5),0 0 0 1.5px rgba(0,0,0,.4)}
+  background:repeating-conic-gradient(var(--cc) 0 22deg,var(--ce,#fff) 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5),0 0 0 1.5px rgba(0,0,0,.4)}
 .rt .chp::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .rt .chp b{position:relative;font:900 10.5px/1 var(--mono);color:var(--ct,#fff);letter-spacing:-.03em}
 .rt .chp.win{box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold)}
@@ -353,7 +381,7 @@ html,body,.board,.dock{touch-action:manipulation}
   background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.35);font:800 9.5px/16px var(--mono);color:#ddd;text-align:center}
 @keyframes place{from{transform:translateY(-14px) scale(1.3);opacity:0}}
 .rt .tip{position:absolute;z-index:8;pointer-events:none;padding:6px 10px;border-radius:10px;background:var(--veil);border:1px solid var(--gold);
-  font:800 13px/1.2 var(--disp);white-space:nowrap;transform:translate(-50%,-100%);margin-top:-30px;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+  font:800 13px/1.2 var(--disp);white-space:nowrap;left:0;top:0;transform:translate(-50%,-100%);margin-top:-30px;will-change:transform;box-shadow:0 8px 20px rgba(0,0,0,.5)}
 .rt .tip small{color:var(--gold-text);font:800 12px/1 var(--mono);margin-left:6px}
 .rt .last{font:800 11px/1 var(--mono);color:var(--dim);gap:6px;display:flex;align-items:center;justify-content:center;border:0}
 .rt .last i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:900 13px/1 var(--mono);font-style:normal;color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
@@ -386,7 +414,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .zone.won{box-shadow:inset 0 0 0 3px #fff,0 0 40px var(--zc);animation:pulse 1s ease-in-out infinite}
 .zone.lost{filter:brightness(.45) saturate(.6)}
 .z-down{--zc:#1b5bd8}.z-seven{--zc:#c58b00}.z-up{--zc:#c81f43}
-.sv .chp{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5)}
+.sv .chp{position:relative;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,var(--ce,#fff) 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5)}
 .sv .chp::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .sv .chp b{position:relative;font:900 10.5px/1 var(--mono);color:var(--ct,#fff)}
 .generic{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--dim);padding:20px}
@@ -472,7 +500,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .hz-z .o{font:700 10.5px/1 var(--mono);opacity:.75;min-height:11px}
 .hz-z.won{box-shadow:inset 0 0 0 3px #fff,0 0 34px var(--zc);animation:pulse 1s ease-in-out infinite}
 .hz-z.lost{filter:brightness(.45) saturate(.6)}
-.hz .chp{position:relative;display:inline-grid;vertical-align:middle;width:24px;height:24px;border-radius:50%;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+.hz .chp{position:relative;display:inline-grid;vertical-align:middle;width:24px;height:24px;border-radius:50%;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,var(--ce,#fff) 0 32deg,var(--cc) 0 45deg);box-shadow:0 2px 0 rgba(0,0,0,.5)}
 .hz .chp::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--cc)}
 .hz .chp b{position:relative;font:900 9.5px/1 var(--mono);color:var(--ct,#fff)}
 .hz-h{font:800 10.5px/1 var(--mono);letter-spacing:.16em;color:var(--mute);text-transform:uppercase;margin:4px 2px 0}
@@ -481,7 +509,7 @@ html,body,.board,.dock{touch-action:manipulation}
 /* ===== END cards & wheels block ===== */
 /* ===== BEGIN house games block (blackjack · baccarat · slots) — helpers prefixed .hg-, .bj-, .bc-, .sl- ===== */
 .t-gold{background:#c99400;color:#1a1200!important}.t-player{background:#1f5fe0}.t-banker{background:#c81f3a}.t-tie{background:#0f9a52}
-.hg-chp{position:relative;flex:none;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,#fff 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5)}
+.hg-chp{position:relative;flex:none;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;background:repeating-conic-gradient(var(--cc) 0 22deg,var(--ce,#fff) 0 32deg,var(--cc) 0 45deg);box-shadow:0 3px 0 rgba(0,0,0,.5)}
 .hg-chp::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
 .hg-chp b{position:relative;font:900 10.5px/1 var(--mono);color:var(--ct,#fff)}
 .hg-felt{border-radius:18px;background:var(--pat),radial-gradient(120% 90% at 50% 15%,var(--felt),var(--felt2) 70%,var(--felt3));background-size:var(--pat-size),100% 100%;box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.3),inset 0 0 30px rgba(0,0,0,.5)}
@@ -723,14 +751,18 @@ html,body,.board,.dock{touch-action:manipulation}
 
 <section class="scr" id="s-table" aria-label="Casino table">
   <header class="hud">
-    <button class="meb" id="me-btn" aria-label="You: profile, verifiable shuffle and rules"><canvas class="av" data-s="34" aria-hidden="true"></canvas></button>
-    <div class="who"><b id="me-name">P2</b><small><span class="dot" id="netdot"></span><span id="me-sub">Roulette</span></small></div>
-    <div class="bank" aria-live="polite"><span class="lbl">Credits</span><b class="num" id="credits">0</b><small id="inplay">&nbsp;</small></div>
-    <button class="hb" id="help-btn" aria-label="How to play and rules">?</button>
-    <button class="ib" id="players-btn" aria-label="Players and leaderboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
-      <span class="n" id="pcount">1</span></button>
-    <button class="ib snd" id="snd-btn" aria-label="Sound" aria-pressed="true"></button>
+    <button class="meb" id="me-btn" aria-label="You: profile, verifiable shuffle and rules"><canvas class="av" data-s="34" aria-hidden="true"></canvas><span class="dot" id="netdot"></span></button>
+    <div class="bank">
+      <div class="bk-who"><b id="me-name">P2</b><span id="me-sub">Roulette</span></div>
+      <div class="bk-bal" aria-live="polite"><i class="bk-coin" aria-hidden="true"></i><b class="num" id="credits" aria-label="Credits">0</b></div>
+    </div>
+    <div class="hud-btns">
+      <button class="hb" id="help-btn" aria-label="How to play and rules">?</button>
+      <button class="ib" id="players-btn" aria-label="Players and leaderboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
+        <span class="n" id="pcount">1</span></button>
+      <button class="ib snd" id="snd-btn" aria-label="Sound" aria-pressed="true"></button>
+    </div>
     <p class="pm">Play money only · credits have no value · 18+ · just for fun</p>
   </header>
   <div class="phase" role="status" aria-live="polite">
@@ -755,6 +787,7 @@ html,body,.board,.dock{touch-action:manipulation}
 </section>
 
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="alert" id="alert" role="alert" hidden><div class="al-card"><div class="al-ic" aria-hidden="true">!</div><b class="al-t" id="al-t"></b><small class="al-k">Tap to close</small></div></div>
 <div class="win" id="win" hidden><div class="card"><small id="win-k">You won</small><b class="num" id="win-v"></b><span id="win-s"></span></div></div>
 <div class="confetti" id="confetti"></div>
 <div class="scrim" id="scrim" hidden></div>
@@ -784,5 +817,5 @@ html,body,.board,.dock{touch-action:manipulation}
 <div class="end" id="end" hidden><div class="endcard"><canvas class="ddlogo" id="end-logo" role="img" aria-label="DeskDot"></canvas><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
-<script src="/app/join/casino.js?v=2d10d7a86400"></script>
+<script src="/app/join/casino.js?v=838293c526b4"></script>
 </body></html>

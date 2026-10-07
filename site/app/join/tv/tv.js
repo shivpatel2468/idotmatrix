@@ -292,6 +292,61 @@
 
   const now = () => performance.now() / 1000;
 
+  // =========================================================================================== quality tier
+  // Two tiers: "hq" (glows, soft shadows, cross-faded HD panel, full-resolution canvases) and "lite" (no blur, fewer
+  // particles, canvases at 3/4 resolution) for weak TV sticks. `?lite=1` / `?hq=1` (or `?quality=lite|hq`) force one;
+  // otherwise the page starts in hq and watches its own frame times while something animates: a window of ~2 s that
+  // runs slow (median frame > 22 ms, or > 20 % of frames over 34 ms) drops it to lite for the rest of the visit.
+  // Pure helpers (tierFromQuery, judgeFrames) are exported on TV for tests/js/tv_core.test.mjs.
+  function tierFromQuery(search) {
+    let q;
+    try {
+      q = new URLSearchParams(search || "");
+    } catch {
+      return null;
+    }
+    const v = (q.get("quality") || "").toLowerCase();
+    if (v === "lite" || v === "low") return "lite";
+    if (v === "hq" || v === "high") return "hq";
+    if (q.has("lite") && q.get("lite") !== "0") return "lite";
+    if (q.has("hq") && q.get("hq") !== "0") return "hq";
+    return null;
+  }
+
+  /** A window of frame intervals (ms) → "lite" when the device can't keep up, "hq" when it can, null if too few. */
+  function judgeFrames(dts) {
+    const xs = (dts || []).filter((d) => d > 0 && d < 1000); // a hidden tab / a GC pause of seconds says nothing
+    if (xs.length < 30) return null;
+    const s = xs.slice().sort((a, b) => a - b);
+    const p50 = s[Math.floor(s.length / 2)];
+    const slow = xs.filter((d) => d > 34).length / xs.length;
+    return p50 > 22 || slow > 0.2 ? "lite" : "hq";
+  }
+
+  const forcedTier = tierFromQuery(location.search);
+
+  /** The panel look: "hd" (the frame upscaled with smooth edges) or "led" (the classic LED matrix). */
+  function lookFromQuery(search) {
+    try {
+      const v = (new URLSearchParams(search || "").get("look") || "").toLowerCase();
+      return v === "led" || v === "hd" ? v : null;
+    } catch {
+      return null;
+    }
+  }
+  const LOOK_KEY = "deskdot.tv.look";
+  function initialLook() {
+    const q = lookFromQuery(location.search);
+    if (q) return q;
+    try {
+      const v = localStorage.getItem(LOOK_KEY);
+      if (v === "led" || v === "hd") return v;
+    } catch {
+      /* storage blocked */
+    }
+    return "hd";
+  }
+
   // =========================================================================================== stage scaling
   const TV = {
     W,
@@ -303,9 +358,139 @@
     pixelRatio: window.devicePixelRatio || 1,
     scenes: [],
     registerScene,
-    version: 1,
+    version: 2,
+    quality: forcedTier || "hq",
+    qualityForced: !!forcedTier,
+    look: initialLook(),
+    every,
+    setQuality,
+    setLook,
+    tierFromQuery,
+    judgeFrames,
+    lookFromQuery,
+    upscale: (data, passes) => upscale(data, passes),
   };
   window.TV = TV;
+  document.documentElement.dataset.q = TV.quality;
+
+  // =========================================================================================== the one animation loop
+  // Every per-frame job (casino scenes, the HD panel's cross-fade, a waiting panel frame) runs from this single
+  // requestAnimationFrame loop; it stops when nobody needs it. It also feeds the quality tier its frame times.
+  const loop = { subs: new Set(), raf: 0, last: 0, dts: [], dtSum: 0 };
+  function every(fn) {
+    loop.subs.add(fn);
+    kickLoop();
+    return () => loop.subs.delete(fn);
+  }
+  function kickLoop() {
+    if (!loop.raf) loop.raf = requestAnimationFrame(tick);
+  }
+  function tick(ts) {
+    loop.raf = 0;
+    const dt = loop.last ? ts - loop.last : 0;
+    loop.last = ts;
+    if (frameWaiting) {
+      frameWaiting = false;
+      if (current && current.scene.frame) safe(() => current.scene.frame(ctx));
+    }
+    const t = ts / 1000;
+    for (const fn of [...loop.subs]) {
+      try {
+        if (fn(t) === false) loop.subs.delete(fn);
+      } catch (e) {
+        loop.subs.delete(fn);
+        console.error("DeskDot TV frame job:", e);
+      }
+    }
+    // the tier watch: only frames that ran back to back while something animated count
+    if (loop.subs.size && dt > 0 && !TV.qualityForced && TV.quality === "hq" && !document.hidden) {
+      loop.dts.push(dt);
+      loop.dtSum += dt;
+      // a window: 120 frames, or ~2.5 s of them on a device too slow to show 120 in time
+      if (loop.dts.length >= 120 || (loop.dtSum >= 2500 && loop.dts.length >= 30)) {
+        loop.dtSum = 0;
+        const verdict = judgeFrames(loop.dts);
+        loop.dts.length = 0;
+        if (verdict === "lite") setQuality("lite", true);
+        else if (verdict === "hq" && probeUntil) probeUntil = Math.min(probeUntil, now()); // fine here: stop probing
+      }
+    }
+    if (loop.subs.size || frameWaiting) loop.raf = requestAnimationFrame(tick);
+    else loop.last = 0;
+  }
+  document.addEventListener("visibilitychange", () => {
+    loop.last = 0; // the first frame back is not a slow frame
+    loop.dts.length = 0;
+    loop.dtSum = 0;
+  });
+
+  /**
+   * After a scene mounts (hq, not forced): keep the loop running for a few seconds so the tier watch sees the
+   * page's real frame rate with the scene's work in it — even a scene that only redraws on a new panel frame.
+   */
+  let probeUntil = 0;
+  function probe() {
+    if (TV.qualityForced || TV.quality !== "hq") return;
+    const start = !probeUntil || now() > probeUntil;
+    probeUntil = now() + 8;
+    loop.dts.length = 0;
+    loop.dtSum = 0;
+    if (start) every(() => TV.quality === "hq" && now() < probeUntil);
+  }
+
+  /** Switch the tier (auto = measured) and re-mount the scene so its canvases take the new resolution. */
+  function setQuality(q, auto) {
+    if (q !== "lite" && q !== "hq") return;
+    if (q === TV.quality) return;
+    TV.quality = q;
+    document.documentElement.dataset.q = q;
+    if (auto) console.info("DeskDot TV: this screen runs slow — switching to the lite look (add ?hq=1 to the address to keep HQ)");
+    ledCache.clear();
+    if (current) {
+      const sc = current.scene;
+      current = null;
+      broken.delete(`${sc.id}|${ctx.app}`);
+      // force a fresh mount of the same scene
+      const host = $("scene");
+      try {
+        if (sc.unmount) sc.unmount();
+      } catch (e) {
+        console.error(e);
+      }
+      if (host) host.replaceChildren();
+    }
+    pickScene();
+    redrawPanels();
+  }
+
+  /** The panel look ("hd" | "led"), remembered on this screen. */
+  function setLook(v, announce) {
+    if (v !== "hd" && v !== "led") return;
+    TV.look = v;
+    try {
+      localStorage.setItem(LOOK_KEY, v);
+    } catch {
+      /* storage blocked */
+    }
+    redrawPanels();
+    if (announce) toast(v === "hd" ? "Panel look: HD" : "Panel look: classic LED");
+  }
+
+  let toastTimer = 0;
+  function toast(text) {
+    let t = $("tv-toast");
+    if (!t) {
+      t = el("div");
+      t.id = "tv-toast";
+      const stage = $("stage");
+      if (!stage) return;
+      stage.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("on"), 1800);
+  }
 
   function fit() {
     const stage = $("stage");
@@ -753,9 +938,163 @@
 
   const drawn = new Set(); // canvases drawn with drawPanel (redrawn on a resize)
 
+  // ------------------------------------------------------------------------------------------- the HD look
+  // The frame upscaled ×8 with Scale2x / EPX (three passes: 32 → 64 → 128 → 256) — a pixel-art upscaler that only
+  // ever copies a pixel's own colour or a neighbour's, so shapes get smooth diagonals and round corners while every
+  // colour and every position stays exactly the panel's — then drawn to the canvas with bilinear smoothing (soft,
+  // anti-aliased edges). A few hundred thousand integer compares per frame, no WebGL needed (a TV stick's WebGL is
+  // the least reliable part of its browser). In hq a new frame cross-fades in over ~60 ms and a cheap bloom (the
+  // frame scaled down and back up, no canvas filter) sits under it.
+  const HD = {}; // per pass count: the shared upscaled frame (hdImage)
+
+  /** One Scale2x / EPX pass: src (w×w, packed 32-bit pixels) → dst (2w×2w). */
+  function scale2x(src, w, dst) {
+    const W2 = w * 2;
+    for (let y = 0; y < w; y++) {
+      const row = y * w;
+      const up = y > 0 ? row - w : row;
+      const dn = y < w - 1 ? row + w : row;
+      const o = y * 2 * W2;
+      for (let x = 0; x < w; x++) {
+        const P = src[row + x];
+        const A = src[up + x];
+        const D = src[dn + x];
+        const C = x > 0 ? src[row + x - 1] : P;
+        const B = x < w - 1 ? src[row + x + 1] : P;
+        const i = o + x * 2;
+        dst[i] = C === A && C !== D && A !== B ? A : P;
+        dst[i + 1] = A === B && A !== C && B !== D ? B : P;
+        dst[i + W2] = D === C && D !== B && C !== A ? C : P;
+        dst[i + W2 + 1] = B === D && B !== A && D !== C ? D : P;
+      }
+    }
+  }
+
+  /** The frame (3072 RGB bytes) upscaled 2^passes times into Uint32 pixels (little-endian ABGR). Pure. */
+  function upscale(data, passes, bufs) {
+    const n = PANEL << passes;
+    bufs = bufs || [];
+    let src = bufs[0] && bufs[0].length === PANEL * PANEL ? bufs[0] : (bufs[0] = new Uint32Array(PANEL * PANEL));
+    for (let i = 0, j = 0; i < PANEL * PANEL; i++, j += 3) src[i] = 0xff000000 | (data[j + 2] << 16) | (data[j + 1] << 8) | data[j];
+    let w = PANEL;
+    for (let p = 1; p <= passes; p++) {
+      const len = (w * 2) * (w * 2);
+      const dst = bufs[p] && bufs[p].length === len ? bufs[p] : (bufs[p] = new Uint32Array(len));
+      scale2x(src, w, dst);
+      src = dst;
+      w *= 2;
+    }
+    return { px: src, size: n };
+  }
+
   /**
-   * Paints a 32×32 RGB frame as a realistic LED matrix. opts: pitch (stage px per LED; sets the CSS size),
-   * glow 0..1 (bloom, default 0.6), round (default true), data (another 3072-byte frame), background.
+   * The upscaled frame as a canvas, shared by every panel on the page and rebuilt only for a new frame: 2 passes
+   * (128 px) for small panels and the lite tier, 3 (256 px) for the big ones. Its 16 px bloom source comes along.
+   */
+  function hdImage(data, passes) {
+    const slot = HD[passes] || (HD[passes] = { canvas: null, img: null, bufs: [], last: null, halo: null });
+    if (slot.last === data && slot.canvas) return slot;
+    const n = PANEL << passes;
+    if (!slot.canvas) {
+      slot.canvas = mk(n);
+      slot.img = slot.canvas.getContext("2d").createImageData(n, n);
+      slot.halo = mk(16);
+    }
+    const out = upscale(data, passes, slot.bufs);
+    new Uint32Array(slot.img.data.buffer).set(out.px);
+    slot.canvas.getContext("2d").putImageData(slot.img, 0, 0);
+    const hg = slot.halo.getContext("2d");
+    hg.imageSmoothingEnabled = true;
+    hg.clearRect(0, 0, 16, 16);
+    hg.drawImage(slot.canvas, 0, 0, 16, 16);
+    slot.last = data;
+    return slot;
+  }
+
+  /**
+   * Paint the HD look into `canvas` (backing store already sized D×D). A new frame on a big panel in hq cross-fades
+   * in: for ~60 ms the new picture is laid over the old one at a growing opacity (no copy of the old one needed),
+   * then drawn once more in full with its bloom.
+   */
+  function paintHD(canvas, D, data, glow) {
+    const lite = TV.quality === "lite";
+    const passes = lite || D <= 420 ? 2 : 3;
+    let st = canvas._hd;
+    if (!st) st = canvas._hd = { src: null, at: 0, dur: 0, job: null, last: 0, D: 0 };
+    if (data && st.src !== data) {
+      const t = now();
+      const gap = st.src ? t - st.at : 1;
+      // only big panels fade (the small casino inset gains nothing from it); never in lite or for the first frame
+      st.dur = lite || !st.src || D < 600 || st.D !== D ? 0 : Math.min(0.07, gap * 0.6);
+      st.at = t;
+      st.src = data;
+      st.passes = passes;
+      st.last = 0;
+      if (st.dur > 0) {
+        if (!st.job) {
+          st.job = every(() => {
+            const done = stepHD(canvas, st, glow);
+            if (done) st.job = null;
+            return !done;
+          });
+        }
+        st.D = D;
+        return;
+      }
+    } else if (st.job || (st.D === D && st.glow === glow && st.drawn === st.src && st.passes === passes)) return; // nothing new
+    st.D = D;
+    st.glow = glow;
+    st.passes = passes;
+    fullHD(canvas, st, glow);
+  }
+
+  /** One cross-fade step: the new frame over what's on the canvas, at the opacity that keeps the blend linear. */
+  function stepHD(canvas, st, glow) {
+    if (!canvas.isConnected || canvas._hd !== st) return true; // gone, or switched to the LED look meanwhile
+    const k = st.dur > 0 ? Math.min(1, (now() - st.at) / st.dur) : 1;
+    if (k >= 1) {
+      fullHD(canvas, st, glow);
+      return true;
+    }
+    // after drawing at a, the old picture weighs (1 − a)·(its weight): pick a so it weighs exactly 1 − k now
+    const a = st.last >= 1 ? 1 : 1 - (1 - k) / (1 - st.last);
+    st.last = k;
+    const g = canvas.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.globalCompositeOperation = "source-over";
+    g.globalAlpha = Math.max(0, Math.min(1, a));
+    g.drawImage(hdImage(st.src, st.passes).canvas, 0, 0, st.D, st.D);
+    g.globalAlpha = 1;
+    return false;
+  }
+
+  function fullHD(canvas, st, glow) {
+    const g = canvas.getContext("2d");
+    const D = st.D;
+    g.globalCompositeOperation = "source-over";
+    g.globalAlpha = 1;
+    g.fillStyle = "#050507";
+    g.fillRect(0, 0, D, D);
+    st.drawn = st.src;
+    if (!st.src) return;
+    const slot = hdImage(st.src, st.passes);
+    g.imageSmoothingEnabled = true;
+    if ("imageSmoothingQuality" in g) g.imageSmoothingQuality = "low"; // bilinear: the upscaler made the edges
+    g.drawImage(slot.canvas, 0, 0, D, D);
+    if (glow > 0 && TV.quality !== "lite") {
+      // bloom: the frame squeezed to 16 px and stretched back — a wide soft halo, no blur filter
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.22 * glow;
+      g.drawImage(slot.halo, 0, 0, D, D);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = "source-over";
+    }
+  }
+
+  /**
+   * Paints a 32×32 RGB frame big: the HD look (default) or the classic LED matrix (opts.look / TV.look = "led").
+   * opts: pitch (stage px per LED; sets the CSS size), glow 0..1 (default 0.6), round (LED dots, default true),
+   * data (another 3072-byte frame), look ("hd" | "led").
    */
   function drawPanel(canvas, opts) {
     if (!canvas) return;
@@ -770,15 +1109,30 @@
         canvas.style.height = w;
       }
     } else css = canvas.clientWidth || parseFloat(canvas.style.width) || canvas.width / TV.pixelRatio || 320;
-    const D = Math.max(PANEL, Math.round((css * TV.pixelRatio) / PANEL) * PANEL); // a whole number of px per LED
+    canvas._ledOpts = opts;
+    drawn.add(canvas);
+    const lite = TV.quality === "lite";
+    const glow = opts.glow == null ? 0.6 : Math.max(0, Math.min(1, Number(opts.glow) || 0));
+    const look = opts.look || TV.look;
+    // backing store: the canvas's real device pixels, capped (3/4 of them in lite: the GPU scales it up)
+    const dev = css * TV.pixelRatio * (lite ? 0.75 : 1);
+    if (look !== "led") {
+      const D = Math.max(PANEL, Math.min(lite ? 1024 : 1600, Math.round(dev)));
+      if (canvas.width !== D || canvas.height !== D) {
+        canvas.width = D;
+        canvas.height = D;
+        if (canvas._hd) canvas._hd.D = 0; // a resized canvas is blank: paint it in full
+      }
+      paintHD(canvas, D, data && data.length >= FRAME_BYTES ? data : null, glow);
+      return;
+    }
+    if (canvas._hd) canvas._hd = null;
+    const D = Math.max(PANEL, Math.min(1600, Math.round(dev / PANEL) * PANEL)); // a whole number of px per LED
     if (canvas.width !== D || canvas.height !== D) {
       canvas.width = D;
       canvas.height = D;
     }
-    canvas._ledOpts = opts;
-    drawn.add(canvas);
     const round = opts.round !== false;
-    const glow = opts.glow == null ? 0.6 : Math.max(0, Math.min(1, Number(opts.glow) || 0));
     const L = ledLayers(D, round);
     const g = canvas.getContext("2d");
     g.globalCompositeOperation = "source-over";
@@ -797,19 +1151,20 @@
     lg.drawImage(small, 0, 0, D, D);
     lg.globalCompositeOperation = "destination-in";
     lg.drawImage(L.mask, 0, 0);
-    // the hot core: the same colours, through the core mask
-    const hg = L.hot.getContext("2d");
-    hg.globalCompositeOperation = "source-over";
-    hg.clearRect(0, 0, D, D);
-    hg.imageSmoothingEnabled = false;
-    hg.drawImage(small, 0, 0, D, D);
-    hg.globalCompositeOperation = "destination-in";
-    hg.drawImage(L.core, 0, 0);
-
     g.globalCompositeOperation = "lighter";
     g.drawImage(L.lit, 0, 0);
-    g.drawImage(L.hot, 0, 0);
-    if (glow > 0) {
+    if (!lite) {
+      // the hot core: the same colours, through the core mask (hq only)
+      const hg = L.hot.getContext("2d");
+      hg.globalCompositeOperation = "source-over";
+      hg.clearRect(0, 0, D, D);
+      hg.imageSmoothingEnabled = false;
+      hg.drawImage(small, 0, 0, D, D);
+      hg.globalCompositeOperation = "destination-in";
+      hg.drawImage(L.core, 0, 0);
+      g.drawImage(L.hot, 0, 0);
+    }
+    if (glow > 0 && !lite) {
       const [tight, wide] = bloom(small);
       g.imageSmoothingEnabled = true;
       g.globalAlpha = 0.55 * glow;
@@ -969,6 +1324,7 @@
     host.appendChild(root);
     current = { scene: next, root };
     safe(() => next.mount(root, ctx));
+    probe();
     if (current && current.scene === next) {
       safe(() => next.update && next.update(ctx));
       if (ctx.panel) safe(() => next.frame && next.frame(ctx));
@@ -1172,17 +1528,14 @@
     }
   }
 
-  let frameReq = 0;
+  let frameWaiting = false;
   function onFrame(buf) {
     if (buf.length !== FRAME_BYTES) return;
     ctx.panel = buf;
     ctx.frameAt = now();
-    // latest wins: draw on the next animation frame, skipping frames that arrive faster than the screen
-    if (frameReq) return;
-    frameReq = requestAnimationFrame(() => {
-      frameReq = 0;
-      if (current && current.scene.frame) safe(() => current.scene.frame(ctx));
-    });
+    // latest wins: drawn by the animation loop's next frame, skipping frames that arrive faster than the screen
+    frameWaiting = true;
+    kickLoop();
   }
 
   // =========================================================================================== table theme
@@ -1262,7 +1615,7 @@
       this.ambEl = root.querySelector(".g-ambient");
       this.chipsKey = "";
       this.lobbyKey = "";
-      drawPanel(this.canvas, { pitch: 24, glow: 0.65 });
+      drawPanel(this.canvas, { pitch: 24, glow: 0.65, round: true });
     },
     update(c) {
       const r = this.root;
@@ -1319,8 +1672,18 @@
       const t = [(r / m) * 255, (g / m) * 255, (b / m) * 255];
       for (let i = 0; i < 3; i++) this.amb[i] += (t[i] - this.amb[i]) * 0.25;
       this.ambA += (Math.min(0.32, 0.06 + lum * 0.9) - this.ambA) * 0.25;
-      this.ambEl.style.setProperty("--amb", this.amb.map((v) => Math.round(v)).join(","));
-      this.ambEl.style.setProperty("--amb-a", this.ambA.toFixed(3));
+      // the glow is a 1700 px gradient: repaint it at most twice a second, and only when it visibly changed
+      // (lite: never — a per-frame repaint of it was a main cause of stutter on TV sticks)
+      if (TV.quality === "lite") return;
+      const nowS = now();
+      const amb = this.amb.map((v) => Math.round(v / 8) * 8).join(",");
+      const a = (Math.round(this.ambA * 50) / 50).toFixed(2);
+      if (nowS - (this.ambAt || 0) < 0.5 || (amb === this.ambKey && a === this.ambAKey)) return;
+      this.ambAt = nowS;
+      this.ambKey = amb;
+      this.ambAKey = a;
+      this.ambEl.style.setProperty("--amb", amb);
+      this.ambEl.style.setProperty("--amb-a", a);
     },
     unmount() {
       this.root = null;
@@ -1374,6 +1737,13 @@
     setInterval(watchdog, 2000);
     ["mousemove", "pointerdown", "keydown"].forEach((t) => window.addEventListener(t, wakeCursor, { passive: true }));
     ["pointerdown", "keydown"].forEach((t) => window.addEventListener(t, keepAwake, { passive: true }));
+    // the panel look: L on a keyboard, the remote's select / play-pause / menu button on a TV stick
+    window.addEventListener("keydown", (e) => {
+      const k = e.key;
+      if (k === "l" || k === "L" || k === "Enter" || k === "MediaPlayPause" || k === "ContextMenu" || e.keyCode === 179 || e.keyCode === 82) {
+        setLook(TV.look === "hd" ? "led" : "hd", true);
+      }
+    });
     wakeCursor();
     document.addEventListener("visibilitychange", () => {
       keepAwake();

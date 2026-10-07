@@ -294,7 +294,16 @@ const SYNC = (() => {
 /* ===== END shared sync clock ===== */
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (n) => Math.round(Number(n) || 0).toLocaleString("en-US");
-const short = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1000 ? (n / 1e3).toFixed(n % 1000 ? 1 : 0) + "K" : String(n);
+/** an amount with K / M, never rounded up (the same as casino/chips.py short): 1000 → 1K, 2500 → 2.5K, 12345 → 12.3K, 1250000 → 1.25M */
+function short(n) {
+  const x = Math.floor(Number(n) || 0);
+  if (x < 0) return "-" + short(-x);
+  for (const [u, s] of [[1e6, "M"], [1e3, "K"]]) if (x >= u) {
+    const d = x < 10 * u ? 2 : x < 100 * u ? 1 : 0, q = Math.floor((x * 10 ** d) / u);
+    return (d ? (q / 10 ** d).toFixed(d).replace(/\.?0+$/, "") : String(q)) + s;
+  }
+  return String(x);
+}
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || "null"); localStorage.setItem(k, JSON.stringify(v)); } catch (_) { return null; } return v; }
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -401,22 +410,64 @@ $("#sit").addEventListener("click", () => {
   buzz([15, 40, 25]); go("table");
 });
 
-/* ------------------------------------------------ chips */
-const CHIPS = [1, 5, 25, 100, 500];
+/* ------------------------------------------------ chips: the shared ladder (casino/chips.py — the studio and the TV copy it too).
+   The table's rack is status.chips: only the chips its limits allow (min_bet ≤ value ≤ max_bet), at most 7, the
+   table minimum as the smallest chip. chipRack() computes the same rack for an older engine without status.chips. */
+const LADDER = [ // value, label, chip colour, edge stripes (also the label colour)
+  [1, "1", "#f2efe8", "#2b6cd6"], [5, "5", "#d23a3a", "#ffffff"], [25, "25", "#2e9a55", "#ffffff"], [100, "100", "#1c1c22", "#e8e8e8"],
+  [500, "500", "#7b3fc4", "#ffffff"], [1000, "1K", "#f2c230", "#5a3d00"], [2000, "2K", "#e85d9f", "#ffffff"], [5000, "5K", "#c9772b", "#ffffff"],
+  [10000, "10K", "#2f6fd6", "#ffffff"], [25000, "25K", "#18a39a", "#ffffff"], [50000, "50K", "#9a2f4d", "#ffd36b"],
+  [100000, "100K", "#c9a227", "#1c1c22"], [250000, "250K", "#5b2a86", "#ffd36b"], [500000, "500K", "#0f3d2e", "#ffd36b"], [1000000, "1M", "#111111", "#ffd36b"],
+];
+const RACK_MAX = 7;
+/** casino/chips.py chip_rack: the chips a table with these limits offers, smallest first */
+function chipRack(minBet, maxBet) {
+  const lo = Math.max(1, Math.floor(Number(minBet)) || 1), hi = Math.max(lo, Math.floor(Number(maxBet)) || lo);
+  const ok = LADDER.filter((c) => c[0] >= lo && c[0] <= hi).map(([v, label, color, edge]) => ({ v, label, color, edge }));
+  if (!ok.length || ok[0].v !== lo) { const up = LADDER.find((c) => c[0] > lo) || LADDER[LADDER.length - 1]; ok.unshift({ v: lo, label: short(lo), color: up[2], edge: up[3] }); }
+  if (ok.length <= RACK_MAX) return ok;
+  const pick = new Set(); for (let i = 0; i < RACK_MAX; i++) pick.add(Math.floor((2 * i * (ok.length - 1) + RACK_MAX - 1) / (2 * (RACK_MAX - 1))));
+  return [...pick].sort((a, b) => a - b).map((i) => ok[i]);
+}
+/** this table's rack: the engine's status.chips, or the same rack computed here */
+function rackChips(pub) {
+  const p = pub || S.pub || {}, h = p.house || {};
+  return Array.isArray(p.chips) && p.chips.length ? p.chips : chipRack(h.min_bet || 1, h.max_bet || 500);
+}
+/** an amount as chips, largest first (greedy over the ladder plus this table's own off-ladder minimum) */
+function chipPieces(n) {
+  const extra = rackChips().filter((c) => !LADDER.some((l) => l[0] === c.v)).map((c) => [c.v, c.label, c.color, c.edge]);
+  const kinds = [...LADDER, ...extra].sort((a, b) => b[0] - a[0]), out = [];
+  let left = Math.max(0, Math.floor(Number(n) || 0));
+  for (const c of kinds) while (left >= c[0] && out.length < 40) { out.push(c); left -= c[0]; }
+  return out.length ? out : [LADDER[0]];
+}
 function renderRack() {
-  const rack = $("#rack"), h = S.pub.house || {}, free = S.priv.credits ?? 0;
-  if (!rack.childElementCount) {
-    for (const v of [...CHIPS, "all"]) {
-      const b = document.createElement("button"); b.className = "chip " + (v === "all" ? "call" : "c" + v); b.setAttribute("role", "radio"); b.dataset.v = v;
-      b.innerHTML = `<span>${v === "all" ? "ALL<br>IN" : short(v)}</span>`; b.setAttribute("aria-label", v === "all" ? "All in" : v + " credits"); rack.append(b);
+  const rack = $("#rack"), free = S.priv.credits ?? 0, chips = rackChips(), key = chips.map((c) => c.v).join(",");
+  if (rack.dataset.k !== key) { // a new table or the host changed the limits: rebuild the rack
+    rack.dataset.k = key; rack.textContent = "";
+    for (const c of [...chips, null]) {
+      const b = document.createElement("button"); b.className = "chip" + (c ? "" : " call"); b.setAttribute("role", "radio"); b.dataset.v = c ? c.v : "all";
+      if (c) b.style.cssText = `--cc:${c.color};--ce:${c.edge};--ct:${c.edge}`;
+      b.innerHTML = `<span>${c ? esc(c.label) : "ALL<br>IN"}</span>`; b.setAttribute("aria-label", c ? fmt(c.v) + " credits" : "All in"); rack.append(b);
     }
+    if (S.chip !== "all" && !chips.some((c) => c.v === Number(S.chip))) { S.chip = chips[0].v; store("deskdot.casino.chip", S.chip); }
+    sizeRack();
   }
   for (const b of $$(".chip", rack)) {
     const v = b.dataset.v === "all" ? "all" : Number(b.dataset.v);
     b.setAttribute("aria-checked", String(String(v) === String(S.chip)));
-    b.disabled = !ctx.betting || (v !== "all" && (v > free || (h.max_bet && v > h.max_bet)));
+    b.disabled = !ctx.betting || (v !== "all" && v > free);
   }
 }
+/** chips as big as fit in one row (two rows in the landscape dock), 34–54 px */
+function sizeRack() {
+  const rack = $("#rack"), n = rack.childElementCount || 6, W = rack.clientWidth; if (!W) return;
+  let per = n, cw = (W - (per - 1) * 5) / per;
+  if (cw < 40 && matchMedia("(orientation: landscape) and (max-height: 560px)").matches) { per = Math.ceil(n / 2); cw = (W - (per - 1) * 5) / per; }
+  rack.style.setProperty("--cw", clamp(Math.floor(cw), 34, 54) + "px");
+}
+if (typeof ResizeObserver === "function") new ResizeObserver(() => sizeRack()).observe($("#rack"));
 $("#rack").addEventListener("click", (e) => {
   const b = e.target.closest(".chip"); if (!b || b.disabled) return;
   S.chip = b.dataset.v === "all" ? "all" : Number(b.dataset.v); store("deskdot.casino.chip", S.chip); buzz(6); renderRack();
@@ -426,13 +477,12 @@ function chipAmount() {
   if (S.chip === "all") return Math.min(free, max);
   return Math.min(Number(S.chip) || 1, free);
 }
-function chipClass(n) { return n >= 500 ? "c500" : n >= 100 ? "c100" : n >= 25 ? "c25" : n >= 5 ? "c5" : "c1"; }
-function chipStyle(n) { const m = { c500: ["#7a35d6", "#fff"], c100: ["#1e1e26", "#fff"], c25: ["#119a54", "#fff"], c5: ["#d8203a", "#fff"], c1: ["#e8e4da", "#1a1a1a"] }[chipClass(n)]; return `--cc:${m[0]};--ct:${m[1]};--stk:${stackShadow(n)}`; }
-/** a stack is as tall as the chips it takes to make `n` (greedy, at most 6 edges under the top chip) */
+/** a stack of `n`: the top chip is the biggest ladder chip in it, the edges underneath are the other chips' colours */
+function chipStyle(n) { const p = chipPieces(n), top = p[0]; return `--cc:${top[2]};--ce:${top[3]};--ct:${top[3]};--stk:${stackShadow(p)}`; }
+/** a stack is as tall as the chips it takes (greedy, largest first; at most 6 edges under the top chip) */
 function stackShadow(n) {
-  let left = Math.max(0, Math.round(Number(n) || 0)), k = 0;
-  for (const c of [500, 100, 25, 5, 1]) while (left >= c && k < 7) { left -= c; k++; }
-  const edges = []; for (let i = 1; i < Math.min(7, Math.max(1, k)); i++) edges.push(`0 ${i * 2.5}px 0 ${i % 2 ? "rgba(255,255,255,.55)" : "rgba(0,0,0,.35)"}`);
+  const pieces = Array.isArray(n) ? n : chipPieces(n), k = Math.min(7, pieces.length), edges = [];
+  for (let i = 1; i < k; i++) edges.push(`0 ${i * 2.5}px 0 color-mix(in srgb,${pieces[i][2]} ${i % 2 ? 100 : 72}%,#000)`);
   return [...edges, `0 ${Math.max(1, k - 1) * 2.5 + 3}px 0 rgba(0,0,0,.5)`].join(",");
 }
 
@@ -581,7 +631,20 @@ function fly(amount, from, to, o = {}) {
   let fin = false; const end = () => { if (fin) return; fin = true; e.remove(); if (o.done) o.done(); };
   an.onfinish = end; an.oncancel = end; setTimeout(end, 1200);
 }
-function placeGhost(g, x, y) { g.style.transform = `translate(${x}px,${y - 34}px)`; } // a little above the finger, so the spot under it stays visible
+/** where a drag aims (client coords): right under a mouse or pen tip; a little above a finger, so the spot isn't hidden under it */
+const LIFT = 34;
+const aim = (e) => [e.clientX, e.pointerType === "touch" ? e.clientY - LIFT : e.clientY];
+/** where a dragged chip lands if dropped now: on the game's own chip point for the target (roulette lines, corners,
+    streets: snap), else on the aim point */
+function dropPoint(spot, x, y) { return (spot && S.mod && S.mod.snap && spotPoint(spot)) || [x, y]; }
+/** move the ghost chip (transform only: no layout per move) */
+function placeGhost(g, spot, x, y) {
+  const [gx, gy] = dropPoint(spot, x, y), snap = !!(spot && S.mod && S.mod.snap);
+  if (g._snap !== snap) { g._snap = snap; g.classList.toggle("snap", snap); }
+  g.style.transform = `translate3d(${gx.toFixed(1)}px,${gy.toFixed(1)}px,0)`;
+}
+/** a drag starts / ends: the game may measure its layout once instead of on every move */
+function dragMeasure(on) { if (S.mod && S.mod.measure) S.mod.measure(on); }
 /** the spot under a point (client coords): the module's own geometry (roulette) or the zone element there */
 function spotAtPoint(x, y) {
   if (S.mod && S.mod.spotAt) return S.mod.spotAt(x, y);
@@ -589,40 +652,45 @@ function spotAtPoint(x, y) {
   return z ? z.dataset.spot : null;
 }
 let hov = null;
-function hover(spot) {
+function hover(spot, quiet) {
   if (hov === spot) return;
   hov = spot;
   if (S.mod && S.mod.hover) { S.mod.hover(spot); }
   else { for (const z of $$("#board .dd-on")) z.classList.remove("dd-on"); if (spot) { const z = $(spotSel(spot)); if (z) z.classList.add("dd-on"); } }
-  if (spot) buzz(4);
+  if (spot && !quiet) buzz(4);
 }
 /** pointermove at most once per frame (a mouse can fire hundreds a second): the newest event wins */
 function perFrame(fn) { let ev = null, id = 0; return (e) => { ev = e; if (!id) id = requestAnimationFrame(() => { id = 0; const x = ev; ev = null; if (x) fn(x); }); }; }
 /** a bet gesture starts only with the primary button / a finger / a pen tip — never right- or middle-click */
 const primary = (e) => e.isPrimary !== false && (e.pointerType !== "mouse" || e.button === 0);
 // drag a chip from the rack onto the table (touch and mouse); a tap or click on a chip still just picks it.
-// No setPointerCapture here: with a mouse, capture retargets the click to #rack and the chip under it is never picked.
-// The move / up listeners live on the document instead, so a fast mouse that leaves the rack is still followed.
+// The pointer is captured by the dragged chip itself (never by #rack: with a mouse that retargets the click and the
+// chip is never picked), so a fast mouse that leaves the rack is still followed; move / up are heard on the document.
+// Each frame reads first (which spot is under the aim point) and then writes (highlight, ghost transform).
 let rackDrag = null;
 $("#rack").addEventListener("pointerdown", (e) => {
   const b = e.target.closest(".chip"); if (!b || b.disabled || !primary(e)) return;
   rackDrag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, v: b.dataset.v === "all" ? "all" : Number(b.dataset.v), ghost: null };
+  try { b.setPointerCapture(e.pointerId); } catch (_) {}
+  if (e.pointerType === "mouse" && e.cancelable) e.preventDefault(); // no text selection / native drag while a mouse drags a chip
 });
 document.addEventListener("pointermove", perFrame((e) => {
   const d = rackDrag; if (!d || e.pointerId !== d.id) return;
   if (!d.ghost) {
-    if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 8 || !ctx.betting) return;
+    if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 6 || !ctx.betting) return;
     S.chip = d.v; store("deskdot.casino.chip", S.chip); renderRack();
-    d.ghost = flyChip(chipAmount() || (d.v === "all" ? 0 : d.v), "ghost"); buzz(6); SFX.tap();
+    d.ghost = flyChip(chipAmount() || (d.v === "all" ? 0 : d.v), "ghost"); buzz(6); SFX.tap(); dragMeasure(true);
   }
-  placeGhost(d.ghost, e.clientX, e.clientY); hover(spotAtPoint(e.clientX, e.clientY - 34));
+  const [x, y] = aim(e), spot = spotAtPoint(x, y);
+  hover(spot); placeGhost(d.ghost, spot, x, y);
 }));
 function endRack(e, drop) {
   const d = rackDrag; if (!d || e.pointerId !== d.id) return;
   rackDrag = null; if (!d.ghost) return;
-  const spot = drop ? spotAtPoint(e.clientX, e.clientY - 34) : null; hover(null); d.ghost.remove();
-  if (spot) ctx.bet(spot, { from: [e.clientX, e.clientY - 34] });
-  else fly(chipAmount() || 1, [e.clientX, e.clientY - 34], rackPoint(), { s0: 1.45, s1: 1.5, fade: true, ms: 260 });
+  const [x, y] = aim(e), spot = drop ? spotAtPoint(x, y) : null, from = dropPoint(spot, x, y);
+  hover(null); d.ghost.remove(); dragMeasure(false);
+  if (spot) ctx.bet(spot, { from });
+  else fly(chipAmount() || 1, [x, y], rackPoint(), { s0: 1.45, s1: 1.5, fade: true, ms: 260 });
 }
 document.addEventListener("pointerup", (e) => endRack(e, true));
 document.addEventListener("pointercancel", (e) => endRack(e, false));
@@ -642,22 +710,22 @@ board.addEventListener("pointermove", perFrame((e) => {
   const p = press; if (!p || e.pointerId !== p.id) return;
   if (!p.ghost && !p.moved && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 10) {
     clearTimeout(p.lp);
-    if (p.mine && ctx.betting && !p.long) { p.ghost = flyChip(p.mine, "ghost"); buzz(6); } // drag the stack off the spot
+    if (p.mine && ctx.betting && !p.long) { p.ghost = flyChip(p.mine, "ghost"); buzz(6); dragMeasure(true); } // drag the stack off the spot
     else p.moved = true; // a scroll or a slide: not a tap
   }
   if (p.ghost) {
-    placeGhost(p.ghost, e.clientX, e.clientY);
-    const over = spotAtPoint(e.clientX, e.clientY - 34);
-    p.ghost.classList.toggle("rm", over !== p.spot); hover(over === p.spot ? p.spot : null);
+    const [x, y] = aim(e), over = spotAtPoint(x, y);
+    if (p.ghost._rm !== (over !== p.spot)) { p.ghost._rm = over !== p.spot; p.ghost.classList.toggle("rm", p.ghost._rm); }
+    hover(over === p.spot ? p.spot : null); placeGhost(p.ghost, null, x, y);
   }
 }));
 function endPress(e, up) {
   const p = press; if (!p || e.pointerId !== p.id) return;
   press = null; clearTimeout(p.lp);
   if (p.ghost) {
-    const over = up ? spotAtPoint(e.clientX, e.clientY - 34) : p.spot; hover(null); p.ghost.remove();
-    if (over !== p.spot) ctx.unbet(p.spot, { from: [e.clientX, e.clientY - 34] });
-    else fly(p.mine, [e.clientX, e.clientY - 34], spotPoint(p.spot), { s0: 1.45, s1: 0.8, ms: 220 });
+    const [x, y] = aim(e), over = up ? spotAtPoint(x, y) : p.spot; hover(null); p.ghost.remove(); dragMeasure(false);
+    if (over !== p.spot) ctx.unbet(p.spot, { from: [x, y] });
+    else fly(p.mine, [x, y], spotPoint(p.spot), { s0: 1.45, s1: 0.8, ms: 220 });
     return;
   }
   if (!up || p.long || p.moved) return;
@@ -690,7 +758,7 @@ function afterRender() {
   const mine = S.priv.bets || {};
   for (const z of $$("#board [data-spot]")) z.classList.toggle("mine", !!mine[z.dataset.spot] && ctx.betting);
   for (const [spot, t] of Object.entries(bumpWant)) { if (now() - t < 900) { if (chipOf(spot)) bump(spot); } else delete bumpWant[spot]; }
-  if (hov) { const h = hov; hov = null; hover(h); }
+  if (hov) { const h = hov; hov = null; hover(h, true); } // a re-rendered board keeps the drag target lit (no extra buzz)
   Tour.place();
 }
 
@@ -699,8 +767,8 @@ function tourSteps() {
   const mod = S.mod || {}, g = guideFor();
   const board = typeof mod.tour === "string" ? mod.tour : "Tap a spot to put your chip on it — every tap adds another chip. <b>Hold</b> a spot, or <b>drag your stack off</b> it, to take your chips back. The coloured dots show who else is on a spot and the table total.";
   return [
-    { sel: ".bank", t: "Your credits", p: "Play money for this party — everyone starts the same. Chips you have on the table show underneath." },
-    { sel: "#rack", t: "The chip rack", p: "Tap a chip to choose its value. Or <b>drag a chip</b> straight onto the table and let go on a spot." },
+    { sel: ".bank", t: "Your credits", p: "Play money for this party — everyone starts the same. Chips you have on the table show next to your name." },
+    { sel: "#rack", t: "The chip rack", p: "Only the chips this table allows. Tap a chip to choose its value, or <b>drag a chip</b> straight onto the table and let go on a spot." },
     { sel: "#board", t: g ? g.title : "The table", p: board },
     { sel: ".acts", t: "Undo · Clear · Rebet · Done", p: "<b>Undo</b> takes back your last chip, <b>Clear</b> takes them all, <b>Rebet</b> repeats last round's bets, <b>Done</b> tells the table you're ready." },
     { sel: "#ring", t: "The timer", p: "The countdown starts with the first chip. At zero — or once everyone taps Done — it's <b>no more bets</b> and every chip is locked." },
@@ -762,16 +830,28 @@ function ensureModule() {
 
 /* ------------------------------------------------ HUD: credits (animated), phase, countdown, history */
 let credAnim = 0;
+/** how many characters of credits fit in the bank plaque (monospace digits), measured on resize */
+const credFit = { chars: 99 };
+function measureCredits() {
+  const el = $("#credits"), box = el.parentElement, w = box.clientWidth; if (!w) return;
+  const fs = parseFloat(getComputedStyle(el).fontSize) || 22, coin = 22;
+  credFit.chars = Math.max(4, Math.floor((w - coin) / (fs * 0.62)));
+  if (S.credits !== null) el.textContent = credText(S.credits);
+}
+/** 1,250,000 when it fits, else 1.25M (the full number is in the title / players sheet) */
+function credText(v) { const s = fmt(v); return s.length <= credFit.chars ? s : short(Math.round(v)); }
+if (typeof ResizeObserver === "function") new ResizeObserver(() => measureCredits()).observe($(".bk-bal"));
 function setCredits(v) {
   const el = $("#credits");
-  if (S.credits === null) { S.credits = v; el.textContent = fmt(v); return; }
+  el.title = fmt(v) + " credits"; el.setAttribute("aria-label", fmt(v) + " credits");
+  if (S.credits === null) { S.credits = v; el.textContent = credText(v); return; }
   if (v === S.credits) return;
   const from = S.credits, to = v, t0 = now(), dur = REDUCED ? 0 : clamp(Math.abs(to - from) * 2, 350, 1100);
   S.credits = v; cancelAnimationFrame(credAnim);
   el.classList.toggle("up", to > from); el.classList.toggle("down", to < from);
   const step = () => {
     const k = dur ? clamp((now() - t0) / dur, 0, 1) : 1, e = 1 - Math.pow(1 - k, 3);
-    el.textContent = fmt(from + (to - from) * e);
+    el.textContent = credText(from + (to - from) * e);
     if (k < 1) credAnim = requestAnimationFrame(step); else setTimeout(() => el.classList.remove("up", "down"), 500);
   };
   step();
@@ -857,8 +937,9 @@ function renderAll() {
   ensureModule(); renderPhase(); renderRack(); renderActions(); maybeHowTo();
   const pv = S.priv;
   if (typeof pv.credits === "number") setCredits(pv.credits);
-  $("#inplay").textContent = pv.staked ? `${fmt(pv.staked)} on the table` : pv.escrow ? `${fmt(pv.escrow)} in play` : " ";
-  $("#me-sub").textContent = `${S.pub.name || S.game}${S.seat ? " · seat " + S.seat : ""}`;
+  // next to the name: what you have on the table, else the table and your seat
+  const inPlay = pv.staked ? `${short(pv.staked)} on the table` : pv.escrow ? `${short(pv.escrow)} in play` : "", sub = $("#me-sub");
+  sub.textContent = inPlay || `${S.pub.name || S.game}${S.seat ? " · seat " + S.seat : ""}`; sub.classList.toggle("staked", !!inPlay);
   $("#pcount").textContent = String((S.pub.players || []).filter((p) => p.online).length || 1);
   if (S.mod && S.mod.update) S.mod.update(ctx);
   afterRender();
@@ -907,9 +988,26 @@ function onState(m) {
 /* ------------------------------------------------ toasts, win card, confetti */
 let toastT = 0;
 function toast(s, bad) {
-  const t = $("#toast"); t.textContent = s; t.className = "toast" + (bad ? " error" : ""); t.hidden = false;
+  if (bad) { alertMsg(s); return; }
+  const t = $("#toast"); t.textContent = s; t.className = "toast"; t.hidden = false;
   t.style.animation = "none"; void t.offsetWidth; t.style.animation = ""; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600);
 }
+/** a rejected bet or move: big in the middle of the table (the same text the studio shows), tap to close, ~2.2 s */
+let alertT = 0;
+function alertMsg(s) {
+  const a = $("#alert");
+  $("#al-t").textContent = s; clearTimeout(alertT);
+  a.classList.remove("go", "out"); a.hidden = false; void a.offsetWidth; a.classList.add("go"); // restart the pop / shake / flash
+  buzz([18, 40, 18]);
+  alertT = setTimeout(hideAlert, 2200);
+}
+function hideAlert() {
+  const a = $("#alert"); if (a.hidden) return;
+  clearTimeout(alertT);
+  if (REDUCED) { a.hidden = true; return; }
+  a.classList.add("out"); alertT = setTimeout(() => { a.hidden = true; a.classList.remove("go", "out"); }, 200);
+}
+$("#alert").addEventListener("click", hideAlert);
 let winT = 0;
 function showResult(mine, pubRes) {
   const w = $("#win"), net = mine.net;
@@ -1188,6 +1286,52 @@ class Rng { // HMAC-SHA256(server_seed, `${client}:${nonce}:${counter}`) as big-
    line), or an outside box. Hold a finger down to see what a spot covers and what it pays; slide to adjust;
    release to bet. Long-press a spot holding your chips to take them back.
    ===================================================================================================== */
+/** The roulette layout's drop targets, like a real table (docs/CASINO.md §5): `u` runs along the table (0 … 12 = the
+    twelve streets, -1 … 0 the zero(s), 12 … 13 the columns), `v` across it (0 … 3 = the three numbers of a street,
+    the rail / dozens / even-money boxes below 0). `tu` / `tv` are the line bands as a fraction of a cell. Inside a
+    number → straight; on the line between two numbers → split; where four meet → corner; on the street's outer edge
+    (toward the rail) → street, and where two streets meet there → six line; the zero line → 0-splits and the trios;
+    the outer corner of 0 / 1 → first four (European) or top line (American). Pure: no DOM. */
+function rouletteSpot(u, v, us, tu, tv) {
+  const U0 = -1, U1 = 13, V0 = -2.35, V1 = 3, RAIL = -0.35, first = us ? "tl" : "ff";
+  if (!(u >= U0 && u < U1 && v >= V0 && v < V1)) return null;
+  if (u >= 12) return v >= 0 ? "col:" + (Math.floor(v) + 1) : null;
+  const zeroEdge = (vv) => { // a bet on the line between the zero(s) and the first street
+    if (!us) { if (Math.abs(vv - 1) < tv) return "tr:0-1-2"; if (Math.abs(vv - 2) < tv) return "tr:0-2-3"; return "s:0-" + clamp(Math.floor(vv) + 1, 1, 3); }
+    if (Math.abs(vv - 1) < tv) return "tr:0-1-2"; if (Math.abs(vv - 1.5) < tv * 0.8) return "tr:0-00-2"; if (Math.abs(vv - 2) < tv) return "tr:00-2-3";
+    return vv < 1 ? "s:0-1" : vv < 1.5 ? "s:0-2" : vv < 2 ? "s:00-2" : "s:00-3";
+  };
+  if (v < 0) { // the rail (streets, six lines), the dozens, the even-money boxes
+    if (u < 0) return v >= RAIL && u > -tu * 1.5 ? first : null;
+    if (v >= RAIL) {
+      const r = Math.floor(u), fu = u - r;
+      if (fu < tu * 1.4) return r > 0 ? "sl:" + (3 * (r - 1) + 1) : first;
+      if (fu > 1 - tu * 1.4 && r < 11) return "sl:" + (3 * r + 1);
+      return "st:" + (3 * r + 1);
+    }
+    if (v >= RAIL - 1) return "dz:" + (Math.floor(u / 4) + 1);
+    return ["low", "even", "red", "black", "odd", "high"][Math.floor(u / 2)];
+  }
+  if (u < 0) { // the zero(s)
+    if (u > -tu) return v < tv ? first : zeroEdge(v);
+    if (!us) return "n:0";
+    if (Math.abs(v - 1.5) < tv) return "s:0-00";
+    return v < 1.5 ? "n:0" : "n:00";
+  }
+  const r = Math.floor(u), k = Math.floor(v), fu = u - r, fv = v - k, n = 3 * r + k + 1;
+  const nu = fu < tu ? -1 : fu > 1 - tu && r < 11 ? 1 : 0;
+  if (k === 0 && fv < tv) { // the street's outer edge
+    if (nu < 0) return r === 0 ? first : "sl:" + (3 * (r - 1) + 1);
+    if (nu > 0) return "sl:" + (3 * r + 1);
+    return "st:" + (3 * r + 1);
+  }
+  const nv = fv < tv && k > 0 ? -1 : fv > 1 - tv && k < 2 ? 1 : 0;
+  if (nu === -1 && r === 0) return nv ? zeroEdge(k + (nv > 0 ? 1 : 0)) : zeroEdge(v);
+  if (nu && nv) { const r0 = nu < 0 ? r - 1 : r, k0 = nv < 0 ? k - 1 : k; return "c:" + (3 * r0 + k0 + 1); }
+  if (nu) { const x = nu < 0 ? n - 3 : n; return `s:${x}-${x + 3}`; }
+  if (nv) { const x = nv < 0 ? n - 1 : n; return `s:${x}-${x + 1}`; }
+  return "n:" + n;
+}
 registerGame("roulette", (() => {
   const RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
   const EU = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
@@ -1234,6 +1378,7 @@ registerGame("roulette", (() => {
   }
   function layout() {
     const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    rect = down ? r : null; peek = null; // a cached box is stale now
     land = r.width > r.height * 1.15;
     const pad = 6, W = r.width - pad * 2, H = r.height - pad * 2;
     geo = land ? { su: W / (U1 - U0), sv: H / (V1 - V0), x: pad, y: pad } : { su: H / (U1 - U0), sv: W / (V1 - V0), x: pad, y: pad };
@@ -1254,43 +1399,9 @@ registerGame("roulette", (() => {
     tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; root.append(tip);
     paint();
   }
-  // which spot is under a point (logical coords); edge bands are ~11 px wide whatever the phone
-  function spotAt(u, v) {
-    const tu = Math.min(0.3, 11 / geo.su), tv = Math.min(0.3, 11 / geo.sv);
-    if (u < U0 || u >= U1 || v < V0 || v >= V1) return null;
-    if (u >= 12) return v >= 0 ? "col:" + (Math.floor(v) + 1) : null;
-    if (v < 0) {
-      if (u < 0) return v >= RAIL && u > -0.3 ? (us ? "tl" : "ff") : null;
-      if (v >= RAIL) {
-        const r = Math.floor(u), fu = u - r;
-        if (fu < tu * 1.4 && r > 0) return "sl:" + (3 * (r - 1) + 1);
-        if (fu > 1 - tu * 1.4 && r < 11) return "sl:" + (3 * r + 1);
-        if (u < 0.3) return us ? "tl" : "ff";
-        return "st:" + (3 * r + 1);
-      }
-      if (v >= RAIL - 1) return "dz:" + (Math.floor(u / 4) + 1);
-      return ["low", "even", "red", "black", "odd", "high"][Math.floor(u / 2)];
-    }
-    const zeroEdge = (vv) => { // a bet on the line between the zero(s) and the first street
-      if (!us) { if (Math.abs(vv - 1) < tv) return "tr:0-1-2"; if (Math.abs(vv - 2) < tv) return "tr:0-2-3"; return "s:0-" + (Math.floor(vv) + 1); }
-      if (Math.abs(vv - 1) < tv) return "tr:0-1-2"; if (Math.abs(vv - 1.5) < tv * 0.8) return "tr:0-00-2"; if (Math.abs(vv - 2) < tv) return "tr:00-2-3";
-      return vv < 1 ? "s:0-1" : vv < 1.5 ? "s:0-2" : vv < 2 ? "s:00-2" : "s:00-3";
-    };
-    if (u < 0) {
-      if (u > -tu) return zeroEdge(v);
-      if (!us) return "n:0";
-      if (Math.abs(v - 1.5) < tv) return "s:0-00";
-      return v < 1.5 ? "n:0" : "n:00";
-    }
-    const r = Math.floor(u), k = Math.floor(v), fu = u - r, fv = v - k, n = 3 * r + k + 1;
-    const nu = fu < tu ? -1 : fu > 1 - tu && r < 11 ? 1 : 0;
-    const nv = fv < tv && k > 0 ? -1 : fv > 1 - tv && k < 2 ? 1 : 0;
-    if (nu === -1 && r === 0) return nv ? zeroEdge(k + (nv > 0 ? 1 : 0)) : zeroEdge(v);
-    if (nu && nv) { const r0 = nu < 0 ? r - 1 : r, k0 = nv < 0 ? k - 1 : k; return "c:" + (3 * r0 + k0 + 1); }
-    if (nu) { const a = nu < 0 ? n - 3 : n; return `s:${a}-${a + 3}`; }
-    if (nv) { const a = nv < 0 ? n - 1 : n; return `s:${a}-${a + 1}`; }
-    return "n:" + n;
-  }
+  // which spot is under a point (logical coords): the line / corner bands are ~22 % of a cell (never under 8 px)
+  function spotAt(u, v) { return rouletteSpot(u, v, us, band(geo.su), band(geo.sv)); }
+  const band = (px) => clamp(0.22, 8 / px, 0.34);
   function anchor(spot) { // logical point where the chip sits
     const [k, a] = spot.split(":"), p = (a || "").split("-").map(num), at = (n) => [Math.floor((n - 1) / 3), (n - 1) % 3];
     if (k === "n") { const n = p[0]; if (n === 0) return us ? [-0.5, 0.75] : [-0.5, 1.5]; if (n === 37) return [-0.5, 2.25]; const [r, c] = at(n); return [r + 0.5, c + 0.5]; }
@@ -1318,7 +1429,7 @@ registerGame("roulette", (() => {
     if (!spot) { tip.hidden = true; tip._s = ""; return; }
     if (tip._s !== spot) { tip._s = spot; const [n, p] = info(spot); tip.innerHTML = `${esc(n)}<small>${p}</small>`; }
     tip.hidden = false;
-    const r = rect || el.getBoundingClientRect(); tip.style.left = clamp(x, 70, r.width - 70) + "px"; tip.style.top = Math.max(40, y) + "px";
+    const r = box0(); tip.style.transform = `translate3d(${clamp(x, 70, r.width - 70).toFixed(1)}px,${Math.max(40, y).toFixed(1)}px,0) translate(-50%,-100%)`;
   }
   function paint() {
     if (!geo || !chipsEl) return;
@@ -1338,11 +1449,17 @@ registerGame("roulette", (() => {
     const hist = (ctxr.pub.history || []).slice(-1)[0], last = cells.last;
     if (last) last.innerHTML = hist ? `<span>LAST</span><i class="t-${hist.tone}">${esc(hist.label)}</i>` : "";
   }
-  let rect = null; // the table's box, measured once per gesture (not on every move: no forced layout while dragging)
-  function pt(e) { const r = rect || el.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  let rect = null; // the table's box, measured once per gesture or drag (not on every move: no forced layout while dragging)
+  const box0 = () => rect || el.getBoundingClientRect();
+  function pt(e) { const r = box0(); return [e.clientX - r.left, e.clientY - r.top]; }
+  let peek = null; // a mouse hovering the layout (no button): light the spot a click would bet on
+  function preview(spot, x, y) {
+    if (spot === peek) { if (spot) showTip(spot, x, y); return; }
+    peek = spot; highlight(spot); showTip(spot, x, y);
+  }
   function onDown(e) {
     if (!geo || !primary(e) || down) return;
-    rect = el.getBoundingClientRect();
+    rect = el.getBoundingClientRect(); peek = null;
     try { root.setPointerCapture(e.pointerId); } catch (_) {}
     const [x, y] = pt(e), spot = spotAt(...L2(x, y));
     down = { id: e.pointerId, spot, x, y, long: false, origin: spot, mine: !!(spot && (ctxr.priv.bets || {})[spot] && ctxr.betting), ghost: null };
@@ -1351,13 +1468,20 @@ registerGame("roulette", (() => {
     if (spot && (ctxr.priv.bets || {})[spot]) lpT = setTimeout(() => { if (down && down.spot === spot) { down.long = true; ctxr.unbet(spot); toast("Chips taken back"); highlight(null); showTip(null); } }, 550);
   }
   function onMove(e) {
-    if (!down || e.pointerId !== down.id) return;
+    if (!down) { // a mouse just moving over the table: preview the spot a click there would bet on
+      if (e.pointerType !== "mouse" || !geo || rackDrag) return;
+      if (!ctxr.betting) { if (peek) preview(null); return; }
+      if (!rect) rect = el.getBoundingClientRect();
+      const [x, y] = pt(e); preview(spotAt(...L2(x, y)), x, y);
+      return;
+    }
+    if (e.pointerId !== down.id) return;
     const [x, y] = pt(e), spot = spotAt(...L2(x, y));
     if (down.mine && !down.long && !down.ghost && spot !== down.origin) { // carry my stack off its spot
       clearTimeout(lpT); down.ghost = flyChip((ctxr.priv.bets || {})[down.origin] || 0, "ghost rm"); buzz(6); showTip(null);
     }
     if (down.ghost) {
-      placeGhost(down.ghost, e.clientX, e.clientY); down.spot = spot;
+      placeGhost(down.ghost, null, ...aim(e)); down.spot = spot;
       down.ghost.classList.toggle("rm", spot !== down.origin); highlight(spot === down.origin ? spot : null); return;
     }
     if (spot !== down.spot) { down.spot = spot; clearTimeout(lpT); highlight(spot); if (spot) buzz(4); }
@@ -1369,18 +1493,21 @@ registerGame("roulette", (() => {
     const d = down; down = null; rect = null; highlight(null); showTip(null);
     if (d.ghost) {
       d.ghost.remove();
-      if (e.type === "pointerup" && d.spot !== d.origin) ctxr.unbet(d.origin, { from: [e.clientX, e.clientY - 34] });
+      if (e.type === "pointerup" && d.spot !== d.origin) ctxr.unbet(d.origin, { from: aim(e) });
       return;
     }
     if (e.type === "pointerup" && d.spot && !d.long) ctxr.bet(d.spot);
   }
-  const local = (cx, cy) => { const r = el.getBoundingClientRect(); return cx < r.left || cx > r.right || cy < r.top || cy > r.bottom ? null : [cx - r.left, cy - r.top]; };
+  const local = (cx, cy) => { const r = box0(); return cx < r.left || cx > r.right || cy < r.top || cy > r.bottom ? null : [cx - r.left, cy - r.top]; };
+  function onLeave(e) { if (!down && e.pointerType === "mouse") { rect = null; if (peek) preview(null); } }
   return {
     title: "Roulette",
-    ownGestures: true, ticks: true,
-    tour: "Tap a <b>number</b> for a straight bet, the <b>line</b> between two numbers for a split, a <b>corner</b> for four, the rail for a street — or the outside boxes. Hold a finger down to see what a spot covers and pays. Drag your stack off a spot to take it back. Coloured dots show who else is on a spot.",
+    ownGestures: true, ticks: true, snap: true,
+    /** a chip drag from the rack (or a stack off a spot) starts / ends: measure the table once for the whole drag */
+    measure(on) { if (!el) return; rect = on ? el.getBoundingClientRect() : null; if (on && peek) preview(null); },
+    tour: "Tap or drag a chip onto a <b>number</b> for a straight bet, the <b>line</b> between two numbers for a split, the point where <b>four numbers meet</b> for a corner, the outer edge of a row for a street (between two rows: six line) — or the outside boxes. The numbers your chip covers light up before you let go. Drag your stack off a spot to take it back.",
     spotAt(cx, cy) { if (!geo || !el) return null; const p = local(cx, cy); return p ? spotAt(...L2(...p)) : null; },
-    spotPoint(spot) { if (!geo || !el) return null; const r = el.getBoundingClientRect(), [x, y] = S2(...anchor(spot)); return [r.left + x, r.top + y]; },
+    spotPoint(spot) { if (!geo || !el) return null; const r = box0(), [x, y] = S2(...anchor(spot)); return [r.left + x, r.top + y]; },
     hover(spot) { if (!geo) return; highlight(spot); if (!spot) { showTip(null); return; } const [x, y] = S2(...anchor(spot)); showTip(spot, x, y); },
     chipOf(spot) { return chipsEl ? chipsEl.querySelector(`[data-s="${spot}"]`) : null; },
     spinTitle: "The wheel is spinning…",
@@ -1389,14 +1516,14 @@ registerGame("roulette", (() => {
       el = host; ctxr = c; us = ((c.pub.rules || {}).wheel === "american");
       root = document.createElement("div"); root.className = "rt"; el.append(root);
       root.addEventListener("pointerdown", onDown); root.addEventListener("pointermove", perFrame(onMove));
-      root.addEventListener("pointerup", onUp); root.addEventListener("pointercancel", onUp);
+      root.addEventListener("pointerup", onUp); root.addEventListener("pointercancel", onUp); root.addEventListener("pointerleave", onLeave);
       ro = new ResizeObserver(() => layout()); ro.observe(el); layout();
     },
     update(c) {
       ctxr = c; const wantUs = (c.pub.rules || {}).wheel === "american";
       if (wantUs !== us) { us = wantUs; layout(); } else paint();
     },
-    unmount() { if (ro) ro.disconnect(); el = root = null; geo = null; },
+    unmount() { if (ro) ro.disconnect(); el = root = null; geo = null; rect = null; peek = null; },
     replay(rng, rules) { const w = rules.wheel === "american" ? US : EU, i = rng.randint(0, w.length - 1), n = w[i]; return { pocket: i, number: n, label: lab(n), color: col(n) }; },
     describe: (o) => `${o.label} ${o.color}`,
     paytable(c) {
