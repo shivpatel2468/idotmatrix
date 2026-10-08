@@ -2,14 +2,26 @@ import { useEffect, useState } from "react";
 import { Check, Copy, MonitorPlay, RefreshCw, Tv, Wifi, X } from "lucide-react";
 import { api } from "../lib/api";
 import { toast, useStore } from "../lib/store";
-import type { TvInfo } from "../lib/types";
+import type { TvDisplay, TvInfo, TvLook, TvQuality } from "../lib/types";
 import { QrCode } from "./Multiplayer";
 import { Modal } from "./Overlays";
+
+const LOOKS: [TvLook, string, string][] = [
+  ["pixel", "Pixel", "Sharp square pixels"],
+  ["led", "LED", "Like the real LED panel"],
+  ["glow", "Glow", "Sharp pixels with a soft glow"],
+];
+const QUALITIES: [TvQuality, string, string][] = [
+  ["auto", "Auto", "Each TV picks for itself and drops to Lite if it runs slow"],
+  ["hq", "HQ", "Full quality on every TV"],
+  ["lite", "Lite", "The same picture with less work — for slow TV sticks"],
+];
 
 /**
  * "Show on TV" (docs/TV_VIEW.md): opens the TV link and shows its QR code, the address to type, the TV code and how
  * many screens are watching. A smart TV, Fire TV, tablet or second laptop opens the address and shows the panel —
- * and the bespoke game / casino scenes — full screen, read-only.
+ * and the bespoke game / casino scenes — full screen, read-only. The panel look and quality set here apply live to
+ * every TV of the link (POST /api/tv/settings) until someone changes them on a TV with its remote.
  */
 export function TvSheet() {
   const open = useStore((s) => s.tvOpen);
@@ -44,6 +56,16 @@ export function TvSheet() {
   const renew = async () => {
     setBusy(true);
     try { setTv(await api.openTv(true)); toast("New TV code — screens on the old one were disconnected", "ok"); } finally { setBusy(false); }
+  };
+  const display: TvDisplay = tv?.display ?? { look: null, quality: null, rev: null };
+  const setDisplay = async (patch: { look?: TvLook | null; quality?: TvQuality | null }) => {
+    if (tv) setTv({ ...tv, display: { ...display, ...patch } }); // at once; the poll confirms it
+    try {
+      const r = await api.tvSettings(patch);
+      setTv((cur) => (cur ? { ...cur, display: r.display } : cur));
+    } catch {
+      toast("Couldn't change the TV display", "error");
+    }
   };
   const stop = async () => {
     setBusy(true);
@@ -89,6 +111,26 @@ export function TvSheet() {
         ) : (
           <div className="grid h-[260px] place-items-center text-[12.5px] text-ink-3"><Tv size={28} className="animate-pulse" /></div>
         )}
+        {tv?.url && (
+          <div className="flex flex-col gap-2.5 rounded-[12px] border border-line bg-chassis-1/60 p-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[12.5px] font-[560] text-ink-1">On every TV</span>
+              {display.look || display.quality ? (
+                <button type="button" className="text-[11px] text-ink-3 underline-offset-2 hover:text-ink-1 hover:underline"
+                  onClick={() => setDisplay({ look: null, quality: null })} title="Each TV keeps the look and quality picked on it">
+                  Let each TV choose
+                </button>
+              ) : (
+                <span className="text-[11px] text-ink-4">Each TV uses its own choice</span>
+              )}
+            </div>
+            <TvChoice label="Panel look" options={LOOKS} value={display.look} onPick={(look) => setDisplay({ look })} />
+            <TvChoice label="Quality" options={QUALITIES} value={display.quality} onPick={(quality) => setDisplay({ quality })} />
+            <p className="text-[11px] leading-snug text-ink-3">
+              Applies to every TV at once. Someone at a TV can still change it with the remote: press OK.
+            </p>
+          </div>
+        )}
         <p className="flex gap-2 text-[11px] leading-snug text-ink-3">
           <Wifi size={13} className="mt-px shrink-0" />
           {web ? (
@@ -107,5 +149,22 @@ export function TvSheet() {
         </div>
       </div>
     </Modal>
+  );
+}
+
+/** One TV display choice as a segmented control; `value` null = not set from the studio (no segment active). */
+function TvChoice<T extends string>({ label, options, value, onPick }: {
+  label: string; options: [T, string, string][]; value: T | null; onPick: (v: T) => void;
+}) {
+  return (
+    <div className="grid grid-cols-[84px_1fr] items-center gap-2">
+      <span className="engrave">{label}</span>
+      <div className="seg !p-1" role="radiogroup" aria-label={label}>
+        {options.map(([v, name, hint]) => (
+          <button key={v} type="button" role="radio" aria-checked={value === v} data-active={value === v} title={hint}
+            className="!h-8" onMouseDown={(e) => e.preventDefault()} onClick={() => onPick(v)}>{name}</button>
+        ))}
+      </div>
+    </div>
   );
 }

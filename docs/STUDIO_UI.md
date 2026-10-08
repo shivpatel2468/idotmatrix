@@ -48,12 +48,13 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 └ Playback dock: transport · what's playing / next · shuffle · preset cards · Edit playlist (queue) ──┘
 ```
 
-- **Top bar = five controls, no more.** Status pill (panel OK? → Device settings; a retry key appears when the
-  link is down), Find anything (command palette), brightness, settings, the eject-seat power guard. Everything
+- **Top bar = five controls, no more.** Status pill (panel OK? → the **Connection** sheet, below; a Reconnect-now
+  key appears when the link is down), Find anything (command palette), brightness, the gear (the **Display menu**, below — *All settings*
+  is in it), the eject-seat power guard. Everything
   else lives in the command palette or a menu: *Send a message*, *Make with AI*, *Show a picture*, *Draw* and
   *Write text* and *Show on TV* (`components/TvSheet.tsx`: QR, address, TV code, screens watching, New code, Stop TV
-  link — docs/TV_VIEW.md) are in the Stage's **Create** menu; the Bluetooth link switch is in Settings → Device (with a
-  warning, because the panel shows its pairing screen while disconnected).
+  link — docs/TV_VIEW.md) are in the Stage's **Create** menu; **Release the panel** is in the Connection sheet and Settings →
+  Device (with a warning, because the panel shows its pairing screen while released — ADR 0013).
 - **One "what's playing" area.** The playback dock is the only place for rotation state: preset name or
   "Your playlist", current app + countdown + progress, *Next: …*, prev / stop / next, shuffle. Preset cards
   (icon, name, app count) play with one tap (`POST /api/presets/{id}/play`, honouring the shuffle pref); the
@@ -81,6 +82,53 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
     modals are full-screen with the notch / home-indicator insets. `100dvh`, `viewport-fit=cover`, 16 px inputs (no
     iOS zoom), `touch-action: manipulation`, no tap flash, `overscroll-behavior` so pages never rubber-band.
 
+## Connection (`components/ConnectionSheet.tsx`)
+
+"Where is my panel connected, and how do I get it back?" in one place. The top bar's status pill (phones: the status
+dot in the header) opens it; so does `#connection` in the URL (the web app links there when DeskDot on this computer
+holds the panel). Wording comes from one function, `summarize()`, shared with the pill:
+
+| Pill | When | Primary action |
+| --- | --- | --- |
+| `IDM-…` (green) | connected | — (secondary: Reconnect, Release the panel…) |
+| Connecting… / Looking for panel… (amber) | an attempt is running | Reconnect now |
+| Reconnecting… (amber) | the link dropped (`reason: link_lost`) | Reconnect now |
+| Not connected / Bluetooth is off (red) | an attempt failed | Reconnect now |
+| In use elsewhere (red) | not found 3× in a row (`busy`), or the web app saw DeskDot on this computer holding it | Reconnect now (after freeing it there) |
+| Pick your panel (amber) | web app: no panel this browser may use yet, or the permission expired | Pick panel (the browser's chooser) |
+| Released (grey) | the user released the panel | Use the panel here |
+
+The sheet shows **what and where** (panel name and address; "DeskDot on this computer" / "This browser tab" / "The
+Android app" / simulator), signal strength when known (`rssi`), connected-for or last-seen, failed attempts and the
+countdown to the next one, the current step in the web app ("Waiting for IDM-… to show up"), the engine's `hint` in
+a warning box with the raw error underneath, then **one primary button** (ember) and at most a few secondary ones.
+*Release the panel…* opens an inline confirm that explains the pairing screen and that DeskDot stops reconnecting
+until *Use the panel here*. In the web app it adds *Is DeskDot open on this computer?* (probes
+`http://127.0.0.1:8765/api/health`), *Pick another panel* and the packet-size choice; the page host's floating pill
+hides once the studio has mounted the sheet (`deskdotWeb.attachStudio()`).
+
+## Display menu (`components/DisplayMenu.tsx`, `lib/look.ts`)
+
+The gear just left of the power guard (and Play mode's look key) opens it: a popover on wide screens, a bottom sheet
+on phones. The common case is one glance; nothing else is on the first screen.
+
+1. **How the panel looks on this screen** — three picture tiles, **Glow** (soft light, default) · **Pixel** (sharp
+   squares) · **LED** (like the real panel). Each tile is a tiny live `LedPanel` forced to that look, so you choose
+   by seeing. The chosen one is ember; one line under them says what it is for.
+2. **Glow** slider (Crisp … Soft, `bloom` 0..1, 0.5 = normal) — shown only while Glow is chosen, the only look it
+   changes.
+3. **More** (one disclosure, closed each time): *Show my colour calibration* (LED look only · Every look · Off —
+   also in Settings → Colour calibration → Advanced) and links into Settings → Display & colour: *Brightness, night
+   mode, rotate* (+ sounds, intro), *Colour calibration*, *Smooth motion*.
+4. Footer: **Reset to default** (Glow, normal glow, calibration in the LED look; confirms inline, disabled when
+   already default) and **All settings** (Settings → Display & colour — what the gear used to open directly).
+
+Everything here is per browser (`deskdot.panelLook`, `deskdot.panelBloom`, `deskdot.panelMatch`); `useLook().reset()`
+restores the defaults. The stage panel's hover pill (Glow / Pixel / LED) stays as a shortcut.
+Keyboard: the key has `aria-haspopup="dialog"`/`aria-expanded`; opening focuses the chosen tile, Tab walks tiles →
+slider → More → footer, tiles are `aria-pressed` toggle buttons (no arrow-key roving, so Play mode's arrows still
+reach the game), `Esc` or a click outside closes and focus returns to the key.
+
 ## Play mode (`components/PlayMode.tsx`, `lib/gameInput.ts`)
 
 A focused, full-window game view (`playMode` in the store) for every *playable* game — `isPlayable()`: category
@@ -102,8 +150,8 @@ A focused, full-window game view (`playMode` in the store) for every *playable* 
   a tile per person (seat colour, controller, ready), "AI fills N seats", and ← / Ready / → keys for P1; every
   controller's ←/→ and A already reach the game. During `outro` it shows the **result** with *Rematch* (key A) and
   *Menu* (key B). On those screens (home / teams / intro / outro) keys never auto-repeat: one press = one step.
-- **Display** (per browser, `lib/look.ts` → `useLook`): look (Glow / Pixel / LED) and **Sharpness** — the Glow
-  look's bloom amount (`bloom` 0..1, 0 = crisp, 0.5 = the classic glow), persisted in `deskdot.panelBloom`.
+- **Display:** the header's look key opens the same **Display menu** as the top bar's gear (above); choosing a
+  panel setting in it leaves Play mode first, because Settings sits underneath.
 - **Panel:** `LedPanel crisp` — the canvas snaps to a multiple of 32 device pixels so every LED is a whole number
   of pixels, and bloom is blurred at 4 px/LED then upscaled (a big blur at full size costs milliseconds).
   Frames are drawn in the WebSocket `onmessage` callback — no queue, no rAF batching.

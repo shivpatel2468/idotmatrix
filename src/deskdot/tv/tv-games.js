@@ -586,17 +586,6 @@
 .tvg-opt i{flex:none;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;background:var(--chassis-4,#27272f)}
 .tvg-opt.sel{border-color:var(--gold,#ffcc33);box-shadow:0 0 40px -8px var(--gold,#ffcc33)}
 .tvg-opt.sel i{background:var(--gold,#ffcc33);color:#000}
-/* the lite tier (tv.js): no blurred shadows or glows, they are full repaints on a weak TV stick */
-html[data-q=lite] .tvg-glow{display:none}
-html[data-q=lite] .tvg-count{text-shadow:0 8px 0 rgba(0,0,0,.4)}
-html[data-q=lite] .tvg-banner{box-shadow:none}
-html[data-q=lite] .tvg-banner b{text-shadow:none}
-html[data-q=lite] .tvg-seat.lead,html[data-q=lite] .tvg-team.win,html[data-q=lite] .tvg-duel.turn,html[data-q=lite] .tvg-opt.sel{box-shadow:none}
-html[data-q=lite] .tvg-seat.turn{box-shadow:0 0 0 3px var(--c)}
-html[data-q=lite] .tvg-seat.turn::after,html[data-q=lite] .tvg-join::after{display:none}
-html[data-q=lite] .tvg-duel .sym{text-shadow:none}
-html[data-q=lite] .tvg-hand.win canvas{filter:none}
-html[data-q=lite] .tvg-pips i.on{box-shadow:none}
 `;
 
   function ensureCss() {
@@ -820,7 +809,7 @@ ${t.members.length ? "" : '<div class="tvg-note">CPU fills this side</div>'}</di
     function paintPanel(ctx) {
       if (!el.panel || !ctx.drawPanel) return;
       try {
-        ctx.drawPanel(el.panel, { pitch: pitch(lastFam), glow: 0.65, round: true });
+        ctx.drawPanel(el.panel, { pitch: pitch(lastFam) });
       } catch (e) {
         /* the core logs scene errors; a missing frame just leaves the canvas */
       }
@@ -830,7 +819,7 @@ ${t.members.length ? "" : '<div class="tvg-note">CPU fills this side</div>'}</di
       if (!el.confetti) return;
       if (!color) return put(el.confetti, "");
       const bits = [];
-      const n = typeof TV !== "undefined" && TV.quality === "lite" ? 12 : 36;
+      const n = 36; // the same in both tiers: CSS animations on the compositor, no per-frame work
       for (let i = 0; i < n; i++) {
         const c = i % 3 === 0 ? "#ffcc33" : i % 3 === 1 ? color : "#ffffff";
         bits.push(`<i style="left:${(i * 37) % 100}%;background:${c};animation-duration:${2.4 + ((i * 13) % 20) / 10}s;animation-delay:${-((i * 7) % 30) / 10}s"></i>`);

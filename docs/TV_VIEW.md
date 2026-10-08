@@ -3,7 +3,8 @@
 Any screen with a browser — a smart TV, Fire TV / Android TV, a Chromecast (cast a tab), a tablet, a second laptop,
 a projector — shows a full-screen, read-only **TV view** of whatever DeskDot is playing: the panel as a huge,
 realistic LED matrix, and for games and casino tables a bespoke scene (the whole roulette layout with everyone's
-chips, the housie board, scores per seat…). Nothing is controlled from the TV; it only watches.
+chips, the housie board, scores per seat…). Nothing on the panel is controlled from the TV; it only watches — its
+remote only picks how this screen draws it (the options menu, §2).
 
 ```
 studio "Show on TV" ── POST /api/tv ──► {code, url}  ──► QR on the studio sheet
@@ -19,6 +20,10 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   is already watching). Body `{"renew": true}` replaces the code (every TV on the old code is told `closed`).
   Response `{ok, code, url, lan_ready, viewers}`. `GET /api/tv` → `{tv: {code, url, lan_ready, viewers} | null}`.
   `DELETE /api/tv` closes it. One TV code at a time, separate from (and never equal to) the multiplayer lobby code.
+- **Display from the studio:** the sheet's *On every TV* box sets the panel look (Pixel · LED · Glow) and the quality
+  (Auto · HQ · Lite) for every TV of the link — `POST /api/tv/settings {look, quality}` (each a value, or `null` =
+  *Let each TV choose*; a key left out keeps its value). The engine keeps it on the TV link (`TvLink.display`, with a
+  new `rev` per change) and sends it in every `hello` and `state` as `display`, so TVs switch at once (§2).
 - The URL is `http://<this computer's LAN IP>:<port>/tv/<code>` on the desktop, or `<public_url>/tv/<code>` in the
   web app (§8). The TV needs the same Wi-Fi as the computer (desktop) — exactly like a phone joining a game.
 - **Security:** `LanGate` lets LAN clients reach only `/p/`, `/ws/p/`, `/tv/` and `/ws/tv/` (and never a path with
@@ -38,19 +43,34 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) with a small "TV" label, the app's name and
   category, the join QR + room code while a multiplayer lobby is open, a clock and the connection dot.
 - **Scene area** `#scene`: **1920×984**, below the bar. Exactly one scene is mounted in it.
-- **Quality tier** (`TV.quality`, `html[data-q]`): `hq` (soft shadows and glows, the HD panel cross-fades,
-  full-resolution canvases) or `lite` (no blurred shadows or glows, fewer particles, table canvases at ¾ resolution,
-  no theme cross-fades). `?lite=1` / `?hq=1` (or `?quality=lite|hq`) force one. Otherwise the page starts in hq and
-  watches its own frame times while something animates (and for ~8 s after every scene change): a window of 120
-  frames whose median is over 22 ms, or with more than 20 % of frames over 34 ms, switches it to lite for the rest of
-  the visit (the scene is re-mounted at the new resolution). It never switches back by itself.
-- **Panel look** (`TV.look`): `led` (default — the classic realistic LED matrix, like the real panel) or `hd`
-  (opt-in). *HD* is the frame upscaled with a pixel-art upscaler (Scale2x /
-  EPX ×3: 32 → 256 px, then bilinear to the canvas) — smooth diagonals and round corners, but only ever the frame's
-  own colours in the frame's own places, so it always shows exactly what the panel shows — with a cheap bloom and, on
-  big panels in hq, a ~60 ms cross-fade between frames. `?look=led|hd`
-  picks one; **L** on a keyboard, or the remote's **select / play-pause / menu** button, toggles it (a short notice
-  says which); the choice is remembered on that screen (localStorage).
+- **Panel look** (`TV.look`): the studio's three looks (`web/src/lib/look.ts`, drawn as `LedPanel.tsx` draws them):
+  `pixel` (sharp square pixels), `led` (the default here — a physical LED matrix: rounded LEDs, 13 % inset, 24 %
+  corner radius, in a `#060608` grille; unlit LEDs `#15151b`, very dim ones lifted a little so they stay visible, a hot
+  white core on bright ones, bloom σ 0.9 LED × 0.55 + σ 2.6 LED × 0.3) and `glow` (sharp pixels with a soft bloom,
+  σ 0.8 × 0.28 + σ 2.4 × 0.2). Measured against the studio's own drawing code in Chrome: Pixel is identical, LED and
+  Glow differ by under 1/255 on average (p99 ≤ 4/255 — the bloom is a three-box-blur Gaussian, not the canvas filter).
+  The studio's colour-calibration preview is not applied on the TV (the TV shows the app's design colours).
+- **Quality** (`TV.qualityMode` = `auto` | `hq` | `lite`; `TV.quality` = the tier in effect, `hq` | `lite`, also on
+  `html[data-q]`): **both tiers draw the same picture** — same canvas resolution (the real device pixels, capped as
+  in §6), the same glows, shadows, particles, animations and cross-fades. Their speed comes from cheap techniques
+  used in both (§6). Lite only trims what can't be seen: countdown rings redraw on ~1.5 device px of arc instead of
+  every 1°. *Auto* (the default) starts in hq and watches its own frame times while something animates (and for ~8 s
+  after every scene change): a window of 120 frames whose median is over 22 ms, or with more than 20 % of frames over
+  34 ms, switches it to lite for the rest of the visit (the scene is re-mounted). It never switches back by itself.
+- **Who picks** (per choice, `pickDisplay` in tv.js, tested in `tests/js/tv_core.test.mjs`): the studio's choice
+  (`display`, §1) wins over what the TV remembers, until someone picks on that TV again — the TV's pick is stored
+  (`localStorage` `deskdot.tv.look` / `deskdot.tv.quality`, `{v, rev}`) with the studio revision it overrode, so a
+  later change in the studio wins again. Address parameters — `?look=pixel|led|glow`, `?quality=auto|hq|lite` (also
+  `?lite=1` / `?hq=1`) — win over the studio's choice that was already set when the page loaded, not a later one.
+  Choices apply at once, without a reload (panels redraw; a quality change re-mounts the scene). A change from the
+  studio shows a short notice on the TV.
+- **Options menu** (for a TV remote, a mouse or a keyboard): OK / select / Enter, the menu key (also M, play-pause),
+  or a click / tap anywhere opens a card at the bottom of the screen: *Panel look: Pixel · LED · Glow* and *Quality:
+  Auto · HQ · Lite* (with "now HQ / Lite" under Auto, and "Set from the studio" when that's where the value came
+  from). The D-pad arrows move a white focus ring (scaled up, readable from 3 m), OK picks (the chosen option is
+  filled ember with a ✓), Back / Escape or the menu key closes it, and it closes itself after 8 s without a key. Back
+  on a TV browser goes back in history, so an open menu holds one history entry and Back just pops it; Back with the
+  menu closed is the browser's own. Mouse: hover moves the focus, a click picks, a click outside the card closes.
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
   (the studio stopped it or the code is wrong; the page keeps checking every 20 s in case the same code comes back).
 - No scrollbars, the cursor hides after 3 s still, the screen never sleeps (Wake Lock API, re-acquired on
@@ -62,12 +82,15 @@ Server → TV only (the TV sends `{"type":"ping","t":…}`; the server answers `
 
 | Message | When | Shape |
 | --- | --- | --- |
-| `hello` (text) | on connect and whenever the app on the panel changes | `{"type":"hello","app":id\|null,"meta":{id,name,category,icon,max_players},"avatars":{id:{name,px}},"server_time":t}` |
-| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"tv":{…}\|null,"server_time":t}` |
+| `hello` (text) | on connect and whenever the app on the panel changes | `{"type":"hello","app":id\|null,"meta":{id,name,category,icon,max_players},"avatars":{id:{name,px}},"display":{…},"server_time":t}` |
+| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"tv":{…}\|null,"display":{…},"server_time":t}` |
 | frame (binary) | every new panel frame, ≤ 12 fps, latest wins | 32×32×3 RGB bytes, row-major (3072 B) |
 | `closed` (text) | the TV link closed or the code is wrong | `{"type":"closed"}` then the socket closes |
 
 - `server_time` is the engine's `time.time()` in **seconds**.
+- `display` is the studio's choice for every TV (`POST /api/tv/settings`): `{"look": "pixel"|"led"|"glow"|null,
+  "quality": "auto"|"hq"|"lite"|null, "rev": t|null}` — `null` leaves that choice to each TV; a TV applies it whenever
+  `rev` changes (§2).
 - `status` is **exactly** the app's public `status()` — the same dict phones receive as `status` (casino tables:
   phase, ends_in, spots/totals, spot_bets, players/seats, history, outcome/result, rules, table_theme, deal…; games:
   score, best, player, roster, lives, flow, seats, turn…). `private_status()` (hole cards, a seat's own bets and
@@ -136,7 +159,7 @@ error is logged and the generic scene takes over for that app.
 | `connected` | the socket is up |
 | `now()` | local seconds (`performance.now()/1000` based, monotonic) |
 | `serverNow()` | the engine's clock in seconds (`time.time()`), estimated from `server_time` |
-| `drawPanel(canvas, opts)` | paints the panel big: the HD look or the LED matrix (below) |
+| `drawPanel(canvas, opts)` | paints the panel big in the TV's look — Pixel, LED or Glow (below) |
 | `drawAvatar(canvas, id, color)` | an 8×8 avatar, pixel-crisp, in a player colour |
 | `qr(text, canvas, opts)` | draws a QR code (`opts.size` CSS px, `opts.dark`, `opts.light`, `opts.quiet` modules) |
 | `fmt(n)` | credits / scores: `12,345` (`fmt(1234567, true)` → `1.2M`) |
@@ -145,15 +168,23 @@ error is logged and the generic scene takes over for that app.
 | `el(tag, className, text)` | tiny DOM helper |
 | `esc(s)` | HTML-escapes a string |
 
-`ctx.drawPanel(canvas, {pitch, glow, round, data, look})`:
+`ctx.drawPanel(canvas, {pitch, glow, data, look})`:
 - sizes the canvas — `pitch` (stage px per LED) sets its CSS size to `32 × pitch`; otherwise it fills the canvas's
-  current CSS size (`clientWidth`) — and its backing store to the device pixels it covers (× `TV.pixelRatio`,
-  ¾ of that in lite, capped at 1600 px);
-- `look` `"hd"` / `"led"` overrides `TV.look` for this canvas; `glow` 0..1 (default 0.6) is the bloom (hq only),
-  `round` (LED look, default true) draws round LEDs with a dark unlit dot and a soft specular highlight (false =
-  square pixels), `data` draws another 3072-byte frame instead of `ctx.panel`;
-- costs a few `drawImage` calls per new frame (the upscale runs once per frame and is shared by every panel; static
-  LED layers are cached per size); a call without a new frame (a status update) draws nothing.
+  current CSS size (`clientWidth`) — and its backing store to the device pixels it covers (× `TV.pixelRatio`), rounded
+  to a whole number of device px per LED (crisp squares), capped at 1600 px — the same in both tiers;
+- `look` `"pixel"` / `"led"` / `"glow"` overrides `TV.look` for this canvas; `glow: 0` (or `false`) turns the bloom off;
+  `data` draws another 3072-byte frame instead of `ctx.panel`;
+- the bloom is a 64×64 canvas the core inserts right after the panel canvas (same parent, placed over it with
+  `mix-blend-mode: plus-lighter`), so the panel canvas's parent must be its positioning box or share it (a
+  `.tv-bezel` / `.tv-well`, or the scene root for an absolutely placed canvas); without plus-lighter the bloom is
+  drawn into the canvas instead;
+- costs one 32×32 `putImageData`, one nearest-neighbour upscale, the cached grille and a few core sprites (LED) per new
+  frame, plus one CPU blur of the frame shared by every panel; a call with the same frame bytes, size and look (a
+  status update, a repeated frame) draws nothing.
+
+`TV.surface(canvas, w, h)` → `{g, w, h}` and `TV.showSurface(s)`: draw a big, rarely changing canvas off-screen and
+hand it to the page as a finished bitmap (§6). After `showSurface` the drawing buffer is blank: redraw in full before
+each show. Without OffscreenCanvas / bitmaprenderer, `g` is the canvas's own context and `showSurface` does nothing.
 
 Scene timing helpers: `TV.every(fn)` runs `fn(seconds)` on the page's **one** `requestAnimationFrame` loop (return
 `false` to stop; it returns an unsubscribe function) — scenes never start their own rAF loops or `setInterval`s for
@@ -173,27 +204,41 @@ Scenes live in `src/deskdot/tv/`: `tv.js` (core + the generic scene), `tv-games.
 
 ## 5. The generic scene
 
-Every app falls back to it: the live panel centred as a huge LED matrix in a bezel (round LEDs with bloom, a
-recessed well and diffuser sheen), the app's name, category and the status chips (the status's simple values:
+Every app falls back to it: the live panel centred, huge, in a bezel (in the TV's look — Pixel, LED or Glow — in a
+recessed well with a diffuser sheen), the app's name, category and the status chips (the status's simple values:
 score, best, level, player, phase…) at the side, the lobby's players and the join QR when a lobby is open.
 
 ## 6. Performance on TV sticks (Fire TV, Android TV, Chromecast)
 
 A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk on Fire TV) usually reports a
-960×540 CSS viewport at devicePixelRatio 2. What keeps the view smooth there — keep it that way:
+960×540 CSS viewport at devicePixelRatio 2; it may composite in software. What keeps the view smooth there — in
+**both** tiers, so lite never costs picture quality — keep it that way:
 
 - **One loop, transforms for motion.** Everything that moves every frame (wheels, balls, dice, reels, stamps) is a
   pre-rendered canvas moved by `transform` / `opacity`. Style writes are skipped when the value didn't change.
+- **Big canvases are surfaces.** A composited frame makes a software compositor copy every visible 2D canvas, changed
+  or not — with a wheel spinning, the table layers were copied 60 times a second. The casino's big layers (table
+  background, table layer, rail, wheel heads; ≥ 200 k device px) draw into an `OffscreenCanvas` and hand the page a
+  finished bitmap (`bitmaprenderer`) only when they change (`TV.surface`, `layer().show()` in tv-casino.js). Small or
+  constantly changing canvases (the panel, countdown rings, sparks) stay plain canvases — cheaper to copy than to
+  hand over.
 - **Big canvases redraw rarely.** A casino scene's table layer redraws only when the status changed, while a chip or
-  card is in flight (30 Hz, 20 in lite), or at the scene's slow rate (≈1 Hz while betting, 2–4 Hz for turn games).
-  Countdown rings sweep in their own small canvases (`hudRing` in tv-casino.js), not in the table layer.
-- **No blur per frame.** No `shadowBlur` in per-frame drawing in lite; text casts a hard offset shadow (the text drawn
-  twice), never a blurred one. Chips, dice and housie balls are sprites drawn once (shadow baked in) and stamped.
-  No `filter: blur()` / `backdrop-filter` in CSS, no animated `box-shadow` (glows pulse a pseudo-element's opacity).
+  card is in flight (30 Hz), or at the scene's slow rate (≈1 Hz while betting, 4 Hz for turn games). Countdown rings
+  sweep in their own small canvases (`hudRing` in tv-casino.js), not in the table layer.
+- **No blur per frame.** `shadowBlur` only where something is drawn once (chip, card, die and ball sprites, the cached
+  background) or in a countdown ring's own small canvas; a glow in the redrawn table layer (headline text, winning
+  boxes, glowing cards and avatar rings, the roulette number disc, slot win lines, the housie call) is a cached
+  sprite of exactly that shadow (`glowFx`: the shape drawn off the sprite with its shadow offset back in), stamped
+  with one `drawImage`. Text casts a hard offset shadow. The panel's bloom is a CPU box blur on a 64×64 grid, added by
+  the compositor. No `filter: blur()` / `backdrop-filter` in CSS, no animated `box-shadow` (glows pulse a
+  pseudo-element's opacity).
+- **No work for nothing.** A panel skips a frame whose bytes didn't change; number formatting is cached; the generic
+  scene's ambient glow repaints at most twice a second and only when it visibly changed.
 - **Canvases match the screen.** Backing stores are sized to the device pixels they cover after the stage scale,
-  capped, and ¾ of that in lite.
-- **Measure.** A headless benchmark (CDP CPU throttling ×6 at 960×540 DPR 2, fixture statuses over a mocked TV socket)
-  compares p50 / p95 frame intervals before and after a change; the numbers are in the change's report.
+  capped (table layers at 1.5 device px per stage px, wheels at 2, the panel at 1600 px) — the same in both tiers.
+- **Measure.** A headless benchmark (software canvas and compositing, CDP CPU throttling ×6 at 960×540 DPR 2, fixture
+  statuses over a mocked TV socket) compares p50 / p95 frame intervals and main-thread busy time before and after a
+  change; the numbers are in the change's report.
 
 ## 7. The casino chips
 

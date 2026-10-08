@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Bot, ChevronDown, ChevronLeft, ChevronRight, Gamepad2, LogOut, Monitor, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Bot, ChevronDown, ChevronLeft, ChevronRight, Gamepad2, LogOut, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import {
@@ -7,10 +7,10 @@ import {
 } from "../lib/controls";
 import { type GameKey, gameKeyDown, isPlayable, openPlay, playableGames, releaseAll, usePressedKeys } from "../lib/gameInput";
 import { startGamepads, usePads } from "../lib/gamepads";
-import { LOOK_HINT, LOOK_LABEL, LOOKS, useLook } from "../lib/look";
 import { appMeta, onFrame, useStore } from "../lib/store";
 import { Icon } from "./Icon";
 import { ControlsPanel } from "./ControlsPanel";
+import { DisplayMenu } from "./DisplayMenu";
 import { FriendsPill, LobbyPanel, ModeChoice, SEAT_COLORS, VersusBoard, closeFriends, useFriends, useLobbyPoll } from "./Multiplayer";
 import { TouchControl } from "./TouchControls";
 import { FlyToggle } from "./FlyToggle";
@@ -281,55 +281,6 @@ function GameMenu({ open, setOpen, cur }: { open: boolean; setOpen: (o: boolean)
   );
 }
 
-/** Per-browser display options for the preview: look (Glow / Pixel / LED) and, for Glow, the bloom amount. */
-function DisplayMenu({ open, setOpen }: { open: boolean; setOpen: (o: boolean) => void }) {
-  const look = useLook((s) => s.look);
-  const setLook = useLook((s) => s.setLook);
-  const bloom = useLook((s) => s.bloom);
-  const setBloom = useLook((s) => s.setBloom);
-  const pct = Math.round(bloom * 100);
-  return (
-    <div className="relative">
-      <button className="key" onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(!open)} aria-haspopup="dialog" aria-expanded={open}
-        title="How the preview is drawn on this screen">
-        <Monitor size={14} /> <span className="hidden sm:inline">{LOOK_LABEL[look]}</span>
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div role="dialog" aria-label="Display" className="surface absolute right-0 top-full z-20 mt-2 flex w-[min(300px,calc(100vw-24px))] flex-col gap-3.5 p-4 animate-rise">
-            <div className="flex items-baseline justify-between">
-              <span className="engrave !text-ink-2">Display</span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink-4">this browser only</span>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-[540] text-ink-1">Look</span>
-              <div className="seg !p-1" role="radiogroup" aria-label="Preview look">
-                {LOOKS.map((l) => (
-                  <button key={l} role="radio" aria-checked={look === l} data-active={look === l} className="!h-8" title={LOOK_HINT[l]}
-                    onMouseDown={(e) => e.preventDefault()} onClick={() => setLook(l)}>{LOOK_LABEL[l]}</button>
-                ))}
-              </div>
-              <p className="text-[11px] leading-snug text-ink-3">{LOOK_HINT[look]}.</p>
-            </div>
-            <div className={clsx("flex flex-col gap-1.5", look !== "glow" && "opacity-45")}>
-              <div className="flex items-baseline justify-between">
-                <span className="text-[12px] font-[540] text-ink-1">Sharpness</span>
-                <span className="font-mono text-[11px] tabular-nums text-ink-2">{pct === 0 ? "Crisp" : `${pct}% glow`}</span>
-              </div>
-              <input type="range" min={0} max={1} step={0.05} value={bloom} className="fader" aria-label="Glow amount (0 = crisp)"
-                disabled={look !== "glow"} style={{ ["--fill" as string]: `${pct}%` }}
-                onChange={(e) => setBloom(+e.target.value)} onMouseUp={(e) => e.currentTarget.blur()} onTouchEnd={(e) => e.currentTarget.blur()} />
-              <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-ink-4"><span>Crisp</span><span>Soft glow</span></div>
-              {look !== "glow" && <p className="text-[11px] text-ink-3">Sharpness applies to the Glow look.</p>}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 /** Largest square that fits `box`, snapped so each LED is a whole number of device pixels. */
 function useLedSide(pad: number) {
   const box = useRef<HTMLDivElement>(null);
@@ -502,7 +453,7 @@ function PlayView() {
           </span>
         )}
         {fr.lobby && !fr.waiting && <span className="hidden sm:flex"><FriendsPill maxPlayers={fr.maxPlayers} /></span>}
-        <DisplayMenu open={display} setOpen={setDisplay} />
+        <DisplayMenu trigger="look" open={display} setOpen={setDisplay} beforeSettings={exit} />
         <button className="key" onMouseDown={(e) => e.preventDefault()} onClick={() => setControls(true)}
           title="Keyboards, gamepads and on-screen controls for each player" aria-haspopup="dialog" aria-expanded={controls}>
           <Gamepad2 size={14} /> <span className="hidden sm:inline">Controls</span>

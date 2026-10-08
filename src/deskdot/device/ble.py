@@ -14,6 +14,7 @@ import sys
 
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
+from bleak.backends.scanner import AdvertisementData
 
 from . import protocol as P
 from .base import Device
@@ -50,17 +51,28 @@ class BleDevice(Device):
                 "macOS: ignoring MAC %s, scanning for an %s* panel by name", self.info.address, P.NAME_PREFIX
             )
             self.info.address = None
-        if self.info.address:
-            dev = await BleakScanner.find_device_by_address(self.info.address, timeout=10.0)
-        else:
-            dev = await BleakScanner.find_device_by_filter(
-                lambda d, adv: (adv.local_name or d.name or "").startswith(P.NAME_PREFIX), timeout=10.0
+        want = (self.info.address or "").lower()
+        rssi: list[int] = []
+
+        def match(d: BLEDevice, adv: AdvertisementData) -> bool:
+            # same test as BleakScanner.find_device_by_address (case-insensitive), but we also keep the signal
+            ok = (
+                d.address.lower() == want
+                if want
+                else (adv.local_name or d.name or "").startswith(P.NAME_PREFIX)
             )
+            if ok:
+                rssi.append(adv.rssi)
+            return ok
+
+        dev = await BleakScanner.find_device_by_filter(match, timeout=10.0)
         if dev is None:
             target = self.info.address or f"any {P.NAME_PREFIX}* panel"
             raise ConnectionError(
                 f"panel not found ({target}) — is it powered and not connected to the phone app?"
             )
+        if rssi:
+            self._set(rssi=rssi[-1])
         return dev
 
     async def _connect(self) -> None:

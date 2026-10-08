@@ -26,6 +26,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from . import protocol as P
+from .diagnose import diagnose
 
 log = logging.getLogger("deskdot.device")
 GIF_COOLDOWN = 3.0  # s between GIF uploads; back-to-back uploads make the panel stop acking
@@ -50,7 +51,16 @@ class DeviceInfo(BaseModel):
     link_fps: float = 0.0
     last_ack: str | None = None
     power: bool = True
-    link_enabled: bool = True  # False = the user disconnected the panel from the studio
+    link_enabled: bool = True  # False = the user released the panel from the studio (ADR 0013)
+    # Connection health (docs/STUDIO_UI.md "Connection"): what went wrong and what to do about it.
+    attempts: int = 0  # failed connect attempts since the last success
+    retry_at: float | None = None  # epoch s of the next automatic attempt (None: not waiting)
+    last_seen: float | None = None  # epoch s the panel last took a write or sent an ack
+    rssi: int | None = (
+        None  # signal strength (dBm) seen when the panel was last found, if the backend knows it
+    )
+    reason: str | None = None  # device/diagnose.py reason code for the last failure
+    hint: str | None = None  # one human next step for `reason`
 
 
 class Device(ABC):
@@ -87,7 +97,14 @@ class Device(ABC):
         self._writer: asyncio.Task[None] | None = None
         self._supervisor: asyncio.Task[None] | None = None
         self._connected = asyncio.Event()
+        self._retry = asyncio.Event()  # "Reconnect now": cuts the supervisor's back-off short
         self._stopping = False
+        self._paused = (
+            False  # pause_writes(): nothing more goes out (the web app hands the panel to another tab)
+        )
+        self._busy = False  # a write item (command, GIF upload, frame) is going out right now
+        self._idle = asyncio.Event()  # set while no write item is going out
+        self._idle.set()
         # what the panel should be showing, replayed after a reconnect
         self._last_visual: tuple[str, bytes] | None = None
         self._last_brightness: int | None = None
@@ -115,16 +132,52 @@ class Device(ABC):
         self._set(status="disconnected")
 
     async def set_link(self, enabled: bool) -> None:
-        """Connect / disconnect the panel on request. Disconnected, the supervisor stays idle."""
+        """Release / take back the panel on the user's explicit request (ADR 0013). Released, the supervisor stays
+        idle — nothing reconnects until the user presses Connect, so another app can hold the panel meanwhile."""
         self.info.link_enabled = enabled
         if not enabled:
             await self._disconnect()
             self._mark_disconnected("disconnected from the studio")
+        else:
+            self._set(attempts=0, reason=None, hint=None, last_error=None)
+            self.retry_now()
         self._on_change()
 
-    async def reconnect(self) -> None:
-        await self._disconnect()
-        self._mark_disconnected("manual reconnect")
+    async def reconnect(self, only_if_down: bool = False) -> str:
+        """The user's "Reconnect". Not connected: try again right now (skips the back-off wait) — never a
+        disconnect. Connected: drop the link and connect again (an explicit user action, e.g. to apply a new packet
+        size), unless `only_if_down`. Returns "connected", "retrying" or "reconnecting"."""
+        if not self.info.link_enabled:
+            await self.set_link(True)
+            return "retrying"
+        if self.connected:
+            if only_if_down:
+                return "connected"
+            await self._disconnect()
+            self._mark_disconnected("manual reconnect")
+            self.retry_now()
+            return "reconnecting"
+        self._set(attempts=0)
+        self.retry_now()
+        return "retrying"
+
+    async def pause_writes(self, limit: float = 6.0) -> bool:
+        """Send nothing more after the item in flight finishes (a GIF upload always completes: rule 13), without
+        touching the link. True when the writer went quiet within `limit` s. `resume_writes()` undoes it."""
+        self._paused = True
+        try:
+            await asyncio.wait_for(self._idle.wait(), limit)
+        except TimeoutError:
+            return False
+        return True
+
+    def resume_writes(self) -> None:
+        self._paused = False
+        self._wake.set()
+
+    def retry_now(self) -> None:
+        """Wake the supervisor: the next connect attempt starts now instead of after the back-off."""
+        self._retry.set()
 
     # ------------------------------------------------------------ public API
     @property
@@ -208,6 +261,7 @@ class Device(ABC):
     def _on_ack(self, data: bytes) -> None:
         """Backends call this for every notification on fa03."""
         self.info.last_ack = data.hex(" ")
+        self.info.last_seen = time.time()
         self._acks.put_nowait(bytes(data))
 
     async def _await_ack(self, wait: float) -> bytes | None:
@@ -232,7 +286,38 @@ class Device(ABC):
 
     def _mark_disconnected(self, reason: str | None) -> None:
         self._connected.clear()
-        self._set(status="disconnected", mode="unknown", connected_since=None, last_error=reason)
+        code, tip = (None, None) if reason in (None, "manual reconnect") else diagnose(reason, self.kind)
+        self._set(
+            status="disconnected",
+            mode="unknown",
+            connected_since=None,
+            last_error=reason,
+            reason=code,
+            hint=tip,
+        )
+
+    def _note_failure(self, message: str, retry_in: float | None = None, status: Status = "error") -> None:
+        """Publish a failed connect attempt: the raw error, its reason code, the next step and when we retry."""
+        attempts = self.info.attempts + (1 if status == "error" else 0)
+        code, tip = diagnose(message, self.kind, attempts)
+        self._set(
+            status=status,
+            last_error=message,
+            attempts=attempts,
+            reason=code,
+            hint=tip,
+            retry_at=round(time.time() + retry_in, 1) if retry_in else None,
+        )
+
+    async def _wait_retry(self, delay: float) -> bool:
+        """Sleep the back-off, or less if the user pressed Reconnect now. True when woken by the user."""
+        if not self._retry.is_set():
+            try:
+                await asyncio.wait_for(self._retry.wait(), delay)
+            except TimeoutError:
+                return False
+        self._retry.clear()
+        return True
 
     async def _supervise(self) -> None:
         delay = 1.0
@@ -250,7 +335,18 @@ class Device(ABC):
                     await self._disconnect()
                     raise ConnectionError(f"connect timed out after {self.connect_timeout:.0f}s") from None
                 delay = 1.0
-                self._set(status="connected", connected_since=time.time(), last_error=None, mode="unknown")
+                now = time.time()
+                self._set(
+                    status="connected",
+                    connected_since=now,
+                    last_seen=now,
+                    last_error=None,
+                    mode="unknown",
+                    attempts=0,
+                    retry_at=None,
+                    reason=None,
+                    hint=None,
+                )
                 self._connected.set()
                 self._replay()
                 log.info("panel connected: %s (%s), mtu=%s", self.info.name, self.info.address, self.info.mtu)
@@ -258,9 +354,10 @@ class Device(ABC):
                 raise
             except Exception as e:
                 log.warning("connect failed: %s — retrying in %.0fs", e, delay)
-                self._set(status="error", last_error=str(e) or type(e).__name__)
-                await asyncio.sleep(delay)
-                delay = min(delay * 2, 20.0)
+                self._note_failure(str(e) or type(e).__name__, retry_in=delay)
+                # "Reconnect now" starts the back-off over
+                delay = 1.0 if await self._wait_retry(delay) else min(delay * 2, 20.0)
+                self._set(retry_at=None)
 
     def _replay(self) -> None:
         """After (re)connecting, restore power, brightness and whatever was on screen."""
@@ -288,9 +385,13 @@ class Device(ABC):
         while True:
             await self._wake.wait()
             self._wake.clear()
-            while not self._stopping:
+            while not self._stopping and not self._paused:
                 if not self.connected:
                     await self._connected.wait()
+                    if self._paused:
+                        break
+                self._busy = True
+                self._idle.clear()
                 try:
                     if not await self._write_next():
                         break
@@ -300,6 +401,9 @@ class Device(ABC):
                     log.warning("write failed: %s", e)
                     self._mark_disconnected(f"write failed: {e}")
                     await self._disconnect()
+                finally:
+                    self._busy = False
+                    self._idle.set()
 
     async def _write_next(self) -> bool:
         """Send the highest-priority pending item. Returns False when idle."""
@@ -374,6 +478,7 @@ class Device(ABC):
     def _account(self, nbytes: int, t0: float, frame: bool) -> None:
         dt = time.perf_counter() - t0
         self.info.bytes_sent += nbytes
+        self.info.last_seen = time.time()
         self.info.last_write_ms = round(dt * 1000, 1)
         if frame:
             self.info.frames_sent += 1

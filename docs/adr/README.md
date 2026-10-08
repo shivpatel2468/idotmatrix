@@ -14,5 +14,6 @@
 | 0010 | [Provider events and Autopilot are engine-level](0010-events-and-autopilot-in-engine.md) | Accepted |
 | 0011 | [Host the whole engine on an Android phone as an app (Chaquopy + a Kotlin BLE bridge)](0011-android-host-app.md) | Proposed |
 | 0012 | [A web app: the real engine in the browser (Pyodide) with a Web Bluetooth bridge](0012-web-app-pyodide.md) | Accepted |
+| 0013 | [The user may release the panel; the engine never lets go on its own](0013-user-release-of-the-panel.md) | Accepted |
 
 New decisions: copy the format, next number, status `Proposed` → `Accepted`. Never rewrite an accepted ADR; supersede it.

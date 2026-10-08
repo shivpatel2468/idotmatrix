@@ -26,14 +26,15 @@ panel straight from the tab. Nothing to install. Decision record: [adr/0012-web-
   bridge to the page (Web Bluetooth only exists on the main thread). All pacing (`packet_gap_ms`), the one-frame
   ack pipeline, GIF chunk acks, the GIF cool-down and latest-frame-wins stay in `device/base.py`. Protocol bytes
   are untouched. The engine never disconnects on its own; a link loss reconnects to the same device without a click.
-- **One owner (rule 4).** A Web Lock (`deskdot-web-engine`) lets only one tab run the engine; a second tab says so.
+- **One owner (rule 4).** A Web Lock (`deskdot-web-engine`) lets only one tab run the engine. A second tab offers
+  **Use it here** and the panel moves over without a reload — see [Connecting, two tabs and recovery](#connecting-two-tabs-and-recovery).
 - **Browser differences** are handled once in `web_main.patch_runtime()`: no threads (`asyncio.to_thread` runs inline),
   no sockets (`httpx.AsyncClient` gets a `fetch()` transport), and the unvendored `sqlite3` gets a stand-in (only
   the unsupported OS-notifications provider imports it).
 - **Packet size.** Browsers don't expose the BLE MTU. The page guesses per OS (Windows/ChromeOS/Linux 512 B,
   macOS 182 B, Android 20 B — Chrome on Android doesn't raise the MTU and would silently truncate longer writes)
   and, when the stack refuses a write, re-sends it in smaller paced pieces and tells the engine (`onWriteSize`).
-  The connection pill has a manual override (20 / 182 / 244 / 512 B).
+  The Connection sheet (the studio's status pill) has a manual override (20 / 182 / 244 / 512 B).
 - **Live data & CORS.** Providers fetch from the tab, so each API must allow browsers (most do). The rest — and
   plain-http APIs like ip-api.com — go through `/app/proxy`, a Netlify Function with a fixed host allowlist
   (`netlify/functions/cors-proxy.mjs`, GET only, no cookies, 3 MB cap). The engine tries direct first and remembers
@@ -43,6 +44,46 @@ panel straight from the tab. Nothing to install. Decision record: [adr/0012-web-
 - **Caching.** The service worker (`/app/sw.js`, scope `/app/`) caches the pinned Pyodide CDN files, the engine
   archive and the studio; the second visit downloads nothing and the app opens offline (live data still needs the
   network, the panel doesn't).
+
+## Connecting, two tabs and recovery
+
+The studio's status pill is the one place to look (`ConnectionSheet.tsx`, docs/STUDIO_UI.md "Connection"): it
+reads *IDM-… / Connecting… / Not connected / In use elsewhere / Pick your panel / Released* and opens a sheet with
+where the panel is connected, the current step, the reason and its fix, and one primary button. The page host's own
+floating pill only shows until the studio has mounted (old builds, or the landing card).
+
+**Remembered panel, silent reconnects.** The page stores the picked panel's id; on load and after a drop it finds it
+again with `navigator.bluetooth.getDevices()` (no chooser), waits for it to advertise (`watchAdvertisements`, 6 s)
+and connects. While the panel is away the page keeps watching its advertisements and nudges the engine
+(`{t:"ble-retry"}` → `onRetry` → `Device.retry_now()`) the moment it shows up, Bluetooth comes back on
+(`availabilitychanged`) or the tab becomes visible — otherwise the engine's back-off (1 → 20 s) runs. Steps show in
+the sheet: *Looking for IDM-…* → *Waiting for IDM-… to show up* → *Connecting* → *Setting up the link*.
+
+**Errors say what to do** (`device/diagnose.py` reasons, same as the desktop): Bluetooth off → turn it on (the page
+retries by itself when it is); the browser forgot the permission (site data cleared) → **Pick panel** re-opens the
+chooser; the panel didn't answer → it's off, out of range or held by another app.
+
+**Panel busy because DeskDot runs on this computer.** After a failed connect (or an empty chooser) the page asks
+`http://127.0.0.1:8765/api/health`, which allows `https://idotmatrix.com` (CORS + Private Network Access headers).
+If DeskDot holds the panel it says so — *"Your panel (IDM-…) is connected to DeskDot on this computer. Open it there
+and press Release the panel (or quit DeskDot), then Reconnect now"* — with a link that opens the desktop studio's
+Connection sheet (`/#connection`); an older DeskDot answers only "something is running". Chrome may ask once to
+let the site reach devices on the local network; the result is cached for a minute, and it never runs on page load.
+The sheet's *Is DeskDot open on this computer?* runs the same check by hand.
+
+**Two tabs.** Each tab joins a `BroadcastChannel("deskdot-web")`; the tab holding the Web Lock runs the engine.
+
+| Step | Tab A (has the panel) | Tab B (opened later) |
+| --- | --- | --- |
+| open | runs the engine; answers `who` with `{owner, panel, link}` | lock taken → card *"The panel is connected in another tab"* with **Use it here** and **Find that tab**; queues for the lock (A closing hands over by itself) |
+| Use it here | gets `takeover`: the engine finishes the write in flight and sends nothing more (`web_main.hand_off()` → `Device.pause_writes()`, never a half-sent GIF), saves to IndexedDB, the worker stops; studio sockets close; card *"Panel moved to another tab — Take it back"*; says `released {holding}` | steals the lock (`steal: true`), starts its engine (no reload), connects at once (Chrome shares A's GATT link, so no advert wait and no pairing screen) and says `connected` |
+| connected | lets go of its own GATT handle (the shared link stays up) | drives the panel |
+| Take it back | the same, in the other direction (its studio reconnects by itself) | |
+
+If B's connect through the shared link fails, B says `let-go`, A drops its handle immediately and B waits for the
+panel's adverts. A tab that never answers (frozen, or an older DeskDot) is taken over after 9 s anyway; an older
+DeskDot tab can't step back, so B shows *"close that tab"* instead and takes over by itself when it closes. **Find
+that tab** blinks the other tab's title ("● DeskDot has the panel") — pages can't switch tabs for the user.
 
 ## What works in the browser
 
@@ -283,7 +324,7 @@ bundles it. The normal desktop build (`web/dist`) is
 untouched: the web build only happens with `DESKDOT_WEBAPP=1`.
 
 Files: `src/deskdot/web_main.py`, `src/deskdot/device/web.py`, `src/deskdot/providers/webmedia.py`,
-`web/webapp/{host.js,host.css,host-media.js,worker.js,sw.js}`, `web/src/components/MediaPrompt.tsx`,
+`web/webapp/{host.js,host.css,host-media.js,worker.js,sw.js}`, `web/src/components/MediaPrompt.tsx`, `web/src/components/ConnectionSheet.tsx`, `src/deskdot/device/diagnose.py`,
 `web/webapp/{host-rtc.js,host-rtc-wire.js,join/}` (online play), `scripts/build_webapp.py`,
 `netlify/functions/{cors-proxy,signal}.mjs`, `netlify/lib/signal-core.mjs`, tests in `tests/test_web_play.py`,
 `tests/js/*.test.mjs`, `tests/test_web_device.py`, `tests/test_web_apps.py` (app support, proxy
@@ -323,5 +364,15 @@ pillow, pydantic(-core), fastapi, starlette, httpx/httpcore, tzdata; rebuild; op
 8. Background: switch to another tab for a few minutes; the panel keeps animating.
 9. Android phone (Chrome): repeat 3–4. Default packet size is 20 B (slow but safe); try 182/244 B and report.
 10. iPhone: open `/app/` in **Bluefy**; expect the same flow (Bluefy implements Web Bluetooth).
-11. Busy panel: with the desktop app running, click Connect panel — the panel is missing from the chooser or
-    the connect fails with "not connected to the iDotMatrix phone app, the DeskDot desktop app…".
+11. Busy panel: with the desktop app running and connected, click Connect panel — the panel is missing from the
+    chooser; after cancelling, the toast says "Your panel (IDM-…) is connected to DeskDot on this computer…" (allow
+    the local-network prompt if Chrome asks) with a link that opens the desktop studio's Connection sheet. Press
+    **Release the panel** there, then **Reconnect now** / **Pick panel** in the web app.
+12. Two tabs: with the panel connected in tab A, open `/app/` in tab B → "The panel is connected in another tab".
+    **Find that tab** blinks A's title. **Use it here** → A shows "Panel moved to another tab", B starts its engine
+    and drives the panel within ~15 s (watch for the pairing screen: there should be none). **Take it back** in A →
+    the reverse. Close B while it has the panel → A's "Take it back" still works; a third tab waiting on the card
+    takes over by itself when the owner closes.
+13. Drop and recover: unplug the panel 30 s, plug it in → it reconnects within a few seconds of booting (advert
+    watch), without waiting for the back-off; the sheet shows the attempts and the next-try countdown meanwhile.
+    Turn Bluetooth off → "Bluetooth is off"; back on → reconnects at once.

@@ -9,7 +9,9 @@ the scripts in `tv/`), whose socket `/ws/tv/<code>` receives
   bets are locked) — about 5 times a second when something changed, else a heartbeat every 2 s,
 - binary frames: the panel, 32×32×3 RGB, at most 12 a second, newest wins (no backlog per TV).
 
-One TV code at a time, never equal to the lobby code. The socket is read-only: a TV can only ping.
+Both text messages carry `display` — the studio's choice of panel look and quality for every TV of the link
+(`POST /api/tv/settings`), `{"look", "quality", "rev"}`: a TV applies it whenever `rev` changes (until someone picks
+on that TV again). One TV code at a time, never equal to the lobby code. The socket is read-only: a TV can only ping.
 """
 
 from __future__ import annotations
@@ -43,6 +45,8 @@ MAX_FPS = 12.0
 STATE_S = 0.2  # ~5 Hz
 HEARTBEAT_S = 2.0
 MAX_TVS = 8
+LOOKS = ("pixel", "led", "glow")  # the studio's panel looks (web/src/lib/look.ts)
+QUALITIES = ("auto", "hq", "lite")
 
 
 def tv_page() -> str:
@@ -66,6 +70,9 @@ class TvLink:
         self.port = port
         self.public_url = public_url.rstrip("/") if public_url else None
         self.code: str | None = None
+        # the studio's display choices for every TV of the link (None = each TV keeps its own); `rev` changes on
+        # every change so a TV that picked something itself takes the studio's choice again
+        self.display: dict[str, Any] = {"look": None, "quality": None, "rev": None}
 
     @property
     def lan_ready(self) -> bool:
@@ -91,6 +98,23 @@ class TvLink:
 
     def valid(self, code: str) -> bool:
         return self.code is not None and secrets.compare_digest(code.upper()[:8], self.code)
+
+    def set_display(self, **choices: str | None) -> dict[str, Any]:
+        """Set the studio's look / quality (a value, or None to leave it to each TV); keys not given are kept."""
+        for key, allowed in (("look", LOOKS), ("quality", QUALITIES)):
+            if key not in choices:
+                continue
+            v = choices[key]
+            if v is not None and v not in allowed:
+                raise ValueError(f"{key} must be one of {', '.join(allowed)} (or null)")
+        for key in ("look", "quality"):
+            if key in choices:
+                self.display[key] = choices[key]
+        prev = self.display["rev"] or 0.0
+        self.display["rev"] = round(
+            max(time.time(), prev + 0.001), 6
+        )  # always new, even within one clock tick
+        return dict(self.display)
 
 
 class _Tv:
@@ -169,6 +193,7 @@ class TvHub:
                 "app": app_id,
                 "meta": meta,
                 "avatars": self._avatars,
+                "display": self.link.display,
                 "server_time": time.time(),
             }
         )
@@ -186,7 +211,14 @@ class TvHub:
             except Exception:
                 log.exception("%s.status() failed", app_id)
         return json.dumps(
-            {"app": app_id, "status": status, "lobby": self.lobby.snapshot(), "tv": tv}, default=str
+            {
+                "app": app_id,
+                "status": status,
+                "lobby": self.lobby.snapshot(),
+                "tv": tv,
+                "display": self.link.display,
+            },
+            default=str,
         )
 
     @staticmethod
