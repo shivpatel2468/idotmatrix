@@ -37,7 +37,7 @@ export function AutopilotEditor() {
       </div>
       <div className={clsx("space-y-1.5", !ap.enabled && "opacity-50")}>
         {rules.map((r, i) => (
-          <div key={i} className={clsx("flex items-center gap-2 rounded-lg p-1.5", ap.active === i && ap.enabled ? "bg-ember-deep/60 ring-1 ring-[#7a2a12]" : "bg-chassis-0")}>
+          <div key={i} className={clsx("flex items-center gap-2 rounded-lg p-1.5", ap.active === i && ap.enabled ? "bg-ember-deep/60 ring-1 ring-ember-line" : "bg-chassis-0")}>
             <span className="w-9 text-center font-mono text-[9px] text-ink-4">WHEN</span>
             <input className="field !h-7 !text-[12px]" value={r.match} placeholder="spotify · code · title:youtube"
               onChange={(e) => edit(i, { match: e.target.value })} />

@@ -129,7 +129,7 @@ export function Inspector({ fill = false, flat = false }: {
     <aside className={`surface inspector-box flex min-h-0 flex-col overflow-hidden ${fill ? "flex-1" : ""}`} aria-label={`${meta.name} settings`}>
       <div className="border-b border-line p-4">
         <div className="flex items-start gap-3">
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border ${live ? "border-[#7a2a12] bg-ember-deep text-ember" : "border-line-2 bg-chassis-3 text-ink-1"}`}>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border ${live ? "border-ember-line bg-ember-deep text-ember" : "border-line-2 bg-chassis-3 text-ink-1"}`}>
             <Icon name={meta.icon} size={18} />
           </span>
           <div className="min-w-0">

@@ -46,9 +46,9 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
     <div role="button" tabIndex={0} onClick={onPick} onDoubleClick={() => api.activate(a.id)}
       onKeyDown={(e) => { if (e.key === "Enter") api.activate(a.id); if (e.key === " ") { e.preventDefault(); onPick(); } }}
       title={`${a.description}${offWeb ? `\n\nNot on Browser: ${offWeb}` : ""}\n\nClick for settings · double-click to show`} aria-label={`${a.name}${live ? " (on the panel)" : ""}`}
-      className={clsx("group relative cursor-pointer rounded-[12px] border p-1.5 transition", offWeb && !live && "opacity-60",
-        live ? "border-[#7a2a12] bg-ember-deep/40 shadow-[0_0_24px_-10px_var(--color-ember)]"
-          : selected ? "border-line-2 bg-chassis-3" : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2")}>
+      className={clsx("lib-card group relative cursor-pointer rounded-[12px] border p-1.5 transition", offWeb && !live && "opacity-60",
+        live ? "border-ember-line bg-ember-deep/40 shadow-[0_0_24px_-10px_var(--color-ember)]"
+          : selected ? "border-line-2 bg-chassis-3" : "border-line bg-chassis-1 hover:-translate-y-0.5 hover:border-line-2 hover:bg-chassis-2")}>
       <Preview id={a.id} />
       <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
         <span className="min-w-0 flex-1 truncate text-[12px] font-[560] tracking-[-0.01em]">{a.name}</span>
@@ -59,12 +59,12 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
         </button>
       </div>
       {live ? (
-        <span className="engrave absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-0.5 !text-[7.5px] !text-ember backdrop-blur">
+        <span className="theme-dark engrave absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-0.5 !text-[7.5px] !text-ember backdrop-blur">
           <span className="led !h-[5px] !w-[5px]" data-on="ember" /> Live
         </span>
       ) : (
         <button title="Show on the panel now" aria-label={`Show ${a.name} now`} onClick={(e) => { e.stopPropagation(); api.activate(a.id); }}
-          className="tile-play absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-ink-1 opacity-0 backdrop-blur transition hover:bg-ember hover:text-black focus:opacity-100 group-hover:opacity-100">
+          className="theme-dark tile-play absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-ink-1 opacity-0 backdrop-blur transition hover:bg-ember hover:text-on-ember focus:opacity-100 group-hover:opacity-100">
           <Icon name="play" size={12} fill="currentColor" />
         </button>
       )}
@@ -209,7 +209,7 @@ export function Library({ fill = false, flat = false }: {
           {chips.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={category === id} onClick={() => pickChip(id)}
               className={clsx("shrink-0 rounded-full border px-2.5 py-[5px] text-[11.5px] transition",
-                category === id ? "border-[#7a2a12] bg-ember-deep text-ember" : "border-line text-ink-3 hover:border-line-2 hover:text-ink-1")}>
+                category === id ? "border-ember-line bg-ember-deep text-ember" : "border-line text-ink-3 hover:border-line-2 hover:text-ink-1")}>
               {label}
             </button>
           ))}
@@ -240,8 +240,8 @@ export function Library({ fill = false, flat = false }: {
         ) : (
           sections.map((s) => (
             <section key={s.id} aria-label={s.label}>
-              <h3 className={clsx("sticky z-[2] flex items-center gap-2 pb-2 pt-3 backdrop-blur-sm", flat ? "lib-sec -mx-3 bg-chassis-0/90 px-4" : "top-0 -mx-2.5 bg-chassis-1/92 px-3.5")}
-                style={flat ? { top: headH } : undefined}>
+              <h3 className={clsx("sticky z-[2] flex items-center gap-2 pb-2 pt-3", flat ? "lib-sec -mx-3 bg-chassis-0 px-4" : "top-0 -mx-2.5 bg-chassis-1 px-3.5")}
+                style={flat ? { top: headH - 10 } : undefined}>
                 {s.id === "fav" && <Star size={11} className="text-gold" fill="currentColor" />}
                 <span className="engrave !text-ink-2">{s.label}</span>
                 <span className="font-mono text-[9px] text-ink-4">{s.apps.length}</span>

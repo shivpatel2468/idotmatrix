@@ -4,25 +4,68 @@ The studio (`web/`) is the controller. Its centrepiece is the panel itself.
 
 ![studio](assets/studio.png)
 
-## Concept: "instrument panel"
+## Concept: two rooms, one instrument
 
-A piece of studio hardware rather than a web dashboard: machined graphite surfaces, engraved monospace labels,
-hardware keys that depress, faders like a mixing desk, and **one** accent colour — ember `#ff4818`, the same
-colour as the brand LEDs. The LED preview sits in a bezel with screws, a recessed well, per-LED bloom and a
-diffuser sheen, so what you see is what the panel emits.
+**Dark — "instrument panel".** A piece of studio hardware rather than a web dashboard: machined graphite surfaces,
+engraved monospace labels, hardware keys that depress, faders like a mixing desk, and **one** accent colour — ember
+`#ff4818`, the same colour as the brand LEDs.
 
-## Tokens (`web/src/index.css` → `@theme`)
+**Light — "gallery".** The same instrument on a gallery wall: porcelain / ivory layers (never flat white everywhere),
+deep ink type, hairlines and long, soft warm shadows instead of heavy borders. The accent becomes the brand **rose**
+re-tuned for white (AA as text), and **gold** is a metal only (the logo plate's rim, stars, the header hairline) —
+never body text. Keys are white enamel with a 1 px floor; toggles fill with rose; dialogs float on a warm umber scrim.
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `chassis-0…4` | `#08080a` → `#27272f` | page → raised controls |
-| `line`, `line-2` | `#25252d`, `#33333d` | hairlines, control borders |
-| `ink-1…4` | `#efece4` → `#484651` | primary text → disabled |
-| `ember`, `ember-2`, `ember-deep` | `#ff4818`, `#ff7a4d`, `#3a1208` | accent, hover, active wells |
-| `ok`, `warn`, `bad`, `info` | green, amber, red, cyan | status only |
-| `font-display` | Bricolage Grotesque (variable) | names, headings |
-| `font-mono` | Martian Mono | engraved labels, data, keys |
-| radius | 14 px surfaces, 9–10 px controls, 5 px swatches | |
+In both themes the LED preview sits in a graphite bezel with screws, a recessed well, per-LED bloom and a diffuser
+sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LED logo sits on a small near-black
+"LED plate" with a gold-leaf rim (`.led-plate`) so the glowing tubes still read; the logo renderer is unchanged.
+
+## Themes (`lib/theme.ts`, `web/index.html`)
+
+- **One switch:** `light` · `dark` · `system` (default). Stored in `localStorage["deskdot.theme"]`; applied as
+  `<html data-theme="light|dark">` + `color-scheme` **before first paint** by the inline script in `web/index.html`
+  (and `launcher.html`; on the website's `/app/`, whose CSP blocks inline scripts, `webapp/host.js` does it first).
+  `installTheme()` (main.tsx) keeps it live: the OS flipping light/dark while on `system`, and other tabs changing it.
+- **Where:** Settings → Display & colour → **Studio theme** (three picture tiles), the Display menu (gear) →
+  *Studio theme* (Light · Dark · Auto), and the phone **Quick controls** sheet. The top bar stays at five controls.
+- **Every page shares the key** — casino.html, controller.html, the join pages and the TV read `deskdot.theme`
+  (same origin as the studio when served by the engine), else `prefers-color-scheme`; the TV defaults to dark.
+- **Components never hardcode colour.** Use the tokens below (Tailwind utilities resolve per theme), the `--m-*`
+  materials in plain CSS, `light:` / `dark:` variants for the rare theme-only tweak, and `.theme-dark` on a subtree
+  that must stay dark in both themes (LED thumbnails' badges, the 3D fly wings — `.bezel`, `.fly-wing`, `.fly-full`
+  and `.roam-tip` get it automatically). Seat colours, LED palette swatches and canvases are data, not chrome.
+- Theme changes cross-fade (`html.theme-fade`, 0.35 s; never on first paint, off with reduced motion).
+
+## Tokens (`web/src/index.css` → `@theme` + `:root[data-theme="light"]`)
+
+| Token | Dark | Light | Use |
+| --- | --- | --- | --- |
+| `chassis-0` | `#08080a` | `#f4f0e8` porcelain | page, inset wells (fields, segmented) |
+| `chassis-1` | `#0f0f13` | `#fbf9f5` ivory | panels |
+| `chassis-2` | `#16161b` | `#ffffff` | raised panel top, popovers |
+| `chassis-3` | `#1e1e25` | `#f0ebe2` | hover fills, chips |
+| `chassis-4` | `#27272f` | `#e6e0d5` | keys (dark), tracks |
+| `line`, `line-2` | `#25252d`, `#33333d` | `#e7e1d6`, `#d8d0c2` | hairlines, control borders |
+| `ink-1` | `#efece4` | `#1c1a22` (16:1) | primary text |
+| `ink-2` | `#a9a7b0` | `#4a4652` (8.7:1) | secondary |
+| `ink-3` | `#6f6d78` | `#6b6673` (4.7:1) | labels, hints |
+| `ink-4` | `#484651` | `#a49ea8` | disabled, decoration only |
+| `ember` | `#ff4818` ember | `#b81f4b` rose (5.5:1) | THE accent |
+| `ember-2` | `#ff7a4d` | `#d6386a` | hover / glow (not small text) |
+| `ember-deep`, `ember-line` | `#3a1208`, `#7a2a12` | `#fbe8ed`, `#edb9c7` | accent well + its border |
+| `on-ember` | `#150502` | `#ffffff` | text on a solid accent |
+| `gold`, `gold-2` | `#ffcc33`, `#ffe08a` | `#b8892a`, `#e6cd8a` | metal accent |
+| `gold-text` | `#ffd600` | `#8a6412` (5.1:1) | gold as text (`.text-gold`) |
+| `ok` / `ok-line` | `#3ddc97` / `#1f5c43` | `#18794e` / `#a8d8bf` | status |
+| `warn`, `bad`, `info` | `#ffb020`, `#ff3b5c`, `#37c8ff` | `#9a5b00`, `#c8203e`, `#0b6f9e` | status only |
+| `scrim` | `#000000` | `#2a2218` warm umber | dialog backdrops (`bg-scrim/60 light:bg-scrim/35`) |
+| `font-display` | Bricolage Grotesque (variable) | | names, headings |
+| `font-mono` | Martian Mono | | engraved labels, data, keys |
+| radius | 14 px surfaces, 9–10 px controls, 5 px swatches | | |
+
+Materials (`--m-*`, plain CSS): `--m-hi` / `--m-hi-key` (inner top highlight), `--m-surface-shadow`,
+`--m-pop-shadow` (menus, dialogs), `--m-key-top` / `--m-key-bottom` / `--m-key-floor` / `--m-key-hover`, `--m-inset`,
+`--m-glass` (tab bar, phone header), `--m-page-glow` / `--m-page-dots`, `--m-thumb-*` (fader knob),
+`--m-bezel-shadow`, `--m-led-ring`, `--m-shimmer`.
 
 Fonts are bundled with `@fontsource` — the studio works fully offline.
 
@@ -38,7 +81,11 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | `.toggle` | switch; ember glow when on |
 | `.field` | inset text/select/textarea |
 | `.led[data-on=ok|warn|bad|ember]` | status dot |
-| `.bezel`, `.screw` | the panel housing |
+| `.bezel`, `.screw` | the panel housing (always dark; satin rim + long shadow in light) |
+| `.led-plate` | the LED logo's sign: invisible in dark, a near-black plate with a gold rim in light |
+| `.theme-tile`, `.theme-swatch` | the Studio theme picker (`components/ThemePicker.tsx`) |
+| `.theme-dark` | keep a subtree dark in both themes |
+| `.studio-head`, `.lib-card` | header hairline (gold-tinted in light); library cards that lift on hover |
 
 ## Layout
 
@@ -373,7 +420,7 @@ Four sections, each a stack of titled blocks with an anchor id `set-<block>`:
 
 | Section | Blocks |
 | --- | --- |
-| Display & colour | display (brightness, night mode, rotate) · `intro` intro & outro theme · `sound` studio sounds · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
+| Display & colour | `theme` studio theme (light · dark · auto, per browser) · display (brightness, night mode, rotate) · `intro` intro & outro theme · `sound` studio sounds · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
 | Notifications & integrations | `notifications` computer alerts · `integrations`: On Air, eye break, status indicators, phone pushes (ntfy), Home Assistant |
 | Playlist & hand-off | transitions · your presets · `autopilot` "Follow the app I'm using" · `handoff` "Keep showing when my computer is off" |
 | Device | `panel` connection (reconnect, scan, disconnect…) · `weather` location & units · `audio` sound input · data sources |

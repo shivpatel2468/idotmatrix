@@ -13,6 +13,16 @@
 (function () {
   "use strict";
 
+  // The studio theme before first paint (the website's CSP blocks index.html's inline copy of this): localStorage
+  // deskdot.theme = light | dark | system (default) → <html data-theme>, as web/src/lib/theme.ts does.
+  try {
+    let pref = "system";
+    try { pref = localStorage.getItem("deskdot.theme") || "system"; } catch { /* storage blocked */ }
+    const t = pref === "light" || pref === "dark" ? pref : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.style.colorScheme = t;
+  } catch { /* never block the host */ }
+
   // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
   // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
   // in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The canvas
@@ -869,6 +879,10 @@
     const host = document.createElement("div");
     host.id = "deskdot-web-host";
     const root = host.attachShadow({ mode: "open" });
+    // the card follows the studio theme (host.css :host([data-theme="light"])); the studio may switch it live
+    const syncTheme = () => host.setAttribute("data-theme", document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+    syncTheme();
+    new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     root.innerHTML = `<link rel="stylesheet" href="${new URL("host.css", BASE).href}">
 <div class="landing" part="landing" role="dialog" aria-modal="true" aria-labelledby="dd-title">
   <div class="card">

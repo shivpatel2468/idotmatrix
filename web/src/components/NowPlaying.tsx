@@ -86,7 +86,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
 
         <div className="flex w-[min(440px,90vw)] flex-col gap-5">
           <div className="flex items-center gap-4">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[14px] border border-[#7a2a12] bg-ember-deep text-ember">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[14px] border border-ember-line bg-ember-deep text-ember">
               <Icon name={showing?.icon ?? "square"} size={24} />
             </span>
             <div className="min-w-0">
@@ -122,7 +122,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
             <button className="key key-icon !h-12 !w-12" disabled={!running} onClick={() => api.playlist("next")} aria-label="Next" title="Next (→)">
               <SkipForward size={18} />
             </button>
-            <button className={clsx("key ml-auto !h-12", shuffle && "!border-[#7a2a12] !text-ember")} aria-pressed={shuffle} onClick={() => prefs({ shuffle: !shuffle })}>
+            <button className={clsx("key ml-auto !h-12", shuffle && "!border-ember-line !text-ember")} aria-pressed={shuffle} onClick={() => prefs({ shuffle: !shuffle })}>
               <Shuffle size={14} /> Shuffle
             </button>
           </div>
@@ -138,7 +138,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
               const isCur = running && !focus && pl.current_item === it.id;
               return (
                 <div key={it.id} role="listitem" className={clsx("flex w-[176px] shrink-0 items-center gap-2 rounded-[10px] border p-2.5",
-                  isCur ? "border-[#7a2a12] bg-ember-deep/70" : "border-line bg-chassis-1/80", !it.enabled && "opacity-40")}>
+                  isCur ? "border-ember-line bg-ember-deep/70" : "border-line bg-chassis-1/80", !it.enabled && "opacity-40")}>
                   <span className={clsx("font-mono text-[9px] tabular-nums", isCur ? "text-ember" : "text-ink-4")}>{String(i + 1).padStart(2, "0")}</span>
                   <Icon name={m?.icon ?? "square"} size={14} className={isCur ? "text-ember" : "text-ink-2"} />
                   <span className="min-w-0 flex-1 truncate text-[12.5px] font-[560]">{m?.name ?? it.app}</span>

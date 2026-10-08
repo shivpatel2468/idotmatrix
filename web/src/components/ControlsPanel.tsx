@@ -212,7 +212,7 @@ export function ControlsPanel({ app, onClose }: { app: string | null; onClose: (
 
   return (
     <>
-      <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="fixed inset-0 z-[70] bg-scrim/50 light:bg-scrim/30 backdrop-blur-[2px]" onClick={onClose} />
       <aside role="dialog" aria-label="Controls" className="surface fixed inset-y-3 right-3 z-[71] flex w-[min(560px,calc(100vw-24px))] flex-col overflow-hidden animate-rise max-md:inset-x-3 max-md:w-auto">
         <header className="flex items-center gap-2 border-b border-line px-5 py-3.5">
           <Gamepad2 size={16} className="text-ember" />

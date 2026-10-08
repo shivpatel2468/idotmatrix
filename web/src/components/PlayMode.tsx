@@ -448,7 +448,7 @@ function PlayView() {
         <span className="flex-1" />
         {!phone && !touch && (
           <span className={clsx("hidden items-center gap-2 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] lg:flex",
-            focused ? "border-[#1f5c43] text-ok" : "border-line text-warn")}>
+            focused ? "border-ok-line text-ok" : "border-line text-warn")}>
             <span className="led" data-on={focused ? "ok" : "warn"} /> {focused ? "Keyboard ready" : "Keys paused"}
           </span>
         )}

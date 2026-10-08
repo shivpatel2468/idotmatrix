@@ -147,7 +147,7 @@ export function ComposerOverlay() {
             }}
             onDoubleClick={() => document.getElementById("composer-text")?.focus()}
           >
-            {active && <span className="absolute -top-5 left-0 whitespace-nowrap rounded bg-ember px-1 font-mono text-[9px] text-black">{lay.kind}</span>}
+            {active && <span className="absolute -top-5 left-0 whitespace-nowrap rounded bg-ember px-1 font-mono text-[9px] text-on-ember">{lay.kind}</span>}
           </div>
         );
       })}
@@ -230,7 +230,7 @@ export function ComposerToolbar() {
           </label>
         )}
         {swatches.map(([n, c]) => (
-          <button key={n} title={n} onClick={() => upd({ color: c })} className={clsx("h-5 w-5 rounded-[5px] border", lay.color === c ? "border-white" : "border-black/40")} style={{ background: c }} />
+          <button key={n} title={n} onClick={() => upd({ color: c })} className={clsx("h-5 w-5 rounded-[5px] border", lay.color === c ? "border-ink-1" : "border-black/40")} style={{ background: c }} />
         ))}
         <span className="ml-auto font-mono text-[10px] text-ink-4">X{lay.x} Y{lay.y}</span>
       </div>

@@ -264,7 +264,7 @@ function ColorField({ v, set }: { v: string; set: (v: unknown) => void }) {
             key={name}
             title={name}
             onClick={() => set(c)}
-            className={clsx("h-[18px] w-[18px] rounded-[5px] border transition hover:scale-110", v.toLowerCase() === c ? "border-white" : "border-black/40")}
+            className={clsx("h-[18px] w-[18px] rounded-[5px] border transition hover:scale-110", v.toLowerCase() === c ? "border-ink-1" : "border-black/40")}
             style={{ background: c }}
           />
         ))}
@@ -297,7 +297,7 @@ function MediaField({ v, set }: { v: string; set: (v: unknown) => void }) {
             <img src={`/api/media/${m.id}/preview.png?scale=4`} alt={m.name} className="h-full w-full [image-rendering:pixelated]" />
           </button>
           <button onClick={async () => { await api.deleteMedia(m.id); load(); }} title="Delete"
-            className="absolute right-1 top-1 hidden rounded bg-black/70 p-0.5 text-ink-2 hover:text-bad group-hover:block">
+            className="theme-dark absolute right-1 top-1 hidden rounded bg-black/70 p-0.5 text-ink-2 hover:text-bad group-hover:block">
             <Trash2 size={11} />
           </button>
         </div>
