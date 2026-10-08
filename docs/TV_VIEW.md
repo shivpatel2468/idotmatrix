@@ -44,10 +44,11 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   watches its own frame times while something animates (and for ~8 s after every scene change): a window of 120
   frames whose median is over 22 ms, or with more than 20 % of frames over 34 ms, switches it to lite for the rest of
   the visit (the scene is re-mounted at the new resolution). It never switches back by itself.
-- **Panel look** (`TV.look`): `hd` (default) or `led`. *HD* is the frame upscaled with a pixel-art upscaler (Scale2x /
+- **Panel look** (`TV.look`): `led` (default — the classic realistic LED matrix, like the real panel) or `hd`
+  (opt-in). *HD* is the frame upscaled with a pixel-art upscaler (Scale2x /
   EPX ×3: 32 → 256 px, then bilinear to the canvas) — smooth diagonals and round corners, but only ever the frame's
   own colours in the frame's own places, so it always shows exactly what the panel shows — with a cheap bloom and, on
-  big panels in hq, a ~60 ms cross-fade between frames. *LED* is the classic realistic LED matrix. `?look=led|hd`
+  big panels in hq, a ~60 ms cross-fade between frames. `?look=led|hd`
   picks one; **L** on a keyboard, or the remote's **select / play-pause / menu** button, toggles it (a short notice
   says which); the choice is remembered on that screen (localStorage).
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
@@ -200,8 +201,10 @@ Tables show the chips the house allows (docs/CASINO.md §5): the rail lists the 
 same rack computed from `house.min_bet` / `max_bet` with a copy of the ladder when an older engine doesn't send it
 (`chipRack` in tv-casino.js, tested against `casino/chips.py`). Every stack on the felt is its amount broken into
 ladder chips (largest at the bottom, greedy), in the ladder's colours and edge stripes; the top chip's inlay is the
-player's colour with the amount in K / M. A winning spot's stamp lands with a short burst of sparks — like every
-reveal animation, a pure function of the shared clock, so every screen bursts in the same frame.
+player's colour with the amount in K / M. On roulette the dealer lowers a crystal **dolly** (the win marker on a
+gold base) onto the winning number the moment the ball settles, and it stays until the round clears; the other
+tables mark their winning spot with a stamp and a short burst of sparks. Like every reveal animation these are a
+pure function of the shared clock, so every screen shows them in the same frame.
 
 ## 8. The web app (browser version)
 
