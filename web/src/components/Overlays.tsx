@@ -7,7 +7,7 @@ import { letFlyPlay, takeBackFromFly } from "../lib/flyControl";
 import { openFriends } from "./Multiplayer";
 import { EMPTY_LIST, openSettings, toast, useStore } from "../lib/store";
 import type { Notice } from "../lib/types";
-import { Icon } from "./Icon";
+import { IconTile } from "./Icon";
 import { sheetSound } from "../lib/sound";
 
 export function Modal({ open, onClose, title, children, width = 440, header, bodyRef }: {
@@ -24,7 +24,7 @@ export function Modal({ open, onClose, title, children, width = 440, header, bod
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid grid-cols-[minmax(0,1fr)] place-items-center bg-scrim/60 light:bg-scrim/28 backdrop-blur-[3px] light:backdrop-blur-[6px] sm:p-4" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 grid grid-cols-[minmax(0,1fr)] place-items-center bg-scrim/60 light:bg-scrim/28 sm:backdrop-blur-[3px] sm:light:backdrop-blur-[6px] sm:p-4" onMouseDown={onClose}>
       <div className="surface flex h-screen h-[100dvh] w-full animate-rise flex-col max-sm:!rounded-none sm:h-auto" style={{ maxWidth: width }}
         onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="flex shrink-0 items-center border-b border-line px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5 sm:pt-3">
@@ -100,7 +100,7 @@ export function NotifyComposer() {
 }
 
 // ---------------------------------------------------------- command palette
-type Cmd = { id: string; label: string; hint: string; icon: string; run: () => void };
+type Cmd = { id: string; label: string; hint: string; icon: string; tone?: string; run: () => void };
 
 export function CommandPalette() {
   const open = useStore((s) => s.palette);
@@ -112,9 +112,9 @@ export function CommandPalette() {
   const close = () => { set({ palette: false }); setQ(""); setI(0); };
 
   const cmds = useMemo<Cmd[]>(() => {
-    const apps: Cmd[] = (meta?.apps ?? []).map((a) => ({ id: a.id, label: a.name, hint: "Show app", icon: a.icon, run: () => api.activate(a.id) }));
+    const apps: Cmd[] = (meta?.apps ?? []).map((a) => ({ id: a.id, label: a.name, hint: "Show app", icon: a.icon, tone: a.category, run: () => api.activate(a.id) }));
     const pre: Cmd[] = (presets ?? []).map((p) => ({
-      id: `preset-${p.id}`, label: `Play ${p.name}`, hint: "Preset", icon: p.icon || "list-music",
+      id: `preset-${p.id}`, label: `Play ${p.name}`, hint: "Preset", icon: p.icon || "list-music", tone: "ember",
       run: () => api.playPreset(p.id, useStore.getState().shuffle).then(() => toast(`Playing ${p.name}`, "ok")),
     }));
     return [
@@ -177,8 +177,8 @@ export function CommandPalette() {
         <div className="p-1.5">
           {list.map((c, k) => (
             <button key={c.id} onMouseEnter={() => setI(k)} onClick={() => { c.run(); close(); }}
-              className={clsx("flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left", k === i ? "bg-chassis-3" : "")}>
-              <Icon name={c.icon} size={15} className={k === i ? "text-ember" : "text-ink-3"} />
+              className={clsx("flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left", k === i ? "bg-chassis-3" : "")}>
+              <IconTile name={c.icon} tone={c.tone ?? "neutral"} size={28} glyph={15} />
               <span className="flex-1 text-[13.5px]">{c.label}</span>
               <span className="engrave !text-[8.5px]">{c.hint}</span>
               {k === i && <CornerDownLeft size={12} className="text-ink-3" />}

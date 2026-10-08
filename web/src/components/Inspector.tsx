@@ -2,7 +2,7 @@ import { LayoutGrid, ListPlus, Play, RotateCcw } from "lucide-react";
 import { useRef, useState } from "react";
 import { api } from "../lib/api";
 import { appMeta, isPhone, toast, useStore } from "../lib/store";
-import { CATEGORY_LABEL, Icon } from "./Icon";
+import { CATEGORY_LABEL, IconTile } from "./Icon";
 import { SchemaForm } from "./SchemaForm";
 import { LedPanel } from "./LedPanel";
 
@@ -93,7 +93,7 @@ export function Inspector({ fill = false, flat = false }: {
           {live ? (
             <span className="overflow-hidden rounded-[7px] bg-black"><LedPanel size={56} glow={false} /></span>
           ) : (
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-[12px] border border-line-2 bg-chassis-3 text-ink-1"><Icon name={meta.icon} size={22} /></span>
+            <IconTile name={meta.icon} tone={meta.category} size={56} glyph={26} />
           )}
           <div className="min-w-0 flex-1">
             <div className="engrave flex items-center gap-1.5 !text-[8.5px]">
@@ -129,9 +129,7 @@ export function Inspector({ fill = false, flat = false }: {
     <aside className={`surface inspector-box flex min-h-0 flex-col overflow-hidden ${fill ? "flex-1" : ""}`} aria-label={`${meta.name} settings`}>
       <div className="border-b border-line p-4">
         <div className="flex items-start gap-3">
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border ${live ? "border-ember-line bg-ember-deep text-ember" : "border-line-2 bg-chassis-3 text-ink-1"}`}>
-            <Icon name={meta.icon} size={18} />
-          </span>
+          <IconTile name={meta.icon} tone={meta.category} size={40} glyph={19} solid={live} />
           <div className="min-w-0">
             <div className="engrave flex items-center gap-1.5 !text-[8.5px]">
               {live ? <><span className="led !h-[6px] !w-[6px]" data-on="ember" /> On the panel now</> : CATEGORY_LABEL[meta.category] ?? "App"}

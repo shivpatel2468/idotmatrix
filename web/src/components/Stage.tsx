@@ -1,11 +1,13 @@
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, Gamepad2, Eraser, ImageUp, Paintbrush, PaintBucket, Pipette, Plus, SlidersHorizontal, Sparkles, Trash2, Tv, Type, X } from "lucide-react";
+import { ChevronDown, Gamepad2, Eraser, Paintbrush, PaintBucket, Pipette, Plus, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
 import { api } from "../lib/api";
 import { EMPTY_MAP, appMeta, inspect, onFrame, toast, type Tool, useStore } from "../lib/store";
 import { randomTip } from "../lib/tips";
 import { isPlayable, openPlay } from "../lib/gameInput";
-import { Icon } from "./Icon";
+import { Icon, IconTile } from "./Icon";
+import { AppRail } from "./AppRail";
+import { usePhone } from "../lib/useMedia";
 import { ComposerOverlay, ComposerToolbar } from "./ComposerEditor";
 import { LedPanel } from "./LedPanel";
 import { MediaPrompt } from "./MediaPrompt";
@@ -78,17 +80,31 @@ function CanvasTools() {
   );
 }
 
-/** Largest square that fits the element (the bezel must stay square at every size). */
-function useSquare(max = 1400, share = 1) {
+/**
+ * Largest square that fits the element (the bezel must stay square at every size). Phones: the panel takes the
+ * width but at most ~40 % of the screen height, so the app rows below it are in view without scrolling.
+ */
+function useSquare(max = 1400, share = 1, phone = false) {
   const box = useRef<HTMLDivElement>(null);
   const [side, setSide] = useState(0);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setSide(Math.max(200, Math.floor(Math.min(e.contentRect.width * share, e.contentRect.height, max)))));
+    const fit = () => {
+      const w = el.clientWidth * share;
+      const next = phone
+        ? Math.max(180, Math.floor(Math.min(w, window.innerHeight * 0.4, max)))
+        : Math.max(200, Math.floor(Math.min(w, el.clientHeight, max)));
+      setSide((s) => (s === next ? s : next));
+    };
+    const ro = new ResizeObserver(fit);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [max, share]);
+    if (phone) window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [max, share, phone]);
   return { box, side };
 }
 
@@ -227,12 +243,12 @@ function CreateMenu() {
   const file = useRef<HTMLInputElement>(null);
   const set = useStore((s) => s.set);
   const items: [React.ReactNode, string, string, () => void][] = [
-    [<Bell size={15} />, "Send a message", "Flash a notification on the panel (N)", () => set({ notifyOpen: true })],
-    [<Sparkles size={15} />, "Make with AI", "Describe pixel art or an animation", () => set({ aiOpen: true })],
-    [<ImageUp size={15} />, "Show a picture or GIF", "Or drop a file anywhere on the studio", () => file.current?.click()],
-    [<Paintbrush size={15} />, "Draw on the panel", "Paint pixels right on the preview", () => api.activate("canvas")],
-    [<Type size={15} />, "Write text", "Place and style text in Text Studio", () => api.activate("composer")],
-    [<Tv size={15} />, "Show on TV", "Any screen on your Wi-Fi shows the panel, big", () => set({ tvOpen: true })],
+    [<IconTile name="bell-ring" tone="creative" size={30} />, "Send a message", "Flash a notification on the panel (N)", () => set({ notifyOpen: true })],
+    [<IconTile name="sparkles" tone="media" size={30} />, "Make with AI", "Describe pixel art or an animation", () => set({ aiOpen: true })],
+    [<IconTile name="image-up" tone="data" size={30} />, "Show a picture or GIF", "Or drop a file anywhere on the studio", () => file.current?.click()],
+    [<IconTile name="paintbrush" tone="games" size={30} />, "Draw on the panel", "Paint pixels right on the preview", () => api.activate("canvas")],
+    [<IconTile name="type" tone="time" size={30} />, "Write text", "Place and style text in Text Studio", () => api.activate("composer")],
+    [<IconTile name="tv" tone="ambient" size={30} />, "Show on TV", "Any screen on your Wi-Fi shows the panel, big", () => set({ tvOpen: true })],
   ];
   return (
     <div className="relative">
@@ -254,9 +270,9 @@ function CreateMenu() {
           <div role="menu" className="surface absolute bottom-full right-0 z-50 mb-2 w-[min(290px,86vw)] p-1.5 animate-rise"
             onKeyDown={(e) => e.key === "Escape" && setOpen(false)}>
             {items.map(([ic, label, hint, run]) => (
-              <button key={label} role="menuitem" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-chassis-3 focus:bg-chassis-3"
+              <button key={label} role="menuitem" className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-chassis-3 focus:bg-chassis-3"
                 onClick={() => { setOpen(false); run(); }}>
-                <span className="text-ink-2">{ic}</span>
+                {ic}
                 <span className="min-w-0">
                   <span className="block text-[13px] text-ink-1">{label}</span>
                   <span className="block truncate text-[11px] text-ink-3">{hint}</span>
@@ -303,7 +319,8 @@ export function Stage({ fly = false }: { fly?: boolean }) {
 }
 
 function StageBody({ fly = false }: { fly?: boolean }) {
-  const { box, side } = useSquare(1400, fly ? 0.4 : 1);
+  const phone = usePhone();
+  const { box, side } = useSquare(1400, fly ? 0.4 : 1, phone);
   const flyLive = useFly((s) => s.snap.active);
   const cur = useStore((s) => s.state?.engine.current);
   const overlay = useStore((s) => s.state?.engine.overlay);
@@ -320,9 +337,9 @@ function StageBody({ fly = false }: { fly?: boolean }) {
   const status = gaming ? [] : Object.entries(cur?.status ?? {}).filter(([, v]) => v !== null && typeof v !== "object").slice(0, 4);
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 overflow-y-auto px-2 py-1">
+    <main className={clsx("flex min-h-0 min-w-0 flex-1 flex-col items-center overflow-y-auto", phone ? "phone-stage gap-3" : "gap-4 px-2 py-1")}>
       {fly && <FlyBar />}
-      <div ref={box} className={clsx("relative flex w-full flex-1 items-center justify-center", fly && "gap-3")} style={{ minHeight: 260 }}>
+      <div ref={box} className={clsx("relative flex w-full items-center justify-center", !phone && "flex-1", fly && "gap-3")} style={phone ? undefined : { minHeight: 260 }}>
         {fly && <FlyWing side="left" />}
         <div className="bezel shrink-0 animate-rise" style={{ width: side, height: side }}>
           <span className="screw left-[7px] top-[7px]" />
@@ -384,9 +401,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
 
       <div className="surface flex w-full flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-3">
         <div className={clsx("flex min-w-0 flex-1 items-center gap-3", !painting && (meta?.actions.length ?? 0) > 0 && "max-sm:basis-full")}>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-ember-line bg-ember-deep text-ember">
-            <Icon name={meta?.icon ?? "square"} size={17} />
-          </span>
+          <IconTile name={meta?.icon ?? "square"} tone={meta?.category ?? "ember"} size={40} glyph={19} />
           <div className="min-w-0">
             <div className="engrave flex items-center gap-2 whitespace-nowrap !text-[8.5px]">
               Now showing
@@ -438,6 +453,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
           </div>
         )}
       </div>
+      {phone && <AppRail />}
       <MiniPlayback />
       </div>
     </main>

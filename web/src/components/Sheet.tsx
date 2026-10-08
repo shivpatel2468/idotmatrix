@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { sheetSound } from "../lib/sound";
 
@@ -14,14 +14,17 @@ export function Sheet({ open, onClose, title, children, footer }: {
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
-  const [drag, setDrag] = useState(0);
+  // the drag moves the sheet by writing its transform directly (no React render per pointer move)
+  const drag = useRef(0);
   const start = useRef<number | null>(null);
   const body = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(open);
   useEffect(() => sheetSound(open, wasOpen), [open]);
   useEffect(() => {
     if (!open) return;
-    setDrag(0);
+    drag.current = 0;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
@@ -34,22 +37,30 @@ export function Sheet({ open, onClose, title, children, footer }: {
     if (body.current?.contains(e.target as Node) && body.current.scrollTop > 0) return;
     start.current = e.clientY;
   };
+  const paint = (d: number) => {
+    drag.current = d;
+    const p = panel.current;
+    if (p) {
+      p.style.transition = d ? "none" : "";
+      p.style.transform = d ? `translateY(${d}px)` : "";
+    }
+    if (scrim.current) scrim.current.style.opacity = d ? String(Math.max(0, 1 - d / 320)) : "";
+  };
   const move = (e: React.PointerEvent) => {
     if (start.current == null) return;
-    setDrag(Math.max(0, e.clientY - start.current));
+    paint(Math.max(0, e.clientY - start.current));
   };
   const up = () => {
     if (start.current == null) return;
     start.current = null;
-    if (drag > 90) onClose();
-    else setDrag(0);
+    if (drag.current > 90) onClose();
+    else paint(0);
   };
 
   return createPortal(
     <div className="sheet-root" role="presentation">
-      <div className="sheet-scrim" onClick={onClose} style={{ opacity: Math.max(0, 1 - drag / 320) }} />
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={title}
-        style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
+      <div ref={scrim} className="sheet-scrim" onClick={onClose} />
+      <div ref={panel} className="sheet" role="dialog" aria-modal="true" aria-label={title}
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
         <div className="sheet-handle" aria-hidden />
         <div className="flex items-center gap-2 px-5 pb-2">
