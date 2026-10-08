@@ -92,7 +92,7 @@ export function CalAdvanced({ saved, start, onDone }: { saved: Calib; start?: Ca
         </div>
       </section>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t border-line bg-chassis-1/95 py-3 backdrop-blur">
+      <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t border-line bg-chassis-1 py-3">
         <button className="key key-ghost" title="Every knob back to factory" onClick={() => setC({ ...IDENTITY, preset: "custom" })}><RotateCcw size={13} /> Factory</button>
         <button className="key key-ghost" disabled={!dirty} onClick={() => setC(saved)}><Undo2 size={13} /> Revert</button>
         <span className={clsx("ml-auto font-mono text-[10.5px]", dirty ? "text-warn" : "text-ink-4")}>{dirty ? "unsaved changes" : "saved"}</span>

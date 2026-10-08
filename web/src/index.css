@@ -4,41 +4,177 @@
 @import "@fontsource/martian-mono/500.css";
 @import "@fontsource/martian-mono/700.css";
 
+/* `light:` / `dark:` utilities follow the studio theme (data-theme on <html>), not just the OS */
+@custom-variant light (&:where(:root[data-theme="light"] *));
+@custom-variant dark (&:where(:root[data-theme="dark"] *));
+
 /*
- * DeskDot Studio design tokens — see docs/STUDIO_UI.md.
- * "Instrument panel": graphite chassis, engraved mono labels, one ember accent.
+ * DeskDot Studio design tokens — see docs/STUDIO_UI.md (§ Themes).
+ *
+ * Two themes, one set of names. `<html data-theme="dark|light">` is set before first paint by the inline script in
+ * web/index.html (localStorage `deskdot.theme` = light | dark | system, default system → prefers-color-scheme);
+ * lib/theme.ts changes it at run time.
+ *
+ *   DARK  "Instrument panel": graphite chassis, engraved mono labels, one ember accent (the brand LEDs).
+ *   LIGHT "Gallery": porcelain / ivory layers, deep ink, hairlines and long soft shadows instead of heavy borders;
+ *         the accent becomes the brand rose re-tuned for white (AA as text), gold is a metal accent only.
+ *
+ * Every colour a component uses comes from here. The `--color-*` names are Tailwind utilities (bg-chassis-1,
+ * text-ink-3, border-ember-line …) and resolve per theme because Tailwind emits `var(--color-…)`.
+ * The `--m-*` names are "materials" (shadows, highlights, glass) used by the component classes below.
+ *
+ * Plain-HTML pages (casino.html, controller.html, join, tv.html) mirror these values by name — keep them in sync:
+ *   page / surface / raised   chassis-0 / chassis-1 / chassis-2      text    ink-1 … ink-4
+ *   hairlines                 line / line-2                          accent  ember / ember-2 / ember-deep / ember-line
+ *   text on the accent        on-ember                               metal   gold / gold-2 / gold-text (text-safe gold)
+ *   status                    ok / warn / bad / info (+ ok-line)     scrim   scrim (dialog backdrops, use with /alpha)
+ *
+ * A subtree that must stay dark in both themes (LED hardware, 3D scenes, Play mode's stage) gets `.theme-dark`.
  */
 @theme {
   --font-display: "Bricolage Grotesque Variable", "Segoe UI Variable Display", sans-serif;
   --font-mono: "Martian Mono", "Cascadia Mono", ui-monospace, monospace;
   --font-sans: "Bricolage Grotesque Variable", "Segoe UI Variable Text", sans-serif;
 
-  --color-chassis-0: #08080a;
-  --color-chassis-1: #0f0f13;
-  --color-chassis-2: #16161b;
-  --color-chassis-3: #1e1e25;
-  --color-chassis-4: #27272f;
-  --color-line: #25252d;
-  --color-line-2: #33333d;
+  /* ---- DARK (default) ---- */
+  --color-chassis-0: #08080a;   /* page, inset wells (fields, segmented controls) */
+  --color-chassis-1: #0f0f13;   /* panels */
+  --color-chassis-2: #16161b;   /* raised panel top, popovers */
+  --color-chassis-3: #1e1e25;   /* hover fills, chips */
+  --color-chassis-4: #27272f;   /* keys, fader track */
+  --color-line: #25252d;        /* hairline */
+  --color-line-2: #33333d;      /* control border */
 
-  --color-ink-1: #efece4;
-  --color-ink-2: #a9a7b0;
-  --color-ink-3: #6f6d78;
-  --color-ink-4: #484651;
+  --color-ink-1: #efece4;       /* primary text */
+  --color-ink-2: #a9a7b0;       /* secondary */
+  --color-ink-3: #6f6d78;       /* labels, hints */
+  --color-ink-4: #484651;       /* disabled, decoration */
 
-  --color-ember: #ff4818;
-  --color-ember-2: #ff7a4d;
-  --color-ember-deep: #3a1208;
+  --color-ember: #ff4818;       /* THE accent (brand LED ember) */
+  --color-ember-2: #ff7a4d;     /* accent hover / lighter */
+  --color-ember-deep: #3a1208;  /* accent well (selected row, live tile) */
+  --color-ember-line: #7a2a12;  /* border of an accent well */
+  --color-on-ember: #150502;    /* text / icons on a solid accent fill */
+
+  --color-gold: #ffcc33;        /* brand gold: metal accent (stars, rims) */
+  --color-gold-2: #ffe08a;      /* gold highlight */
+  --color-gold-text: #ffd600;   /* gold used as text */
+
   --color-ok: #3ddc97;
+  --color-ok-line: #1f5c43;
   --color-warn: #ffb020;
   --color-bad: #ff3b5c;
   --color-info: #37c8ff;
+  --color-scrim: #000000;       /* behind dialogs: bg-scrim/60 */
 
   --radius-chassis: 14px;
   --ease-snap: cubic-bezier(0.2, 0.9, 0.25, 1.15);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 
   --animate-rise: rise 0.55s var(--ease-snap) both;
   --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+}
+
+/* materials — dark */
+:root {
+  color-scheme: dark;
+  --m-hi: rgba(255, 255, 255, 0.035);              /* inner top highlight of a surface */
+  --m-hi-key: rgba(255, 255, 255, 0.06);           /* inner top highlight of a key */
+  --m-surface-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.8);
+  --m-pop-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  --m-key-top: var(--color-chassis-4);
+  --m-key-bottom: var(--color-chassis-3);
+  --m-key-floor: #050507;                          /* the 2 px "travel" under a key */
+  --m-key-hover: #45454f;
+  --m-inset: inset 0 1px 3px rgba(0, 0, 0, 0.6);   /* fields, segmented wells */
+  --m-glass: #0e0e12;                              /* the tab bar and top bar: opaque (backdrop blur is unreliable in Android WebViews) */
+  --m-glass-line: rgba(255, 255, 255, 0.06);
+  --m-page-glow: rgba(255, 72, 24, 0.055);
+  --m-page-dots: rgba(255, 255, 255, 0.035);
+  --m-shimmer: rgba(255, 255, 255, 0.045);
+  --m-thumb-top: #f4f2ec;                          /* fader knob */
+  --m-thumb-bottom: #b9b6ad;
+  --m-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  --m-bezel-shadow: 0 1px 0 #000, 0 40px 90px -30px rgba(0, 0, 0, 0.95), 0 0 0 1px #050506;
+  --m-led-ring: rgba(0, 0, 0, 0.35);
+}
+
+/* ---- LIGHT "Gallery" ---- */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-chassis-0: #f4f0e8;   /* porcelain page, inset wells */
+  --color-chassis-1: #fbf9f5;   /* ivory panels */
+  --color-chassis-2: #ffffff;   /* raised top, popovers */
+  --color-chassis-3: #f0ebe2;   /* hover fills, chips */
+  --color-chassis-4: #e6e0d5;   /* tracks, strong fills */
+  --color-line: #e7e1d6;
+  --color-line-2: #d8d0c2;
+
+  --color-ink-1: #1c1a22;       /* 16:1 on ivory */
+  --color-ink-2: #4a4652;       /* 8.7:1 */
+  --color-ink-3: #6b6673;       /* 4.7:1 on the page — still AA */
+  --color-ink-4: #a49ea8;       /* decoration / disabled only */
+
+  --color-ember: #b81f4b;       /* brand rose for white: 5.5:1 on the page, 6.3:1 white-on-rose */
+  --color-ember-2: #d6386a;     /* hover / glow (not for small text) */
+  --color-ember-deep: #fbe8ed;  /* blush well */
+  --color-ember-line: #edb9c7;
+  --color-on-ember: #ffffff;
+
+  --color-gold: #b8892a;        /* antique gold leaf — metal, never body text */
+  --color-gold-2: #e6cd8a;
+  --color-gold-text: #8a6412;   /* when gold must be text: 5.1:1 */
+
+  --color-ok: #18794e;
+  --color-ok-line: #a8d8bf;
+  --color-warn: #9a5b00;
+  --color-bad: #c8203e;
+  --color-info: #0b6f9e;
+  --color-scrim: #2a2218;       /* warm umber scrim, never flat black on ivory */
+
+  --m-hi: rgba(255, 255, 255, 0.9);
+  --m-hi-key: rgba(255, 255, 255, 1);
+  --m-surface-shadow: 0 1px 2px rgba(64, 48, 24, 0.05), 0 18px 40px -22px rgba(64, 48, 24, 0.22);
+  --m-pop-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 32px 80px -24px rgba(64, 48, 24, 0.35), 0 0 0 1px rgba(64, 48, 24, 0.05);
+  --m-key-top: #ffffff;
+  --m-key-bottom: #f6f2ec;
+  --m-key-floor: #ddd5c8;
+  --m-key-hover: #c5bcad;
+  --m-inset: inset 0 1px 2px rgba(64, 48, 24, 0.08);
+  --m-glass: #fbf9f5;
+  --m-glass-line: rgba(64, 48, 24, 0.08);
+  --m-page-glow: rgba(214, 56, 106, 0.05);
+  --m-page-dots: rgba(64, 48, 24, 0.07);
+  --m-shimmer: rgba(255, 255, 255, 0.85);
+  --m-thumb-top: #ffffff;
+  --m-thumb-bottom: #ece6dc;
+  --m-thumb-shadow: 0 1px 2px rgba(64, 48, 24, 0.25), 0 4px 10px -2px rgba(64, 48, 24, 0.25);
+  --m-bezel-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 4px rgba(40, 30, 16, 0.12), 0 40px 70px -34px rgba(40, 30, 16, 0.55), 0 0 0 1px #0b0b0e;
+  --m-led-ring: rgba(64, 48, 24, 0.12);
+}
+
+/* A subtree that stays dark in both themes (hardware, 3D scenes). Mirrors the DARK values above. */
+:root[data-theme="light"] :is(.theme-dark, .bezel, .fly-wing, .fly-full, .roam-tip) {
+  color-scheme: dark;
+  color: #efece4;
+  --color-chassis-0: #08080a; --color-chassis-1: #0f0f13; --color-chassis-2: #16161b;
+  --color-chassis-3: #1e1e25; --color-chassis-4: #27272f; --color-line: #25252d; --color-line-2: #33333d;
+  --color-ink-1: #efece4; --color-ink-2: #a9a7b0; --color-ink-3: #6f6d78; --color-ink-4: #484651;
+  --color-ember: #ff4818; --color-ember-2: #ff7a4d; --color-ember-deep: #3a1208; --color-ember-line: #7a2a12;
+  --color-on-ember: #150502; --color-gold: #ffcc33; --color-gold-2: #ffe08a; --color-gold-text: #ffd600;
+  --color-ok: #3ddc97; --color-ok-line: #1f5c43; --color-warn: #ffb020; --color-bad: #ff3b5c; --color-info: #37c8ff;
+  --color-scrim: #000000;
+  --m-hi: rgba(255, 255, 255, 0.035); --m-hi-key: rgba(255, 255, 255, 0.06);
+  --m-surface-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.8);
+  --m-key-top: #27272f; --m-key-bottom: #1e1e25; --m-key-floor: #050507; --m-key-hover: #45454f;
+  --m-inset: inset 0 1px 3px rgba(0, 0, 0, 0.6); --m-glass: rgba(14, 14, 18, 0.9); --m-glass-line: rgba(255, 255, 255, 0.06);
+  --m-shimmer: rgba(255, 255, 255, 0.045); --m-led-ring: rgba(0, 0, 0, 0.35);
+  --m-thumb-top: #f4f2ec; --m-thumb-bottom: #b9b6ad; --m-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* theme changes cross-fade (lib/theme.ts adds this class for ~400 ms; never on first paint) */
+html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
+  transition: background-color 0.35s ease, border-color 0.35s ease, color 0.25s ease, box-shadow 0.35s ease, fill 0.25s ease !important;
 }
 
 @keyframes rise {
@@ -59,11 +195,19 @@
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
     background-image:
-      radial-gradient(1200px 700px at 50% 38%, rgba(255, 72, 24, 0.055), transparent 60%),
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
+      radial-gradient(1200px 700px at 50% 38%, var(--m-page-glow), transparent 60%),
+      radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
     background-size: auto, 22px 22px;
   }
-  ::selection { background: var(--color-ember); color: #000; }
+  /* light: a gallery wall — warm daylight from the top, a faint rose bloom behind the panel */
+  :root[data-theme="light"] body {
+    background-image:
+      radial-gradient(1400px 620px at 50% -12%, rgba(255, 255, 255, 0.95), transparent 70%),
+      radial-gradient(900px 600px at 50% 46%, var(--m-page-glow), transparent 65%),
+      radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
+    background-size: auto, auto, 22px 22px;
+  }
+  ::selection { background: var(--color-ember); color: var(--color-on-ember); }
   * { scrollbar-width: thin; scrollbar-color: var(--color-chassis-4) transparent; }
   :focus-visible { outline: 1.5px solid var(--color-ember); outline-offset: 2px; border-radius: 6px; }
 }
@@ -73,9 +217,11 @@
   .surface {
     background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1));
     border: 1px solid var(--color-line);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 20px 50px -30px rgba(0, 0, 0, 0.8);
+    box-shadow: inset 0 1px 0 var(--m-hi), var(--m-surface-shadow);
     border-radius: var(--radius-chassis);
   }
+  /* light: lift by shadow, not by border */
+  :root[data-theme="light"] .surface { border-color: color-mix(in oklab, var(--color-line) 70%, transparent); }
   /* engraved label: the studio's signature typographic voice */
   .engrave {
     font-family: var(--font-mono);
@@ -90,44 +236,59 @@
     height: 2.1rem; padding: 0 0.85rem; border-radius: 9px;
     font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--color-ink-1);
-    background: linear-gradient(180deg, var(--color-chassis-4), var(--color-chassis-3));
+    background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom));
     border: 1px solid var(--color-line-2);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 0 #050507;
+    box-shadow: inset 0 1px 0 var(--m-hi-key), 0 2px 0 var(--m-key-floor);
     transition: transform 0.08s, box-shadow 0.08s, background 0.2s, color 0.2s, border-color 0.2s;
     user-select: none; white-space: nowrap;
   }
-  .key:hover { border-color: #45454f; }
-  .key:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 #050507; }
+  .key:hover { border-color: var(--m-key-hover); }
+  .key:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 0 0 var(--m-key-floor); }
+  :root[data-theme="light"] .key { box-shadow: inset 0 1px 0 var(--m-hi-key), 0 1px 0 var(--m-key-floor), 0 3px 6px -3px rgba(64, 48, 24, 0.18); }
+  :root[data-theme="light"] .key:active { box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.12); }
   .key:disabled { opacity: 0.4; pointer-events: none; }
   .key-ember {
-    color: #150502;
-    background: linear-gradient(180deg, #ff6a3d, var(--color-ember));
-    border-color: #ff8a62;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #6b1a05, 0 0 24px -6px rgba(255, 72, 24, 0.7);
+    color: var(--color-on-ember);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember));
+    border-color: color-mix(in oklab, var(--color-ember) 72%, white);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 color-mix(in oklab, var(--color-ember) 40%, black), 0 0 24px -6px color-mix(in oklab, var(--color-ember) 70%, transparent);
   }
-  .key-ember:hover { border-color: #ffb095; }
-  .key-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--color-ink-2); }
+  .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 45%, white); }
+  :root[data-theme="light"] .key-ember {
+    border-color: color-mix(in oklab, var(--color-ember) 85%, black);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 0 color-mix(in oklab, var(--color-ember) 55%, black), 0 10px 20px -10px color-mix(in oklab, var(--color-ember) 80%, transparent);
+  }
+  :root[data-theme="light"] .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 70%, black); filter: brightness(1.06); }
+  .key-ghost { background: transparent; border-color: transparent; box-shadow: none !important; color: var(--color-ink-2); }
   .key-ghost:hover { background: var(--color-chassis-3); color: var(--color-ink-1); border-color: var(--color-line); }
   .key-icon { width: 2.1rem; padding: 0; }
 
   /* LED status dot */
   .led {
     width: 7px; height: 7px; border-radius: 99px; background: var(--color-ink-4);
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 0 2px var(--m-led-ring);
   }
-  .led[data-on="ok"] { background: var(--color-ok); box-shadow: 0 0 10px var(--color-ok), 0 0 0 2px rgba(0,0,0,.35); }
-  .led[data-on="warn"] { background: var(--color-warn); box-shadow: 0 0 10px var(--color-warn), 0 0 0 2px rgba(0,0,0,.35); animation: var(--animate-pulse-dot); }
-  .led[data-on="bad"] { background: var(--color-bad); box-shadow: 0 0 10px var(--color-bad), 0 0 0 2px rgba(0,0,0,.35); }
-  .led[data-on="ember"] { background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember), 0 0 0 2px rgba(0,0,0,.35); }
+  .led[data-on="ok"] { background: var(--color-ok); box-shadow: 0 0 10px var(--color-ok), 0 0 0 2px var(--m-led-ring); }
+  .led[data-on="warn"] { background: var(--color-warn); box-shadow: 0 0 10px var(--color-warn), 0 0 0 2px var(--m-led-ring); animation: var(--animate-pulse-dot); }
+  .led[data-on="bad"] { background: var(--color-bad); box-shadow: 0 0 10px var(--color-bad), 0 0 0 2px var(--m-led-ring); }
+  .led[data-on="ember"] { background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember), 0 0 0 2px var(--m-led-ring); }
+  /* light: a lit dot reads by its colour and a soft tinted ring, not a bloom */
+  :root[data-theme="light"] .led[data-on="ok"] { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ok) 18%, transparent); }
+  :root[data-theme="light"] .led[data-on="warn"] { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-warn) 20%, transparent); }
+  :root[data-theme="light"] .led[data-on="bad"] { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-bad) 18%, transparent); }
+  :root[data-theme="light"] .led[data-on="ember"] { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ember) 18%, transparent); }
 
   /* text inputs */
   .field {
     width: 100%; height: 2.2rem; padding: 0 0.7rem; border-radius: 9px;
     background: var(--color-chassis-0); border: 1px solid var(--color-line);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
-    color: var(--color-ink-1); font-size: 13px; transition: border-color 0.15s;
+    box-shadow: var(--m-inset);
+    color: var(--color-ink-1); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .field:focus { outline: none; border-color: var(--color-ember); }
+  .field:focus { outline: none; border-color: var(--color-ember); box-shadow: var(--m-inset), 0 0 0 3px color-mix(in oklab, var(--color-ember) 16%, transparent); }
+  :root[data-theme="light"] .field { background: var(--color-chassis-2); }
+  .field::placeholder { color: var(--color-ink-4); }
+  :root[data-theme="light"] .field::placeholder { color: var(--color-ink-3); opacity: 0.7; }
   textarea.field { height: auto; padding: 0.55rem 0.7rem; resize: vertical; min-height: 4.2rem; }
   select.field { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-3) 50%), linear-gradient(135deg, var(--color-ink-3) 50%, transparent 50%); background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 1.8rem; }
 
@@ -141,22 +302,31 @@
   .fader::-moz-range-progress { height: 4px; border-radius: 9px; background: var(--color-ember); }
   .fader::-webkit-slider-thumb {
     -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 5px;
-    background: linear-gradient(180deg, #f4f2ec, #b9b6ad); border: 1px solid #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    background: linear-gradient(180deg, var(--m-thumb-top), var(--m-thumb-bottom)); border: 1px solid var(--m-thumb-top);
+    box-shadow: var(--m-thumb-shadow), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
   }
-  .fader::-moz-range-thumb { width: 16px; height: 16px; border-radius: 5px; background: #e8e5dd; border: 1px solid #fff; }
+  .fader::-moz-range-thumb { width: 16px; height: 16px; border-radius: 5px; background: var(--m-thumb-bottom); border: 1px solid var(--m-thumb-top); box-shadow: var(--m-thumb-shadow); }
+  :root[data-theme="light"] .fader::-webkit-slider-thumb { border-color: var(--color-line-2); }
+  :root[data-theme="light"] .fader::-moz-range-thumb { border-color: var(--color-line-2); }
 
   /* segmented control */
-  .seg { display: flex; padding: 3px; gap: 3px; border-radius: 10px; background: var(--color-chassis-0); border: 1px solid var(--color-line); box-shadow: inset 0 1px 3px rgba(0,0,0,.6); }
+  .seg { display: flex; padding: 3px; gap: 3px; border-radius: 10px; background: var(--color-chassis-0); border: 1px solid var(--color-line); box-shadow: var(--m-inset); }
   .seg > button { flex: 1; height: 1.75rem; border-radius: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-3); transition: all 0.15s; white-space: nowrap; padding: 0 0.4rem; }
   .seg > button:hover { color: var(--color-ink-1); }
-  .seg > button[data-active="true"] { color: var(--color-ink-1); background: linear-gradient(180deg, var(--color-chassis-4), var(--color-chassis-3)); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 0 #000; }
+  .seg > button[data-active="true"] { color: var(--color-ink-1); background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom)); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 1px 0 var(--m-key-floor); }
+  :root[data-theme="light"] .seg > button[data-active="true"] { box-shadow: 0 1px 2px rgba(64, 48, 24, 0.14), 0 0 0 1px rgba(64, 48, 24, 0.06); }
 
   /* toggle */
   .toggle { position: relative; width: 38px; height: 22px; border-radius: 99px; background: var(--color-chassis-0); border: 1px solid var(--color-line-2); transition: background 0.2s; flex-shrink: 0; }
   .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 99px; background: var(--color-ink-3); transition: transform 0.2s var(--ease-snap), background 0.2s; }
-  .toggle[aria-checked="true"] { background: var(--color-ember-deep); border-color: #7a2a12; }
+  .toggle[aria-checked="true"] { background: var(--color-ember-deep); border-color: var(--color-ember-line); }
   .toggle[aria-checked="true"]::after { transform: translateX(16px); background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember); }
+  /* light: an iOS-style pill — white knob, the track fills with rose */
+  :root[data-theme="light"] .toggle { background: var(--color-chassis-4); border-color: transparent; box-shadow: var(--m-inset); }
+  :root[data-theme="light"] .toggle::after { background: #fff; box-shadow: 0 1px 3px rgba(64, 48, 24, 0.3); }
+  :root[data-theme="light"] .toggle[aria-checked="true"] { background: var(--color-ember); }
+  :root[data-theme="light"] .toggle[aria-checked="true"]::after { background: #fff; box-shadow: 0 1px 3px rgba(64, 48, 24, 0.35); }
+
 }
 
 /* the bezel around the LED panel */
@@ -169,9 +339,17 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(0, 0, 0, 0.8),
-    0 1px 0 #000,
-    0 40px 90px -30px rgba(0, 0, 0, 0.95),
-    0 0 0 1px #050506;
+    var(--m-bezel-shadow);
+}
+/* light: the panel is a graphite device standing on a gallery plinth — a satin rim catches the daylight */
+:root[data-theme="light"] .bezel {
+  background:
+    linear-gradient(145deg, #2c2c33 0%, #17171c 46%, #0d0d10 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    var(--m-bezel-shadow);
 }
 .bezel::before { /* recessed well the LEDs sit in */
   content: ""; position: absolute; inset: clamp(10px, 1.6vw, 19px); border-radius: 10px;
@@ -231,7 +409,34 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 0 18px rgba(0, 0, 0, 0.6);
   border-radius: inherit;
 }
-.text-gold { color: #ffd600; }
+.text-gold { color: var(--color-gold-text); }
+
+/* The LED logo's plate. Dark: invisible (the tubes glow on the chassis). Light: a small near-black LED sign with a
+   bezel, so the same glowing logo still reads on ivory (the renderer is unchanged — tests/test_logo_copies.py). */
+.led-plate { display: inline-grid; place-items: center; border-radius: 12px; }
+:root[data-theme="light"] .led-plate {
+  padding: 2px 6px;
+  background: radial-gradient(120% 140% at 50% 0%, #1b1a20 0%, #0c0c0f 60%, #070709 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.6),
+    0 0 0 1px #0a0a0c,
+    0 0 0 3px color-mix(in oklab, var(--color-gold-2) 55%, white),
+    0 0 0 3.5px color-mix(in oklab, var(--color-gold) 45%, transparent),
+    0 10px 24px -12px rgba(40, 30, 16, 0.55);
+}
+
+/* the studio theme picker (Settings → Display & colour): three little rooms */
+.theme-tile {
+  display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 9px; border-radius: 12px; text-align: left;
+  border: 1px solid var(--color-line); background: var(--color-chassis-1);
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.2s var(--ease-snap);
+}
+.theme-tile:hover { border-color: var(--color-line-2); transform: translateY(-1px); }
+.theme-tile[aria-pressed="true"] { border-color: var(--color-ember); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ember) 18%, transparent); }
+.theme-swatch { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0, 0, 0, 0.08); }
+.theme-swatch i { position: absolute; display: block; border-radius: 3px; }
 
 /* ------------------------------------------------------------- resizable splitters */
 .splitter { position: relative; width: 10px; margin: 0 -2px; cursor: col-resize; flex-shrink: 0; touch-action: none; }
@@ -240,6 +445,8 @@
   background: var(--color-line-2); transition: background 0.15s, top 0.2s, bottom 0.2s;
 }
 .splitter:hover::after, .splitter[data-drag="true"]::after { background: var(--color-ember); top: 12%; bottom: 12%; box-shadow: 0 0 10px var(--color-ember); }
+:root[data-theme="light"] .splitter::after { background: transparent; }
+:root[data-theme="light"] .splitter:hover::after, :root[data-theme="light"] .splitter[data-drag="true"]::after { background: var(--color-ember); box-shadow: none; }
 
 /* the playback dock's height handle: the same glowing bar, laid horizontally on its top edge */
 .splitter-h { position: absolute; left: 0; right: 0; top: -8px; height: 12px; cursor: row-resize; touch-action: none; z-index: 5; }
@@ -257,6 +464,13 @@
     linear-gradient(180deg, #0d0d12, #07070a);
 }
 .nowplaying .np-panel { filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(249, 74, 24, 0.18)); }
+:root[data-theme="light"] .nowplaying .np-wash {
+  background:
+    radial-gradient(60% 55% at 30% 45%, rgba(214, 56, 106, 0.13), transparent 70%),
+    radial-gradient(45% 45% at 75% 60%, rgba(184, 137, 42, 0.12), transparent 70%),
+    linear-gradient(180deg, #fbf9f5, #efe9df);
+}
+:root[data-theme="light"] .nowplaying .np-panel { filter: drop-shadow(0 30px 50px rgba(40, 30, 16, 0.35)) drop-shadow(0 0 50px rgba(214, 56, 106, 0.16)); }
 .nowplaying .np-play:hover:not(:disabled) { transform: scale(1.06); }
 .nowplaying .np-play:disabled { opacity: 0.4; }
 
@@ -289,7 +503,7 @@
 @keyframes shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
 .skeleton {
   background-color: var(--color-chassis-2);
-  background-image: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.045) 50%, transparent 70%);
+  background-image: linear-gradient(100deg, transparent 30%, var(--m-shimmer) 50%, transparent 70%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
@@ -298,8 +512,9 @@
 .kbd {
   display: inline-block; padding: 0.05rem 0.4rem; margin: 0 0.1rem; border-radius: 5px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--color-ink-1);
-  background: var(--color-chassis-3); border: 1px solid var(--color-line-2); box-shadow: 0 1px 0 #000;
+  background: var(--color-chassis-3); border: 1px solid var(--color-line-2); box-shadow: 0 1px 0 var(--m-key-floor);
 }
+:root[data-theme="light"] .kbd { background: var(--color-chassis-2); }
 
 /* a settings block the user just jumped to */
 @keyframes flash-ring { 0% { box-shadow: 0 0 0 2px var(--color-ember); } 100% { box-shadow: 0 0 0 2px transparent; } }
@@ -322,6 +537,13 @@ summary::-webkit-details-marker { display: none; }
     radial-gradient(ellipse at 50% 50%, #0d0d11 0%, #050506 75%);
   overscroll-behavior: contain;
 }
+/* light: a bright showroom — the device sits in a pool of warm light */
+:root[data-theme="light"] .playmode {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(ellipse 80% 70% at 50% 45%, rgba(214, 56, 106, 0.06), transparent 75%),
+    radial-gradient(ellipse at 50% 50%, #f7f3ec 0%, #e9e2d6 85%);
+}
 .bezel-play { padding: var(--bz, 22px); }
 .bezel-play::before { inset: calc(var(--bz, 22px) * 0.72); }
 .bezel-play::after { inset: var(--bz, 22px); }
@@ -330,16 +552,16 @@ summary::-webkit-details-marker { display: none; }
 .keycap {
   display: inline-grid; place-items: center; min-width: 2.35rem; height: 2.35rem; padding: 0 0.55rem; border-radius: 8px;
   font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-1);
-  background: linear-gradient(180deg, var(--color-chassis-4), var(--color-chassis-3));
+  background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom));
   border: 1px solid var(--color-line-2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 3px 0 #050507;
+  box-shadow: inset 0 1px 0 var(--m-hi-key), 0 3px 0 var(--m-key-floor);
   transition: transform 0.05s, box-shadow 0.05s, background 0.1s, color 0.1s, border-color 0.1s;
 }
 .keycap-wide { min-width: 4.6rem; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 .keycap[data-down] {
-  transform: translateY(3px); color: #150502; border-color: #ff8a62;
-  background: linear-gradient(180deg, #ff6a3d, var(--color-ember));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 #050507, 0 0 22px -4px rgba(255, 72, 24, 0.85);
+  transform: translateY(3px); color: var(--color-on-ember); border-color: color-mix(in oklab, var(--color-ember) 72%, white);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 var(--m-key-floor), 0 0 22px -4px color-mix(in oklab, var(--color-ember) 85%, transparent);
 }
 
 /* touch game pad */
@@ -347,17 +569,17 @@ summary::-webkit-details-marker { display: none; }
 .padkey {
   display: grid; place-items: center; width: 4.1rem; height: 4.1rem; border-radius: 14px;
   font-size: 18px; color: var(--color-ink-1); touch-action: none;
-  background: linear-gradient(180deg, var(--color-chassis-4), var(--color-chassis-3));
+  background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom));
   border: 1px solid var(--color-line-2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 0 #050507;
+  box-shadow: inset 0 1px 0 var(--m-hi-key), 0 4px 0 var(--m-key-floor);
   transition: transform 0.05s, box-shadow 0.05s, background 0.1s, color 0.1s;
 }
 .padkey-round { border-radius: 999px; width: 4.4rem; height: 4.4rem; font-family: var(--font-mono); font-weight: 700; font-size: 20px; }
-.padkey-a { width: 5rem; height: 5rem; color: #150502; border-color: #ff8a62; background: linear-gradient(180deg, #ff6a3d, var(--color-ember)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 0 #6b1a05, 0 0 24px -6px rgba(255, 72, 24, 0.7); }
+.padkey-a { width: 5rem; height: 5rem; color: var(--color-on-ember); border-color: color-mix(in oklab, var(--color-ember) 72%, white); background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 0 color-mix(in oklab, var(--color-ember) 40%, black), 0 0 24px -6px color-mix(in oklab, var(--color-ember) 70%, transparent); }
 .padkey[data-down] {
-  transform: translateY(4px); color: #150502; border-color: #ff8a62;
-  background: linear-gradient(180deg, #ff8a5d, var(--color-ember));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 #050507, 0 0 28px -4px rgba(255, 72, 24, 0.9);
+  transform: translateY(4px); color: var(--color-on-ember); border-color: color-mix(in oklab, var(--color-ember) 72%, white);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 var(--m-key-floor), 0 0 28px -4px color-mix(in oklab, var(--color-ember) 90%, transparent);
 }
 .padhub { width: 4.1rem; height: 4.1rem; border-radius: 999px; background: radial-gradient(circle, var(--color-chassis-2), transparent 70%); }
 .gamepad-compact .padkey, .gamepad-compact .padhub { width: 3.3rem; height: 3.3rem; }
@@ -382,28 +604,28 @@ summary::-webkit-details-marker { display: none; }
   touch-action: none; border-radius: 16px; overflow: hidden;
   background: radial-gradient(circle at 50% 50%, var(--color-chassis-2), var(--color-chassis-0) 75%);
   border: 1px dashed var(--color-line-2);
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--m-inset);
 }
 .stick-base {
   position: absolute; transform: translate(-50%, -50%); border-radius: 999px; pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01) 70%);
-  border: 1px solid var(--color-line-2); box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.8);
+  background: radial-gradient(circle, color-mix(in oklab, var(--color-ink-1) 4%, transparent), color-mix(in oklab, var(--color-ink-1) 1%, transparent) 70%);
+  border: 1px solid var(--color-line-2); box-shadow: inset 0 0 18px color-mix(in oklab, var(--color-scrim) 50%, transparent);
 }
 .stick-knob {
   position: absolute; width: 3.2rem; height: 3.2rem; transform: translate(-50%, -50%); border-radius: 999px; pointer-events: none;
-  background: linear-gradient(180deg, #ff6a3d, var(--color-ember)); border: 1px solid #ff8a62;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px rgba(0, 0, 0, 0.6), 0 0 26px -6px rgba(255, 72, 24, 0.85);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember)); border: 1px solid color-mix(in oklab, var(--color-ember) 72%, white);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 14px rgba(0, 0, 0, 0.35), 0 0 26px -6px color-mix(in oklab, var(--color-ember) 85%, transparent);
 }
 .tapzone {
   display: grid; place-items: center; border-radius: 16px; font-size: 26px; color: var(--color-ink-3); touch-action: none;
   background: linear-gradient(180deg, var(--color-chassis-3), var(--color-chassis-1));
-  border: 1px solid var(--color-line-2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 0 #050507;
+  border: 1px solid var(--color-line-2); box-shadow: inset 0 1px 0 var(--m-hi), 0 4px 0 var(--m-key-floor);
   transition: transform 0.05s, box-shadow 0.05s, background 0.1s, color 0.1s;
 }
 .tapzone[data-down] {
-  transform: translateY(3px); color: #150502; border-color: #ff8a62;
-  background: linear-gradient(180deg, #ff8a5d, var(--color-ember));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 #050507, 0 0 28px -4px rgba(255, 72, 24, 0.9);
+  transform: translateY(3px); color: var(--color-on-ember); border-color: color-mix(in oklab, var(--color-ember) 72%, white);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 0 var(--m-key-floor), 0 0 28px -4px color-mix(in oklab, var(--color-ember) 90%, transparent);
 }
 
 /* ---------------------------------------------------------------- Fly view (components/fly) */
@@ -638,6 +860,12 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 }
 .flybtn:hover { border-color: rgba(255, 140, 46, 0.75); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 18px -4px rgba(255, 116, 25, 0.6); }
 .flybtn:active { transform: translateY(1px); }
+:root[data-theme="light"] .flybtn:not([data-on="true"]) {
+  background: linear-gradient(180deg, #ffffff, #fbf1ea);
+  border-color: rgba(214, 90, 40, 0.32);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--m-key-floor), 0 3px 6px -3px rgba(64, 48, 24, 0.18);
+}
+:root[data-theme="light"] .flybtn:not([data-on="true"]):hover { border-color: rgba(214, 90, 40, 0.6); box-shadow: inset 0 1px 0 #fff, 0 6px 16px -6px rgba(255, 116, 25, 0.45); }
 .flybtn-compact { padding: 0 0.6rem; }
 .flybtn-label { letter-spacing: 0.01em; }
 .flybtn-fly { flex: none; overflow: visible; filter: drop-shadow(0 0 4px rgba(255, 204, 51, 0.55)); }
@@ -663,7 +891,8 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 
 /* the roaming fly's sign toggle (components/FlyToggle RoamSign) */
 .roamsign { position: relative; display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 999px; transition: transform 0.15s, background 0.2s; }
-.roamsign:hover { background: rgba(255, 255, 255, 0.05); transform: rotate(-6deg) scale(1.06); }
+.roamsign:hover { background: color-mix(in oklab, var(--color-ink-1) 5%, transparent); transform: rotate(-6deg) scale(1.06); }
+
 .roamsign-ring { fill: #fff8ee; stroke-width: 3; }
 .roamsign[data-on="true"] .roamsign-ring { stroke: #23b45a; }
 .roamsign[data-on="false"] .roamsign-ring { stroke: #e3262e; }
@@ -703,7 +932,7 @@ body { overscroll-behavior: none; }
 
 .phone-head {
   height: calc(52px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
-  background: linear-gradient(180deg, rgba(12, 12, 15, 0.96), rgba(12, 12, 15, 0.82));
+  background: linear-gradient(180deg, var(--color-chassis-1), var(--m-glass));
   border-bottom: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
   position: relative; z-index: 20;
 }
@@ -727,9 +956,10 @@ body { overscroll-behavior: none; }
 .tabbar {
   position: fixed; inset: auto 0 0 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr);
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
-  background: rgba(14, 14, 18, 0.9); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  background: var(--m-glass);
   border-top: 1px solid var(--color-line);
 }
+:root[data-theme="light"] .tabbar { box-shadow: 0 -10px 30px -18px rgba(64, 48, 24, 0.25); }
 .tabbar-btn {
   display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 52px; justify-content: center;
   font-size: 11px; font-weight: 560; letter-spacing: 0.01em; color: var(--color-ink-3); transition: color 0.2s;
@@ -746,9 +976,11 @@ body { overscroll-behavior: none; }
 .tabbar-btn:active .tabbar-pill { transform: scale(0.92); }
 
 /* library on phones: sticky search + chips, dense 3-up grid (4-up on big phones / landscape) */
+/* sticky offsets count from the scroller's padding edge: -10px (= .phone-scroll's top padding) pins the row to the very
+   top, and the row is fully opaque so nothing scrolling underneath can show through */
 .lib-head {
-  position: sticky; top: 0; z-index: 5; margin: 0 -12px; padding: 6px 12px 10px;
-  background: linear-gradient(180deg, var(--color-chassis-0) 78%, color-mix(in oklab, var(--color-chassis-0) 0%, transparent));
+  position: sticky; top: -10px; z-index: 5; margin: -10px -12px 0; padding: 16px 12px 10px;
+  background: var(--color-chassis-0);
 }
 .lib-grid-phone { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 520px) { .lib-grid-phone { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -760,16 +992,17 @@ body { overscroll-behavior: none; }
 /* inspector on phones: Show / Playlist docked above the tab bar */
 .insp-actions {
   position: sticky; bottom: -1px; z-index: 5; display: flex; gap: 8px; margin: 10px -12px 0; padding: 10px 12px;
-  background: linear-gradient(0deg, var(--color-chassis-0) 70%, transparent);
+  background: var(--color-chassis-0); border-top: 1px solid var(--color-line);
 }
 
 /* bottom sheet (components/Sheet.tsx) */
 .sheet-root { position: fixed; inset: 0; z-index: 80; } /* above Play mode (z 65) */
-.sheet-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); animation: sheet-fade 0.25s ease both; }
+.sheet-scrim { position: absolute; inset: 0; background: color-mix(in oklab, var(--color-scrim) 60%, transparent); backdrop-filter: blur(3px); animation: sheet-fade 0.25s ease both; }
+:root[data-theme="light"] .sheet-scrim { background: color-mix(in oklab, var(--color-scrim) 32%, transparent); backdrop-filter: blur(6px) saturate(0.9); }
 .sheet {
   position: absolute; inset: auto 0 0 0; max-height: 88dvh; display: flex; flex-direction: column;
   border-radius: 22px 22px 0 0; background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1));
-  border: 1px solid var(--color-line-2); border-bottom: 0; box-shadow: 0 -30px 60px -20px rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--color-line-2); border-bottom: 0; box-shadow: 0 -30px 60px -20px color-mix(in oklab, var(--color-scrim) 80%, transparent);
   animation: sheet-up 0.38s var(--ease-snap) both; transition: transform 0.25s var(--ease-snap); touch-action: pan-y;
 }
 @media (min-width: 640px) { .sheet { left: calc(50% - 260px); right: auto; width: 520px; } }
@@ -779,9 +1012,42 @@ body { overscroll-behavior: none; }
 @keyframes sheet-up { from { transform: translateY(100%); } }
 @keyframes sheet-fade { from { opacity: 0; } }
 .qs-card { padding: 14px; border-radius: 16px; background: var(--color-chassis-0); border: 1px solid var(--color-line); }
+:root[data-theme="light"] .qs-card, :root[data-theme="light"] .qs-tile { background: var(--color-chassis-1); box-shadow: 0 1px 2px rgba(64, 48, 24, 0.05); }
+
 .qs-tile {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 72px;
   border-radius: 14px; font-size: 12px; color: var(--color-ink-2); background: var(--color-chassis-0); border: 1px solid var(--color-line);
 }
 .qs-tile:active { background: var(--color-chassis-3); color: var(--color-ink-1); }
 @media (prefers-reduced-motion: reduce) { .sheet, .sheet-scrim { animation: none; } }
+
+/* ------------------------------------------------------------- shell polish (both themes) */
+/* the desktop header: a hairline that fades out at both ends, under a whisper of glass */
+.studio-head { position: relative; }
+.studio-head::after {
+  content: ""; position: absolute; left: 24px; right: 24px; bottom: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--color-line-2) 18%, var(--color-line-2) 82%, transparent);
+  opacity: 0.7;
+}
+:root[data-theme="light"] .studio-head::after {
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-gold) 45%, var(--color-line-2)) 30%, color-mix(in oklab, var(--color-gold) 45%, var(--color-line-2)) 70%, transparent);
+}
+
+/* library cards lift toward you; the live one glows */
+.lib-card { transition: transform 0.25s var(--ease-out-soft), border-color 0.2s, background-color 0.2s, box-shadow 0.25s; }
+.lib-card:hover { box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.9); }
+:root[data-theme="light"] .lib-card:hover { box-shadow: 0 2px 4px rgba(64, 48, 24, 0.05), 0 16px 30px -18px rgba(64, 48, 24, 0.35); }
+:root[data-theme="light"] .lib-card { box-shadow: 0 1px 1px rgba(64, 48, 24, 0.03); }
+/* light: LED thumbnails are little screens set into the paper — a crisp black frame and a soft drop */
+:root[data-theme="light"] .led-preview { box-shadow: 0 0 0 1px #0b0b0e, 0 6px 12px -8px rgba(40, 30, 16, 0.55); }
+
+/* popovers and dialogs: the "pop" material */
+.surface[role="menu"], .surface[role="dialog"] { box-shadow: inset 0 1px 0 var(--m-hi), var(--m-pop-shadow); }
+
+/* scrollbars and focus rings per theme */
+:root[data-theme="light"] * { scrollbar-color: var(--color-line-2) transparent; }
+:root[data-theme="light"] :focus-visible { outline-color: var(--color-ember); outline-width: 2px; }
+
+/* light: the phone header and lists sit on porcelain */
+:root[data-theme="light"] .mini-now { box-shadow: 0 1px 2px rgba(64, 48, 24, 0.06), 0 10px 22px -16px rgba(64, 48, 24, 0.3); }
+:root[data-theme="light"] .tabbar-btn[aria-current="page"] .tabbar-pill { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 30%, transparent); }

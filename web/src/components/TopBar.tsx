@@ -8,6 +8,7 @@ import { useFly } from "../lib/fly";
 import { Sheet } from "./Sheet";
 import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
+import { ThemeSeg } from "./ThemePicker";
 import { DisplayMenu } from "./DisplayMenu";
 import { SafetySwitch } from "./SafetySwitch";
 import { ConnectionSheet, openConnection, useConnection } from "./ConnectionSheet";
@@ -19,7 +20,8 @@ function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
     <div className="flex shrink-0 justify-center" title="DeskDot studio">
-      <NeonMark pitch={phone ? 2.6 : 3.8} />
+      {/* light theme: the logo sits on a small dark LED sign (index.css .led-plate) so the tubes still glow */}
+      <span className="led-plate"><NeonMark pitch={phone ? 2.6 : 3.8} /></span>
     </div>
   );
 }
@@ -169,6 +171,10 @@ function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
           </div>
         </section>
         <section className="qs-card">
+          <div className="engrave mb-2.5 !text-[9px] !text-ink-3">Studio theme</div>
+          <ThemeSeg />
+        </section>
+        <section className="qs-card">
           <div className="engrave mb-2.5 !text-[9px] !text-ink-3">Fruit fly</div>
           <FlyToggle picker up className="[&>.flybtn]:!h-12 [&>.flybtn]:w-full [&>.flybtn]:justify-center" />
           <div className="mt-3 flex items-center gap-3">
@@ -220,7 +226,7 @@ export function TopBar() {
   const phone = usePhone();
   if (phone) return <PhoneTopBar />;
   return (
-    <header className="grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
+    <header className="studio-head grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
       <div className="flex min-w-0 items-center gap-2.5"><StatusPill /><CasinoKey /></div>
       <Wordmark />
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
@@ -229,7 +235,7 @@ export function TopBar() {
       <FlyToggle picker compact className="xl:hidden" />
       <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">
         <Search size={13} /> <span className="normal-case tracking-normal">Find anything</span>
-        <kbd className="ml-1 rounded bg-chassis-0 px-1.5 py-0.5 text-[9px] text-ink-3">Ctrl K</kbd>
+        <kbd className="ml-1 rounded border border-line bg-chassis-0 px-1.5 py-0.5 text-[9px] text-ink-3">Ctrl K</kbd>
       </button>
       <button onClick={() => set({ palette: true })} className="key key-icon lg:hidden" title="Find an app or action" aria-label="Search">
         <Search size={15} />

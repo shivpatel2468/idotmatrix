@@ -17,7 +17,47 @@
   --bad: #ff3b5c;
   --mono: "Martian Mono", "Cascadia Mono", ui-monospace, monospace;
   --display: "Bricolage Grotesque Variable", "Segoe UI Variable Display", system-ui, sans-serif;
+  --landing-bg: radial-gradient(circle at 50% 0%, rgba(255, 72, 24, 0.14), transparent 55%), rgba(8, 8, 10, 0.92);
+  --card-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --key-hi: rgba(255, 255, 255, 0.06);
+  --key-floor: rgba(0, 0, 0, 0.5);
+  --on-ember: #1a0700;
+  --pill-bg: rgba(22, 22, 27, 0.94);
+  --pop-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   all: initial;
+}
+/* light "Gallery" theme — values mirror web/src/index.css :root[data-theme="light"] */
+:host([data-theme="light"]) {
+  --c0: #f4f0e8;
+  --c1: #fbf9f5;
+  --c2: #fbf9f5;
+  --c3: #ffffff;
+  --c4: #ffffff;
+  --line: #e7e1d6;
+  --line2: #d8d0c2;
+  --ink1: #1c1a22;
+  --ink2: #4a4652;
+  --ink3: #6b6673;
+  --ember: #b81f4b;
+  --ember2: #c8325c;
+  --ok: #18794e;
+  --warn: #9a5b00;
+  --bad: #c8203e;
+  --landing-bg: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.1), transparent 55%), rgba(244, 240, 232, 0.9);
+  --card-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 40px 90px -30px rgba(64, 48, 24, 0.4), inset 0 1px 0 #fff;
+  --key-hi: #fff;
+  --key-floor: #ddd5c8;
+  --on-ember: #ffffff;
+  --pill-bg: rgba(255, 255, 255, 0.94);
+  --pop-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 24px 50px -20px rgba(64, 48, 24, 0.35);
+}
+/* light: the LED logo sits on a small dark LED sign so its tubes still glow */
+:host([data-theme="light"]) .brand .logo {
+  margin: -4px 0 -4px -4px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: radial-gradient(120% 140% at 50% 0%, #1b1a20 0%, #0c0c0f 60%, #070709 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 1px #0a0a0c, 0 0 0 3px #efe3c4, 0 10px 22px -12px rgba(40, 30, 16, 0.55);
 }
 * {
   box-sizing: border-box;
@@ -33,7 +73,7 @@
   place-items: center;
   padding: 16px;
   overflow: auto;
-  background: radial-gradient(circle at 50% 0%, rgba(255, 72, 24, 0.14), transparent 55%), rgba(8, 8, 10, 0.92);
+  background: var(--landing-bg);
   backdrop-filter: blur(6px);
   font: 15px/1.5 var(--display);
   color: var(--ink1);
@@ -49,7 +89,7 @@
   border: 1px solid var(--line2);
   border-radius: 14px;
   padding: clamp(18px, 4vw, 32px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: var(--card-shadow);
 }
 .brand {
   font: 600 10px/1 var(--mono);
@@ -135,7 +175,7 @@ h1 {
   border-radius: 10px;
   padding: 12px 18px;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 0 var(--key-hi), 0 2px 0 var(--key-floor);
 }
 .key:hover {
   border-color: var(--ink3);
@@ -157,7 +197,7 @@ summary:focus-visible,
 .key.ember {
   background: linear-gradient(180deg, var(--ember2), var(--ember));
   border-color: var(--ember);
-  color: #1a0700;
+  color: var(--on-ember);
 }
 .key.ghost {
   background: transparent;
@@ -213,9 +253,9 @@ ul {
   max-width: calc(100vw - 24px);
   padding: 6px 6px 6px 12px;
   border-radius: 999px;
-  background: rgba(22, 22, 27, 0.94);
+  background: var(--pill-bg);
   border: 1px solid var(--line2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--pop-shadow);
   font: 11px/1.2 var(--mono);
   color: var(--ink2);
 }
@@ -280,7 +320,7 @@ select {
   border: 1px solid var(--line2);
   font: 14px/1.45 var(--display);
   color: var(--ink1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--pop-shadow);
 }
 .toast.bad {
   border-color: rgba(255, 59, 92, 0.6);

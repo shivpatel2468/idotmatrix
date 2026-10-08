@@ -26,6 +26,17 @@
   --sans: "Bricolage Grotesque Variable", "Segoe UI Variable Text", "SF Pro Text", system-ui, sans-serif;
   --mono: "Martian Mono", "Cascadia Mono", ui-monospace, monospace;
 }
+:root { --panel-bg: #0c0c10; --card-wash: #2a120c55; --tan-line: #ff741944; --tan-fill: #ff74190f; --tan-sel: #ff741955; }
+/* light "Gallery" theme (tokens: web/src/index.css) — the launcher follows the studio's deskdot.theme */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c0: #f4f0e8; --c1: #fbf9f5; --c2: #ffffff; --c3: #f0ebe2; --c4: #e6e0d5;
+  --line: #e7e1d6; --line2: #d8d0c2;
+  --ink1: #1c1a22; --ink2: #4a4652; --ink3: #6b6673; --ink4: #a49ea8;
+  --rose: #b81f4b; --tangerine: #b2461a; --gold: #b8892a; --ember: #b81f4b;
+  --ok: #18794e; --warn: #9a5b00; --bad: #c8203e;
+  --panel-bg: #f7f4ee; --card-wash: #fbe8ed99; --tan-line: #b81f4b33; --tan-fill: #b81f4b0d; --tan-sel: #b81f4b44;
+}
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {
@@ -48,7 +59,7 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(130% 70% at 0% 0%, #2a120c55, transparent 60%), var(--c1);
+  background: radial-gradient(130% 70% at 0% 0%, var(--card-wash), transparent 60%), var(--c1);
   border: 1px solid var(--line);
   border-radius: 16px;
   overflow: hidden;
@@ -83,7 +94,7 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
   width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none;
   background: var(--c2); border: 1px solid var(--line); color: var(--ink2);
 }
-.lx-row.sel .lx-ico { color: var(--tangerine); border-color: #ff741944; background: #ff74190f; }
+.lx-row.sel .lx-ico { color: var(--tangerine); border-color: var(--tan-line); background: var(--tan-fill); }
 .lx-row.k-fly .lx-ico { color: var(--gold); }
 .lx-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .lx-title { font-weight: 560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -104,7 +115,7 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
   border: 1px solid transparent; background: none; color: var(--ink2); border-radius: 11px; padding: 7px 5px 6px;
   display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: default; font: inherit;
 }
-.lx-tile.sel { background: var(--c3); border-color: #ff741955; color: var(--ink1); }
+.lx-tile.sel { background: var(--c3); border-color: var(--tan-sel); color: var(--ink1); }
 .lx-tile-name { font-size: 11.5px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ------------------------------------------------------------ LED look */
@@ -124,7 +135,7 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
 .lx-led.xs::after { inset: 3px; }
 
 /* ------------------------------------------------------------ preview */
-.lx-preview { border-left: 1px solid var(--line); padding: 18px 18px 14px; overflow-y: auto; background: #0c0c10; display: flex; flex-direction: column; }
+.lx-preview { border-left: 1px solid var(--line); padding: 18px 18px 14px; overflow-y: auto; background: var(--panel-bg); display: flex; flex-direction: column; }
 .lx-hero { display: grid; place-items: center; min-height: 184px; margin-bottom: 10px; }
 .lx-preview h2 { margin: 0 0 4px; font-size: 17px; font-weight: 650; letter-spacing: -0.005em; }
 .lx-preview p { margin: 0 0 10px; color: var(--ink2); font-size: 12.5px; line-height: 1.45; }
