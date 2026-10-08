@@ -365,7 +365,7 @@ function ConnectionBlock({ st }: { st: St }) {
         <span className="led" data-on={!d.link_enabled ? undefined : ok ? "ok" : d.status === "error" ? "bad" : "warn"} />
         <div className="min-w-0 flex-1">
           <div className="text-[13.5px] font-[560]">
-            {!d.link_enabled ? "Bluetooth link is off" : ok ? `Connected to ${d.name ?? "your panel"}` : d.status === "error" ? "Can't reach the panel" : "Connecting…"}
+            {!d.link_enabled ? "Panel released — other apps can use it" : ok ? `Connected to ${d.name ?? "your panel"}` : d.status === "error" ? "Can't reach the panel" : "Connecting…"}
             {d.kind === "sim" && <span className="engrave ml-2 !text-info">simulated</span>}
           </div>
           <div className="truncate font-mono text-[10.5px] text-ink-3">{d.address ?? "any nearby panel"}{ok ? ` · ${d.link_fps.toFixed(1)} frames/s` : ""}</div>
@@ -380,16 +380,16 @@ function ConnectionBlock({ st }: { st: St }) {
           </button>
         )}
         {d.link_enabled ? (
-          confirmOff ? null : <button className="key key-ghost" onClick={() => setConfirmOff(true)}><Icon name="unplug" size={13} /> Disconnect…</button>
+          confirmOff ? null : <button className="key key-ghost" onClick={() => setConfirmOff(true)}><Icon name="unplug" size={13} /> Release the panel…</button>
         ) : (
-          <button className="key key-ember" onClick={() => api.link(true)}><Icon name="plug" size={13} /> Connect</button>
+          <button className="key key-ember" onClick={() => api.link(true)}><Icon name="plug" size={13} /> Use the panel here</button>
         )}
       </div>
       {confirmOff && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-warn/30 bg-warn/10 p-3 text-[12px] text-ink-2">
           <AlertTriangle size={14} className="shrink-0 text-warn" />
-          <span className="min-w-[200px] flex-1">While disconnected the panel shows its pairing screen and nothing updates. Other apps (like the phone app) can connect instead.</span>
-          <button className="key" onClick={() => { api.link(false); setConfirmOff(false); }}>Disconnect</button>
+          <span className="min-w-[200px] flex-1">DeskDot disconnects and stops reconnecting until you press Use the panel here. The panel shows its pairing screen until another app (the phone app, the web app or another DeskDot) connects.</span>
+          <button className="key" onClick={() => { api.link(false); setConfirmOff(false); }}>Release the panel</button>
           <button className="key key-ghost" onClick={() => setConfirmOff(false)}>Cancel</button>
         </div>
       )}

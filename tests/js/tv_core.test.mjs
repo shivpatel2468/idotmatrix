@@ -1,5 +1,6 @@
-// node --test tests/js/*.test.mjs — the TV view's core (src/deskdot/tv/tv.js): the quality tier, the panel look and
-// the HD upscaler. tv.js runs in a vm with a minimal DOM; its start() waits for DOMContentLoaded, which never fires.
+// node --test tests/js/*.test.mjs — the TV view's core (src/deskdot/tv/tv.js): the quality tier, the panel looks, who
+// decides them (the TV, the studio, the address) and the panel's bloom. tv.js runs in a vm with a minimal DOM; its
+// start() waits for DOMContentLoaded, which never fires.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -8,7 +9,7 @@ import vm from "node:vm";
 const src = readFileSync(new URL("../../src/deskdot/tv/tv.js", import.meta.url), "utf8");
 
 function load(search = "", stored = null) {
-  const store = new Map(stored ? [["deskdot.tv.panel-look", stored]] : []);
+  const store = new Map(Object.entries(stored || {}));
   const window = {};
   const sandbox = {
     window,
@@ -37,12 +38,20 @@ test("quality tier: ?lite=1 / ?hq=1 / ?quality= force it, otherwise hq until mea
   assert.equal(TV.tierFromQuery("?quality=high"), "hq");
   assert.equal(TV.tierFromQuery("?lite=0"), null);
   assert.equal(TV.tierFromQuery(""), null);
+  assert.equal(TV.qualityFromQuery("?quality=auto"), "auto");
+  assert.equal(TV.qualityFromQuery("?lite=1"), "lite");
   assert.equal(TV.quality, "hq");
+  assert.equal(TV.qualityMode, "auto");
   assert.equal(TV.qualityForced, false);
   const forced = load("?lite=1");
   assert.equal(forced.TV.quality, "lite");
+  assert.equal(forced.TV.qualityMode, "lite");
   assert.equal(forced.TV.qualityForced, true);
-  assert.equal(forced.doc.documentElement.dataset.q, "lite"); // CSS keys the lite rules off html[data-q]
+  assert.equal(forced.doc.documentElement.dataset.q, "lite");
+  // remembered on this TV
+  const kept = load("", { "deskdot.tv.quality": JSON.stringify({ v: "lite", rev: null }) });
+  assert.equal(kept.TV.quality, "lite");
+  assert.equal(load("?quality=auto", { "deskdot.tv.quality": JSON.stringify({ v: "lite", rev: null }) }).TV.qualityMode, "auto");
 });
 
 test("quality tier: slow frame windows drop to lite, smooth ones stay hq", () => {
@@ -56,67 +65,61 @@ test("quality tier: slow frame windows drop to lite, smooth ones stay hq", () =>
   assert.equal(TV.judgeFrames([...many(16.7, 119), 5000]), "hq"); // a hidden tab's gap says nothing
 });
 
-test("panel look: the classic LEDs by default, ?look=hd or the remembered choice for HD", () => {
+test("panel look: the studio's three, LED by default, the address or the remembered choice", () => {
+  assert.deepEqual([...load().TV.looks], ["pixel", "led", "glow"]);
   assert.equal(load().TV.look, "led");
-  assert.equal(load("?look=hd").TV.look, "hd");
-  assert.equal(load("", "hd").TV.look, "hd");
-  assert.equal(load("?look=led", "hd").TV.look, "led");
-  assert.equal(load("?look=hd", "led").TV.look, "hd");
+  for (const v of ["pixel", "led", "glow"]) assert.equal(load(`?look=${v}`).TV.look, v);
+  assert.equal(load("?look=hd").TV.look, "led", "the HD look is gone");
+  assert.equal(load("", { "deskdot.tv.look": JSON.stringify({ v: "glow", rev: null }) }).TV.look, "glow");
+  assert.equal(load("?look=pixel", { "deskdot.tv.look": JSON.stringify({ v: "glow", rev: null }) }).TV.look, "pixel");
+  assert.equal(load("", { "deskdot.tv.look": "{not json" }).TV.look, "led");
+  assert.equal(load("", { "deskdot.tv.panel-look": "hd" }).TV.look, "led", "an old HD choice falls back to LED");
   assert.equal(load().TV.lookFromQuery("?look=nope"), null);
 });
 
-// ------------------------------------------------------------------ the HD upscaler (Scale2x / EPX, three passes)
-const rgb = (r, g, b) => (0xff000000 | (b << 16) | (g << 8) | r) >>> 0;
-function frame(fill) {
-  const d = new Uint8Array(3072);
-  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-    const c = fill(x, y);
-    if (c) d.set(c, (y * 32 + x) * 3);
-  }
-  return d;
-}
-
-test("HD upscaler: only the frame's own colours, every pixel where the panel put it", () => {
+test("display choices: the studio wins until this TV picks again; the address beats the studio's choice at load", () => {
   const { TV } = load();
-  const data = frame((x, y) => (x === y ? [255, 60, 30] : (x + 2 * y) % 7 === 0 ? [0, 200, 255] : x > 25 ? [20, 80, 30] : null));
-  const colours = new Set();
-  for (let i = 0; i < 1024; i++) colours.add(rgb(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]));
-  for (const passes of [2, 3]) {
-    const { px, size } = TV.upscale(data, passes);
-    assert.equal(size, 32 << passes);
-    assert.equal(px.length, size * size);
-    const k = 1 << passes;
-    for (let i = 0; i < px.length; i++) assert.ok(colours.has(px[i] >>> 0), "a colour the frame doesn't have");
-    // the centre of each panel pixel's block keeps that pixel's colour (shapes don't move or swap)
-    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-      const i = (y * 32 + x) * 3;
-      const c = (y * k + k / 2) * size + x * k + k / 2;
-      const want = rgb(data[i], data[i + 1], data[i + 2]);
-      const block = [px[c], px[c - 1], px[c - size], px[c - size - 1]].map((v) => v >>> 0);
-      assert.ok(block.includes(want), `pixel ${x},${y}`);
-    }
-  }
+  const pick = (o) => TV.pickDisplay({ url: null, local: null, studio: null, rev: null, loadRev: null, ...o }, "led");
+  assert.deepEqual({ ...pick({}) }, { v: "led", from: "default" });
+  assert.deepEqual({ ...pick({ local: { v: "glow", rev: null } }) }, { v: "glow", from: "tv" });
+  // the studio set "pixel" (revision 10): it wins over what the TV remembered from before
+  assert.deepEqual({ ...pick({ local: { v: "glow", rev: null }, studio: "pixel", rev: 10 }) }, { v: "pixel", from: "studio" });
+  // someone picked on the TV after that (their pick carries revision 10): the TV's pick wins…
+  assert.deepEqual({ ...pick({ local: { v: "glow", rev: 10 }, studio: "pixel", rev: 10 }) }, { v: "glow", from: "tv" });
+  // …until the studio changes its choice again
+  assert.deepEqual({ ...pick({ local: { v: "glow", rev: 10 }, studio: "led", rev: 11 }) }, { v: "led", from: "studio" });
+  // an address parameter beats the studio's choice that was set when the page loaded, not a later one
+  assert.deepEqual({ ...pick({ url: "glow", studio: "pixel", rev: 10, loadRev: 10 }) }, { v: "glow", from: "url" });
+  assert.deepEqual({ ...pick({ url: "glow", studio: "pixel", rev: 11, loadRev: 10 }) }, { v: "pixel", from: "studio" });
+  // no studio choice (null) leaves the TV's own
+  assert.deepEqual({ ...pick({ local: { v: "glow", rev: 3 }, studio: null, rev: 12 }) }, { v: "glow", from: "tv" });
 });
 
-test("HD upscaler: flat areas stay flat, a staircase diagonal gets smooth", () => {
+test("bloom: the studio's two Gaussian blurs, centred on the light, none for the pixel look", () => {
   const { TV } = load();
-  const flat = TV.upscale(frame(() => [10, 20, 30]), 3).px;
-  assert.ok(flat.every((v) => v >>> 0 === rgb(10, 20, 30)));
-  // a filled triangle below the diagonal: nearest-neighbour keeps 8-px steps, the upscaler cuts them finer
-  const data = frame((x, y) => (y > x ? [255, 255, 255] : null));
-  const { px, size } = TV.upscale(data, 3);
-  const steps = (row) => {
-    let n = 0;
-    for (let x = 1; x < size; x++) if ((px[row * size + x] >>> 0) !== (px[row * size + x - 1] >>> 0)) n++;
-    return n;
-  };
-  // where a row's edge sits, per output row: nearest-neighbour moves it 8 px every 8 rows, EPX in smaller steps
-  const edge = (row) => {
-    for (let x = 0; x < size; x++) if ((px[row * size + x] >>> 0) !== rgb(255, 255, 255)) return x;
-    return size;
-  };
-  const moves = new Set();
-  for (let row = 8; row < 200; row++) moves.add(Math.abs(edge(row) - edge(row - 1)));
-  assert.ok(Math.max(...moves) < 8, `edge moves ${[...moves]}`);
-  assert.ok(steps(100) <= 2);
+  const frame = new Uint8Array(3072);
+  assert.equal(TV.bloomField(frame, "pixel", 64), null);
+  assert.ok(TV.bloomField(frame, "led", 64).every((v) => v === 0), "a dark frame has no bloom");
+  const i = (16 * 32 + 16) * 3;
+  frame[i] = 255; // one red LED in the middle
+  const n = 64;
+  for (const [look, strength] of [["led", 0.55 + 0.3], ["glow", 0.28 + 0.2]]) {
+    const f = TV.bloomField(frame, look, n);
+    const at = (x, y, c) => f[(y * n + x) * 3 + c];
+    let sum = 0;
+    for (let k = 0; k < f.length; k += 3) {
+      sum += f[k];
+      assert.equal(f[k + 1], 0);
+      assert.equal(f[k + 2], 0);
+    }
+    // a blur moves light around, never adds any: the total is the LED (2×2 px at 2 px per LED) × the strengths
+    assert.ok(Math.abs(sum - 255 * 4 * strength) < 1, `${look}: ${sum}`);
+    // brightest on the LED, symmetric, falling off with distance
+    const c = at(32, 32, 0) + at(33, 33, 0);
+    assert.ok(at(32, 32, 0) > at(36, 32, 0) && at(36, 32, 0) > at(44, 32, 0) && at(44, 32, 0) > 0);
+    assert.ok(Math.abs(at(28, 32, 0) - at(37, 32, 0)) < 1e-3 && Math.abs(at(32, 28, 0) - at(32, 37, 0)) < 1e-3);
+    assert.ok(c > 0);
+  }
+  // the LED look's bloom is the stronger one (0.55 + 0.3 against 0.28 + 0.2), as in the studio
+  assert.ok(TV.bloomField(frame, "led", n)[(32 * n + 32) * 3] > TV.bloomField(frame, "glow", n)[(32 * n + 32) * 3]);
 });

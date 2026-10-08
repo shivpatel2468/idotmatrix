@@ -6,6 +6,7 @@
  *   page → worker   {t:"http", id, method, path, headers, body}      → {t:"http", id, status, headers, body}
  *                   {t:"ws-open", sid, path} {t:"ws-send", sid, data} {t:"ws-close", sid}
  *                   {t:"ble-ev", ev, args}   (Web Bluetooth events from the page)   {t:"ble-picked"}  {t:"sync"}
+ *                   {t:"ble-retry"} (try to connect now)   {t:"handoff"} (another tab takes the panel → {t:"handed-off"})
  *                   {t:"media-frame", kind, w, h, data: ArrayBuffer RGB}  {t:"media-audio", sr, data: ArrayBuffer f32,
  *                   source}  {t:"media-state", kind, state, detail}  {t:"media-hello"}   (host-media.js)
  *   worker → page   {t:"status", phase, detail, pct} {t:"ready"} {t:"fatal", error}
@@ -198,6 +199,21 @@ function handle(msg) {
       if (bleListener) bleCall("onUserPicked");
       else web.user_picked();
       return;
+    case "ble-retry": // the panel advertised again / Bluetooth came back on: retry now, not after the back-off
+      if (bleListener) bleCall("onRetry");
+      return;
+    case "handoff": // another tab takes the panel: finish the write in flight, stop writing, save — then the page stops us
+      return (async () => {
+        try {
+          await web.hand_off();
+        } catch (e) {
+          console.warn("DeskDot: hand-off", e);
+        }
+        pyodide.FS.syncfs(false, (err) => {
+          if (err) console.warn("DeskDot: saving before the hand-off failed", err);
+          post({ t: "handed-off" });
+        });
+      })();
     case "sync":
       return syncNow();
     case "media-frame":

@@ -14,7 +14,8 @@ Bridge contract (JS object `deskdotBle` in the worker's global scope):
 - `connect(namePrefix, listener)` — connect to the panel the user picked (or one the browser remembers from an
   earlier visit). Reports `onConnected(address, name, writeSize)`, `onConnectFailed(msg)`, or — when the user
   hasn't picked a panel yet — `onNeedsUser(msg)`; the page then shows its "Connect panel" button, and a click
-  (the user gesture Web Bluetooth requires) calls `listener.onUserPicked()`.
+  (the user gesture Web Bluetooth requires) calls `listener.onUserPicked()`. `listener.onRetry()` asks for an
+  attempt now instead of after the back-off (the page saw the panel advertising, or Bluetooth came back on).
 - `write(data: Uint8Array, withResponse: bool, token: int)` — reports `onWriteDone(token, ok, msg)`. Browsers don't
   expose the negotiated MTU, so `writeSize` is the page's guess; if the stack refuses a packet that long, the page
   re-sends it in smaller pieces and reports the size that works with `onWriteSize(n)`.
@@ -66,6 +67,9 @@ class _Listener:
 
     def onUserPicked(self) -> None:
         self.device._user_picked_cb()
+
+    def onRetry(self) -> None:
+        self.device.retry_now()
 
     def onDisconnected(self, message: str) -> None:
         self.device._disconnected_cb(str(message or "link lost"))
@@ -143,7 +147,7 @@ class WebBleDevice(Device):
             except _NeedsUser as e:
                 # nothing to connect to until the user clicks: idle (no retries, no error spam) until they do
                 self.needs_user = True
-                self._set(status="disconnected", last_error=str(e))
+                self._note_failure(str(e), status="disconnected")
                 await self._picked.wait()
                 self.needs_user = False
                 continue
@@ -157,12 +161,15 @@ class WebBleDevice(Device):
                     "or the desktop app?"
                 )
                 log.warning("connect failed: %s — retrying in %.0fs", msg, delay)
-                self._set(status="error", last_error=msg)
+                self._note_failure(msg, retry_in=delay)
                 try:
                     await asyncio.wait_for(self._picked.wait(), delay)
+                    delay = (
+                        1.0  # a pick / "Reconnect now" / the panel advertising again: start the back-off over
+                    )
                 except TimeoutError:
-                    pass
-                delay = min(delay * 2, 20.0)
+                    delay = min(delay * 2, 20.0)
+                self._set(retry_at=None)
                 continue
             finally:
                 self._connect_future = None
@@ -209,6 +216,11 @@ class WebBleDevice(Device):
     def _needs_user_cb(self, message: str) -> None:
         if self._connect_future is not None and not self._connect_future.done():
             self._connect_future.set_exception(_NeedsUser(message))
+
+    def retry_now(self) -> None:
+        """ "Reconnect now" (or the page saw the panel advertising again): cut the bridge's back-off short too."""
+        super().retry_now()
+        self._picked.set()
 
     def _user_picked_cb(self) -> None:
         """The user picked a panel in the chooser: connect now (also cuts a reconnect back-off short)."""

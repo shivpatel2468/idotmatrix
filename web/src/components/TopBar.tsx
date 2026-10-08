@@ -8,7 +8,9 @@ import { useFly } from "../lib/fly";
 import { Sheet } from "./Sheet";
 import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
+import { DisplayMenu } from "./DisplayMenu";
 import { SafetySwitch } from "./SafetySwitch";
+import { ConnectionSheet, openConnection, useConnection } from "./ConnectionSheet";
 import { Dices } from "lucide-react";
 import { openCasino, rememberCasino, useCasinoApp, useCasinoView } from "./casino/state";
 
@@ -22,42 +24,41 @@ function Wordmark() {
   );
 }
 
-/** "Is my panel OK?" in one word, a tone and a hint. */
+/** "Is my panel OK?" in one word, a tone and a hint (the wording is shared with the Connection sheet). */
 function usePanelStatus() {
-  const dev = useStore((s) => s.state?.device);
   const link = useStore((s) => s.link);
   const released = useStore((s) => s.state?.engine.released ?? false);
-  let tone: "ok" | "warn" | "bad" | undefined = "warn";
-  let label = "Connecting…";
-  let detail = "";
-  let retry = false;
+  const conn = useConnection();
+  const dev = conn.dev;
+  let { tone, label } = conn;
+  let detail = dev?.hint ?? dev?.last_error ?? "";
+  const retry = conn.action === "retry" && dev?.status !== "connecting" && dev?.status !== "scanning";
   if (link !== "open") {
+    tone = "warn";
     label = link === "connecting" ? "Starting up…" : "Studio offline";
     detail = link === "closed" ? "The DeskDot engine isn't running — start it with `uv run deskdot serve`" : "";
-  } else if (dev) {
-    if (!dev.link_enabled) { tone = undefined; label = "Panel link off"; detail = "Bluetooth link is switched off — open Device settings to connect"; }
-    else if (released) { tone = "ok"; label = "Panel on its own"; detail = "The panel runs by itself; show any app to take it back"; }
-    else if (dev.status === "connected") { tone = "ok"; label = dev.name ?? "Panel connected"; detail = `Connected · ${dev.link_fps.toFixed(1)} frames/s · ${dev.address ?? ""}`; }
-    else if (dev.status === "error") { tone = "bad"; label = "Can't reach panel"; detail = dev.last_error ?? ""; retry = true; }
-    else { label = dev.status === "scanning" ? "Looking for panel…" : dev.status === "connecting" ? "Pairing…" : "Not connected"; retry = dev.status === "disconnected"; }
+  } else if (dev?.status === "connected") {
+    if (released) { label = "Panel on its own"; detail = "The panel runs by itself; show any app to take it back"; }
+    else detail = `Connected · ${dev.link_fps.toFixed(1)} frames/s · ${dev.address ?? ""}`;
   }
-  return { tone, label, detail, retry, sim: dev?.kind === "sim" };
+  return { tone, label, detail, retry: link === "open" && retry, sim: dev?.kind === "sim" };
 }
 
-/** One pill that answers "is my panel OK?" — click for Device settings. */
+/** One pill that answers "is my panel OK?" — click for the Connection sheet. */
 function StatusPill() {
   const { tone, label, detail, retry } = usePanelStatus();
   const dev = useStore((s) => s.state?.device);
   return (
     <div className="flex min-w-0 items-center">
-      <button onClick={() => openSettings("device")} title={detail || "Device settings"}
+      <ConnectionSheet />
+      <button onClick={openConnection} title={detail ? `${detail} — click for details` : "Connection details"} aria-label={`Panel: ${label} — connection details`}
         className="flex min-w-0 items-center gap-2.5 rounded-full border border-line bg-chassis-1 py-1.5 pl-3 pr-3 transition hover:border-line-2">
         <span className="led shrink-0" data-on={tone} />
         <span className="max-w-[40vw] truncate text-[12.5px] font-medium sm:max-w-[180px]">{label}</span>
         {dev?.kind === "sim" && <span className="engrave rounded bg-chassis-3 px-1.5 py-0.5 !text-[8px] !text-info" title="Simulated panel">Sim</span>}
       </button>
       {retry && (
-        <button className="key key-ghost key-icon ml-1" title="Try to reconnect" aria-label="Reconnect" onClick={() => api.reconnect()}>
+        <button className="key key-ghost key-icon ml-1" title="Reconnect now" aria-label="Reconnect now" onClick={() => api.reconnect(true)}>
           <RefreshCw size={13} />
         </button>
       )}
@@ -151,8 +152,8 @@ function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
               <span className="block truncate text-[14px] font-[600]">{label}{sim && !/sim/i.test(label) ? " · simulator" : ""}</span>
               {detail && <span className="block truncate text-[11.5px] text-ink-3">{detail}</span>}
             </span>
-            {retry && <button className="key key-icon" aria-label="Reconnect" onClick={() => api.reconnect()}><RefreshCw size={14} /></button>}
-            <button className="key" onClick={go(() => openSettings("device"))}>Device</button>
+            {retry && <button className="key key-icon" aria-label="Reconnect now" onClick={() => api.reconnect(true)}><RefreshCw size={14} /></button>}
+            <button className="key" onClick={go(openConnection)}>Connection</button>
           </div>
           <label className="mt-3 flex items-center gap-3" title="Panel brightness">
             <Sun size={16} className="shrink-0 text-ink-3" />
@@ -194,7 +195,8 @@ function PhoneTopBar() {
   const [more, setMore] = useState(false);
   return (
     <header className="phone-head grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3">
-      <button className="flex min-w-0 items-center gap-2 justify-self-start rounded-full py-2 pr-2" onClick={() => setMore(true)} aria-label={`${label} — quick controls`}>
+      <ConnectionSheet />
+      <button className="flex min-w-0 items-center gap-2 justify-self-start rounded-full py-2 pr-2" onClick={openConnection} aria-label={`Panel: ${label} — connection details`}>
         <span className="led shrink-0" data-on={power ? tone : "bad"} />
         <span className="max-w-[24vw] truncate text-[11.5px] font-medium text-ink-2">{power ? label : "Panel off"}</span>
       </button>
@@ -233,9 +235,8 @@ export function TopBar() {
         <Search size={15} />
       </button>
       <Brightness />
-      <button className="key key-icon" title="Settings" aria-label="Settings" onClick={() => openSettings("display")}>
-        <Settings2 size={15} />
-      </button>
+      {/* the Display menu: preview look + glow at a glance, the panel's settings one tap further */}
+      <DisplayMenu trigger="settings" />
       <SafetySwitch />
       </div>
     </header>
