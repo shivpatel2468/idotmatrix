@@ -16,7 +16,7 @@ import re
 import time
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/{feed}.geojson"
 
@@ -165,6 +165,14 @@ def parse_feed(payload: dict[str, Any], home: dict[str, Any] | None = None) -> d
 # ---------------------------------------------------------------------------- provider
 class QuakesProvider(Provider[dict[str, Any]]):
     name = "quakes"
+    endpoints = (
+        Endpoint(
+            "USGS feed",
+            URL.format(feed="4.5_week"),
+            check=lambda d: parse_feed(d)["quakes"],
+            expect=("metadata.generated",),
+        ),
+    )
     interval = 60.0  # USGS regenerates the feeds every minute
     retry = 30.0
 

@@ -1,0 +1,51 @@
+{
+ "MRData": {
+  "xmlns": "",
+  "series": "f1",
+  "url": "https://api.jolpi.ca/ergast/f1/current/next.json",
+  "limit": "30",
+  "offset": "0",
+  "total": "1",
+  "RaceTable": {
+   "season": "2026",
+   "round": "17",
+   "Races": [
+    {
+     "season": "2026",
+     "round": "17",
+     "url": "https://en.wikipedia.org/wiki/2026_Singapore_Grand_Prix",
+     "raceName": "Singapore Grand Prix",
+     "Circuit": {
+      "circuitId": "marina_bay",
+      "url": "https://en.wikipedia.org/wiki/Marina_Bay_Street_Circuit",
+      "circuitName": "Marina Bay Street Circuit",
+      "Location": {
+       "lat": "1.2914",
+       "long": "103.864",
+       "locality": "Marina Bay",
+       "country": "Singapore"
+      }
+     },
+     "date": "2026-10-11",
+     "time": "12:00:00Z",
+     "FirstPractice": {
+      "date": "2026-10-09",
+      "time": "08:30:00Z"
+     },
+     "Qualifying": {
+      "date": "2026-10-10",
+      "time": "13:00:00Z"
+     },
+     "Sprint": {
+      "date": "2026-10-10",
+      "time": "09:00:00Z"
+     },
+     "SprintQualifying": {
+      "date": "2026-10-09",
+      "time": "12:30:00Z"
+     }
+    }
+   ]
+  }
+ }
+}

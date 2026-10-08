@@ -1,0 +1,30 @@
+[
+ {
+  "startDate": "2026-04-03",
+  "endDate": "2026-04-05",
+  "dayCount": 3,
+  "needBridgeDay": false,
+  "bridgeDays": []
+ },
+ {
+  "startDate": "2026-05-02",
+  "endDate": "2026-05-04",
+  "dayCount": 3,
+  "needBridgeDay": false,
+  "bridgeDays": []
+ },
+ {
+  "startDate": "2026-05-23",
+  "endDate": "2026-05-25",
+  "dayCount": 3,
+  "needBridgeDay": false,
+  "bridgeDays": []
+ },
+ {
+  "startDate": "2026-12-25",
+  "endDate": "2026-12-28",
+  "dayCount": 4,
+  "needBridgeDay": false,
+  "bridgeDays": []
+ }
+]

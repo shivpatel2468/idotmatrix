@@ -26,7 +26,7 @@ from typing import Any
 import httpx
 
 from ..platforms import current
-from .base import Provider
+from .base import Endpoint, Provider
 
 log = logging.getLogger("deskdot.ntfy")
 
@@ -87,6 +87,7 @@ def parse_line(line: str) -> dict[str, Any] | None:
 
 class NtfyProvider(Provider[dict[str, Any]]):
     name = "ntfy"
+    endpoints = (Endpoint("ntfy.sh", "https://ntfy.sh/v1/health", expect=("healthy",)),)
     interval = 1.0  # reconnect quickly after a stream ends normally
     retry = 20.0
 

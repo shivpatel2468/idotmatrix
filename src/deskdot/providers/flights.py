@@ -3,7 +3,8 @@
 Sources are tried in order; one that fails is benched for a while so we never hammer it:
 
 * adsb.lol        ``/v2/point/{lat}/{lon}/{nm}``  (readsb JSON: ``{"ac": [...]}``; needs a descriptive User-Agent)
-* airplanes.live  ``/v2/point/{lat}/{lon}/{nm}``  (same schema; blocks some networks with 403)
+* adsb.fi         ``opendata.adsb.fi/api/v2/lat/{lat}/lon/{lon}/dist/{nm}``  (same schema, list under ``aircraft``;
+                  1 request/s). Replaced airplanes.live in 3.6.0: its API now answers 403 "please contact us".
 * OpenSky         ``/api/states/all?lamin…``     (anonymous, rate limited, positional ``states`` arrays)
 
 Routes (origin/destination, airline) come from adsbdb and are cached per callsign, misses included.
@@ -17,7 +18,7 @@ import math
 import time
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 EARTH_NM = 3440.065  # mean Earth radius in nautical miles
 M_TO_FT = 3.28084
@@ -28,7 +29,7 @@ STALE_S = 60.0  # drop positions older than this
 
 READSB_SOURCES: dict[str, str] = {
     "adsb.lol": "https://api.adsb.lol/v2/point/{lat:.4f}/{lon:.4f}/{r:.0f}",
-    "airplanes.live": "https://api.airplanes.live/v2/point/{lat:.4f}/{lon:.4f}/{r:.0f}",
+    "adsb.fi": "https://opendata.adsb.fi/api/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{r:.0f}",
 }
 OPENSKY = "https://opensky-network.org/api/states/all"
 ADSBDB = "https://api.adsbdb.com/v0/callsign/{cs}"
@@ -96,9 +97,9 @@ def _aircraft(
 
 
 def parse_readsb(data: dict[str, Any], center: tuple[float, float]) -> list[dict[str, Any]]:
-    """adsb.lol / airplanes.live (readsb/tar1090 JSON) -> normalised aircraft, nearest first."""
+    """adsb.lol / adsb.fi (readsb/tar1090 JSON) -> normalised aircraft, nearest first."""
     out: list[dict[str, Any]] = []
-    for a in data.get("ac") or []:
+    for a in data.get("ac") or data.get("aircraft") or []:
         if not isinstance(a, dict):
             continue
         lat, lon = _num(a.get("lat")), _num(a.get("lon"))
@@ -217,6 +218,31 @@ class FlightsProvider(Provider[dict[str, Any]]):
     """Aircraft within `radius_nm` of home, nearest first. Polls every ~8 s while in use."""
 
     name = "flights"
+    endpoints = (
+        Endpoint(
+            "adsb.lol",
+            READSB_SOURCES["adsb.lol"].format(lat=51.47, lon=-0.45, r=40),
+            check=lambda d: parse_readsb(d, (51.47, -0.45)),
+            expect=("now",),
+        ),
+        Endpoint(
+            "adsb.fi",
+            READSB_SOURCES["adsb.fi"].format(lat=51.47, lon=-0.45, r=40),
+            check=lambda d: parse_readsb(d, (51.47, -0.45)),
+            expect=("now",),
+            role="fallback",
+            note="1 request/s",
+        ),
+        Endpoint(
+            "OpenSky",
+            OPENSKY + "?lamin=51&lomin=-1&lamax=52&lomax=0",
+            check=lambda d: parse_opensky(d, (51.47, -0.45)),
+            expect=("time",),
+            role="fallback",
+            note="anonymous quota",
+        ),
+        Endpoint("adsbdb routes", ADSBDB.format(cs="AIC101"), check=parse_route, role="optional"),
+    )
     interval = 8.0
     retry = 20.0
     ROUTE_HIT_TTL = 6 * 3600.0

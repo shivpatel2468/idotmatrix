@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 Item = dict[str, Any]
 
@@ -319,6 +319,31 @@ class DailyProvider(Provider[dict[str, list[Item]]]):
     """``value = {source: [queued items]}`` (a snapshot). Apps call ``want(sources)`` and ``take(source)``."""
 
     name = "daily"
+    endpoints = (
+        Endpoint("ZenQuotes", ZEN_QUOTES, check=parse_zen, note="~5 requests / 30 s"),
+        Endpoint("ZenQuotes today", ZEN_TODAY, check=parse_zen),
+        Endpoint(
+            "icanhazdadjoke",
+            DAD_SEARCH + "?limit=5",
+            check=lambda d: parse_dad(d)[0],
+            headers=tuple(JSON_HEADERS.items()),
+        ),
+        Endpoint("Useless Facts", USELESS_RANDOM + "?language=en", check=parse_useless),
+        Endpoint("Useless fact today", USELESS_TODAY + "?language=en", check=parse_useless),
+        Endpoint("Advice Slip", ADVICE, check=parse_advice),
+        Endpoint("Cat Facts", CAT_FACTS + "?max_length=140&limit=5", check=lambda d: parse_cat(d)[0]),
+        Endpoint(
+            "JokeAPI", JOKEAPI + "?safe-mode&amount=5&blacklistFlags=" + JOKEAPI_FLAGS, check=parse_jokeapi
+        ),
+        Endpoint("chucknorris.io", CHUCK + "?category=dev", check=parse_chuck),
+        Endpoint("kanye.rest", KANYE_ALL, check=parse_kanye),
+        Endpoint(
+            "Wikipedia on this day",
+            ONTHISDAY.format(mm=1, dd=15),
+            check=parse_onthisday,
+            headers=tuple(WIKI_HEADERS.items()),
+        ),
+    )
     interval = 20.0
     retry = 30.0
 

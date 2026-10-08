@@ -37,6 +37,12 @@ class PhotoFrameSettings(AppSettings):
     cats: bool = Field(False, title="Cats", json_schema_extra={"group": "Sources"})
     foxes: bool = Field(False, title="Foxes", json_schema_extra={"group": "Sources"})
     ducks: bool = Field(False, title="Ducks", json_schema_extra={"group": "Sources"})
+    potd: bool = Field(
+        False,
+        title="Picture of the day (Wikimedia)",
+        description="The last week's featured photos from Wikimedia Commons",
+        json_schema_extra={"group": "Sources"},
+    )
     art_query: str = Field(
         "painting",
         max_length=40,
@@ -81,6 +87,7 @@ class PhotoFrameSettings(AppSettings):
             "cats": self.cats,
             "foxes": self.foxes,
             "ducks": self.ducks,
+            "potd": self.potd,
         }
         return [k for k in SOURCES if flags[k]] or ["picsum"]
 
@@ -94,7 +101,7 @@ def caption_text(p: Photo) -> str:
 class PhotoFrame(App):
     id = "photoframe"
     name = "Photo Frame"
-    description = "A slideshow of public-domain art, nature photos, dogs, cats, foxes and ducks."
+    description = "A slideshow of public-domain art, nature photos, Wikimedia's picture of the day, dogs, cats, foxes and ducks."
     icon = "frame"
     category = "media"
     Settings = PhotoFrameSettings

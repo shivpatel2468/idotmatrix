@@ -1,0 +1,90 @@
+{
+ "data": {
+  "symbol": "AAPL",
+  "company": "Apple Inc. Common Stock",
+  "timeAsOf": "Oct 8, 2026 12:04 PM ET",
+  "isNasdaq100": false,
+  "lastSalePrice": "$338.04",
+  "netChange": "+1.37",
+  "percentageChange": "+0.41%",
+  "deltaIndicator": "up",
+  "previousClose": "$336.67",
+  "volume": "8,190,214",
+  "exchange": "NASDAQ-GS",
+  "chart": [
+   {
+    "z": {
+     "dateTime": "4:00 AM ET",
+     "value": "337.068"
+    },
+    "x": 1791432000000,
+    "y": 337.068
+   },
+   {
+    "z": {
+     "dateTime": "4:01 AM ET",
+     "value": "336.80"
+    },
+    "x": 1791432060000,
+    "y": 336.8
+   },
+   {
+    "z": {
+     "dateTime": "4:02 AM ET",
+     "value": "337.07"
+    },
+    "x": 1791432120000,
+    "y": 337.07
+   },
+   {
+    "z": {
+     "dateTime": "12:02 PM ET",
+     "value": "338.10"
+    },
+    "x": 1791460920000,
+    "y": 338.1
+   },
+   {
+    "z": {
+     "dateTime": "12:03 PM ET",
+     "value": "338.16"
+    },
+    "x": 1791460980000,
+    "y": 338.16
+   },
+   {
+    "z": {
+     "dateTime": "12:04 PM ET",
+     "value": "338.04"
+    },
+    "x": 1791461040000,
+    "y": 338.04
+   }
+  ],
+  "volumeChart": [
+   {
+    "z": {
+     "dateTime": "4:00 AM ET",
+     "value": "337.068"
+    },
+    "x": 1791432000000,
+    "y": 337.068
+   },
+   {
+    "z": {
+     "dateTime": "4:01 AM ET",
+     "value": "336.80"
+    },
+    "x": 1791432060000,
+    "y": 336.8
+   }
+  ],
+  "events": null
+ },
+ "message": null,
+ "status": {
+  "rCode": 200,
+  "bCodeMessage": null,
+  "developerMessage": null
+ }
+}

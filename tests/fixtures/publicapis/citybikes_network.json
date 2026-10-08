@@ -1,0 +1,248 @@
+{
+ "network": {
+  "id": "santander-cycles",
+  "name": "Santander Cycles",
+  "location": {
+   "latitude": 51.51121389999999,
+   "longitude": -0.1198244,
+   "city": "London",
+   "country": "GB"
+  },
+  "href": "/v2/networks/santander-cycles",
+  "company": [
+   "PBSC",
+   "Serco Group plc"
+  ],
+  "system": "Bixi",
+  "stations": [
+   {
+    "id": "001420f03e8b4f08f1bcc9bdc0260651",
+    "name": "300073 - Prince of Wales Drive, Battersea Park",
+    "latitude": 51.47515398,
+    "longitude": -0.159169801,
+    "timestamp": "2026-10-08T16:13:51.106340+00:00Z",
+    "free_bikes": 13,
+    "empty_slots": 7,
+    "extra": {
+     "uid": 756,
+     "name": "Prince of Wales Drive, Battersea Park",
+     "terminalName": "300073",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1390223040000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "004cab6485d7adb50b6a85cbe152399a",
+    "name": "003447 - Gloucester Road (North), Kensington",
+    "latitude": 51.49792478,
+    "longitude": -0.183834706,
+    "timestamp": "2026-10-08T16:13:50.948896+00:00Z",
+    "free_bikes": 15,
+    "empty_slots": 2,
+    "extra": {
+     "uid": 97,
+     "name": "Gloucester Road (North), Kensington",
+     "terminalName": "003447",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279097580000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "00531c4ce0f2e75ef2cebf19f1a6c1e3",
+    "name": "200213 - Durant Street, Bethnal Green",
+    "latitude": 51.52868155,
+    "longitude": -0.065550321,
+    "timestamp": "2026-10-08T16:13:51.103342+00:00Z",
+    "free_bikes": 18,
+    "empty_slots": 3,
+    "extra": {
+     "uid": 702,
+     "name": "Durant Street, Bethnal Green",
+     "terminalName": "200213",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1384345860000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "01903a65b9708a1e212087ee368ee320",
+    "name": "001229 - High Holborn , Covent Garden",
+    "latitude": 51.516398,
+    "longitude": -0.12425700000000006,
+    "timestamp": "2026-10-08T16:13:50.967209+00:00Z",
+    "free_bikes": 15,
+    "empty_slots": 3,
+    "extra": {
+     "uid": 358,
+     "name": "High Holborn , Covent Garden",
+     "terminalName": "001229",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1290079860000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "0191ad8ece6d587cff8369b58327aacb",
+    "name": "003488 - Charles II Street, West End",
+    "latitude": 51.50844614,
+    "longitude": -0.131961389,
+    "timestamp": "2026-10-08T16:13:50.955840+00:00Z",
+    "free_bikes": 14,
+    "empty_slots": 7,
+    "extra": {
+     "uid": 226,
+     "name": "Charles II Street, West End",
+     "terminalName": "003488",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279616520000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "01995d3d3cff733f43d7809d397b3a7e",
+    "name": "001126 - North Audley Street, Mayfair",
+    "latitude": 51.5129118,
+    "longitude": -0.153645496,
+    "timestamp": "2026-10-08T16:13:50.953147+00:00Z",
+    "free_bikes": 8,
+    "empty_slots": 8,
+    "extra": {
+     "uid": 180,
+     "name": "North Audley Street, Mayfair",
+     "terminalName": "001126",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279298220000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "01ff16aaefe2f189c5666ca0fb84b4e0",
+    "name": "300004 - Harris Academy, Bermondsey",
+    "latitude": 51.492668,
+    "longitude": -0.072350665,
+    "timestamp": "2026-10-08T16:13:51.075386+00:00Z",
+    "free_bikes": 2,
+    "empty_slots": 16,
+    "extra": {
+     "uid": 666,
+     "name": "Harris Academy, Bermondsey",
+     "terminalName": "300004",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1383063480000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "021c9ca075163dcca7edbe920bf0d586",
+    "name": "001209 - Empire Square, The Borough",
+    "latitude": 51.50082346,
+    "longitude": -0.089740764,
+    "timestamp": "2026-10-08T16:13:50.958096+00:00Z",
+    "free_bikes": 44,
+    "empty_slots": 2,
+    "extra": {
+     "uid": 269,
+     "name": "Empire Square, The Borough",
+     "terminalName": "001209",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279715100000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "0229d9e377ddbec96804f441d5eaabc3",
+    "name": "001189 - Long Lane , Bermondsey",
+    "latitude": 51.49907558,
+    "longitude": -0.085666316,
+    "timestamp": "2026-10-08T16:13:50.964926+00:00Z",
+    "free_bikes": 0,
+    "empty_slots": 19,
+    "extra": {
+     "uid": 308,
+     "name": "Long Lane , Bermondsey",
+     "terminalName": "001189",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279816740000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "0240e9a1639bc6cb84aa11a2d28e1584",
+    "name": "001068 - Norton Folgate, Liverpool Street",
+    "latitude": 51.5211137,
+    "longitude": -0.07886980000000676,
+    "timestamp": "2026-10-08T16:13:51.660104+00:00Z",
+    "free_bikes": 13,
+    "empty_slots": 5,
+    "extra": {
+     "uid": 888,
+     "name": "Norton Folgate, Liverpool Street",
+     "terminalName": "001068",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279190040000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "0299b28dbeb0f206f4bd894105b3c143",
+    "name": "001057 - Hardwick Street, Clerkenwell",
+    "latitude": 51.5278427,
+    "longitude": -0.1080682,
+    "timestamp": "2026-10-08T16:13:50.952723+00:00Z",
+    "free_bikes": 23,
+    "empty_slots": 7,
+    "extra": {
+     "uid": 170,
+     "name": "Hardwick Street, Clerkenwell",
+     "terminalName": "001057",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279290180000",
+     "removalDate": ""
+    }
+   },
+   {
+    "id": "02e9d06ab5407e6eaf1dec246d8c452f",
+    "name": "001204 - Queen's Gate (North), Kensington",
+    "latitude": 51.50102668,
+    "longitude": -0.180246101,
+    "timestamp": "2026-10-08T16:13:50.957813+00:00Z",
+    "free_bikes": 6,
+    "empty_slots": 32,
+    "extra": {
+     "uid": 266,
+     "name": "Queen's Gate (North), Kensington",
+     "terminalName": "001204",
+     "locked": false,
+     "installed": true,
+     "temporary": false,
+     "installDate": "1279714560000",
+     "removalDate": ""
+    }
+   }
+  ]
+ }
+}

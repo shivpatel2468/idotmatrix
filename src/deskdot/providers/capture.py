@@ -18,7 +18,7 @@ from typing import Any
 import numpy as np
 from PIL import Image, ImageGrab
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 log = logging.getLogger("deskdot.capture")
 
@@ -295,6 +295,14 @@ class GitHubProvider(Provider[dict[str, Any]]):
     """Public contribution calendar for a user (no token needed)."""
 
     name = "github"
+    endpoints = (
+        Endpoint(
+            "GitHub contribution graph",
+            "https://github.com/users/torvalds/contributions",
+            check=lambda html: "data-level=" in html and "data-date=" in html,
+            body="text",
+        ),
+    )
     interval = 1800.0
     retry = 120.0
 

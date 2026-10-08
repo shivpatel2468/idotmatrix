@@ -11,6 +11,90 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.6.0 — 9 Oct 2026 · 14 new live apps and a check-up for every data source
+
+### New
+
+- **Aurora Watch**
+  - Before: there was no way to know if the northern (or southern) lights might show up.
+  - Now: see how stormy space weather is right now on a 0–9 scale, the forecast for the next day, a world map with
+    the glowing aurora ring, and your own chance of seeing it. It can alert you when a storm starts.
+- **Bitcoin Network**
+  - Before: only the Bitcoin price was available.
+  - Now: see what it costs to send Bitcoin right now, how long ago the last block was found, and how many days are
+    left until the next "halving".
+- **Crypto Market**
+  - Before: you could follow single coins, but not the market as a whole.
+  - Now: the total value of all coins, how much of it is Bitcoin, the day's biggest winners and losers, and the
+    "fear and greed" mood score.
+- **Race Countdown**
+  - Before: you had to look up when the next Grand Prix starts.
+  - Now: a countdown to the next race with the time of the next session in your time zone, LIVE during the race,
+    and the top three afterwards.
+- **Long Weekend**
+  - Before: Holidays counted down to the next public holiday only.
+  - Now: count down to the next long weekend, see how many days off it gives, and whether one extra day off would
+    make it longer.
+- **Bike Share**
+  - Before: nothing for getting around town.
+  - Now: free bikes and empty docks at the bike-share stations closest to you, in more than 700 cities.
+- **Earth Events**
+  - Before: Earthquakes was the only "what is happening on Earth" app.
+  - Now: wildfires, storms, volcanoes and sea ice happening right now, as blinking dots on a world map, with the
+    newest one named underneath.
+- **World Flags**
+  - Before: no app about countries.
+  - Now: a flag of the day, a shuffle of every country's flag, or a quiz where the name appears after a pause.
+- **Rain Chance**
+  - Before: Weather showed the day, not hour by hour.
+  - Now: the chance of rain for each of the next 12 hours and when it is highest — umbrella or not.
+- **Wind Compass**
+  - Before: wind speed was a small number on the Weather screen.
+  - Now: a compass shows where the wind is blowing, how strong it is and the gusts, plus the next 12 hours.
+- **Wiki Trending**
+  - Before: no way to see what everyone is reading about.
+  - Now: yesterday's most-read Wikipedia articles, one by one, with how many people read them and a small chart
+    that shows a sudden spike.
+- **Asteroid Flyby**
+  - Before: nothing about space rocks.
+  - Now: the next asteroid to pass close to Earth — when, how close compared with the Moon, how big and how fast.
+    These passes are routine and harmless.
+- **Game Server**
+  - Before: you had to open the game to see who is playing.
+  - Now: type your block-game server's address and see whether it is online, how many players are on, its icon and
+    its message.
+- **TV Tonight**
+  - Before: no TV guide.
+  - Now: what is on TV now and later tonight in your country, two shows at a time.
+- **Picture of the day in Photo Frame**
+  - Before: Photo Frame showed museum art, nature photos and animals.
+  - Now: it can also show Wikimedia's picture of the day from the last week.
+
+### Fixed
+
+- **Museum art in Photo Frame**
+  - Before: since 1 October, art from The Met stopped loading because the museum changed its search.
+  - Now: it uses the museum's new search and loads again.
+- **Stocks when the main source fails**
+  - Before: the backup source had shut down, so a hiccup at the main source left prices blank.
+  - Now: a new backup source fills in for US stocks and funds.
+- **Flight Radar backup**
+  - Before: one of the backup flight sources started refusing requests.
+  - Now: it is replaced by another free source, so planes keep showing when the main source is busy.
+- **Hacker News headlines in some countries**
+  - Before: some internet providers block the Hacker News feed, so Headlines showed OFFLINE.
+  - Now: it switches to another copy of the same feed by itself.
+- **Crypto Ticker in the USA**
+  - Before: the price source refuses visitors from the USA, so the ticker stayed empty there.
+  - Now: it switches to the same prices from a mirror that works everywhere.
+
+### Better
+
+- **A health check for every data source**
+  - Before: when a free data source changed or shut down, an app simply went quiet until someone noticed.
+  - Now: one command checks all 100+ sources DeskDot uses — whether they answer, how fast, and whether the answer
+    still looks the way the apps expect — and writes a report.
+
 ## 3.5.0 — 7 Oct 2026 · Housie, the TV view and a high-roller casino
 
 ### New

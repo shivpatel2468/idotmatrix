@@ -11,6 +11,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar
 
 import httpx
@@ -105,8 +106,44 @@ class Hub:
         await self.http.aclose()
 
 
+@dataclass(frozen=True)
+class Endpoint:
+    """One external URL a provider calls, with a concrete sample request for `scripts/api_health.py`.
+
+    `check` runs the provider's own parser on the sample's body (JSON, text or bytes per `body`) and must return
+    something non-empty; it is how the health check notices an API that still answers 200 but changed its shape.
+    `role` says how much the provider depends on it: ``primary`` (the app breaks without it), ``fallback`` (used when
+    the primary fails) or ``optional`` (a bonus such as artwork or a route lookup).
+    """
+
+    label: str
+    url: str
+    check: Callable[[Any], Any] | None = None
+    expect: tuple[str, ...] = ()  # dotted paths that must hold a value, e.g. "features.0.properties.mag"
+    body: str = "json"  # json | text | bytes
+    headers: tuple[tuple[str, str], ...] = ()
+    role: str = "primary"
+    note: str = ""
+
+
+def dig(data: Any, path: str) -> Any:
+    """`dig(d, "a.0.b")` = d["a"][0]["b"], or None when any step is missing (for `Endpoint.expect`)."""
+    for part in path.split("."):
+        if isinstance(data, list):
+            if not part.isdigit() or int(part) >= len(data):
+                return None
+            data = data[int(part)]
+        elif isinstance(data, dict):
+            data = data.get(part)
+        else:
+            return None
+    return data
+
+
 class Provider(Generic[T]):
     name: ClassVar[str]
+    #: the external endpoints this provider calls (live samples for scripts/api_health.py); empty = local only
+    endpoints: ClassVar[tuple[Endpoint, ...]] = ()
     interval: ClassVar[float] = 60.0  # seconds between fetches
     retry: ClassVar[float] = 15.0  # seconds after a failure
     #: host feature this provider reads (a key of `deskdot.platforms.FEATURES`), e.g. "window". On a host

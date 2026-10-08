@@ -22,7 +22,7 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 API = "https://pokeapi.co/api/v2"
 CACHE = 48
@@ -148,6 +148,10 @@ class PokedexProvider(Provider[dict[int, dict[str, Any]]]):
     """
 
     name = "pokedex"
+    endpoints = (
+        Endpoint("PokeAPI pokemon", API + "/pokemon/25", check=lambda d: parse_pokemon(d)["sprite_url"]),
+        Endpoint("PokeAPI species", API + "/pokemon-species/25", check=parse_genus),
+    )
     interval = 3600.0
     retry = 20.0
 

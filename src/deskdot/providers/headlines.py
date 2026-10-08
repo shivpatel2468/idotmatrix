@@ -4,7 +4,8 @@
 source     endpoint                                                                 feeds
 ========== ======================================================================= ===========================
 hn         hacker-news.firebaseio.com/v0/{top,best,new,ask,show}stories.json        items fetched concurrently
-           + /v0/item/{id}.json
+           + /v0/item/{id}.json; fallback hn.algolia.com/api/v1 (one request; Firebase is
+           unreachable on some networks, e.g. ISPs that block *.firebaseio.com)
 space      api.spaceflightnewsapi.net/v4/articles/?limit=N                          latest articles
 devto      dev.to/api/articles?top=1|7 · /api/articles/latest                       top (day) / best (week) / new
 lobsters   lobste.rs/hottest.json · /newest.json · /active.json                     hottest / newest / active
@@ -23,11 +24,20 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
-from .base import Provider
+from .base import Endpoint, Provider
 from .daily import clean_text
 
 HN_FEED = "https://hacker-news.firebaseio.com/v0/{feed}stories.json"
 HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/{id}.json"
+HN_ALGOLIA = "https://hn.algolia.com/api/v1/"
+# HN feed -> (Algolia endpoint, tags); "best" ≈ the week's most popular stories
+HN_ALGOLIA_FEEDS = {
+    "top": ("search", "front_page"),
+    "best": ("search", "story"),
+    "new": ("search_by_date", "story"),
+    "ask": ("search", "ask_hn"),
+    "show": ("search", "show_hn"),
+}
 SPACE = "https://api.spaceflightnewsapi.net/v4/articles/"
 DEVTO = "https://dev.to/api/articles"
 LOBSTERS = "https://lobste.rs/{feed}.json"
@@ -77,6 +87,28 @@ def parse_hn_item(d: Any) -> dict[str, Any] | None:
         by=clean_text(d.get("by"), 20),
         site=domain(d.get("url")) or "YCOMBINATOR.COM",
     )
+
+
+def parse_hn_algolia(d: Any) -> list[dict[str, Any]]:
+    """An hn.algolia.com search page -> stories (same fields as `parse_hn_item`)."""
+    out = []
+    hits = d.get("hits") if isinstance(d, dict) else None
+    for h in hits or []:
+        if not isinstance(h, dict):
+            continue
+        tags = h.get("_tags") or []
+        s = _story(
+            h.get("objectID") or h.get("story_id"),
+            h.get("title"),
+            score=int(h.get("points") or 0),
+            comments=int(h.get("num_comments") or 0) if "job" not in tags else None,
+            time=float(h.get("created_at_i") or 0) or None,
+            by=clean_text(h.get("author"), 20),
+            site=domain(h.get("url")) or "YCOMBINATOR.COM",
+        )
+        if s:
+            out.append(s)
+    return out
 
 
 def parse_space(d: Any) -> list[dict[str, Any]]:
@@ -134,6 +166,24 @@ class HeadlinesProvider(Provider[dict[str, list[dict[str, Any]]]]):
     """``value = {"source:feed": [stories, ranked]}``. Apps call ``want(source, feed, count)``."""
 
     name = "headlines"
+    endpoints = (
+        Endpoint(
+            "Hacker News (Firebase)",
+            HN_FEED.format(feed="top"),
+            expect=("0",),
+            note="blocked by some ISPs' DNS; Algolia takes over",
+        ),
+        Endpoint("Hacker News item", HN_ITEM.format(id=8863), check=parse_hn_item),
+        Endpoint(
+            "Hacker News (Algolia)",
+            HN_ALGOLIA + "search?tags=front_page&hitsPerPage=5",
+            check=parse_hn_algolia,
+            role="fallback",
+        ),
+        Endpoint("Spaceflight News", SPACE + "?limit=3", check=parse_space),
+        Endpoint("DEV Community", DEVTO + "?top=1&per_page=3", check=parse_devto),
+        Endpoint("Lobsters", LOBSTERS.format(feed="hottest"), check=parse_lobsters),
+    )
     interval = 180.0
     retry = 30.0
 
@@ -170,6 +220,22 @@ class HeadlinesProvider(Provider[dict[str, list[dict[str, Any]]]]):
         return r.json()
 
     async def _hn(self, feed: str, n: int) -> list[dict[str, Any]]:
+        try:
+            return await self._hn_firebase(feed, n)
+        except Exception:
+            return await self._hn_algolia(feed, n)
+
+    async def _hn_algolia(self, feed: str, n: int) -> list[dict[str, Any]]:
+        path, tags = HN_ALGOLIA_FEEDS.get(feed, HN_ALGOLIA_FEEDS["top"])
+        params: dict[str, Any] = {"tags": tags, "hitsPerPage": n}
+        if feed == "best":
+            params["numericFilters"] = f"created_at_i>{int(time.time()) - 7 * 86400},points>100"
+        stories = parse_hn_algolia(await self._json(HN_ALGOLIA + path, params=params))
+        if feed == "best":
+            stories.sort(key=lambda s: -(s.get("score") or 0))
+        return stories[:n]
+
+    async def _hn_firebase(self, feed: str, n: int) -> list[dict[str, Any]]:
         ids = (await self._json(HN_FEED.format(feed=feed)))[: n + 5]  # a few spares for dead items
         now = time.time()
         sem = asyncio.Semaphore(10)

@@ -28,7 +28,7 @@ import unicodedata
 from datetime import datetime
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 Game = dict[str, Any]
 
@@ -863,6 +863,18 @@ class SportsProvider(Provider[dict[str, list[Game]]]):
     """
 
     name = "sports"
+    endpoints = (
+        Endpoint(
+            "ESPN scoreboard",
+            SITE + "/soccer/eng.1/scoreboard",
+            check=lambda d: parse_scoreboard("epl", d) is not None,
+            expect=("leagues.0.abbreviation",),
+        ),
+        Endpoint(
+            "ESPN standings", STANDINGS + "/soccer/eng.1/standings", check=lambda d: parse_standings("epl", d)
+        ),
+        Endpoint("ESPN cricket", CRICKET_ALL, expect=("sports.0.leagues",)),
+    )
     interval = 30.0
 
     def __init__(self, hub: Any) -> None:
