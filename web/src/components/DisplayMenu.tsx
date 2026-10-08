@@ -8,6 +8,7 @@ import { openSettings, type SettingsTab } from "../lib/store";
 import { usePhone } from "../lib/useMedia";
 import { LedPanel } from "./LedPanel";
 import { Sheet } from "./Sheet";
+import { ThemeSeg } from "./ThemePicker";
 
 /** The panel's own settings, one tap further: they live in Settings → Display & colour. */
 const LINKS: [SettingsTab, string, string][] = [
@@ -127,7 +128,7 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
               onMouseDown={(e) => e.preventDefault()}
               className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-[10px] border p-1.5 pb-2 text-center transition",
                 look === l ? "border-ember bg-ember-deep/40" : "border-line hover:border-line-2 hover:bg-chassis-2/60")}>
-              <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black" aria-hidden>
+              <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black theme-dark" aria-hidden>
                 <LedPanel size={72} look={l} lookSwitch={false} className="grid place-items-center" />
               </span>
               <span className="mt-0.5 text-[13px] font-[600] text-ink-1">{LOOK_LABEL[l]}</span>
@@ -156,6 +157,12 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
           </div>
         </section>
       )}
+
+      {/* the studio around the panel: light · dark · auto (lib/theme.ts) */}
+      <section className="flex flex-col gap-1.5">
+        <span className="text-[12.5px] font-[560] text-ink-1">Studio theme</span>
+        <ThemeSeg className="!p-1 [&>button]:!h-8" />
+      </section>
 
       {/* 3 · everything else, behind one disclosure */}
       <section className="border-t border-line pt-3">

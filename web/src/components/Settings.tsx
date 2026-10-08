@@ -12,6 +12,7 @@ import { IntegrationsTab } from "./IntegrationsTab";
 import { Icon } from "./Icon";
 import { Modal } from "./Overlays";
 import { SFX_NAMES, SOUND_CATEGORIES, type SfxName, getSound, onSound, setSound, sfx, sfxCategory } from "../lib/sound";
+import { ThemeTiles } from "./ThemePicker";
 import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
 
 type St = EngineState;
@@ -21,7 +22,7 @@ type St = EngineState;
  * links (the old tab ids) and the search box scroll straight to it.
  */
 const SECTIONS: [SettingsSection, string, string, string][] = [
-  ["display", "Display & colour", "monitor", "Brightness, night mode, studio sounds, colours, smooth motion"],
+  ["display", "Display & colour", "monitor", "Studio theme, brightness, night mode, sounds, colours, smooth motion"],
   ["alerts", "Notifications & integrations", "bell-ring", "Computer alerts, On Air, eye breaks, phone pushes, smart home"],
   ["playlist", "Playlist & hand-off", "list-music", "Transitions, presets, following your apps, running without the computer"],
   ["device", "Device", "bluetooth", "Connection, location, sound input, data sources"],
@@ -36,6 +37,7 @@ const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
 
 /** What the settings search knows about: label, extra words, and the block it lives in. */
 const INDEX: [string, string, SettingsTab | string][] = [
+  ["Studio theme", "light dark mode auto system appearance white black colour scheme", "theme"],
   ["Brightness", "dim bright level", "display-basics"],
   ["Night mode", "dim overnight schedule sleep dark", "display-basics"],
   ["Rotate 180°", "flip upside down mount", "display-basics"],
@@ -65,7 +67,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Link statistics", "frames sent dropped telemetry latency", "sources"],
 ];
 const INDEX_SECTION: Record<string, SettingsSection> = {
-  "display-basics": "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
+  "display-basics": "display", theme: "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
   homeassistant: "alerts", transitions: "playlist", presets: "playlist", sources: "device",
 };
 const sectionOf = (block: string): SettingsSection => BLOCK_SECTION[block as SettingsTab] ?? INDEX_SECTION[block] ?? "display";
@@ -75,7 +77,7 @@ function Block({ id, title, hint, icon, children, tone }: {
   id: string; title: string; hint?: React.ReactNode; icon?: string; children: React.ReactNode; tone?: "plain";
 }) {
   return (
-    <section id={`set-${id}`} className={clsx("scroll-mt-4 rounded-xl", tone !== "plain" && "border border-line bg-chassis-0/60 p-4")}>
+    <section id={`set-${id}`} className={clsx("scroll-mt-4 rounded-xl", tone !== "plain" && "border border-line bg-chassis-0/60 p-4 light:bg-chassis-1 light:shadow-[0_1px_2px_rgba(64,48,24,0.05)]")}>
       <div className="mb-1 flex items-center gap-2">
         {icon && <Icon name={icon} size={15} className="text-ember" />}
         <h3 className="font-display text-[15px] font-[640] tracking-[-0.01em]">{title}</h3>
@@ -113,9 +115,9 @@ function DisplayBasics({ st }: { st: St }) {
         {night.enabled && (
           <>
             <Row label="From / until">
-              <input type="time" className="field !h-8 !w-28 [color-scheme:dark]" defaultValue={night.start} aria-label="Night starts" onBlur={(e) => api.display({ night: { start: e.target.value } })} />
+              <input type="time" className="field !h-8 !w-28" defaultValue={night.start} aria-label="Night starts" onBlur={(e) => api.display({ night: { start: e.target.value } })} />
               <span className="text-ink-3">→</span>
-              <input type="time" className="field !h-8 !w-28 [color-scheme:dark]" defaultValue={night.end} aria-label="Night ends" onBlur={(e) => api.display({ night: { end: e.target.value } })} />
+              <input type="time" className="field !h-8 !w-28" defaultValue={night.end} aria-label="Night ends" onBlur={(e) => api.display({ night: { end: e.target.value } })} />
             </Row>
             <Row label="Night brightness">
               <Slider value={night.brightness} min={1} max={60} unit="%" onCommit={(v) => api.display({ night: { brightness: v } })} />
@@ -456,6 +458,10 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
   if (id === "display") {
     return (
       <div className="space-y-4">
+        <Block id="theme" title="Studio theme" icon="sun-moon"
+          hint="How the studio looks on this device: light, dark, or following your system. The LED panel itself is unchanged.">
+          <ThemeTiles />
+        </Block>
         <DisplayBasics st={st} />
         <SoundBlock />
         <Block id="intro" title="Intro & outro" icon="clapperboard"
@@ -556,7 +562,7 @@ export function SettingsSheet() {
         </label>
       }>
       <div className="flex flex-col gap-5 sm:flex-row">
-        <nav className="sticky -top-4 z-10 -mx-4 -mt-4 flex shrink-0 gap-1 overflow-x-auto bg-chassis-1/95 px-4 py-2 backdrop-blur [scrollbar-width:none] sm:top-0 sm:mx-0 sm:mt-0 sm:w-52 sm:flex-col sm:self-start sm:bg-transparent sm:p-0 sm:backdrop-blur-none" aria-label="Settings sections">
+        <nav className="sticky -top-4 z-10 -mx-4 -mt-4 flex shrink-0 gap-1 overflow-x-auto bg-chassis-1 px-4 py-2 [scrollbar-width:none] sm:top-0 sm:mx-0 sm:mt-0 sm:w-52 sm:flex-col sm:self-start sm:bg-transparent sm:p-0 sm:backdrop-blur-none" aria-label="Settings sections">
           <label className="relative mb-1 block shrink-0 sm:hidden">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search settings" className="field !h-10 !w-32 !pl-8" />

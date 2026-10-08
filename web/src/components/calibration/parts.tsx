@@ -130,7 +130,7 @@ export function SearchMeter({ s, fmt = (v: number) => v.toFixed(2), lowLabel, hi
 function Pin({ at, label, ember }: { at: string; label: string; ember?: boolean }) {
   return (
     <span className={clsx("absolute top-0 grid h-7 w-6 -translate-x-1/2 place-items-center rounded-md border font-mono text-[11px] font-bold transition-all duration-500",
-      ember ? "border-ember bg-ember text-black" : "border-line-2 bg-chassis-2 text-ink-1")} style={{ left: at }}>
+      ember ? "border-ember bg-ember text-on-ember" : "border-line-2 bg-chassis-2 text-ink-1")} style={{ left: at }}>
       {label}
     </span>
   );

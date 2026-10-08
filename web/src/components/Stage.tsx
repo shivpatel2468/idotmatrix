@@ -63,7 +63,7 @@ function CanvasTools() {
             key={c}
             onClick={() => pick(c)}
             title={c}
-            className={clsx("h-5 w-5 rounded-[5px] border transition hover:scale-110", brush === c ? "border-white" : "border-black/40")}
+            className={clsx("h-5 w-5 rounded-[5px] border transition hover:scale-110", brush === c ? "border-ink-1" : "border-black/40")}
             style={{ background: c, boxShadow: brush === c ? `0 0 10px ${c}` : undefined }}
           />
         ))}
@@ -183,7 +183,7 @@ function RadarCard() {
       {sel?.lost ? <p className="mt-2 text-warn">That flight has left the radar.</p> : null}
       {rows.length > 0 && (
         <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-4">
-          {routeText && <div className="col-span-full font-display text-[15px] font-[620] text-[#39ff7a]">{routeText}</div>}
+          {routeText && <div className="col-span-full font-display text-[15px] font-[620] text-[#39ff7a] light:text-ok">{routeText}</div>}
           {rows.filter(([, x]) => x != null && x !== "").map(([k, x]) => (
             <div key={k}>
               <div className="engrave !text-[8px]">{k}</div>
@@ -384,7 +384,7 @@ function StageBody({ fly = false }: { fly?: boolean }) {
 
       <div className="surface flex w-full flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-3">
         <div className={clsx("flex min-w-0 flex-1 items-center gap-3", !painting && (meta?.actions.length ?? 0) > 0 && "max-sm:basis-full")}>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[#7a2a12] bg-ember-deep text-ember">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-ember-line bg-ember-deep text-ember">
             <Icon name={meta?.icon ?? "square"} size={17} />
           </span>
           <div className="min-w-0">

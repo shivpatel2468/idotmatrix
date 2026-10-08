@@ -105,13 +105,13 @@ function PresetCard({ p, active, variant }: { p: Preset; active: boolean; varian
           "flex w-full items-center gap-2.5 rounded-[11px] border text-left transition",
           variant === "dock" ? "h-12 min-w-[150px] max-w-[220px] pl-2 pr-3.5" : "h-16 px-3",
           active
-            ? "border-[#8a3216] bg-ember-deep/70 shadow-[0_0_26px_-12px_var(--color-ember)]"
+            ? "border-ember-line bg-ember-deep/70 shadow-[0_0_26px_-12px_var(--color-ember)]"
             : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2",
         )}
       >
         <span className={clsx("grid shrink-0 place-items-center rounded-[8px] border",
           variant === "dock" ? "h-8 w-8" : "h-10 w-10",
-          active ? "border-[#8a3216] bg-black/30 text-ember" : "border-line-2 bg-chassis-3 text-ink-2 group-hover:text-ink-1")}>
+          active ? "border-ember-line bg-chassis-0/60 text-ember" : "border-line-2 bg-chassis-3 text-ink-2 group-hover:text-ink-1")}>
           <Icon name={p.icon || "list-music"} size={variant === "dock" ? 15 : 18} />
         </span>
         <span className="min-w-0 flex-1">
@@ -257,7 +257,7 @@ function Transport({ variant, onFullscreen }: { variant: Variant; onFullscreen?:
         )}
       </div>
 
-      <button className={clsx("key shrink-0", big ? "!h-11" : "!h-9", shuffle && "!border-[#7a2a12] !text-ember")} aria-pressed={shuffle}
+      <button className={clsx("key shrink-0", big ? "!h-11" : "!h-9", shuffle && "!border-ember-line !text-ember")} aria-pressed={shuffle}
         title={shuffle ? "Shuffle is on — presets play in random order" : "Shuffle presets"} onClick={() => prefs({ shuffle: !shuffle })}>
         <Shuffle size={13} /> <span className={variant === "dock" ? "hidden 2xl:inline" : ""}>Shuffle</span>
       </button>
@@ -354,7 +354,7 @@ function Queue({ variant, wrap = false }: { variant: Variant; wrap?: boolean }) 
             className={clsx(
               "group relative flex shrink-0 rounded-[10px] border transition",
               variant === "dock" ? "w-[168px] cursor-grab flex-col gap-2 p-2.5 active:cursor-grabbing" : "items-center gap-2.5 p-2",
-              isCur ? "border-[#7a2a12] bg-ember-deep/60" : "border-line bg-chassis-1 hover:border-line-2",
+              isCur ? "border-ember-line bg-ember-deep/60" : "border-line bg-chassis-1 hover:border-line-2",
               !it.enabled && "opacity-45",
               over === i && "ring-1 ring-ember",
             )}>

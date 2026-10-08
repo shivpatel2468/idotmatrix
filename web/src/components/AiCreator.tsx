@@ -183,7 +183,7 @@ export function AiCreator() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-[4px] animate-fade">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-scrim/70 light:bg-scrim/40 backdrop-blur-[4px] animate-fade">
       <div className="surface flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[18px] border border-line-2 shadow-2xl animate-rise">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line bg-chassis-2 px-5 py-3.5">
@@ -423,7 +423,7 @@ export function AiCreator() {
                       }}
                       className={`h-5 min-w-[20px] rounded text-[9px] font-mono transition ${
                         currentFrame === idx
-                          ? "bg-ember text-black font-bold"
+                          ? "bg-ember text-on-ember font-bold"
                           : "bg-chassis-2 text-ink-3 hover:text-ink-1"
                       }`}
                     >

@@ -1,9 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#0c0c0f" />
+    <!-- theme before first paint (no flash): localStorage deskdot.theme = light | dark | system (default) — see lib/theme.ts -->
+    <script>
+      (function () {
+        var p = "system";
+        try { p = localStorage.getItem("deskdot.theme") || "system"; } catch (e) {}
+        var t = p === "light" || p === "dark" ? p : (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        var r = document.documentElement;
+        r.setAttribute("data-theme", t);
+        r.style.colorScheme = t;
+        if (t === "light") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f4f0e8");
+      })();
+    </script>
     <link rel="icon" href="/favicon.svg" />
     <title>DeskDot Studio</title>
   </head>
