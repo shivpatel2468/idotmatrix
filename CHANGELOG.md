@@ -7,6 +7,13 @@ The technical log for developers. For the same updates in plain words (before �
 
 (3.3.0 = up to 2 Oct, 3.4.0 = 4 Oct, 3.5.0 = 5–8 Oct; newest first.)
 
+- TV view: the panel has the studio's three looks — Pixel, LED (default) and Glow, drawn like the studio's preview —
+  and the HD upscale is gone. An options menu on the TV (OK / menu on a Fire TV or Android TV remote, a click or a
+  tap) picks the look and the quality (Auto · HQ · Lite), applied at once and remembered on that TV; the studio's
+  Show on TV sheet sets both for every TV of the link (`POST /api/tv/settings`, sent to TVs as `display`). Lite now
+  draws exactly the same picture as HQ (same resolution, glows, particles, animations): both got faster instead —
+  big canvases are handed to the page as finished bitmaps (no per-frame copies under software compositing), glows in
+  redrawn layers are cached sprites instead of `shadowBlur`, the panel's bloom is a CPU blur added by the compositor.
 - TV view: the panel keeps its classic LED look by default (the HD upscale is opt-in: `?look=hd` or select on the
   remote); roulette marks the winning number with a crystal dolly on a gold base, lowered by the dealer, instead of
   the stamp and sparks.

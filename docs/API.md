@@ -7,9 +7,9 @@ Errors: `400` bad request · `404` unknown app/media · `422` validation (`detai
 
 | Method | Path | Returns |
 | --- | --- | --- |
-| GET | `/api/health` | `{ok, version, device}` |
+| GET | `/api/health` | `{ok, version, device, kind, panel, link_enabled}` — `device` is the link status. The one endpoint another site may read: `https://idotmatrix.com` (the web app) gets CORS + Private-Network-Access headers so it can tell "your panel is connected to DeskDot on this computer" (docs/WEB_APP.md) |
 | GET | `/api/meta` | apps (id, name, description, icon, category, **schema**, actions; games also `max_players`, `controls` and `modes: [{id, name, min_players, max_players, teams}]` with `teams` = solo/coop/ffa/versus; every app also `platforms` (hosts it works on, `null` = everywhere) and `supported` on this host), palette, fonts, icons, leagues, plugins, and the host: `platform` (`windows`/`macos`/`linux`/`android`), `platform_label`, `features` ({feature: bool}, see [COMPATIBILITY.md](COMPATIBILITY.md)) |
-| GET | `/api/state` | full snapshot: `device`, `engine` (mode, current, playlist, overlay, render_ms, takeover, onair, eyebreak, indicators, custom), `settings` (incl. `integrations`, tokens masked), `apps` (settings per app), `providers` |
+| GET | `/api/state` | full snapshot: `device` (status, name, address, link stats, and connection health: `attempts`, `retry_at`, `last_seen`, `rssi`, `reason`, `hint` — see below), `engine` (mode, current, playlist, overlay, render_ms, takeover, onair, eyebreak, indicators, custom), `settings` (incl. `integrations`, tokens masked), `apps` (settings per app), `providers` |
 | GET | `/api/frame.png?scale=1..32` | exactly what the panel shows |
 | GET | `/api/frame` | `{width, height, rgb: base64(3072 bytes)}` |
 | GET | `/launcher` | the system search bar page (used by `deskdot launcher`; see docs/LAUNCHERS.md) |
@@ -279,12 +279,13 @@ A read-only, full-screen view of the panel (and bespoke game / casino scenes) fo
 
 | Method | Path | Body / result |
 | --- | --- | --- |
-| GET | `/api/tv` | `{tv: null \| {code, url, lan_ready, viewers}}` |
+| GET | `/api/tv` | `{tv: null \| {code, url, lan_ready, viewers, display}}` (`display` as below) |
 | POST | `/api/tv` | `{"renew": false}` — open the TV link, or return the open one (`renew: true` replaces the code and disconnects screens on the old one) → `{ok, code, url, lan_ready, viewers}` |
 | DELETE | `/api/tv` | close it; every TV is sent `{"type":"closed"}` |
+| POST | `/api/tv/settings` | `{"look": "pixel"\|"led"\|"glow"\|null, "quality": "auto"\|"hq"\|"lite"\|null}` — the panel look and quality for every TV of the link, applied live (each TV gets a `state` at once). A key left out keeps its value; `null` hands that choice back to each TV; anything else → 422. Every call gets a new `rev`, so a TV whose viewer picked something with the remote takes the studio's choice again. → `{ok, display: {look, quality, rev}}` |
 | GET | `/tv/{code}` | the TV page (`tv.html`; 404 with the same page for an unknown code) |
 | GET | `/tv/static/{name}` | the TV scripts (`tv.js`, `tv-games.js`, `tv-casino.js`) from `src/deskdot/tv/` |
-| WS | `/ws/tv/{code}` | server → TV: `hello` `{app, meta, avatars, server_time}`, `state` `{app, status, lobby, tv, server_time}` (~5 Hz on change, 2 s heartbeat; `status` = the app's public `status()`, never `private_status()`; `tv` = the app's TV-only `tv_extra()`, e.g. a casino round's outcome + clock from the lock on — docs/TV_VIEW.md §3), binary 3072-byte frames (≤ 12 fps, latest wins), `closed`. TV → server: `{"type":"ping","t"}` → `pong` |
+| WS | `/ws/tv/{code}` | server → TV: `hello` `{app, meta, avatars, display, server_time}`, `state` `{app, status, lobby, tv, display, server_time}` (`display` = `{look, quality, rev}` from `/api/tv/settings`) (~5 Hz on change, 2 s heartbeat; `status` = the app's public `status()`, never `private_status()`; `tv` = the app's TV-only `tv_extra()`, e.g. a casino round's outcome + clock from the lock on — docs/TV_VIEW.md §3), binary 3072-byte frames (≤ 12 fps, latest wins), `closed`. TV → server: `{"type":"ping","t"}` → `pong` |
 
 LAN clients may reach `/tv/` and `/ws/tv/` (code-checked, read-only) like `/p/` and `/ws/p/`; everything else stays
 local. The TV code is never the same as the lobby code.
@@ -324,11 +325,25 @@ preset drives the playlist.
 | POST | `/api/motion/test` | `{test: ufo|ball|scroll|sweep|pan|live|transition, a: {fps 3–12, speed 1–24 px/s, soft, smoothing 0–0.6, transition}, b?: same, layout?: stack|alternate, mode?: stream|clip}`; `clip` bakes A as a native GIF (≤ 10 fps, ≤ 40 KB) — 429 if within 20 s of the last test upload |
 | POST | `/api/motion/preset/{smoothest|balanced|ble_friendly|calm}` | applies `max_fps`, `packet_gap_ms` (never < 18), `transition`, `smoothing` |
 | POST | `/api/motion/autotune` | `{seconds?: 2–8, apply?: false}` → streams the heaviest test at 12 fps, measures the delivered rate, returns `{max_fps, packet_gap_ms, transition, smoothing, measured_fps, frame_bytes}` |
-| POST | `/api/device/link` | `{enabled}` — Bluetooth link on/off (separate from display `power`) |
+| POST | `/api/device/link` | `{enabled}` — **Release the panel** (`false`: disconnect and stop reconnecting, so another app can connect; the panel shows its pairing screen) / take it back (`true`, connects at once). User action only — [ADR 0013](adr/0013-user-release-of-the-panel.md). Separate from display `power` |
 | GET / PUT | `/api/autopilot` | `{enabled, rules: [{match, app, settings}]}` — foreground-app rules |
-| POST | `/api/device/reconnect` | |
+| POST | `/api/device/reconnect` | `{only_if_down?: false}` → `{ok, result}`. Not connected: try **now** (skips the back-off wait; never disconnects) → `retrying`. Connected: drop the link and connect again → `reconnecting` — or, with `only_if_down`, leave it → `connected`. Released: takes the panel back → `retrying` |
 | GET | `/api/device/scan` | nearby `IDM-*` panels |
 | POST | `/api/device/raw` | `{hex: "05 00 04 80 32"}` — advanced, sends raw protocol bytes |
+
+### Connection health (`state.device`)
+
+Every failed connect attempt publishes what went wrong and one human next step (`device/diagnose.py`), so the studio's
+Connection sheet, the MCP server and scripts can say the same thing:
+
+| Field | Meaning |
+| --- | --- |
+| `reason` | `bluetooth_off` · `not_found` (not advertising: off, out of range or held by another app) · `busy` (not found 3× in a row — most likely another app holds it, or DeskDot on this computer when the web app asks) · `no_answer` (found, connect didn't complete) · `permission` · `needs_user` (web: pick the panel) · `link_lost` (reconnecting by itself) · `released` (the user released it) · `error`; `null` when fine |
+| `hint` | one or two sentences: what to do next |
+| `attempts` | failed attempts since the last success (reset by `reconnect`) |
+| `retry_at` | epoch seconds of the next automatic attempt (back-off 1 → 2 → 4 … 20 s), or `null` |
+| `last_seen` | epoch seconds the panel last took a write or sent an ack |
+| `rssi` | dBm when the desktop engine last found the panel advertising (desktop Bluetooth only), else `null` |
 
 ## Media
 

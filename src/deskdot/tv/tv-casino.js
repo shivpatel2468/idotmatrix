@@ -103,15 +103,52 @@
   }
   const signed = (S, n) => (n > 0 ? "+" : n < 0 ? "−" : "±") + fmt(S, Math.abs(n));
 
-  /** The lite tier (tv.js TV.quality): no blurred shadows / glows, fewer particles, canvases at 3/4 resolution. */
+  /**
+   * The lite tier (tv.js TV.quality). It draws the same picture as hq — same resolution, glows, particles and
+   * animation — and only trims what can't be seen: countdown rings redraw on 1.5 px of arc instead of 1° steps.
+   */
   const lite = () => !!(TV && TV.quality === "lite");
-  /** A soft glow / shadow — hq only (shadowBlur is the most expensive thing a canvas does on a TV stick). */
+  /**
+   * A soft glow / shadow (shadowBlur) — only where it is drawn once: sprites (chips, cards, dice, balls) and the
+   * cached background. Glows in the redrawn table layer come from glowFx (sprites), never from shadowBlur.
+   */
   function glowOn(g, color, blur, oy) {
-    if (lite()) return false;
     g.shadowColor = color;
     g.shadowBlur = blur;
     if (oy) g.shadowOffsetY = oy;
     return true;
+  }
+
+  /**
+   * A glow from a sprite: exactly what shadowBlur would draw under a shape, rendered once (the shape drawn far off
+   * the sprite with its shadow offset back in, so only the glow lands) and cached by `key`; each later draw is one
+   * drawImage. (x, y, w, h) bound the shape in the caller's coordinates; `draw(g)` builds and fills / strokes it there
+   * with the styles that cast the shadow. The caller then draws the shape itself, crisp, on top — as shadowBlur does.
+   * shadowBlur is in device px, so the sprite is made at the context's own scale (chipK) with the same blur.
+   */
+  const glowCache = new Map();
+  function glowFx(g, key, x, y, w, h, color, blur, draw) {
+    const k = chipK(g);
+    const b = Math.max(0, Math.round(blur));
+    if (b <= 0) return;
+    const pad = Math.ceil((b * 1.6 + 2) / k);
+    const W = Math.ceil(w) + 2 * pad;
+    const H = Math.ceil(h) + 2 * pad;
+    const full = `${key}|${color}|${b}|${k}|${W}|${H}`;
+    let sp = glowCache.get(full);
+    if (!sp) {
+      if (glowCache.size > 300) glowCache.clear();
+      const m = makeCanvas(W, H, k);
+      const off = W + 40; // stage px: the shape lands left of the sprite, its shadow back inside it
+      m.g.translate(pad - x - off, pad - y);
+      m.g.shadowColor = color;
+      m.g.shadowBlur = b;
+      m.g.shadowOffsetX = off * k;
+      draw(m.g);
+      sp = m.c;
+      glowCache.set(full, sp);
+    }
+    g.drawImage(sp, x - pad, y - pad, W, H);
   }
 
   // ================================================================================================ the chip ladder
@@ -520,8 +557,26 @@
     g.textBaseline = o.base || "alphabetic";
     if (o.alpha != null) g.globalAlpha *= o.alpha;
     const str = String(s);
-    let glowing = false;
-    if (o.glow) glowing = glowOn(g, o.glow, o.glowBlur || size * 0.45);
+    const glowing = !!o.glow;
+    if (glowing) {
+      // the glow (a cached sprite of the text's shadowBlur), then the crisp text over it
+      const tw = Math.min(g.measureText(str).width || str.length * size * 0.55, o.maxW || Infinity);
+      const align = o.align || "left";
+      const x0 = align === "center" ? x - tw / 2 : align === "right" || align === "end" ? x - tw : x;
+      const base = o.base || "alphabetic";
+      const y0 = base === "middle" ? y - size * 0.6 : base === "top" ? y - size * 0.1 : y - size;
+      const font = g.font;
+      const ta = g.textAlign;
+      const tb = g.textBaseline;
+      glowFx(g, `t|${str}|${font}|${ta}|${tb}|${o.maxW || ""}`, x0, y0, tw, size * 1.3, o.glow, o.glowBlur || size * 0.45, (m) => {
+        m.font = font;
+        m.textAlign = ta;
+        m.textBaseline = tb;
+        m.fillStyle = "#000";
+        if (o.maxW) m.fillText(str, x, y, o.maxW);
+        else m.fillText(str, x, y);
+      });
+    }
     if (!glowing && o.shadow !== false) {
       // a hard drop shadow: the text once more, offset and dark — no blur (a blurred shadow per text is the
       // costliest thing on a TV stick, and at 3 m it reads the same)
@@ -573,11 +628,25 @@
     g.lineWidth = o.width || Math.max(6, r * 0.14);
     g.strokeStyle = "rgba(255,255,255,.10)";
     g.stroke();
+    const a1 = -Math.PI / 2 + TAU * clamp(frac, 0, 1);
+    if (o.hud) glowOn(g, color, 16); // a countdown's own small canvas: the blur covers a few hundred px
+    else {
+      // in the table layer: a cached glow sprite of the arc
+      const lw = g.lineWidth;
+      const fq = Math.round(clamp(frac, 0, 1) * 360);
+      glowFx(g, `arc|${r}|${lw}|${fq}`, x - r - lw, y - r - lw, 2 * (r + lw), 2 * (r + lw), color, 16, (m) => {
+        m.beginPath();
+        m.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + (TAU * fq) / 360);
+        m.lineWidth = lw;
+        m.lineCap = "round";
+        m.strokeStyle = "#000";
+        m.stroke();
+      });
+    }
     g.beginPath();
-    g.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(frac, 0, 1));
+    g.arc(x, y, r, -Math.PI / 2, a1);
     g.strokeStyle = color;
     g.lineCap = "round";
-    glowOn(g, color, 16);
     g.stroke();
     g.restore();
     if (label != null) txt(g, label, x, y + r * 0.2, r * 0.62, INK1, { align: "center", font: "mono", weight: 700 });
@@ -621,13 +690,16 @@
       const frac = left == null ? 1 : clamp(left / h.span, 0, 1);
       const label = h.label && left != null ? Math.ceil(left - 1e-6) : null;
       const color = left != null && left < h.lowBelow ? h.low : h.color;
-      const key = `${Math.round(frac * (lite() ? 120 : 360))}|${label}|${color}`; // ≈ 1–3 px of arc per step
+      // 1° steps (hq); lite steps on ~1.5 device px of arc instead — the same sweep to the eye, fewer redraws
+      const steps = lite() ? Math.max(90, Math.min(360, Math.round((TAU * h.r * h.k) / 1.5))) : 360;
+      const key = `${Math.round(frac * steps)}|${label}|${color}`;
       if (key === h.key) continue;
       h.key = key;
       const l = h.l;
       l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
       l.g.clearRect(0, 0, l.w, l.h);
-      ring(l.g, l.w / 2, l.h / 2, h.r, frac, color, label, { width: h.width });
+      ring(l.g, l.w / 2, l.h / 2, h.r, frac, color, label, { width: h.width, hud: true });
+      l.show();
     }
   }
 
@@ -774,12 +846,12 @@
     if (o.rot) g.rotate(o.rot);
     if (o.alpha != null) g.globalAlpha *= o.alpha;
     g.scale(Math.max(0.02, sx), 1);
-    if (o.glow && !glowOn(g, o.glow, 28)) {
-      // lite: a crisp outline instead of the soft glow
-      rr(g, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8, w * 0.12);
-      g.lineWidth = 4;
-      g.strokeStyle = o.glow;
-      g.stroke();
+    if (o.glow) {
+      glowFx(g, `card|${w}|${h}`, -w / 2, -h / 2, w, h, o.glow, 28, (m) => {
+        rr(m, -w / 2, -h / 2, w, h, w * 0.09);
+        m.fillStyle = "#000";
+        m.fill();
+      });
     }
     g.drawImage(im, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
     if (o.dim) {
@@ -823,7 +895,7 @@
   // player's colour and the amount. Pre-rendered once per look as a sprite (drop shadow baked in), then stamped.
   const chipCache = new Map();
   function chipSprite(r, color, edge, inlay, label, k, glow) {
-    const key = `${r}|${color}|${edge}|${inlay || ""}|${label == null ? "" : label}|${k}|${glow || ""}|${lite() ? 1 : 0}`;
+    const key = `${r}|${color}|${edge}|${inlay || ""}|${label == null ? "" : label}|${k}|${glow || ""}`;
     let c = chipCache.get(key);
     if (c) return c;
     if (chipCache.size > 500) chipCache.clear();
@@ -835,11 +907,7 @@
     const y = D / 2;
     if (glow) {
       g.save();
-      if (!glowOn(g, glow, r * 0.9)) {
-        circle(g, x, y, r * 1.18);
-        g.fillStyle = rgba(glow, 0.35);
-        g.fill();
-      }
+      glowOn(g, glow, r * 0.9);
       circle(g, x, y, r * 1.04);
       g.lineWidth = Math.max(2, r * 0.12);
       g.strokeStyle = glow;
@@ -848,11 +916,7 @@
     }
     // drop shadow (soft once, here), body with a little light from the top left
     g.save();
-    if (!glowOn(g, "rgba(0,0,0,.55)", r * 0.35, r * 0.12)) {
-      circle(g, x, y + r * 0.12, r * 1.02);
-      g.fillStyle = "rgba(0,0,0,.35)";
-      g.fill();
-    }
+    glowOn(g, "rgba(0,0,0,.55)", r * 0.35, r * 0.12);
     circle(g, x, y, r);
     g.fillStyle = color;
     g.fill();
@@ -977,9 +1041,17 @@
     g.fill();
     g.lineWidth = Math.max(3, r * 0.12);
     g.strokeStyle = color;
-    if (o.glow) glowOn(g, color, r * 0.8);
+    if (o.glow) {
+      const lw = g.lineWidth;
+      glowFx(g, `ring|${r}|${lw}`, x - r - lw, y - r - lw, 2 * (r + lw), 2 * (r + lw), color, r * 0.8, (m) => {
+        circle(m, x, y, r);
+        m.lineWidth = lw;
+        m.strokeStyle = "#000";
+        m.stroke();
+      });
+      circle(g, x, y, r);
+    }
     g.stroke();
-    g.shadowBlur = 0;
     const art = obj(obj(S.ctx && S.ctx.avatars)[p && p.avatar]).px;
     if (Array.isArray(art) && art.length) {
       const n = art.length;
@@ -1065,17 +1137,21 @@
 
   /** A glow around a rounded box (winning area). */
   function glowBox(g, x, y, w, h, color, k, r) {
+    const rad = r == null ? 18 : r;
     g.save();
-    if (!glowOn(g, color, 40 * k)) {
-      // lite: a wide faint stroke under the line stands in for the blur
-      rr(g, x, y, w, h, r == null ? 18 : r);
-      g.lineWidth = 16;
-      g.strokeStyle = rgba(color, 0.18 * k);
-      g.stroke();
-    }
+    // the glow: a sprite per pulse step (k in 1/32ths — the blur and the line's strength follow it)
+    const kq = Math.round(clamp(k, 0, 1) * 32) / 32;
+    glowFx(g, `box|${w}|${h}|${rad}|${kq}`, x, y, w, h, color, 40 * kq, (m) => {
+      rr(m, x, y, w, h, rad);
+      m.lineWidth = 5;
+      m.strokeStyle = `rgba(0,0,0,${0.4 + 0.6 * kq})`;
+      m.stroke();
+      m.fillStyle = `rgba(0,0,0,${0.12 * kq})`;
+      m.fill();
+    });
     g.lineWidth = 5;
     g.strokeStyle = rgba(color, 0.4 + 0.6 * k);
-    rr(g, x, y, w, h, r == null ? 18 : r);
+    rr(g, x, y, w, h, rad);
     g.stroke();
     g.fillStyle = rgba(color, 0.12 * k);
     g.fill();
@@ -1167,11 +1243,27 @@
     return arr(r.winners).map((w) => ({ ...w, color: seatColor(S, w.seat), avatar: (playerOf(S, w.seat) || {}).avatar }));
   }
 
-  /** An absolutely placed canvas layer (stage px), backing store × k. Moving layers get their own GPU layer. */
+  /**
+   * An absolutely placed canvas layer (stage px), backing store × k. Moving layers get their own GPU layer. Draw with
+   * `g`, then call `show()`: the layer is a surface (tv.js) — drawn off-screen and handed to the page as a finished
+   * bitmap, so the compositor never re-reads it — and after show() its drawing buffer is blank, so every redraw is
+   * a full one (each caller clears and draws everything). `size(w, h, k)` resizes it (blank until the next draw).
+   */
   function layer(parent, x, y, w, h, k, moving) {
     const c = document.createElement("canvas");
-    c.width = Math.max(1, Math.ceil(w * k));
-    c.height = Math.max(1, Math.ceil(h * k));
+    // big layers only (the table, rail, wheels): they redraw rarely, and copying them every frame is what costs; a
+    // small canvas is cheaper to copy than to hand over a fresh bitmap each time it changes
+    const big = w * h * k * k >= 200000;
+    const sf = big && TV && typeof TV.surface === "function" ? TV.surface : null;
+    let s = null;
+    const size = (kk) => {
+      if (sf) s = sf(c, Math.max(1, Math.ceil(w * kk)), Math.max(1, Math.ceil(h * kk)));
+      else {
+        c.width = Math.max(1, Math.ceil(w * kk));
+        c.height = Math.max(1, Math.ceil(h * kk));
+      }
+    };
+    size(k);
     const st = c.style;
     st.position = "absolute";
     st.left = `${x}px`;
@@ -1184,9 +1276,15 @@
       st.transformOrigin = "50% 50%";
     }
     parent.appendChild(c);
-    const g = c.getContext("2d");
+    const g = s ? s.g : c.getContext("2d");
     g.setTransform(k, 0, 0, k, 0, 0);
-    return { c, g, w, h, k, x, y };
+    const show = TV && typeof TV.showSurface === "function" && s ? () => TV.showSurface(s) : () => {};
+    const l = { c, g, w, h, k, x, y, show };
+    l.size = (kk) => {
+      size(kk);
+      l.k = kk;
+    };
+    return l;
   }
 
   /** A status signature for redraw decisions: countdown seconds and other per-tick values left out. */
@@ -1269,7 +1367,7 @@
     const g = b.g;
     g.setTransform(b.k, 0, 0, b.k, 0, 0);
     g.clearRect(0, 0, BURST, BURST);
-    const n = lite() ? 10 : 26;
+    const n = 26;
     const c = BURST / 2;
     const u = age / 0.9;
     for (let i = 0; i < n; i++) {
@@ -1286,6 +1384,7 @@
       g.fill();
     }
     g.globalAlpha = 1;
+    b.show();
   }
   /** Draw the stamp's face (once per text / colour). */
   function stampPaint(S, name, text, color) {
@@ -1347,6 +1446,8 @@
       ig.fill();
     }
     ig.restore();
+    L.st.show();
+    L.ink.show();
   }
   /**
    * Place the stamp: centre (x, y) on the stage, `age` seconds since it hit (< 0: not yet; null: hidden),
@@ -1508,6 +1609,8 @@
     g.moveTo(cx - 15, baseY - 8);
     g.quadraticCurveTo(cx - 6, baseY - 30, cx - 4, baseY - 58);
     g.stroke();
+    L.sh.show();
+    L.d.show();
   }
   /** Place the dolly with its base on (x, y): `age` s since it touched down (< 0: being lowered; null: off). */
   function dollyMove(S, name, x, y, age) {
@@ -1541,8 +1644,8 @@
     if (L.op !== o) ds.opacity = L.op = o;
   }
 
-  /** Device px per stage px for the table's canvases: the stage's own (≤ 1.5), ¾ of it in the lite tier. */
-  const tableK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 1.5) * (lite() ? 0.75 : 1);
+  /** Device px per stage px for the table's canvases: the stage's own (≤ 1.5), in both tiers. */
+  const tableK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
 
   function makeScene(def) {
     let S = null;
@@ -1614,14 +1717,7 @@
         const k = tableK();
         if (Math.abs(k - S.k) < 1e-3) return;
         S.k = k;
-        for (const l of [S.bgl, S.top]) {
-          l.c.width = Math.round(SW * k);
-          l.c.height = Math.round(SH * k);
-          l.k = k;
-        }
-        S.rail.c.width = Math.round(RAIL_W * k);
-        S.rail.c.height = Math.round(SH * k);
-        S.rail.k = k;
+        for (const l of [S.bgl, S.top, S.rail]) l.size(k);
         S.bg = null;
         bgWanted(S);
         S.lastKey = S.railKey = "";
@@ -1667,6 +1763,7 @@
     g.fillRect(0, 0, RAIL_X, SH);
     S.def.bg(S, g);
     railBackground(S, g);
+    S.bgl.show();
     const ps = S.pat.style;
     ps.backgroundImage = th.pattern || "none";
     ps.backgroundSize = th.pattern_size || "auto";
@@ -1684,10 +1781,9 @@
     S.T = serverClock(S, t);
     background(S);
     if (S.def.move) S.def.move(S, t);
-    // how often the table layer redraws: 30 Hz (20 in lite) while chips drop / cards fly, else the scene's own
-    // slow rate (countdown rings sweep in their own small canvases — hudRing — so betting needs ~1 Hz), default 4
-    const L = lite();
-    const hz = t < S.animUntil ? (L ? 20 : 30) : S.def.slowHz ? S.def.slowHz(S, t) : L ? 2 : 4;
+    // how often the table layer redraws: 30 Hz while chips drop / cards fly, else the scene's own slow rate
+    // (countdown rings sweep in their own small canvases — hudRing — so betting needs ~1 Hz), default 4
+    const hz = t < S.animUntil ? 30 : S.def.slowHz ? S.def.slowHz(S, t) : 4;
     const tick = hz > 0 ? Math.floor(t * hz) : 0;
     const key = `${S.ver}|${S.def.key ? S.def.key(S, t) : ""}|${hz}|${tick}|${S.k}`;
     if (key !== S.lastKey) {
@@ -1701,6 +1797,7 @@
       S.def.draw(S, g, t);
       if (S.st.paused) paused(S, g, t);
       if (S.preview) previewNote(S, g);
+      S.top.show();
     }
     hudFrame(S, t);
     if (S.def.fx) S.def.fx(S, t);
@@ -1712,6 +1809,7 @@
       g.setTransform(S.k, 0, 0, S.k, -RAIL_X * S.k, 0);
       g.clearRect(RAIL_X, 0, RAIL_W, SH);
       drawRail(S, g, t);
+      S.rail.show();
     }
   }
 
@@ -2140,7 +2238,7 @@
     return null;
   }
 
-  const wheelK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 2) * (lite() ? 0.75 : 1); // the spinning bitmaps stay crisp
+  const wheelK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 2); // the spinning bitmaps stay crisp (both tiers)
 
   const roulette = makeScene({
     id: "casino-roulette",
@@ -2170,12 +2268,14 @@
       g.fillStyle = bg;
       g.fill();
       g.restore();
+      S.L.ball.show();
     },
     layersRedraw(S) {
       const l = S.L.wheel;
       l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
       l.g.clearRect(0, 0, l.w, l.h);
       drawWheelHead(S, l.g, l.w / 2);
+      l.show();
       S.fx.hitKey = null;
     },
     move(S) {
@@ -2220,6 +2320,7 @@
           l.g.stroke();
           l.g.restore();
         }
+        l.show();
         l.c.style.opacity = hitKey ? "1" : "0";
       }
     },
@@ -2384,9 +2485,13 @@
         const n = wheel[landed];
         const col = { red: "#d0182f", black: "#1b1b22", green: "#0e9a4c" }[rColor(n)];
         g.save();
+        glowFx(g, "disc116", R_CX - 116, R_CY - 116, 232, 232, rgba(th.accent, 0.8), 40, (m) => {
+          circle(m, R_CX, R_CY, 116);
+          m.fillStyle = "#000";
+          m.fill();
+        });
         circle(g, R_CX, R_CY, 116);
         g.fillStyle = col;
-        glowOn(g, rgba(th.accent, 0.8), 40);
         g.fill();
         g.lineWidth = 6;
         g.strokeStyle = th.accent;
@@ -2593,12 +2698,14 @@
       g.shadowBlur = 8;
       g.fill();
       g.restore();
+      S.L.clap.show();
     },
     layersRedraw(S) {
       const l = S.L.wheel;
       l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
       l.g.clearRect(0, 0, l.w, l.h);
       l.g.drawImage(b6Wheel(S), 0, 0, l.w, l.h);
+      l.show();
     },
     move(S) {
       const m = b6Now(S, S.T);
@@ -2720,7 +2827,7 @@
   function die(g, x, y, s, face, rot, o) {
     o = o || {};
     const k = chipK(g);
-    const key = `${s}|${face}|${o.glow || ""}|${k}|${lite() ? 1 : 0}`;
+    const key = `${s}|${face}|${o.glow || ""}|${k}`;
     let sp = dieCache.get(key);
     if (!sp) {
       if (dieCache.size > 120) dieCache.clear();
@@ -2849,6 +2956,7 @@
           l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
           l.g.clearRect(0, 0, l.w, l.h);
           die(l.g, l.w / 2, l.h / 2, SEV.DIE * SEV.SC, d.face, 0);
+          l.show();
         }
         const x = SEV.X0 + d.x * SEV.SC - TRAY.x - 12;
         const y = SEV.Y0 + d.y * SEV.SC - 12;
@@ -3575,10 +3683,16 @@
     }
     if (winner) {
       g.save();
-      circle(g, x, y, 62 + 4 * Math.sin(t * 6));
+      const rad = Math.round((62 + 4 * Math.sin(t * 6)) * 2) / 2;
+      glowFx(g, `wring|${rad}`, x - rad - 3, y - rad - 3, 2 * rad + 6, 2 * rad + 6, th.accent, 30, (m) => {
+        circle(m, x, y, rad);
+        m.lineWidth = 6;
+        m.strokeStyle = "#000";
+        m.stroke();
+      });
+      circle(g, x, y, rad);
       g.strokeStyle = th.accent;
       g.lineWidth = 6;
-      glowOn(g, th.accent, 30);
       g.stroke();
       g.restore();
     }
@@ -3792,7 +3906,7 @@
   const ballCache = new Map();
   function ball(g, x, y, r, n, color) {
     const k = chipK(g);
-    const key = `${r}|${n}|${color}|${k}|${lite() ? 1 : 0}`;
+    const key = `${r}|${n}|${color}|${k}`;
     let sp = ballCache.get(key);
     if (!sp) {
       if (ballCache.size > 200) ballCache.clear();
@@ -3874,11 +3988,17 @@
         const [x, y] = housieCell(n);
         const isLast = n === last;
         const k = isLast ? easeOut(callAge / 0.5) : 1;
+        g.save();
+        g.globalAlpha = k;
+        if (isLast) {
+          glowFx(g, `hcell|${HB.cw}|${HB.ch}`, x + 4, y + 4, HB.cw - 8, HB.ch - 8, th.accent, 30 * (0.6 + 0.4 * Math.sin(t * 5)), (m) => {
+            rr(m, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
+            m.fillStyle = "#000";
+            m.fill();
+          });
+        }
         rr(g, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
         g.fillStyle = isLast ? th.accent : rgba(housieColor(n), 0.85);
-        g.save();
-        if (isLast) glowOn(g, th.accent, 30 * (0.6 + 0.4 * Math.sin(t * 5)));
-        g.globalAlpha = k;
         g.fill();
         g.restore();
         txt(g, String(n), x + HB.cw / 2, y + HB.ch / 2 + 13, 38, isLast ? th.ink : "#fff", { align: "center", weight: 900, shadow: false });
@@ -4055,6 +4175,7 @@
           g.drawImage(slotSprite(S, ch, 20), 105 - 70, y - 70, 140, 140);
         }
         g.globalAlpha = 1;
+        l.show();
       }
       fx.strip = strips.join("|");
     },
@@ -4163,17 +4284,25 @@
           const on = Math.floor(t * 2.5) % winLines.length === k || winLines.length === 1;
           g.save();
           g.globalAlpha = on ? 1 : 0.35;
-          g.beginPath();
-          rows.forEach((row, i) => {
-            const x = SL.rx + i * 230 + 105;
-            const y = SL.ry + row * SL.cell + SL.cell / 2;
-            if (i) g.lineTo(x, y);
-            else g.moveTo(x - 120, y);
+          const path = (m) => {
+            m.beginPath();
+            rows.forEach((row, i) => {
+              const x = SL.rx + i * 230 + 105;
+              const y = SL.ry + row * SL.cell + SL.cell / 2;
+              if (i) m.lineTo(x, y);
+              else m.moveTo(x - 120, y);
+            });
+            m.lineTo(SL.rx + 2 * 230 + 225, SL.ry + rows[2] * SL.cell + SL.cell / 2);
+            m.lineWidth = 8;
+          };
+          const color = LINE_COLORS[li] || th.accent;
+          glowFx(g, `line|${rows.join(",")}`, SL.rx - 19, SL.ry - 4, 2 * 230 + 248, 3 * SL.cell + 8, color, 20, (m) => {
+            path(m);
+            m.strokeStyle = "#000";
+            m.stroke();
           });
-          g.lineTo(SL.rx + 2 * 230 + 225, SL.ry + rows[2] * SL.cell + SL.cell / 2);
-          g.lineWidth = 8;
-          g.strokeStyle = LINE_COLORS[li] || th.accent;
-          glowOn(g, LINE_COLORS[li] || th.accent, 20);
+          path(g);
+          g.strokeStyle = color;
           g.stroke();
           g.restore();
         });

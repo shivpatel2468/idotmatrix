@@ -1,4 +1,4 @@
-import type { LobbyInfo, LobbyResponse, TvInfo, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
+import type { LobbyInfo, LobbyResponse, TvDisplay, TvInfo, TvLook, TvQuality, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
 import { toast, useStore } from "./store";
 import type { Autotune, CalTest, Calib, MotionInfo, MotionTest, PresetListing, VideoInfo } from "./calib";
 
@@ -44,7 +44,8 @@ export const api = {
   notify: (n: Partial<Notice>) => req("POST", "/api/notify", n),
   dismiss: () => req("DELETE", "/api/notify"),
   settings: (patch: Record<string, unknown>) => req("PATCH", "/api/settings", patch),
-  reconnect: () => req("POST", "/api/device/reconnect"),
+  /** Not connected: retry now (skips the back-off). Connected: reconnect, unless `onlyIfDown`. */
+  reconnect: (onlyIfDown = false) => req("POST", "/api/device/reconnect", onlyIfDown ? { only_if_down: true } : undefined),
   scan: () => req<{ address: string; name: string; rssi: number }[]>("GET", "/api/device/scan"),
   media: () => req<MediaItem[]>("GET", "/api/media"),
   upload: (file: File, show = true) => {
@@ -100,6 +101,8 @@ export const api = {
   tv: () => req<{ tv: TvInfo | null }>("GET", "/api/tv"),
   openTv: (renew = false) => req<TvInfo & { ok: boolean }>("POST", "/api/tv", { renew }),
   closeTv: () => req("DELETE", "/api/tv"),
+  tvSettings: (body: { look?: TvLook | null; quality?: TvQuality | null }) =>
+    req<{ ok: boolean; display: TvDisplay }>("POST", "/api/tv/settings", body),
   // Gemini AI Studio
   aiConfig: () => req<{ configured: boolean; source: string; masked_key: string; model: string }>("GET", "/api/ai/config"),
   aiSaveConfig: (data: { api_key?: string; model?: string }) =>

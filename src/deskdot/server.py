@@ -90,6 +90,12 @@ class _StudioFiles(StaticFiles):
         return resp
 
 
+# Pages allowed to read GET /api/health cross-origin: the web app asks whether DeskDot on this computer holds the
+# panel before it tries to connect (docs/WEB_APP.md "Panel busy"). Nothing else is exposed cross-origin.
+WEB_APP_ORIGINS = frozenset(
+    {"https://idotmatrix.com", "https://www.idotmatrix.com", "http://localhost:8799", "http://127.0.0.1:8799"}
+)
+
 # the built studio; the Android app ships it elsewhere and points DESKDOT_WEB_DIST at it
 WEB_DIST = Path(
     os.environ.get("DESKDOT_WEB_DIST")
@@ -179,6 +185,13 @@ class DisplayPatch(BaseModel):
     smoothing: float | None = Field(default=None, ge=0, le=0.6, description="temporal smoothing of streams")
     motion_preset: str | None = Field(default=None, max_length=40, description="motion preset tag (studio)")
     night: dict[str, Any] | None = None
+
+
+class TvSettings(BaseModel):
+    """The studio's display choices for every TV of the link (docs/TV_VIEW.md); null = each TV keeps its own."""
+
+    look: Literal["pixel", "led", "glow"] | None = None
+    quality: Literal["auto", "hq", "lite"] | None = None
 
 
 class SettingsPatch(BaseModel):
@@ -628,6 +641,7 @@ def create_app(cfg: Config) -> FastAPI:
             "url": tv_link.url(),
             "lan_ready": tv_link.lan_ready,
             "viewers": tv_hub.viewers,
+            "display": dict(tv_link.display),
         }
 
     @app.get("/api/tv")
@@ -647,6 +661,13 @@ def create_app(cfg: Config) -> FastAPI:
         await tv_hub.close_all()
         tv_link.close()
         return {"ok": True}
+
+    @app.post("/api/tv/settings")
+    async def tv_settings(body: TvSettings) -> dict[str, Any]:
+        """The panel look / quality for every TV of the link, applied live (keys left out keep their value)."""
+        display = tv_link.set_display(**body.model_dump(include=body.model_fields_set))
+        tv_hub.tick(force=True)  # every TV gets it in a state message now
+        return {"ok": True, "display": display}
 
     @app.get("/tv/static/{name}")
     async def tv_static(name: str) -> Response:
@@ -682,9 +703,37 @@ def create_app(cfg: Config) -> FastAPI:
             raise HTTPException(404, f"unknown app {app_id!r}; see GET /api/meta")
 
     # ------------------------------------------------------------------ read
+    def _web_app_headers(request: Request) -> dict[str, str]:
+        """The web app (idotmatrix.com/app) may ask "is DeskDot holding the panel on this computer?" — only that."""
+        origin = request.headers.get("origin", "")
+        if origin not in WEB_APP_ORIGINS:
+            return {}
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Private-Network": "true",
+            "Vary": "Origin",
+        }
+
     @app.get("/api/health")
-    async def health() -> dict[str, Any]:
-        return {"ok": True, "version": __version__, "device": device.info.status}
+    async def health(request: Request) -> JSONResponse:
+        info = device.info
+        body = {
+            "ok": True,
+            "version": __version__,
+            "device": info.status,
+            "kind": info.kind,
+            "panel": info.name,
+            "link_enabled": info.link_enabled,
+        }
+        return JSONResponse(body, headers=_web_app_headers(request))
+
+    @app.options("/api/health", include_in_schema=False)
+    async def health_preflight(request: Request) -> Response:
+        """Chrome's Private Network Access preflight for the web app's health probe (GET only, no credentials)."""
+        headers = _web_app_headers(request)
+        if headers:
+            headers["Access-Control-Allow-Methods"] = "GET"
+        return Response(status_code=204, headers=headers)
 
     @app.get("/api/meta")
     async def meta() -> dict[str, Any]:
@@ -1311,9 +1360,10 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         return {"ok": True, "link_enabled": enabled}
 
     @app.post("/api/device/reconnect")
-    async def reconnect() -> dict[str, Any]:
-        await device.reconnect()
-        return {"ok": True}
+    async def reconnect(only_if_down: bool = Body(False, embed=True)) -> dict[str, Any]:
+        """Not connected: retry right now (skips the back-off). Connected: reconnect, unless `only_if_down`."""
+        result = await device.reconnect(only_if_down=only_if_down)
+        return {"ok": True, "result": result}
 
     @app.get("/api/device/scan")
     async def scan() -> list[dict[str, Any]]:

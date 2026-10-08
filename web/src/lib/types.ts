@@ -87,6 +87,13 @@ export type DeviceInfo = {
   last_ack: string | null;
   power: boolean;
   link_enabled: boolean;
+  // connection health (device/base.py, device/diagnose.py); older engines omit them
+  attempts?: number;
+  retry_at?: number | null;
+  last_seen?: number | null;
+  rssi?: number | null;
+  reason?: "bluetooth_off" | "not_found" | "busy" | "no_answer" | "permission" | "needs_user" | "link_lost" | "released" | "error" | null;
+  hint?: string | null;
 };
 
 export type PlaylistItem = {
@@ -239,7 +246,11 @@ export type LobbyInfo = {
   warning?: string;
 };
 /** The TV view link (docs/TV_VIEW.md): `GET/POST /api/tv`. */
-export type TvInfo = { code: string; url: string | null; lan_ready: boolean; viewers: number };
+/** The studio's display choices for every TV of the link (POST /api/tv/settings); null = each TV keeps its own. */
+export type TvLook = "pixel" | "led" | "glow";
+export type TvQuality = "auto" | "hq" | "lite";
+export type TvDisplay = { look: TvLook | null; quality: TvQuality | null; rev: number | null };
+export type TvInfo = { code: string; url: string | null; lan_ready: boolean; viewers: number; display?: TvDisplay };
 export type LobbyResponse = { lobby: LobbyInfo | null; lan_ready: boolean; games: { id: string; name: string; max_players: number }[] };
 /** `engine.current.status` extras for games with max_players > 1. */
 export type SeatStatus = { seat: number; human: boolean; name: string };

@@ -10,19 +10,20 @@ export type PanelLook = "glow" | "pixel" | "led";
 
 const KEY = "deskdot.panelLook";
 const LOOKS: PanelLook[] = ["glow", "pixel", "led"];
+export const DEFAULT_LOOK: PanelLook = "glow";
 
 function load(): PanelLook {
   try {
     const v = (localStorage.getItem(KEY) ?? localStorage.getItem(KEY.replace("deskdot", "dotdeck"))) as PanelLook | null;
-    return v && LOOKS.includes(v) ? v : "glow";
+    return v && LOOKS.includes(v) ? v : DEFAULT_LOOK;
   } catch {
-    return "glow";
+    return DEFAULT_LOOK;
   }
 }
 
 /**
  * Bloom amount for the "glow" look, 0..1 (0 = crisp, no bloom; 0.5 = the classic glow; 1 = twice as soft).
- * Shown as the "Sharpness" slider in Play mode's Display menu.
+ * Shown as the "Glow" slider (Crisp … Soft) in the Display menu (components/DisplayMenu.tsx).
  */
 const BLOOM_KEY = "deskdot.panelBloom";
 export const DEFAULT_BLOOM = 0.5;
@@ -52,12 +53,13 @@ function persist(key: string, v: string) {
 export type ColorMatch = "led" | "all" | "off";
 const MATCH_KEY = "deskdot.panelMatch";
 const MATCHES: ColorMatch[] = ["led", "all", "off"];
+export const DEFAULT_MATCH: ColorMatch = "led";
 function loadMatch(): ColorMatch {
   try {
     const v = localStorage.getItem(MATCH_KEY) as ColorMatch | null;
-    return v && MATCHES.includes(v) ? v : "led";
+    return v && MATCHES.includes(v) ? v : DEFAULT_MATCH;
   } catch {
-    return "led";
+    return DEFAULT_MATCH;
   }
 }
 export const MATCH_LABEL: Record<ColorMatch, string> = { led: "LED look only", all: "Every look", off: "Off" };
@@ -74,6 +76,8 @@ export const matchesPanel = (look: PanelLook, match: ColorMatch) => match === "a
 export const useLook = create<{
   look: PanelLook; bloom: number; match: ColorMatch;
   setLook: (l: PanelLook) => void; setBloom: (b: number) => void; setMatch: (m: ColorMatch) => void;
+  /** Back to the defaults: Glow look, classic glow amount, calibration shown in the LED look only. */
+  reset: () => void;
 }>((set) => ({
   look: load(),
   bloom: loadBloom(),
@@ -91,12 +95,28 @@ export const useLook = create<{
     set({ bloom });
     persist(BLOOM_KEY, String(bloom));
   },
+  reset: () => {
+    set({ look: DEFAULT_LOOK, bloom: DEFAULT_BLOOM, match: DEFAULT_MATCH });
+    persist(KEY, DEFAULT_LOOK);
+    persist(BLOOM_KEY, String(DEFAULT_BLOOM));
+    persist(MATCH_KEY, DEFAULT_MATCH);
+  },
 }));
+
+/** Is every display choice at its default? (The Display menu's Reset is disabled then.) */
+export const isDefaultLook = (s: { look: PanelLook; bloom: number; match: ColorMatch }) =>
+  s.look === DEFAULT_LOOK && Math.abs(s.bloom - DEFAULT_BLOOM) < 0.001 && s.match === DEFAULT_MATCH;
 
 export const LOOK_LABEL: Record<PanelLook, string> = { glow: "Glow", pixel: "Pixel", led: "LED" };
 export const LOOK_HINT: Record<PanelLook, string> = {
   glow: "Sharp pixels with a soft glow — best on a laptop screen",
   pixel: "Pure sharp pixels — best for games and screenshots",
   led: "Looks like the real LED panel — to check your designs",
+};
+/** Two or three plain words under each picture tile in the Display menu. */
+export const LOOK_SHORT: Record<PanelLook, string> = {
+  glow: "Soft light",
+  pixel: "Sharp squares",
+  led: "Like the real panel",
 };
 export { LOOKS };

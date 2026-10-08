@@ -297,6 +297,15 @@ def user_picked() -> None:
         dev._user_picked_cb()
 
 
+async def hand_off(limit: float = 6.0) -> bool:
+    """Another tab of this browser takes the panel (docs/WEB_APP.md "Two tabs"). Finish the write in flight — never a
+    half-sent GIF (rule 13) — and send nothing more; the page then saves and stops this worker. The GATT link is not
+    closed here: the page keeps it until the new tab is connected (Chrome shares it), so the panel never sees a
+    disconnect (rule 5). True when the link went quiet within `limit` seconds."""
+    dev = device()
+    return True if dev is None else await dev.pause_writes(limit)
+
+
 # ===================================================================== camera / screen / sound
 # The page captures (host-media.js: getUserMedia / getDisplayMedia, downscaled there); the worker forwards here and
 # providers/webmedia.py turns it into the values the apps read. The engine asks for streams through the worker's

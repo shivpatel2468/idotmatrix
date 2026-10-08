@@ -126,6 +126,60 @@ def test_tv_never_gets_private_data(tmp_path: Path) -> None:
             assert set(st["status"]) == set(app.status())
 
 
+def test_tv_display_settings_validate_and_reach_every_tv(tmp_path: Path) -> None:
+    """The studio's look / quality (POST /api/tv/settings) goes live to every TV of the link, in hello and state."""
+    with _client(tmp_path) as c:
+        code = c.post("/api/tv").json()["code"]
+        assert c.get("/api/tv").json()["tv"]["display"] == {"look": None, "quality": None, "rev": None}
+        with c.websocket_connect(f"/ws/tv/{code}") as tv1, c.websocket_connect(f"/ws/tv/{code}") as tv2:
+            for tv in (tv1, tv2):
+                hello = _until(tv, lambda m: isinstance(m, dict) and m["type"] == "hello")
+                assert hello["display"] == {"look": None, "quality": None, "rev": None}
+
+            r = c.post("/api/tv/settings", json={"look": "glow"}).json()
+            assert r["ok"] and r["display"]["look"] == "glow" and r["display"]["quality"] is None
+            rev1 = r["display"]["rev"]
+            assert isinstance(rev1, float)
+            for tv in (tv1, tv2):
+                st = _until(
+                    tv,
+                    lambda m: isinstance(m, dict) and m["type"] == "state" and m["display"]["look"] == "glow",
+                )
+                assert st["display"] == {"look": "glow", "quality": None, "rev": rev1}
+
+            # a key left out keeps its value; every change gets a new revision (even the same value again)
+            r = c.post("/api/tv/settings", json={"quality": "lite"}).json()
+            assert (
+                r["display"]["look"] == "glow"
+                and r["display"]["quality"] == "lite"
+                and r["display"]["rev"] > rev1
+            )
+            st = _until(
+                tv1,
+                lambda m: isinstance(m, dict) and m["type"] == "state" and m["display"]["quality"] == "lite",
+            )
+            assert st["display"]["look"] == "glow"
+            again = c.post("/api/tv/settings", json={"quality": "lite"}).json()["display"]
+            assert again["rev"] > r["display"]["rev"]
+
+            # validation: only the studio's looks and the three qualities (null hands the choice back to each TV)
+            for bad in ({"look": "hd"}, {"look": "LED"}, {"quality": "ultra"}, {"look": 3}):
+                assert c.post("/api/tv/settings", json=bad).status_code == 422
+            assert c.get("/api/tv").json()["tv"]["display"]["look"] == "glow", (
+                "a rejected change changes nothing"
+            )
+            r = c.post("/api/tv/settings", json={"look": None}).json()
+            assert r["display"]["look"] is None and r["display"]["quality"] == "lite"
+            assert c.get("/api/tv").json()["tv"]["display"] == r["display"]
+
+        # a TV that connects later starts with the studio's choice
+        with c.websocket_connect(f"/ws/tv/{code}") as tv3:
+            hello = _until(tv3, lambda m: isinstance(m, dict) and m["type"] == "hello")
+            assert hello["display"]["quality"] == "lite" and hello["display"]["look"] is None
+            st = _until(tv3, lambda m: isinstance(m, dict) and m["type"] == "state")
+            assert st["display"]["quality"] == "lite"
+
+
 @pytest.mark.parametrize(
     ("path", "allowed"),
     [
@@ -134,6 +188,8 @@ def test_tv_never_gets_private_data(tmp_path: Path) -> None:
         ("/tv/static/tv.js", True),
         ("/tv/../api/state", False),
         ("/api/tv", False),
+        ("/api/tv/settings", False),
+        ("/tv/../api/tv/settings", False),
         ("/tvx", False),
     ],
 )
