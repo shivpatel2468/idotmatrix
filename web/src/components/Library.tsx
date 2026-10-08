@@ -15,7 +15,7 @@ function hash(v: unknown): string {
 }
 
 /** A live thumbnail of what an app shows — rendered by the engine in a sandbox, masked into LEDs. */
-const Preview = memo(function Preview({ id }: { id: string }) {
+export const Preview = memo(function Preview({ id }: { id: string }) {
   const settings = useStore((s) => s.state?.apps?.[id]);
   const v = hash(settings);
   const [loaded, setLoaded] = useState(false);

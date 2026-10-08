@@ -26,7 +26,16 @@ sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LE
   (and `launcher.html`; on the website's `/app/`, whose CSP blocks inline scripts, `webapp/host.js` does it first).
   `installTheme()` (main.tsx) keeps it live: the OS flipping light/dark while on `system`, and other tabs changing it.
 - **Where:** Settings → Display & colour → **Studio theme** (three picture tiles), the Display menu (gear) →
-  *Studio theme* (Light · Dark · Auto), and the phone **Quick controls** sheet. The top bar stays at five controls.
+  *Studio theme* (Light · Dark · Auto), the phone **Quick controls** sheet, and on phones the **theme key**
+  (`components/ThemeFab.tsx`): a 44 px round key pinned bottom-left just above the tab bar — one tap flips light ↔
+  dark (an explicit choice, `toggleTheme()`), a long press (or right-click) opens Light · Dark · Auto with a check; an
+  "A" badge shows while on Auto. The scroll areas end with a 52 px spacer so it never hides the last row; on the
+  Settings tab it sits above the docked Show / Playlist bar. The top bar stays at five controls.
+- **Android app:** the whole window follows — `syncSystemBars()` (`lib/android.ts`) calls
+  `DeskDotAndroid.setBars(status, nav, page, lightIcons)` on every theme change: the status bar takes the header
+  colour (`chassis-1`), the navigation bar the tab bar's (`--m-glass`), the window background the page
+  (`chassis-0`), and the bar icons turn dark on light. The app remembers it, so the next cold start opens in the same
+  colours (first start: the phone's light / dark, like the studio's Auto) — no black flash. android/README.md.
 - **Every page shares the key** — casino.html, controller.html, the join pages and the TV read `deskdot.theme`
   (same origin as the studio when served by the engine), else `prefers-color-scheme`; the TV defaults to dark.
 - **Components never hardcode colour.** Use the tokens below (Tailwind utilities resolve per theme), the `--m-*`
@@ -86,6 +95,12 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | `.theme-tile`, `.theme-swatch` | the Studio theme picker (`components/ThemePicker.tsx`) |
 | `.theme-dark` | keep a subtree dark in both themes |
 | `.studio-head`, `.lib-card` | header hairline (gold-tinted in light); library cards that lift on hover |
+| `.icon-tile`, `[data-tone]` | tinted duotone icon tile and its tint families (see Icons) |
+| `.picker-*` | the dropdown: trigger, popover list, phone sheet rows (see Dropdowns) |
+| `.theme-fab*` | the phone's floating theme key and its menu |
+| `.rail*` | the Panel tab's swipeable app rows |
+| `.preset-*`, `.eq` | the Presets tab's cover cards, the "playing" bars |
+| `.appicon*` | Settings → App icon tiles (Android app) |
 
 ## Layout
 
@@ -118,16 +133,53 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
     power, the fruit-fly toggle + flies-allowed sign, Device / Settings / Message live in the **Quick controls**
     bottom sheet (`TopBar.tsx QuickSheet`).
   - **Bottom tab bar** in the thumb zone — **Panel**, **Apps**, **Presets**, **Settings** — with a lit pill behind
-    the active icon; tapping the open tab scrolls it to the top.
+    the active icon (the active glyph turns duotone); tapping the open tab scrolls it to the top.
+  - **Panel tab** = one scroll area (`.phone-stage`): the panel at full width but at most 40 % of the screen height,
+    its tools, the now-showing card, then **app rows** (`components/AppRail.tsx`) you swipe left / right —
+    Favourites, Recent (`lib/recent.ts`, the last 16 apps shown, per browser), then one row per category. Native
+    `scroll-snap` with momentum, edge-to-edge tracks with the next card peeking, rows off screen skipped
+    (`content-visibility`), previews lazy. Tap a card = show it on the panel (tapping the live one opens its
+    settings), hold = its settings; the row's count chip opens the Apps tab on that category.
   - **One scroll area per tab** (`.phone-scroll`), never scroll boxes inside cards. `Library flat`: sticky search +
     category chips, section titles stick under them, a dense 3-up grid (4-up ≥ 520 px) with a visible ▶ per tile.
     `Inspector flat`: the live panel in its header, the form in one card, **Show / Playlist** docked above the tab
     bar. Apps and Presets keep a slim "now showing" strip on top (tap = back to the panel).
+  - **Presets tab:** cover cards in a 2-up grid (3-up ≥ 560 px) — an LED-equaliser cover drawn from the preset's id
+    in its tint (the category most of its apps share; static SVG), the preset's icon as a solid tile, a "Playing"
+    chip with animated bars, the name, up to three app glyphs, "N apps · M min", and one round play key (a stop key
+    while it plays). Your own presets get a × on the cover with an inline confirm.
   - **Play mode** is a handheld console: score strip, the panel as big as fits, the pad — one screen, no scroll.
     Mode, match setup, restart / AI / fruit fly sit in the **Match** sheet (header ⚙ key).
   - Bottom sheets (`components/Sheet.tsx`: drag-to-close handle, ≤ 88 dvh, safe-area padding) replace pop-overs;
     modals are full-screen with the notch / home-indicator insets. `100dvh`, `viewport-fit=cover`, 16 px inputs (no
     iOS zoom), `touch-action: manipulation`, no tap flash, `overscroll-behavior` so pages never rubber-band.
+
+## Icons (`components/Icon.tsx`)
+
+One icon language everywhere — lucide glyphs (apps name theirs in Python, kebab-case), drawn two ways:
+
+- `Icon` — the plain outline (1.6 stroke) for keys, inline hints, chevrons. `duo` = the **duotone** style: the outline
+  (1.75) plus a 20 % fill of its shapes in the same colour.
+- `IconTile` — a duotone glyph on a tinted, softly lit tile (radius 30 % of its size): app rows and headers, the
+  now-showing card, presets, the queue, the Create menu, the palette, Quick controls, Settings. `tone` picks the tint;
+  `solid` fills the tile (selected / playing).
+- **Tints** (`[data-tone]` in index.css; each sets `--tint`, deep on ivory, and `--led`, always bright, for LED
+  artwork): one per category — time amber · data cyan · media violet · creative rose · ambient teal · productivity
+  lime · pets pink · games ember-orange · casino gold · device slate — plus `ember`, `gold`, `ok`, `info`, `neutral`.
+  `CATEGORY_ICON` gives each category its glyph. Use a tile where an icon *names a thing*; a plain `Icon` inside keys.
+
+## Dropdowns (`components/Picker.tsx`)
+
+No native `<select>` in the studio chrome (the fruit-fly view's mini selects excepted). `Picker` takes
+`{ value, label, hint?, icon?, tone?, swatch?, disabled? }[]`:
+
+- **Touch screens / phones:** a bottom sheet titled with the field's label — 56 px rows with an icon tile or colour
+  chip, the name, a description line, a check on the current one; a search box above 10 options.
+- **Mouse:** an anchored list (below, or above when there's no room; follows scrolling) that works like a select —
+  ↑ ↓ Home End, Enter, Esc / Tab, type a letter to jump; search above 10 options. `returnFocus={false}` drops focus
+  after a choice (Play mode hands the arrow keys back to the game).
+- Schema forms: an enum with more than 4 options is a Picker; `Name (detail)` labels split into name + description,
+  host-blocked options show their platforms and are disabled.
 
 ## Connection (`components/ConnectionSheet.tsx`)
 
@@ -420,7 +472,7 @@ Four sections, each a stack of titled blocks with an anchor id `set-<block>`:
 
 | Section | Blocks |
 | --- | --- |
-| Display & colour | `theme` studio theme (light · dark · auto, per browser) · display (brightness, night mode, rotate) · `intro` intro & outro theme · `sound` studio sounds · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
+| Display & colour | `theme` studio theme (light · dark · auto, per browser) · `appicon` **App icon** (only inside the Android app: the launcher icons as a grid of the same artwork, the current one ticked; a note that the launcher takes a few seconds and some — MIUI among them — drop the old home-screen shortcut; the screen's refresh rate now / at best) · display (brightness, night mode, rotate) · `intro` intro & outro theme · `sound` studio sounds · `calibrate` colour calibration (`components/calibration/`: guided A/B match, presets, advanced) · `transfer` motion lab (guided A/B, test bench, presets, auto-tune, advanced + fixed link facts) — see docs/CALIBRATION.md |
 | Notifications & integrations | `notifications` computer alerts · `integrations`: On Air, eye break, status indicators, phone pushes (ntfy), Home Assistant |
 | Playlist & hand-off | transitions · your presets · `autopilot` "Follow the app I'm using" · `handoff` "Keep showing when my computer is off" |
 | Device | `panel` connection (reconnect, scan, disconnect…) · `weather` location & units · `audio` sound input · data sources |
@@ -453,7 +505,7 @@ The Inspector renders any app's pydantic schema (`SchemaForm.tsx`):
 | Schema | Control |
 | --- | --- |
 | `enum` ≤ 4 (from `Choice`) | segmented |
-| `enum` > 4 | select |
+| `enum` > 4 | picker (`Picker`: bottom sheet on phones, list on desktop — see Dropdowns) |
 | `boolean` | toggle |
 | `integer/number` with `minimum`+`maximum` | fader + readout |
 | `format: "color"` (`Color` type) | swatch + picker with LED palette tokens |
@@ -469,8 +521,23 @@ To get a new control type: add a `json_schema_extra={"format": "..."}` in Python
 
 ## Performance rules
 
+The phone app must hold the screen's full refresh rate (120 Hz on the test phone; MainActivity asks for the fastest
+mode). Nothing animates layout or paint per frame; the main thread only draws the panel when it changes.
+
 - Frames never go through React state. `lib/store.ts` keeps them in a module variable; `LedPanel` subscribes
-  and draws on a canvas. Bloom = the 32×32 frame upscaled with blur and `lighter` compositing (two passes).
+  and draws on a canvas. Bloom = the 32×32 frame blurred on a 4-px-per-LED canvas, upscaled with `lighter`
+  compositing (two passes) — never a big blur at full size.
+- `LedPanel` draws **only new frames, at most once per vsync**: frames that arrive within one refresh collapse to the
+  newest (`requestAnimationFrame`), a frame byte-identical to the one on screen is skipped, nothing is drawn while
+  the canvas is off screen (IntersectionObserver) or the page hidden — the newest frame is drawn on return. The LED
+  look's housing and unlit LEDs are a cached layer per size; a frame draws only the lit ones. The canvas is opaque
+  (`alpha: false`). Exception: the crisp Play-mode view draws straight from the socket callback (lowest latency).
+- Progress bars run on a CSS `transform: scaleX` transition re-aimed on each state update — no per-frame JS.
+- Sheets follow the finger by writing `transform` directly (no React render per pointer move).
+- Touch screens switch off the costly desktop effects (index.css "phone app polish"): the full-screen film-grain
+  blend layer, backdrop blurs behind sheets and dialogs (they re-blur whenever the live panel changes), CSS filters on
+  animated GIF thumbnails, the roaming fly's animated glow; the theme cross-fade animates colours only. The roaming
+  fly redraws its sprite at most ~60×/s and re-blurs its shadow only when it visibly changes.
 - Zustand selectors must return stable references (`EMPTY_LIST`/`EMPTY_MAP`, never `?? []`) — v5 throws on
   unstable selectors.
 - Animations are CSS; long lists use `overflow` containers, not virtualisation (n is small).

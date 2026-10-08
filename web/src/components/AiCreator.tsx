@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "../lib/api";
 import { toast, useStore } from "../lib/store";
+import { Picker } from "./Picker";
 
 const PRESET_PROMPTS = [
   { label: "🔥 Campfire Glow", prompt: "A flickering pixel art campfire with rising embers and warm yellow-orange flame animation" },
@@ -254,15 +255,12 @@ export function AiCreator() {
                 {hasConfig ? "Change Key" : "Enter API Key"}
               </button>
             )}
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="rounded-[6px] border border-line bg-chassis-0 px-2 py-1 text-[11px] text-ink-2 outline-none"
-            >
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep)</option>
-            </select>
+            <Picker label="Model" size="sm" className="!w-44" value={model} onChange={setModel}
+              options={[
+                { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", hint: "Fast", icon: "zap" },
+                { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", icon: "sparkle" },
+                { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", hint: "Deep", icon: "brain" },
+              ]} />
           </div>
         </div>
 

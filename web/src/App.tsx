@@ -1,4 +1,3 @@
-import { LayoutGrid, ListMusic, MonitorPlay, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AiCreator } from "./components/AiCreator";
 import { Boot } from "./components/Boot";
@@ -16,6 +15,8 @@ import { PlaybackSheet, PlaylistDock } from "./components/PlaylistDock";
 import { PlayMode } from "./components/PlayMode";
 import { Stage } from "./components/Stage";
 import { TopBar } from "./components/TopBar";
+import { ThemeFab } from "./components/ThemeFab";
+import { installRecent } from "./lib/recent";
 import { api, loadPresets } from "./lib/api";
 import { INSPECTOR_MAX, LIBRARY_MAX, type MobileTab, appMeta, useStore } from "./lib/store";
 import { gameKeyDown, isPlayable } from "./lib/gameInput";
@@ -144,11 +145,11 @@ function MiniPreview() {
   );
 }
 
-const TABS: [MobileTab, string, React.ReactNode][] = [
-  ["panel", "Panel", <MonitorPlay size={20} />],
-  ["apps", "Apps", <LayoutGrid size={20} />],
-  ["play", "Presets", <ListMusic size={20} />],
-  ["tune", "Settings", <SlidersHorizontal size={20} />],
+const TABS: [MobileTab, string, string][] = [
+  ["panel", "Panel", "monitor-play"],
+  ["apps", "Apps", "layout-grid"],
+  ["play", "Presets", "list-music"],
+  ["tune", "Settings", "sliders-horizontal"],
 ];
 
 /** Phones: the bottom tab bar (thumb zone) — a lit pill behind the active icon, labels always shown. */
@@ -158,7 +159,7 @@ function TabBar() {
   const set = useStore((s) => s.set);
   const pick = (id: MobileTab) => {
     // tapping the open tab again scrolls it back to the top (the iOS / Android convention)
-    if (id === tab) document.querySelector(".phone-scroll")?.scrollTo({ top: 0, behavior: "smooth" });
+    if (id === tab) document.querySelector(".phone-scroll, .phone-stage")?.scrollTo({ top: 0, behavior: "smooth" });
     else set({ mobileTab: id });
   };
   return (
@@ -166,7 +167,7 @@ function TabBar() {
       {TABS.map(([id, label, icon]) => (
         <button key={id} onClick={() => pick(id)} aria-current={tab === id ? "page" : undefined} className="tabbar-btn">
           <span className="tabbar-pill">
-            {icon}
+            <Icon name={icon} size={21} duo={tab === id} strokeWidth={tab === id ? 1.9 : 1.7} />
             {id === "play" && running && <span className="led absolute right-2 top-0.5 !h-[6px] !w-[6px]" data-on="ok" />}
           </span>
           {label}
@@ -189,18 +190,21 @@ function PhoneLayout() {
   if (tab === "panel")
     return (
       <>
-        <div className="phone-panel flex min-h-0 flex-1 flex-col px-3"><Stage /></div>
+        <div className="phone-panel flex min-h-0 flex-1 flex-col"><Stage /></div>
+        <ThemeFab />
         <TabBar />
       </>
     );
   return (
     <>
-      <div ref={scroller} className="phone-scroll">
+      <div ref={scroller} className="phone-scroll" data-tab={tab}>
         {tab !== "tune" && <MiniPreview />}
         {tab === "apps" && <Library flat />}
         {tab === "play" && <div className="pt-1"><PlaybackSheet /></div>}
         {tab === "tune" && <Inspector flat />}
       </div>
+      {/* the Settings tab docks Show / Playlist above the tab bar: the key sits above that row */}
+      <ThemeFab lift={tab === "tune"} />
       <TabBar />
     </>
   );
@@ -210,6 +214,7 @@ export default function App() {
   useShortcuts();
   useEffect(() => {
     connect();
+    installRecent();
     api.meta().then((meta) => useStore.setState({ meta }));
     loadPresets();
     startFlyPolling();

@@ -3,6 +3,7 @@ import { Copy, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { EMPTY_MAP, useStore } from "../lib/store";
+import { Picker } from "./Picker";
 
 export type Layer = {
   id: string;
@@ -24,6 +25,13 @@ const KINDS: [Layer["kind"], string][] = [
   ["day", "Weekday"], ["weather", "Temperature"], ["cpu", "CPU %"], ["ram", "RAM %"], ["price", "Crypto price"],
 ];
 const EFFECTS: Layer["effect"][] = ["solid", "rainbow", "gradient", "pulse", "blink", "glow", "scroll"];
+const KIND_ICON: Record<string, string> = {
+  text: "type", time: "clock-3", seconds: "timer", date: "calendar-days", month: "calendar", day: "calendar-check",
+  weather: "thermometer", cpu: "cpu", ram: "memory-stick", price: "bitcoin",
+};
+const EFFECT_ICON: Record<string, string> = {
+  solid: "circle", rainbow: "rainbow", gradient: "blend", pulse: "activity", blink: "eye", glow: "sun", scroll: "move-horizontal",
+};
 const HEIGHT = { tiny: 5, small: 7, big: 10 } as const;
 const uid = () => Math.random().toString(16).slice(2, 8);
 
@@ -185,9 +193,9 @@ export function ComposerToolbar() {
   return (
     <div className="surface w-full max-w-[640px] space-y-2.5 p-3 animate-rise">
       <div className="flex flex-wrap items-center gap-2">
-        <select className="field !h-8 !w-36 !text-[12px]" value={lay.kind} onChange={(e) => upd({ kind: e.target.value as Layer["kind"], text: e.target.value === "price" ? "BTC" : e.target.value === "text" ? lay.text || "TEXT" : e.target.value === "cpu" ? "CPU " : e.target.value === "ram" ? "RAM " : "" })}>
-          {KINDS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
-        </select>
+        <Picker label="Layer shows" size="sm" className="!w-40" value={lay.kind}
+          onChange={(v) => upd({ kind: v as Layer["kind"], text: v === "price" ? "BTC" : v === "text" ? lay.text || "TEXT" : v === "cpu" ? "CPU " : v === "ram" ? "RAM " : "" })}
+          options={KINDS.map(([k, label]) => ({ value: k, label, icon: KIND_ICON[k] }))} />
         {needsText && (
           <input id="composer-text" className="field !h-8 min-w-0 flex-1 !font-mono !text-[12.5px] uppercase" value={lay.text}
             placeholder={lay.kind === "price" ? "Symbol e.g. BTC" : lay.kind === "text" ? "Your text" : "Label"}
@@ -216,9 +224,8 @@ export function ComposerToolbar() {
         <div className="seg">
           {(["left", "center", "right"] as const).map((a) => <button key={a} data-active={lay.align === a} onClick={() => upd({ align: a })}>{a}</button>)}
         </div>
-        <select className="field !h-8 !w-28 !text-[12px]" value={lay.effect} onChange={(e) => upd({ effect: e.target.value as Layer["effect"] })}>
-          {EFFECTS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
+        <Picker label="Effect" size="sm" className="!w-32" value={lay.effect} onChange={(v) => upd({ effect: v as Layer["effect"] })}
+          options={EFFECTS.map((f) => ({ value: f, label: f[0].toUpperCase() + f.slice(1), icon: EFFECT_ICON[f] }))} />
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         <label className="relative h-7 w-9 overflow-hidden rounded-[7px] border border-line-2" style={{ background: lay.color }} title="Colour">

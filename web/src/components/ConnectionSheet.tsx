@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { openSettings, toast, useStore } from "../lib/store";
 import type { DeviceInfo } from "../lib/types";
 import { Sheet } from "./Sheet";
+import { Picker } from "./Picker";
 
 /*
  * The Connection sheet (docs/STUDIO_UI.md "Connection"): what the panel is connected to, where, how well, and the
@@ -274,17 +275,18 @@ export function ConnectionSheet() {
         {dev?.kind === "web" && host?.setPacket && (
           <label className="flex items-center gap-2 text-[12px] text-ink-3" title="Bytes per Bluetooth write. Browsers don't report the link's limit; if frames look broken, try a smaller size.">
             Packet size
-            <select className="field !h-8 !w-auto !text-[12px]" value={web?.packetChoice ?? ""}
-              onChange={(e) => {
-                host.setPacket!(e.target.value ? +e.target.value : null);
+            <Picker label="Packet size" size="sm" className="!w-40" value={String(web?.packetChoice ?? "")}
+              onChange={(v) => {
+                host.setPacket!(v ? +v : null);
                 toast("Packet size changes on the next connect — press Reconnect", "info");
-              }}>
-              <option value="">Auto ({web?.packet ?? "?"} B)</option>
-              <option value="20">20 B · safest</option>
-              <option value="182">182 B</option>
-              <option value="244">244 B</option>
-              <option value="512">512 B · fastest</option>
-            </select>
+              }}
+              options={[
+                { value: "", label: `Auto (${web?.packet ?? "?"} B)`, hint: "What the link reports" },
+                { value: "20", label: "20 B", hint: "Safest" },
+                { value: "182", label: "182 B" },
+                { value: "244", label: "244 B" },
+                { value: "512", label: "512 B", hint: "Fastest" },
+              ]} />
           </label>
         )}
 

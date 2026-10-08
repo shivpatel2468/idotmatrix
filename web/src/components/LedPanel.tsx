@@ -79,7 +79,12 @@ export function LedPanel({
     return () => ro.disconnect();
   }, [size]);
 
-  // draw on every frame
+  // draw each new frame — see "Performance rules" in docs/STUDIO_UI.md:
+  //  - at most one draw per display refresh (frames that arrive within one vsync collapse to the newest), except the
+  //    crisp Play-mode view, which draws straight from the socket callback for the lowest latency;
+  //  - a frame identical to the one on screen is skipped (the engine re-sends unchanged frames on some apps);
+  //  - nothing is drawn while the canvas is off screen or the page is hidden; the newest frame is drawn on return;
+  //  - the LED look's unlit LEDs and housing are a cached layer: a frame only draws the lit LEDs.
   useEffect(() => {
     const canvas = cv.current;
     if (!canvas || !px) return;
@@ -87,7 +92,7 @@ export function LedPanel({
     const dpr = sharp ? Math.min(3, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1);
     canvas.width = canvas.height = sharp ? Math.max(N, Math.floor((px * dpr) / N) * N) : Math.round(px * dpr);
     setCssPx(sharp ? canvas.width / dpr : px);
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d", { alpha: false })!; // every look paints the whole canvas: no blending needed
     if (!tiny.current) {
       tiny.current = document.createElement("canvas");
       tiny.current.width = tiny.current.height = N;
@@ -103,7 +108,8 @@ export function LedPanel({
     const BS = N * 4;
     let bloom: CanvasRenderingContext2D | null = null;
     const glowK = bloomAmt / 0.5; // multiplies the glow look's bloom passes
-    if ((crisp || look === "glow") && glow) {
+    // the glow is always blurred small (4 px per LED) and scaled up: a big blur at full size costs milliseconds a frame
+    if (glow && (crisp || look !== "pixel")) {
       const b = document.createElement("canvas");
       b.width = b.height = BS;
       bloom = b.getContext("2d")!;
@@ -137,8 +143,31 @@ export function LedPanel({
       }
     };
 
+    // LED look: the housing and every unlit LED, drawn once per size (a frame then only draws the lit ones)
+    let base: HTMLCanvasElement | null = null;
+    if (look === "led") {
+      base = document.createElement("canvas");
+      base.width = base.height = W;
+      const b = base.getContext("2d")!;
+      b.fillStyle = "#060608";
+      b.fillRect(0, 0, W, W);
+      b.fillStyle = "#15151b";
+      b.beginPath();
+      for (let i = 0; i < N * N; i++) b.roundRect((i % N) * cell + inset, Math.floor(i / N) * cell + inset, led, led, rad);
+      b.fill();
+    }
+
     const shown = new Uint8Array(N * N * 3);
-    const draw = (src: Uint8Array) => {
+    const drawn = new Uint8Array(N * N * 3); // the frame on screen (to skip identical ones)
+    let hasDrawn = false;
+    const draw = (src: Uint8Array, force = false) => {
+      if (!force && hasDrawn && src.length === drawn.length) {
+        let same = true;
+        for (let i = 0; i < src.length; i++) if (src[i] !== drawn[i]) { same = false; break; }
+        if (same) return;
+      }
+      if (src.length === drawn.length) drawn.set(src);
+      hasDrawn = true;
       const rgb = toPanel ? toPanel(src, shown) : src;
       if (look !== "led") {
         drawPixels(rgb);
@@ -148,23 +177,20 @@ export function LedPanel({
       ctx.globalCompositeOperation = "source-over";
       ctx.filter = "none";
       ctx.globalAlpha = 1;
-      ctx.fillStyle = "#060608";
-      ctx.fillRect(0, 0, W, W);
+      ctx.drawImage(base!, 0, 0);
       for (let i = 0; i < N * N; i++) {
         const r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2];
         img.data[i * 4] = r;
         img.data[i * 4 + 1] = g;
         img.data[i * 4 + 2] = b;
         img.data[i * 4 + 3] = 255;
+        const lum = Math.max(r, g, b);
+        if (lum < 6) continue; // unlit: already in the cached layer
         const x = (i % N) * cell + inset;
         const y = Math.floor(i / N) * cell + inset;
-        const lum = Math.max(r, g, b);
         ctx.beginPath();
         ctx.roundRect(x, y, led, led, rad);
-        if (lum < 6) {
-          ctx.fillStyle = "#15151b";
-          ctx.fill();
-        } else {
+        {
           // lift very dim LEDs slightly so they stay visible on a monitor, like they are in a room
           const k = lum < 40 ? 1 + (40 - lum) / 60 : 1;
           ctx.fillStyle = `rgb(${Math.min(255, r * k)},${Math.min(255, g * k)},${Math.min(255, b * k)})`;
@@ -214,8 +240,38 @@ export function LedPanel({
         ctx.strokeRect(h[0] * cell + 0.5, h[1] * cell + 0.5, cell - 1, cell - 1);
       }
     }
-    drawRef.current = draw;
-    return onFrame(draw);
+    // schedule: newest frame wins, one draw per vsync, none while off screen / hidden
+    let pending: Uint8Array | null = null;
+    let raf = 0;
+    let onScreen = true;
+    const flushDraw = () => {
+      raf = 0;
+      const f = pending;
+      pending = null;
+      if (f) draw(f);
+    };
+    const kick = () => {
+      if (!raf && pending && onScreen && !document.hidden) raf = requestAnimationFrame(flushDraw);
+    };
+    const schedule = (src: Uint8Array) => {
+      if (crisp && onScreen && !document.hidden) return draw(src); // Play mode: straight from the socket callback
+      pending = src;
+      kick();
+    };
+    const io = new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+      kick();
+    });
+    io.observe(canvas);
+    document.addEventListener("visibilitychange", kick);
+    drawRef.current = (f) => draw(f, true);
+    const off = onFrame(schedule);
+    return () => {
+      off();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", kick);
+      cancelAnimationFrame(raf);
+    };
   }, [px, glow, paintable, crisp, look, bloomAmt, toPanel]);
 
   // ------------------------------------------------------------- painting

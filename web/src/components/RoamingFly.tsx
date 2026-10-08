@@ -252,6 +252,8 @@ export function RoamingFly() {
     let raf = 0;
     let last = performance.now();
     let t = 0;
+    let drewAt = 0; // the sprite redraws at most ~60×/s (wings blur anyway); its position still moves every refresh
+    let blurNow = -1;
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (document.visibilityState !== "visible") {
@@ -394,7 +396,10 @@ export function RoamingFly() {
       st.walk = mode.current === "walk" ? t : 0;
       st.groom = mode.current === "groom" ? 1 : 0;
 
-      drawFly(g, t, { wing: 0, buzz: st.buzz, walk: st.walk, groom: st.groom, air: st.h }, skin.current);
+      if (now - drewAt >= 15) {
+        drewAt = now;
+        drawFly(g, t, { wing: 0, buzz: st.buzz, walk: st.walk, groom: st.groom, air: st.h }, skin.current);
+      }
       const vis = booted ? st.visible : 0;
       const sc = (1 + st.h * 0.14) * st.scale;
       el.style.opacity = String(vis);
@@ -402,7 +407,11 @@ export function RoamingFly() {
       const sh = shadow.current!;
       sh.style.opacity = String(vis * (0.55 - st.h * 0.3) * st.scale);
       sh.style.transform = `translate3d(${st.x - 16 + st.h * 14}px, ${st.y - 8 + st.h * 22}px, 0) scale(${(1 + st.h * 0.6) * st.scale})`;
-      sh.style.filter = `blur(${2 + st.h * 6}px)`;
+      const blur = Math.round((2 + st.h * 6) * 2) / 2; // re-blur the shadow only when it visibly changes
+      if (blur !== blurNow) {
+        blurNow = blur;
+        sh.style.filter = `blur(${blur}px)`;
+      }
       const tp = tip.current;
       if (tp) {
         tp.style.transform = `translate3d(${st.x + 26}px, ${st.y - 34}px, 0)`;

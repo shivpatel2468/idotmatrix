@@ -10,6 +10,59 @@ and keeps playing with the laptop off. Why and how: [docs/adr/0011-android-host-
 - **Studio**: the app shows the studio full screen (`http://127.0.0.1:8765` on the phone). Phone controllers for
   multiplayer work on the Wi-Fi exactly as on the laptop (`/p/<code>`).
 
+## The app shell (`MainActivity.kt`)
+
+- **Refresh rate:** the window asks for the fastest display mode at the current resolution
+  (`preferredDisplayModeId` + `preferredRefreshRate`, again on resume because some skins reset it) — 120 Hz on a
+  120 Hz phone. The window is hardware accelerated; the WebView keeps the default layer type on purpose (it already
+  draws on the GPU; `LAYER_TYPE_HARDWARE` would add an off-screen copy of the whole page per frame). It rasters
+  tiles just off screen (`offscreenPreRaster`) and runs at important renderer priority. Android may still lower the
+  rate: on Xiaomi / MIUI / HyperOS set **Settings → Display → Refresh rate → High (120 Hz)** ("Default" lets the
+  system drop apps to 60 Hz). Settings → Display & colour → App icon shows the rate now and the best available.
+- **Only the studio opens inside the app.** Links to anything but `127.0.0.1` / `localhost` open in the browser.
+- **`window.DeskDotAndroid`** (the `Bridge` inner class; web side `web/src/lib/android.ts`):
+
+  | Call | What |
+  | --- | --- |
+  | `setBars(status, nav, page, lightIcons)` | system bar colours (`#rrggbb`) + icon contrast and the window background for the studio theme on screen; remembered in `deskdot.ui` prefs for the next cold start |
+  | `icons()` / `getIcon()` / `setIcon(id)` | launcher icon ids (JSON), the enabled one, switch (returns false for an unknown id) |
+  | `display()` | `{"hz", "max", "modes"}` — the refresh rate now, the best, all at this resolution |
+  | `version()` | `1` |
+
+  The studio calls `setBars` on every theme change (light / dark / Auto), so status bar, navigation bar and the
+  window behind the page always match. Before the studio loads, `values/` (light) and `values-night/` (dark)
+  colour the window like the studio's Auto default; after the first run the remembered theme is used. Android 15+
+  draws apps edge to edge: there the root view is padded by the bar insets and the window background (the theme's
+  page colour) shows behind the bars.
+
+## Launcher icons
+
+Seven options — **Classic** (today's ember dot D, the default), **Monogram** (DD in rose and gold LEDs), **Gold
+leaf** (gold dot D on midnight ink), **Sunset** (brand gradient tile, white LEDs), **Porcelain** (the panel on an
+ivory tile, rainbow D), **Casino chip** (ember chip on felt) and **Pixel heart**. Each is an adaptive icon
+(`mipmap-anydpi-v26/ic_launcher_<id>.xml`: background + foreground vectors + a monochrome layer for Android 13
+themed icons). All of them are drawn by `tools/gen_icons.py`, which also writes `web/src/lib/appIcons.ts` (the same
+artwork as SVG, for the picker in Settings):
+
+```powershell
+uv run python android/tools/gen_icons.py   # after editing an icon there; never hand-edit the generated XML
+```
+
+The manifest has one `<activity-alias android:name=".Launcher<Id>">` per icon targeting `MainActivity`; exactly one
+is enabled. **Settings → Display & colour → App icon** (shown only inside the app) calls `setIcon(id)`, which enables
+the chosen alias first and then disables the others with `DONT_KILL_APP` — the engine keeps running and the panel
+stays connected. The launcher redraws within a few seconds; some launchers (MIUI among them) remove the old
+home-screen shortcut — add DeskDot to the home screen again from the app drawer.
+
+**Changing the default:** set `android:enabled="true"` on that alias (and `false` on Classic) in
+`AndroidManifest.xml` and `MainActivity.DEFAULT_ICON` to its id; `mipmap-anydpi-v26/ic_launcher.xml` (the app's own
+icon in app info / recents) can point at the same layers. A choice made in Settings survives updates (PackageManager
+keeps it). Adding an icon: draw it in `gen_icons.py`, run it, add its alias to the manifest and its id to
+`MainActivity.ICONS`.
+
+The first install with icon aliases replaces the launcher entry (`.MainActivity` no longer has the LAUNCHER filter),
+so the home-screen shortcut from an older build may disappear once — re-add it from the app drawer.
+
 ## Build
 
 Needs JDK 17, the Android SDK (platform 35, build-tools 35) and a Python 3.13 on the build machine.
