@@ -72,8 +72,10 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: during the spin or the deal, every phone shows the live panel too.
 - **Smoother on a Fire TV**
   - Before: animations on slow TV browsers stuttered.
-  - Now: heavy effects are gone, and a lighter mode switches on by itself on slow TVs. Games show as a sharp HD
-    picture of the panel (press select on the remote for the classic LED look).
+  - Now: heavy effects are gone, and a lighter mode switches on by itself on slow TVs.
+- **The winning number on the TV**
+  - Before: a white marker, then a rubber stamp, showed where the ball landed.
+  - Now: like a real table, the dealer sets a crystal dolly with a gold base on the winning number.
 - **The DeskDot logo**
   - Before: the old logo in three colours.
   - Now: an animated LED logo in two colours — pink "Desk", gold "Dot" — on every screen.

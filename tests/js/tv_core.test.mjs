@@ -8,7 +8,7 @@ import vm from "node:vm";
 const src = readFileSync(new URL("../../src/deskdot/tv/tv.js", import.meta.url), "utf8");
 
 function load(search = "", stored = null) {
-  const store = new Map(stored ? [["deskdot.tv.look", stored]] : []);
+  const store = new Map(stored ? [["deskdot.tv.panel-look", stored]] : []);
   const window = {};
   const sandbox = {
     window,
@@ -56,10 +56,11 @@ test("quality tier: slow frame windows drop to lite, smooth ones stay hq", () =>
   assert.equal(TV.judgeFrames([...many(16.7, 119), 5000]), "hq"); // a hidden tab's gap says nothing
 });
 
-test("panel look: HD by default, ?look=led or the remembered choice for the classic LEDs", () => {
-  assert.equal(load().TV.look, "hd");
-  assert.equal(load("?look=led").TV.look, "led");
-  assert.equal(load("", "led").TV.look, "led");
+test("panel look: the classic LEDs by default, ?look=hd or the remembered choice for HD", () => {
+  assert.equal(load().TV.look, "led");
+  assert.equal(load("?look=hd").TV.look, "hd");
+  assert.equal(load("", "hd").TV.look, "hd");
+  assert.equal(load("?look=led", "hd").TV.look, "led");
   assert.equal(load("?look=hd", "led").TV.look, "hd");
   assert.equal(load().TV.lookFromQuery("?look=nope"), null);
 });

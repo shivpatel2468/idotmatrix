@@ -5,7 +5,11 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.3.0 – 3.5.0 — 2026-10-02 to 2026-10-07
 
-(3.3.0 = up to 2 Oct, 3.4.0 = 4 Oct, 3.5.0 = 5–7 Oct; newest first.)
+(3.3.0 = up to 2 Oct, 3.4.0 = 4 Oct, 3.5.0 = 5–8 Oct; newest first.)
+
+- TV view: the panel keeps its classic LED look by default (the HD upscale is opt-in: `?look=hd` or select on the
+  remote); roulette marks the winning number with a crystal dolly on a gold base, lowered by the dealer, instead of
+  the stamp and sparks.
 
 - Casino chips: high-roller tables now offer 1K, 2K, 5K … up to 1M chips, and chips the table doesn't allow are
   no longer shown at all — the same rack on phones, the laptop and the TV.
