@@ -1,18 +1,18 @@
 {
- "version": "3.2.0",
- "count": 102,
+ "version": "3.5.0",
+ "count": 116,
  "games": 27,
  "multiplayer": 32,
  "categories": [
   {
    "id": "time",
    "label": "Time",
-   "count": 7
+   "count": 8
   },
   {
    "id": "data",
    "label": "Live data",
-   "count": 17
+   "count": 30
   },
   {
    "id": "media",
@@ -359,6 +359,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -480,6 +536,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -616,6 +728,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -763,6 +931,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -875,6 +1099,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -1100,6 +1380,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -1373,6 +1709,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -1509,6 +1901,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -1728,6 +2176,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -1880,6 +2384,62 @@
       {
        "value": "burgundy",
        "label": "Burgundy & ivory"
+      },
+      {
+       "value": "noir",
+       "label": "Riviera noir"
+      },
+      {
+       "value": "jade",
+       "label": "Imperial jade"
+      },
+      {
+       "value": "deco",
+       "label": "Gilded deco"
+      },
+      {
+       "value": "marigold",
+       "label": "Marigold masala"
+      },
+      {
+       "value": "diwali",
+       "label": "Festival of lights"
+      },
+      {
+       "value": "cyber",
+       "label": "Cyber grid"
+      },
+      {
+       "value": "arcade",
+       "label": "Pixel arcade"
+      },
+      {
+       "value": "sakura",
+       "label": "Sakura night"
+      },
+      {
+       "value": "arctic",
+       "label": "Glacier"
+      },
+      {
+       "value": "oasis",
+       "label": "Desert oasis"
+      },
+      {
+       "value": "abyss",
+       "label": "Ocean abyss"
+      },
+      {
+       "value": "volcano",
+       "label": "Volcano"
+      },
+      {
+       "value": "galaxy",
+       "label": "Galaxy"
+      },
+      {
+       "value": "riverboat",
+       "label": "Riverboat mahogany"
       }
      ],
      "group": "Look"
@@ -3687,6 +4247,268 @@
    ]
   },
   {
+   "id": "asteroidflyby",
+   "name": "Asteroid Flyby",
+   "category": "data",
+   "icon": "orbit",
+   "description": "The next asteroid to pass Earth within 10 Moon distances: when, how close, how big, how fast.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/asteroidflyby.html",
+   "preview": "media/apps/asteroidflyby.gif",
+   "poster": "media/apps/asteroidflyby.png",
+   "og_image": "media/apps/og/asteroidflyby.png",
+   "source": "src/deskdot/apps/asteroidflyby.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "pick",
+     "title": "Show",
+     "type": "choice",
+     "default": "next",
+     "options": [
+      {
+       "value": "next",
+       "label": "Next to pass"
+      },
+      {
+       "value": "closest",
+       "label": "Closest in 60 days"
+      }
+     ]
+    },
+    {
+     "key": "max_ld",
+     "title": "Within (lunar distances)",
+     "type": "integer",
+     "default": 10,
+     "min": 1,
+     "max": 10
+    }
+   ]
+  },
+  {
+   "id": "aurora",
+   "name": "Aurora Watch",
+   "category": "data",
+   "icon": "sparkles",
+   "description": "Kp index, NOAA's 3-day forecast and the live aurora oval — with your chance of seeing it.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/aurora.html",
+   "preview": "media/apps/aurora.gif",
+   "poster": "media/apps/aurora.png",
+   "og_image": "media/apps/og/aurora.png",
+   "source": "src/deskdot/apps/aurora.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "cycle",
+     "options": [
+      {
+       "value": "cycle",
+       "label": "Cycle all"
+      },
+      {
+       "value": "gauge",
+       "label": "Kp now"
+      },
+      {
+       "value": "chart",
+       "label": "3-day chart"
+      },
+      {
+       "value": "map",
+       "label": "Aurora map"
+      }
+     ]
+    },
+    {
+     "key": "rotate",
+     "title": "Seconds per page",
+     "type": "integer",
+     "default": 8,
+     "min": 3,
+     "max": 60
+    },
+    {
+     "key": "alert",
+     "title": "Alert when Kp reaches the threshold",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "alert_kp",
+     "title": "Alert at Kp",
+     "type": "integer",
+     "description": "5 = G1 storm: aurora at lower latitudes",
+     "default": 5,
+     "min": 3,
+     "max": 9
+    }
+   ]
+  },
+  {
+   "id": "bikeshare",
+   "name": "Bike Share",
+   "category": "data",
+   "icon": "bike",
+   "description": "Bikes and free docks at the bike-share stations nearest you, in 700+ cities.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/bikeshare.html",
+   "preview": "media/apps/bikeshare.gif",
+   "poster": "media/apps/bikeshare.png",
+   "og_image": "media/apps/og/bikeshare.png",
+   "source": "src/deskdot/apps/bikeshare.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "nearest",
+     "options": [
+      {
+       "value": "nearest",
+       "label": "Nearest station"
+      },
+      {
+       "value": "list",
+       "label": "Three nearest"
+      }
+     ]
+    },
+    {
+     "key": "network",
+     "title": "Network id",
+     "type": "text",
+     "description": "Empty = the nearest system. Ids are on citybik.es (e.g. santander-cycles, velib)",
+     "default": "",
+     "max_length": 60
+    },
+    {
+     "key": "station",
+     "title": "Station name contains",
+     "type": "text",
+     "description": "Pin one station",
+     "default": "",
+     "max_length": 40
+    }
+   ]
+  },
+  {
+   "id": "btcnet",
+   "name": "Bitcoin Network",
+   "category": "data",
+   "icon": "bitcoin",
+   "description": "Network fees (sat/vB), minutes since the last block and the countdown to the next halving.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/btcnet.html",
+   "preview": "media/apps/btcnet.gif",
+   "poster": "media/apps/btcnet.png",
+   "og_image": "media/apps/og/btcnet.png",
+   "source": "src/deskdot/apps/btcnet.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "cycle",
+     "options": [
+      {
+       "value": "cycle",
+       "label": "Cycle all"
+      },
+      {
+       "value": "fees",
+       "label": "Fees"
+      },
+      {
+       "value": "block",
+       "label": "Latest block"
+      },
+      {
+       "value": "halving",
+       "label": "Halving countdown"
+      }
+     ]
+    },
+    {
+     "key": "rotate",
+     "title": "Seconds per page",
+     "type": "integer",
+     "default": 8,
+     "min": 3,
+     "max": 60
+    }
+   ]
+  },
+  {
+   "id": "cryptomarket",
+   "name": "Crypto Market",
+   "category": "data",
+   "icon": "coins",
+   "description": "Total crypto market cap and BTC dominance, the day's top movers and the Fear & Greed index.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/cryptomarket.html",
+   "preview": "media/apps/cryptomarket.gif",
+   "poster": "media/apps/cryptomarket.png",
+   "og_image": "media/apps/og/cryptomarket.png",
+   "source": "src/deskdot/apps/cryptomarket.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "cycle",
+     "options": [
+      {
+       "value": "cycle",
+       "label": "Cycle all"
+      },
+      {
+       "value": "overview",
+       "label": "Market cap"
+      },
+      {
+       "value": "movers",
+       "label": "Top movers"
+      },
+      {
+       "value": "mood",
+       "label": "Fear & greed"
+      }
+     ]
+    },
+    {
+     "key": "rotate",
+     "title": "Seconds per page",
+     "type": "integer",
+     "default": 8,
+     "min": 3,
+     "max": 60
+    }
+   ]
+  },
+  {
    "id": "markets",
    "name": "Crypto Ticker",
    "category": "data",
@@ -3900,6 +4722,77 @@
      "min": 0.1,
      "max": 10.0,
      "group": "Colours"
+    }
+   ]
+  },
+  {
+   "id": "earthevents",
+   "name": "Earth Events",
+   "category": "data",
+   "icon": "earth",
+   "description": "Wildfires, storms, volcanoes and sea ice happening now, as dots on a world map (NASA EONET).",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/earthevents.html",
+   "preview": "media/apps/earthevents.gif",
+   "poster": "media/apps/earthevents.png",
+   "og_image": "media/apps/og/earthevents.png",
+   "source": "src/deskdot/apps/earthevents.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "map",
+     "options": [
+      {
+       "value": "map",
+       "label": "World map"
+      },
+      {
+       "value": "counts",
+       "label": "Counts by kind"
+      }
+     ]
+    },
+    {
+     "key": "show",
+     "title": "Show",
+     "type": "choice",
+     "default": "all",
+     "options": [
+      {
+       "value": "all",
+       "label": "All events"
+      },
+      {
+       "value": "wildfires",
+       "label": "Wildfires"
+      },
+      {
+       "value": "severeStorms",
+       "label": "Storms"
+      },
+      {
+       "value": "volcanoes",
+       "label": "Volcanoes"
+      },
+      {
+       "value": "seaLakeIce",
+       "label": "Sea & lake ice"
+      }
+     ]
+    },
+    {
+     "key": "days",
+     "title": "Started within (days)",
+     "type": "integer",
+     "default": 30,
+     "min": 3,
+     "max": 90
     }
    ]
   },
@@ -4272,6 +5165,49 @@
      "type": "toggle",
      "default": true,
      "group": "Filters"
+    }
+   ]
+  },
+  {
+   "id": "gameserver",
+   "name": "Game Server",
+   "category": "data",
+   "icon": "server",
+   "description": "Players online on your Java or Bedrock block-game server, with its icon and message of the day.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/gameserver.html",
+   "preview": "media/apps/gameserver.gif",
+   "poster": "media/apps/gameserver.png",
+   "og_image": "media/apps/og/gameserver.png",
+   "source": "src/deskdot/apps/gameserver.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "address",
+     "title": "Server address",
+     "type": "text",
+     "description": "e.g. play.example.net or host:25565",
+     "default": "",
+     "max_length": 80
+    },
+    {
+     "key": "edition",
+     "title": "Edition",
+     "type": "choice",
+     "default": "java",
+     "options": [
+      {
+       "value": "java",
+       "label": "Java edition"
+      },
+      {
+       "value": "bedrock",
+       "label": "Bedrock edition"
+      }
+     ]
     }
    ]
   },
@@ -5095,6 +6031,80 @@
    ]
   },
   {
+   "id": "racecountdown",
+   "name": "Race Countdown",
+   "category": "data",
+   "icon": "flag",
+   "description": "Countdown to the next Grand Prix with its session times, LIVE during the race, then the podium.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/racecountdown.html",
+   "preview": "media/apps/racecountdown.gif",
+   "poster": "media/apps/racecountdown.png",
+   "og_image": "media/apps/og/racecountdown.png",
+   "source": "src/deskdot/apps/racecountdown.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "auto",
+     "options": [
+      {
+       "value": "auto",
+       "label": "Countdown (podium after a race)"
+      },
+      {
+       "value": "countdown",
+       "label": "Countdown"
+      },
+      {
+       "value": "podium",
+       "label": "Last podium"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rainchance",
+   "name": "Rain Chance",
+   "category": "data",
+   "icon": "umbrella",
+   "description": "The chance of rain for each of the next 12 hours, and when it peaks — umbrella or not.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/rainchance.html",
+   "preview": "media/apps/rainchance.gif",
+   "poster": "media/apps/rainchance.png",
+   "og_image": "media/apps/og/rainchance.png",
+   "source": "src/deskdot/apps/rainchance.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "hours",
+     "title": "Hours ahead",
+     "type": "integer",
+     "default": 12,
+     "min": 6,
+     "max": 12
+    },
+    {
+     "key": "dry_below",
+     "title": "Call it dry below (%)",
+     "type": "integer",
+     "default": 20,
+     "min": 5,
+     "max": 60
+    }
+   ]
+  },
+  {
    "id": "rainradar",
    "name": "Rain Radar",
    "category": "data",
@@ -5914,6 +6924,47 @@
    ]
   },
   {
+   "id": "tvtonight",
+   "name": "TV Tonight",
+   "category": "data",
+   "icon": "tv",
+   "description": "What's on broadcast TV now and later tonight in your country, three shows at a time.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/tvtonight.html",
+   "preview": "media/apps/tvtonight.gif",
+   "poster": "media/apps/tvtonight.png",
+   "og_image": "media/apps/og/tvtonight.png",
+   "source": "src/deskdot/apps/tvtonight.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "country",
+     "title": "Country",
+     "type": "text",
+     "description": "Two-letter code; empty = your location",
+     "default": "",
+     "max_length": 2
+    },
+    {
+     "key": "prime_time",
+     "title": "Prime time only (from 18:00)",
+     "type": "toggle",
+     "default": true
+    },
+    {
+     "key": "seconds",
+     "title": "Seconds per page",
+     "type": "integer",
+     "default": 6,
+     "min": 3,
+     "max": 30
+    }
+   ]
+  },
+  {
    "id": "weather",
    "name": "Weather",
    "category": "data",
@@ -6052,6 +7103,155 @@
      "min": 1,
      "max": 12,
      "group": "Thresholds"
+    }
+   ]
+  },
+  {
+   "id": "wikitrending",
+   "name": "Wiki Trending",
+   "category": "data",
+   "icon": "trending-up",
+   "description": "Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/wikitrending.html",
+   "preview": "media/apps/wikitrending.gif",
+   "poster": "media/apps/wikitrending.png",
+   "og_image": "media/apps/og/wikitrending.png",
+   "source": "src/deskdot/apps/wikitrending.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "count",
+     "title": "Articles",
+     "type": "integer",
+     "description": "Top N most-read articles to rotate",
+     "default": 10,
+     "min": 1,
+     "max": 15
+    },
+    {
+     "key": "seconds",
+     "title": "Seconds per article",
+     "type": "integer",
+     "default": 10,
+     "min": 4,
+     "max": 60
+    },
+    {
+     "key": "show_description",
+     "title": "Scroll the short description",
+     "type": "toggle",
+     "default": true
+    }
+   ]
+  },
+  {
+   "id": "windcompass",
+   "name": "Wind Compass",
+   "category": "data",
+   "icon": "wind",
+   "description": "Wind speed, gusts and direction on a compass with its Beaufort name, and the next 12 hours.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/windcompass.html",
+   "preview": "media/apps/windcompass.gif",
+   "poster": "media/apps/windcompass.png",
+   "og_image": "media/apps/og/windcompass.png",
+   "source": "src/deskdot/apps/windcompass.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "layout",
+     "title": "Layout",
+     "type": "choice",
+     "default": "compass",
+     "options": [
+      {
+       "value": "compass",
+       "label": "Compass"
+      },
+      {
+       "value": "hours",
+       "label": "Next 12 hours"
+      }
+     ]
+    },
+    {
+     "key": "arrow",
+     "title": "Arrow",
+     "type": "choice",
+     "default": "to",
+     "options": [
+      {
+       "value": "to",
+       "label": "Points where it blows to"
+      },
+      {
+       "value": "from",
+       "label": "Points where it comes from"
+      }
+     ]
+    },
+    {
+     "key": "hours",
+     "title": "Hours ahead",
+     "type": "integer",
+     "default": 12,
+     "min": 6,
+     "max": 12
+    }
+   ]
+  },
+  {
+   "id": "worldflags",
+   "name": "World Flags",
+   "category": "data",
+   "icon": "flag-triangle-right",
+   "description": "A flag of the day, a shuffle of every country's flag, or a guess-the-flag quiz.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/worldflags.html",
+   "preview": "media/apps/worldflags.gif",
+   "poster": "media/apps/worldflags.png",
+   "og_image": "media/apps/og/worldflags.png",
+   "source": "src/deskdot/apps/worldflags.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "mode",
+     "title": "Mode",
+     "type": "choice",
+     "default": "daily",
+     "options": [
+      {
+       "value": "daily",
+       "label": "Flag of the day"
+      },
+      {
+       "value": "shuffle",
+       "label": "Shuffle"
+      },
+      {
+       "value": "quiz",
+       "label": "Quiz"
+      }
+     ]
+    },
+    {
+     "key": "seconds",
+     "title": "Seconds per flag",
+     "type": "integer",
+     "description": "Shuffle and quiz",
+     "default": 12,
+     "min": 4,
+     "max": 120
     }
    ]
   },
@@ -14527,7 +15727,7 @@
    "name": "Photo Frame",
    "category": "media",
    "icon": "frame",
-   "description": "A slideshow of public-domain art, nature photos, dogs, cats, foxes and ducks.",
+   "description": "A slideshow of public-domain art, nature photos, Wikimedia's picture of the day, dogs, cats, foxes and ducks.",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -14590,6 +15790,14 @@
      "key": "ducks",
      "title": "Ducks",
      "type": "toggle",
+     "default": false,
+     "group": "Sources"
+    },
+    {
+     "key": "potd",
+     "title": "Picture of the day (Wikimedia)",
+     "type": "toggle",
+     "description": "The last week's featured photos from Wikimedia Commons",
      "default": false,
      "group": "Sources"
     },
@@ -18295,6 +19503,39 @@
      "type": "color",
      "default": "#ffffff",
      "group": "Colours"
+    }
+   ]
+  },
+  {
+   "id": "longweekend",
+   "name": "Long Weekend",
+   "category": "time",
+   "icon": "tree-palm",
+   "description": "Days until the next long weekend from public holidays — and when one day off makes it longer.",
+   "kind": "stream",
+   "kinds": [
+    "stream"
+   ],
+   "page": "apps/longweekend.html",
+   "preview": "media/apps/longweekend.gif",
+   "poster": "media/apps/longweekend.png",
+   "og_image": "media/apps/og/longweekend.png",
+   "source": "src/deskdot/apps/longweekend.py",
+   "actions": [],
+   "settings": [
+    {
+     "key": "country",
+     "title": "Country",
+     "type": "text",
+     "description": "Two-letter code (GB, US, DE, FR…). Empty = from your location",
+     "default": "",
+     "max_length": 2
+    },
+    {
+     "key": "bridges",
+     "title": "Include ones that need a day of leave",
+     "type": "toggle",
+     "default": true
     }
    ]
   },

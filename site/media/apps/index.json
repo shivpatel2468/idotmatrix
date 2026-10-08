@@ -29,15 +29,30 @@
   "ms": 6000,
   "bytes": 5933
  },
+ "asteroidflyby": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1994
+ },
  "asteroids": {
   "frames": 60,
   "ms": 6000,
   "bytes": 12784
  },
+ "aurora": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 611
+ },
  "avatar": {
   "frames": 20,
   "ms": 4000,
   "bytes": 1356
+ },
+ "bikeshare": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 612
  },
  "boids": {
   "frames": 64,
@@ -53,6 +68,11 @@
   "frames": 60,
   "ms": 6000,
   "bytes": 9557
+ },
+ "btcnet": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1122
  },
  "calendar": {
   "frames": 1,
@@ -144,6 +164,11 @@
   "ms": 4000,
   "bytes": 557
  },
+ "cryptomarket": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1118
+ },
  "currency": {
   "frames": 1,
   "ms": 4000,
@@ -178,6 +203,11 @@
   "frames": 60,
   "ms": 6000,
   "bytes": 11866
+ },
+ "earthevents": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1113
  },
  "emotes": {
   "frames": 40,
@@ -229,6 +259,11 @@
   "ms": 22950,
   "bytes": 8822
  },
+ "gameserver": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1131
+ },
  "github": {
   "frames": 8,
   "ms": 4000,
@@ -268,6 +303,11 @@
   "frames": 60,
   "ms": 6000,
   "bytes": 6102
+ },
+ "longweekend": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 621
  },
  "loops": {
   "frames": 96,
@@ -384,6 +424,11 @@
   "ms": 7500,
   "bytes": 11572
  },
+ "racecountdown": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 603
+ },
  "racer": {
   "frames": 60,
   "ms": 6000,
@@ -393,6 +438,11 @@
   "frames": 40,
   "ms": 4800,
   "bytes": 25370
+ },
+ "rainchance": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1110
  },
  "rainradar": {
   "frames": 37,
@@ -484,6 +534,11 @@
   "ms": 6000,
   "bytes": 266
  },
+ "tvtonight": {
+  "frames": 8,
+  "ms": 4000,
+  "bytes": 593
+ },
  "uptime": {
   "frames": 32,
   "ms": 3840,
@@ -504,9 +559,24 @@
   "ms": 4000,
   "bytes": 640
  },
+ "wikitrending": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1113
+ },
+ "windcompass": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1114
+ },
  "wireframe": {
   "frames": 64,
   "ms": 7680,
   "bytes": 45547
+ },
+ "worldflags": {
+  "frames": 16,
+  "ms": 4000,
+  "bytes": 1113
  }
 }
