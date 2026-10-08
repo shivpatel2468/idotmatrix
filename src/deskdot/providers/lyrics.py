@@ -23,7 +23,7 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any, NamedTuple
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 log = logging.getLogger("deskdot.lyrics")
 
@@ -323,6 +323,14 @@ class LyricsProvider(Provider[None]):
     """Not a poller: `get()` returns cached lyrics or starts one background search."""
 
     name = "lyrics"
+    endpoints = (
+        Endpoint(
+            "LRCLIB",
+            LRCLIB + "/get?track_name=Bohemian%20Rhapsody&artist_name=Queen",
+            expect=("syncedLyrics", "duration"),
+        ),
+        Endpoint("LRCLIB search", LRCLIB + "/search?q=queen%20bohemian%20rhapsody", expect=("0.id",)),
+    )
 
     def __init__(self, hub: Any) -> None:
         super().__init__(hub)

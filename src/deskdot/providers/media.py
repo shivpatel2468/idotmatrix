@@ -35,7 +35,7 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 log = logging.getLogger("deskdot.media")
 
@@ -388,6 +388,14 @@ def make_backend() -> Backend | None:
 # ------------------------------------------------------------------------------------------- provider
 class MediaProvider(Provider[dict[str, Any]]):
     name = "media"
+    endpoints = (
+        Endpoint(
+            "iTunes Search (cover art)",
+            ITUNES + "?term=queen%20bohemian%20rhapsody&entity=song&limit=1",
+            expect=("results.0.artworkUrl100",),
+            role="optional",
+        ),
+    )
     interval = 1.0
     retry = 5.0
     feature = "media"

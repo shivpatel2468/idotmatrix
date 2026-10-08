@@ -281,7 +281,7 @@ class _Hub:
 
 async def test_provider_fallback_and_bench() -> None:
     http = _Http(
-        {"adsb.lol": _Resp(403, {}), "airplanes.live": _Resp(429, {}), "opensky": _Resp(200, OPENSKY)}
+        {"adsb.lol": _Resp(403, {}), "adsb.fi": _Resp(429, {}), "opensky": _Resp(200, OPENSKY)}
     )
     p = FlightsProvider(_Hub(http))  # type: ignore[arg-type]
     v = await p.fetch()

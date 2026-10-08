@@ -113,7 +113,9 @@ Built-in providers: `system`, `weather`, `markets` (`.want(*symbols)`), `stocks`
 `notifications` (OS toasts → `os_notification` events), `flights` (ADS-B around the location).
 Public-API providers (see [PUBLIC_APIS.md](PUBLIC_APIS.md)): `quakes`, `rainradar`, `airquality`, `holidays`, `space`
 (`.want(parts, launch_filter)`), `iss`, `sky`, `daily`, `trivia`, `headlines`, `currency`, `photos`, `pokedex`,
-`avatars`, `chess`, `gamedeals`.
+`avatars`, `chess`, `gamedeals`, and (3.6.0) `spaceweather`, `bitcoin`, `cryptomarket`, `racing`,
+`longweekend`, `bikeshare`, `earthevents`, `flags`, `hourly`, `wiki`, `asteroids`, `gameserver`, `tvguide`. Every provider that
+calls the internet lists its URLs in `endpoints` (`providers.base.Endpoint`) so `scripts/api_health.py` can check them.
 Platform providers (Settings → Integrations; see [API.md](API.md#integrations-on-air-eye-break-ntfy-home-assistant)):
 `onair` (Windows camera/mic usage from the ConsentStore registry → `{"in_use": {"webcam": [...], "microphone": [...]}}`;
 filter with `providers.onair.filter_apps`), `idle` (Windows `idle_s` since the last input and `fullscreen`),

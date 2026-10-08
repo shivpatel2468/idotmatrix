@@ -6,7 +6,7 @@
 
 ### Turn your iDotMatrix into a live desktop companion — the all-in-one app for your iDotMatrix.
 
-90+ apps, 22 multiplayer games, live data from 45+ free sources, a studio for your browser and phone,<br/>
+110+ apps, 22 multiplayer games, live data from 70+ free sources, a studio for your browser and phone,<br/>
 and an MCP server so AI agents like Claude can see the panel and drive it.
 
 _1,024 pixels. Zero subscriptions._
@@ -56,8 +56,9 @@ that anyone, including an AI agent, can make a new app in one Python file.
 *   **🧠 One engine, one link:** an async Python engine owns the panel's single Bluetooth connection.
     *   Its scheduler is "latest frame wins", with paced packets and ack flow control.
     *   It reconnects on its own and never shows the pairing screen by accident.
-*   **🖼️ 90+ apps:**
+*   **🖼️ 110+ apps:**
     *   clocks, weather, markets, sports, space, quakes, flights, air quality and system stats;
+    *   aurora watch, rain chance, wind compass, bike share, race countdown, asteroid flybys and Wikipedia trends;
     *   pets, generative art, 3D wireframes, a raycaster and falling sand;
     *   chess puzzles, trivia, a pixel canvas, text and fonts.
     *   They're all original pixel art, with no copied sprites.
@@ -103,9 +104,9 @@ that anyone, including an AI agent, can make a new app in one Python file.
 
 | What you get | Count | Details |
 | --- | --- | --- |
-| Apps | **90** | time, live data, media, pets, games, creative, focus & agents, ambient |
+| Apps | **116** | time, live data, media, pets, games, creative, focus & agents, ambient |
 | Games | **25** | every one with an AI that plays itself; most with 2–4 player modes, maps and themes |
-| Live data sources | **45+** | Open-Meteo, USGS, adsb.lol, Launch Library 2, ESPN, Binance, Yahoo Finance and more |
+| Live data sources | **70+** | Open-Meteo, USGS, adsb.lol, Launch Library 2, ESPN, Binance, Yahoo Finance and more |
 | Phone controller layouts | **7** | d-pad, analog stick, swipe, tap zones, keyboard, gamepad, tilt |
 | MCP tools | **21** | `panel_snapshot`, `show_app`, `draw_pixel_art`, `notify`, `agent_state`, `playlist`… |
 | Automated tests | **4,400+** | protocol bytes, every app × every option, games, studio API, Android bridge |
@@ -319,16 +320,21 @@ Location-aware apps follow one shared location: your setting, or a city lookup, 
 | --- | --- | --- | --- |
 | 🌦️ **Weather · Wear · Air** | conditions, forecast, AQI, UV, pollen, what to wear | Open-Meteo | 🟢 |
 | 🌧️ **Rain Radar** | animated precipitation over your area | RainViewer + Open-Meteo Elevation | 🟢 |
-| ✈️ **Flight Radar** | aircraft overhead on a radar scope | adsb.lol, OpenSky | 🟢 |
+| ✈️ **Flight Radar** | aircraft overhead on a radar scope | adsb.lol, adsb.fi, OpenSky | 🟢 |
 | 🌋 **Earthquakes** | world map + "near me" alerts | USGS | 🟢 |
 | 🚀 **Space** | next launch countdown, ISS, people in space | Launch Library 2, wheretheiss.at | 🟢 |
 | 🌅 **Sun & Moon · Planets** | sunrise, golden hour, moon phase, planets tonight | computed locally + sunrise-sunset.org | 🟢 |
 | 🌊 **Tides & Surf** | tide curve, swell | Open-Meteo Marine | 🟢 |
-| 📈 **Crypto · Stocks · Currency** | tickers, sparklines, converter | Binance, Yahoo Finance / Stooq, Frankfurter | 🟢 |
+| 📈 **Crypto · Stocks · Currency** | tickers, sparklines, converter | Binance, Yahoo Finance / Nasdaq, Frankfurter | 🟢 |
 | 🏏 **Live Scores** | football, cricket, NBA, F1… | ESPN public scoreboards | 🟢 |
 | 📰 **Headlines · Daily · Trivia** | HN, dev.to, quotes, jokes, facts, quizzes | Hacker News, ZenQuotes, Open Trivia DB… | 🟢 |
 | 🎵 **Now Playing · Lyrics** | album art, karaoke lyrics | your OS media session, LRCLIB | 🟢 |
 | 🖼️ **Photo Frame · Pokédex** | museum art, animals, Pokémon sprites | The Met, Cleveland Museum, PokéAPI… | 🟢 |
+| 🌌 **Aurora · Asteroids · Earth Events** | Kp index + aurora map, close approaches, fires/storms/volcanoes | NOAA SWPC, NASA/JPL, NASA EONET | 🟢 |
+| 🌂 **Rain Chance · Wind Compass** | next-12-hour rain odds, wind direction and gusts | Open-Meteo | 🟢 |
+| ₿ **Bitcoin Network · Crypto Market** | fees, blocks, halving; market cap, movers, fear & greed | mempool.space, CoinGecko, alternative.me | 🟢 |
+| 🏁 **Race Countdown · Long Weekend · TV Tonight** | next Grand Prix, next long weekend, tonight's TV | Jolpica, Nager.Date, TVMaze | 🟢 |
+| 🚲 **Bike Share · World Flags · Wiki Trending · Game Server** | docks near you, flag of the day, most-read articles, players online | CityBikes, flagcdn, Wikimedia, mcsrvstat.us | 🟢 |
 | 🧑‍💻 **GitHub · CI** | contribution graph, build radiator | GitHub API | 🟡 token optional |
 | 🏠 **Home Assistant · OBS · Printer · Anki · Media Server** | entities, on-air, print progress, reviews | your own services | 🟡 local |
 
@@ -424,7 +430,7 @@ flowchart LR
 src/deskdot/
 ├── engine/        # runtime, scheduler, playlist, presets, hand-off, app base classes
 ├── device/        # the only code that touches Bluetooth: protocol bytes, BLE, Android bridge, simulator
-├── apps/          # 90 apps — one file each (games in games_*.py on a shared GameApp framework)
+├── apps/          # 116 apps — one file each (games in games_*.py on a shared GameApp framework)
 ├── providers/     # live data: weather, flights, quakes, markets, sports, media, system…
 ├── gfx/           # Frame primitives, bitmap fonts, colour calibration, GIF encoder, world map, sprites
 ├── server.py      # HTTP + WebSocket API (docs/API.md)

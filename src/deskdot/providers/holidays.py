@@ -20,7 +20,7 @@ import time
 from typing import Any
 from urllib.parse import quote
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 NAGER = "https://date.nager.at/api/v3/NextPublicHolidays/{cc}"
 GOOGLE = (
@@ -183,6 +183,22 @@ def parse_caldays(payload: dict[str, Any], today: dt.date) -> list[dict[str, Any
 # ---------------------------------------------------------------------------- provider
 class HolidaysProvider(Provider[dict[str, Any]]):
     name = "holidays"
+    endpoints = (
+        Endpoint("Nager.Date", NAGER.format(cc="GB"), check=lambda d: parse_nager(d, dt.date.today())),
+        Endpoint(
+            "Google holiday calendar",
+            GOOGLE.format(cid="en.indian"),
+            check=lambda t: "BEGIN:VCALENDAR" in t[:200] and parse_ics(t, dt.date.today()),
+            body="text",
+            role="fallback",
+        ),
+        Endpoint(
+            "caldays.com",
+            CALDAYS.format(cc="in"),
+            check=lambda d: parse_caldays(d, dt.date.today()),
+            role="fallback",
+        ),
+    )
     interval = 6 * 3600.0
     retry = 120.0
 

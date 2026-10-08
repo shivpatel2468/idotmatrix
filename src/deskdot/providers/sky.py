@@ -25,7 +25,7 @@ from typing import Any
 
 import numpy as np
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 SUNRISE_SUNSET = "https://api.sunrise-sunset.org/json"
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
@@ -368,6 +368,20 @@ class SkyProvider(Provider[dict[str, Any]]):
     """Sun times for today and tomorrow at the panel's location (APIs once a day, local maths always)."""
 
     name = "sky"
+    endpoints = (
+        Endpoint(
+            "sunrise-sunset.org",
+            SUNRISE_SUNSET + "?lat=51.5074&lng=-0.1278&formatted=0",
+            check=lambda d: parse_sunrise_sunset(d)["sunrise"],
+        ),
+        Endpoint(
+            "Open-Meteo sun times",
+            OPEN_METEO + "?latitude=51.5074&longitude=-0.1278&daily=sunrise,sunset,daylight_duration"
+            "&timezone=auto&forecast_days=2",
+            check=lambda d: parse_open_meteo(d)["days"],
+            role="fallback",
+        ),
+    )
     interval = 1800.0  # re-check the date / location; the APIs are only hit once per local day
     retry = 120.0
 

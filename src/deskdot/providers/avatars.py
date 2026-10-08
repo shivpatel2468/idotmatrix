@@ -23,7 +23,7 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 KINDS = {"mc": "minecraft", "gh": "github", "db": "dicebear"}
 CACHE = 64
@@ -109,6 +109,36 @@ class AvatarsProvider(Provider[dict[tuple[str, str], Avatar]]):
     """``value = {(source, name): Avatar}``. Apps call ``want([(source, name), …])``."""
 
     name = "avatars"
+    endpoints = (
+        Endpoint(
+            "mc-heads face", "https://mc-heads.net/avatar/Notch/8", check=decode_minecraft, body="bytes"
+        ),
+        Endpoint(
+            "Mojang profile",
+            "https://api.mojang.com/users/profiles/minecraft/Notch",
+            expect=("id",),
+            role="fallback",
+        ),
+        Endpoint(
+            "Crafatar face",
+            "https://crafatar.com/avatars/069a79f444e94726a5befca90e38aaf5?size=8&overlay",
+            check=decode_minecraft,
+            body="bytes",
+            role="fallback",
+        ),
+        Endpoint(
+            "GitHub identicon",
+            "https://github.com/identicons/octocat.png",
+            check=decode_identicon,
+            body="bytes",
+        ),
+        Endpoint(
+            "DiceBear pixel-art",
+            "https://api.dicebear.com/9.x/pixel-art/png?seed=deskdot&size=16",
+            check=decode_dicebear,
+            body="bytes",
+        ),
+    )
     interval = 6 * 3600.0  # skins change rarely
     retry = 30.0
 

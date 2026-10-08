@@ -29,7 +29,7 @@ from typing import Any
 
 import numpy as np
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 LL2_UPCOMING = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/"
 PEOPLE_CORQUAID = "https://corquaid.github.io/international-space-station-APIs/JSON/people-in-space.json"
@@ -390,6 +390,25 @@ class SpaceProvider(Provider[dict[str, Any]]):
     """Launches (per provider filter), people in space and news; each part has its own refresh budget."""
 
     name = "space"
+    endpoints = (
+        Endpoint(
+            "Launch Library 2",
+            LL2_UPCOMING + "?limit=3&mode=list",
+            check=parse_launches,
+            note="15 requests/h per IP",
+        ),
+        Endpoint(
+            "People in space (corquaid)", PEOPLE_CORQUAID, check=lambda d: parse_people_corquaid(d)["people"]
+        ),
+        Endpoint(
+            "People in space (Open Notify)",
+            PEOPLE_OPEN_NOTIFY,
+            check=lambda d: parse_people_open_notify(d)["people"],
+            role="fallback",
+            note="list is years stale",
+        ),
+        Endpoint("Spaceflight News", SNAPI_ARTICLES + "?limit=3", check=parse_news),
+    )
     interval = 60.0  # wake-up rate; every part has its own TTL
     retry = 60.0
 
@@ -504,6 +523,14 @@ class IssProvider(Provider[dict[str, Any]]):
     """The ISS right now, its recent ground track, the modelled track ahead and the next pass over you."""
 
     name = "iss"
+    endpoints = (
+        Endpoint("wheretheiss.at", ISS_NOW + "?units=kilometers", check=parse_iss),
+        Endpoint(
+            "wheretheiss.at track",
+            ISS_POSITIONS + "?timestamps=1700000000,1700000600",
+            expect=("1.latitude",),
+        ),
+    )
     interval = 5.0
     retry = 15.0
     TRACK_S = 95 * 60.0  # keep one orbit of history

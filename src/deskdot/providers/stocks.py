@@ -6,7 +6,9 @@ Sources, in order of preference (all keyless, verified live):
    (price, previous close, day range, volume, currency, exchange, trading periods) and OHLC bars.
 2. ``/v7/finance/spark?symbols=A,B,C`` — one batched request, closes only. Used for symbols whose chart
    request failed.
-3. Stooq CSV quotes — last-resort fallback for US tickers and a few indices.
+3. Nasdaq's public quote API (``api.nasdaq.com/api/quote/{SYM}/chart``) — last-resort fallback for US stocks,
+   ETFs and the Nasdaq indices: price, previous close and today's minute chart. (Stooq used to be this fallback;
+   its quote CSV now answers 404 and its downloads sit behind a JavaScript challenge — removed in 3.6.0.)
 
 A symbol that keeps failing is backed off exponentially; its last good value stays in the cache.
 """
@@ -14,8 +16,6 @@ A symbol that keeps failing is backed off exponentially; its last good value sta
 from __future__ import annotations
 
 import asyncio
-import csv
-import io
 import itertools
 import math
 import re
@@ -23,14 +23,14 @@ import time
 from collections.abc import Sequence
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 # range -> bar interval (chosen so every range yields ~70-400 points: enough for a 32-column chart)
 RANGES: dict[str, str] = {"1d": "5m", "5d": "15m", "1mo": "1h", "6mo": "1d", "1y": "1d", "5y": "1wk"}
 
 YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 YAHOO_SPARK = "https://query1.finance.yahoo.com/v7/finance/spark"
-STOOQ_QUOTE = "https://stooq.com/q/l/"
+NASDAQ_CHART = "https://api.nasdaq.com/api/quote/{symbol}/chart"
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -204,43 +204,47 @@ def parse_spark(
     return out
 
 
-def stooq_symbol(symbol: str) -> str | None:
-    """Yahoo symbol -> Stooq symbol (US listings and a few indices only)."""
-    idx = {"^GSPC": "^spx", "^DJI": "^dji", "^IXIC": "^ndq", "^NDX": "^ndx"}
-    if symbol in idx:
-        return idx[symbol]
-    if re.fullmatch(r"[A-Z]{1,5}(-[A-Z])?", symbol):
-        return f"{symbol.lower()}.us"
+#: Yahoo index symbols Nasdaq's API knows (it has no S&P 500 or Dow)
+NASDAQ_INDICES = {"^IXIC": "COMP", "^NDX": "NDX"}
+
+
+def nasdaq_symbol(symbol: str) -> tuple[str, tuple[str, ...]] | None:
+    """Yahoo symbol -> (Nasdaq symbol, asset classes to try); US listings and two indices only."""
+    if symbol in NASDAQ_INDICES:
+        return NASDAQ_INDICES[symbol], ("index",)
+    if re.fullmatch(r"[A-Z]{1,5}", symbol):
+        return symbol, ("stocks", "etf")
     return None
 
 
-def parse_stooq(
-    text: str, symbols: dict[str, str], range_: str = "1d", now: float | None = None
-) -> dict[str, Any]:
-    """Stooq ``f=sd2t2ohlcv&h&e=csv`` quote CSV -> {SYMBOL: entry}; `symbols` maps stooq -> Yahoo symbol.
+def _money(v: Any) -> float | None:
+    """'$1,234.50' / '27,353.73' / '-5.18' -> float."""
+    return _num(str(v or "").replace("$", "").replace(",", "").replace("%", "").strip() or None)
 
-    Stooq has no previous close in this format, so the day's open stands in as the reference.
-    """
+
+def parse_nasdaq(
+    payload: dict[str, Any], symbol: str, range_: str = "1d", now: float | None = None
+) -> dict[str, Any]:
+    """A Nasdaq ``/api/quote/{SYM}/chart`` answer -> one provider entry (today's minute closes as the history)."""
     now = time.time() if now is None else now
-    out: dict[str, Any] = {}
-    for row in csv.DictReader(io.StringIO(text.strip())):
-        row = {k.strip().lower(): (v or "").strip() for k, v in row.items() if k}
-        sym = symbols.get(row.get("symbol", "").lower())
-        o, h, lo, c = (_num(row.get(k)) for k in ("open", "high", "low", "close"))
-        if not sym or c is None or o is None:
-            continue
-        meta = {
-            "symbol": sym,
-            "regularMarketPrice": c,
-            "previousClose": o,
-            "regularMarketDayHigh": h,
-            "regularMarketDayLow": lo,
-            "regularMarketVolume": _num(row.get("volume")),
-            "currency": "USD",
-            "exchangeName": "STOOQ",
-        }
-        out[sym] = _entry(sym, meta, [o, c], [(o, h or c, lo or c, c)], range_, now)
-    return out
+    d = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(d, dict):
+        raise ValueError(f"{symbol}: unknown to Nasdaq")
+    closes = [c for p in d.get("chart") or [] if isinstance(p, dict) and (c := _num(p.get("y"))) is not None]
+    price = _money(d.get("lastSalePrice"))
+    if price is None:
+        raise ValueError(f"{symbol}: no price")
+    meta = {
+        "symbol": symbol,
+        "shortName": str(d.get("company") or symbol),
+        "regularMarketPrice": price,
+        "previousClose": _money(d.get("previousClose")),
+        "regularMarketVolume": _money(d.get("volume")),
+        "currency": "USD",
+        "exchangeName": str(d.get("exchange") or "NASDAQ"),
+    }
+    candles = [(a, max(a, b), min(a, b), b) for a, b in itertools.pairwise(closes)]
+    return _entry(symbol, meta, closes or [price], candles, range_, now)
 
 
 # ---------------------------------------------------------------------------- provider
@@ -248,6 +252,28 @@ class StocksProvider(Provider[dict[str, dict[str, Any]]]):
     """``value = {SYMBOL: entry}``; see `_entry` for the fields. Apps call ``want(symbols, range_)``."""
 
     name = "stocks"
+    endpoints = (
+        Endpoint(
+            "Yahoo chart",
+            YAHOO_CHART.format(symbol="AAPL") + "?range=1d&interval=5m",
+            check=lambda d: parse_chart(d)["price"],
+            headers=tuple(HEADERS.items()),
+        ),
+        Endpoint(
+            "Yahoo spark",
+            YAHOO_SPARK + "?symbols=AAPL,MSFT&range=1d&interval=5m",
+            check=parse_spark,
+            headers=tuple(HEADERS.items()),
+            role="fallback",
+        ),
+        Endpoint(
+            "Nasdaq quote",
+            NASDAQ_CHART.format(symbol="AAPL") + "?assetclass=stocks",
+            check=lambda d: parse_nasdaq(d, "AAPL")["price"],
+            headers=tuple(HEADERS.items()),
+            role="fallback",
+        ),
+    )
     interval = 45.0  # while any wanted market is trading
     closed_interval = 180.0  # when every wanted market is closed
     retry = 20.0
@@ -314,15 +340,25 @@ class StocksProvider(Provider[dict[str, dict[str, Any]]]):
         r.raise_for_status()
         return parse_spark(r.json(), range_)
 
-    async def _stooq(self, symbols: list[str], range_: str) -> dict[str, Any]:
-        mapping = {m: s for s in symbols if (m := stooq_symbol(s))}
-        if not mapping:
-            return {}
-        r = await self.hub.http.get(
-            f"{STOOQ_QUOTE}?s={','.join(mapping)}&f=sd2t2ohlcv&h&e=csv", headers=HEADERS
-        )
-        r.raise_for_status()
-        return parse_stooq(r.text, mapping, range_)
+    async def _nasdaq(self, symbols: list[str], range_: str) -> dict[str, Any]:
+        async def one(sym: str) -> dict[str, Any] | None:
+            mapped = nasdaq_symbol(sym)
+            if not mapped:
+                return None
+            code, classes = mapped
+            for cls in classes:
+                r = await self.hub.http.get(
+                    NASDAQ_CHART.format(symbol=code), params={"assetclass": cls}, headers=HEADERS
+                )
+                r.raise_for_status()
+                try:
+                    return parse_nasdaq(r.json(), sym, range_)
+                except ValueError:
+                    continue
+            return None
+
+        res = await asyncio.gather(*(one(s) for s in symbols[:8]), return_exceptions=True)
+        return {s: e for s, e in zip(symbols[:8], res, strict=True) if isinstance(e, dict)}
 
     async def fetch(self) -> dict[str, dict[str, Any]]:
         now = time.time()
@@ -348,7 +384,7 @@ class StocksProvider(Provider[dict[str, dict[str, Any]]]):
                 errors.append(f"{s}: {type(res).__name__}: {res}")
             else:
                 out[s] = res
-        for fallback in (self._spark, self._stooq):
+        for fallback in (self._spark, self._nasdaq):
             if not failed:
                 break
             try:

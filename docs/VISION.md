@@ -75,6 +75,13 @@ layouts, 16 leagues and goal celebrations; Autopilot; four new ambient effects; 
 Radar · Air Quality · Holidays · Space (launch countdown, live ISS, people in space, news) · Sun & Moon · Daily Dose ·
 Trivia · Headlines · Currency · Photo Frame · Pokédex · Pixel Avatar · Chess Puzzle · Game Deals — 56 apps in total.
 
+## Added in v3.6 — the second public-APIs pass
+
+14 apps on keyless APIs (re-survey of public-apis plus NOAA / NASA / Jolpica; [PUBLIC_APIS.md](PUBLIC_APIS.md)):
+Aurora Watch · Bitcoin Network · Crypto Market · Race Countdown · Long Weekend · Bike Share · Earth Events · World Flags
+· Rain Chance · Wind Compass · Wiki Trending · Asteroid Flyby · Game Server · TV Tonight. Every data source is now
+declared in code and checked by `scripts/api_health.py` ([API_HEALTH.md](API_HEALTH.md)).
+
 ## Added in v3.4 — research-driven (Tidbyt / AWTRIX / LaMetric / Home Assistant demand)
 
 - **Platform**: hand-off to the panel's firmware (clock or a baked app loop) on exit, sleep and on demand; On-Air

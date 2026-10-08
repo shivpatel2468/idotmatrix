@@ -1,0 +1,683 @@
+[
+ {
+  "id": 3771174,
+  "name": "08/10/2026",
+  "season": 2026,
+  "number": 161,
+  "airstamp": "2026-10-08T05:00:00+00:00",
+  "airtime": "06:00",
+  "runtime": 29,
+  "show": {
+   "id": 793,
+   "name": "EastEnders",
+   "type": "Scripted",
+   "genres": [
+    "Drama"
+   ],
+   "network": null,
+   "rating": {
+    "average": 6.8
+   }
+  }
+ },
+ {
+  "id": 3772727,
+  "name": "Thursday 8th October",
+  "season": 55,
+  "number": 184,
+  "airstamp": "2026-10-08T06:00:00+00:00",
+  "airtime": "07:00",
+  "runtime": 22,
+  "show": {
+   "id": 2548,
+   "name": "Emmerdale",
+   "type": "Scripted",
+   "genres": [
+    "Drama"
+   ],
+   "network": {
+    "id": 35,
+    "name": "ITV1",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.itv.com/"
+   },
+   "rating": {
+    "average": 7.3
+   }
+  }
+ },
+ {
+  "id": 3772731,
+  "name": "Thu 8th Oct",
+  "season": 67,
+  "number": 184,
+  "airstamp": "2026-10-08T06:00:00+00:00",
+  "airtime": "07:00",
+  "runtime": 22,
+  "show": {
+   "id": 4139,
+   "name": "Coronation Street",
+   "type": "Scripted",
+   "genres": [
+    "Drama"
+   ],
+   "network": null,
+   "rating": {
+    "average": 7.5
+   }
+  }
+ },
+ {
+  "id": 3769239,
+  "name": "Episode 92",
+  "season": 8,
+  "number": 92,
+  "airstamp": "2026-10-08T08:30:00+00:00",
+  "airtime": "09:30",
+  "runtime": 75,
+  "show": {
+   "id": 51281,
+   "name": "Morning Live",
+   "type": "Variety",
+   "genres": [],
+   "network": {
+    "id": 12,
+    "name": "BBC One",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.co.uk/bbcone"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3779646,
+  "name": "Episode 119",
+  "season": 30,
+  "number": 119,
+  "airstamp": "2026-10-08T11:30:00+00:00",
+  "airtime": "12:30",
+  "runtime": 60,
+  "show": {
+   "id": 8611,
+   "name": "Loose Women",
+   "type": "Talk Show",
+   "genres": [],
+   "network": {
+    "id": 35,
+    "name": "ITV1",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.itv.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3773653,
+  "name": "Episode 199",
+  "season": 2026,
+  "number": 199,
+  "airstamp": "2026-10-08T11:45:00+00:00",
+  "airtime": "12:45",
+  "runtime": 5,
+  "show": {
+   "id": 10333,
+   "name": "5 News at Lunchtime",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3772842,
+  "name": "Episode 74",
+  "season": 94,
+  "number": 74,
+  "airstamp": "2026-10-08T13:10:00+00:00",
+  "airtime": "14:10",
+  "runtime": 50,
+  "show": {
+   "id": 6001,
+   "name": "Countdown",
+   "type": "Game Show",
+   "genres": [],
+   "network": {
+    "id": 45,
+    "name": "Channel 4",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel4.com/"
+   },
+   "rating": {
+    "average": 6.6
+   }
+  }
+ },
+ {
+  "id": 3778990,
+  "name": "Episode 24",
+  "season": 5,
+  "number": 24,
+  "airstamp": "2026-10-08T15:00:00+00:00",
+  "airtime": "16:00",
+  "runtime": 60,
+  "show": {
+   "id": 63050,
+   "name": "Help! We Bought a Village",
+   "type": "Reality",
+   "genres": [],
+   "network": {
+    "id": 45,
+    "name": "Channel 4",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel4.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3783587,
+  "name": "Episode 17",
+  "season": 5,
+  "number": 17,
+  "airstamp": "2026-10-08T15:30:00+00:00",
+  "airtime": "16:30",
+  "runtime": 45,
+  "show": {
+   "id": 60963,
+   "name": "Bridge of Lies",
+   "type": "Game Show",
+   "genres": [],
+   "network": {
+    "id": 12,
+    "name": "BBC One",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.co.uk/bbcone"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3773633,
+  "name": "Episode 199",
+  "season": 2026,
+  "number": 199,
+  "airstamp": "2026-10-08T16:00:00+00:00",
+  "airtime": "17:00",
+  "runtime": 60,
+  "show": {
+   "id": 58577,
+   "name": "5 News at 5",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3770350,
+  "name": "Week 2: Thursday",
+  "season": 10,
+  "number": 9,
+  "airstamp": "2026-10-08T17:00:00+00:00",
+  "airtime": "18:00",
+  "runtime": 30,
+  "show": {
+   "id": 31362,
+   "name": "House of Games",
+   "type": "Panel Show",
+   "genres": [],
+   "network": {
+    "id": 37,
+    "name": "BBC Two",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.co.uk/bbctwo"
+   },
+   "rating": {
+    "average": 7.3
+   }
+  }
+ },
+ {
+  "id": 3770852,
+  "name": "Episode 6",
+  "season": 8,
+  "number": 6,
+  "airstamp": "2026-10-08T17:00:00+00:00",
+  "airtime": "18:00",
+  "runtime": 65,
+  "show": {
+   "id": 40861,
+   "name": "RuPaul's Drag Race UK",
+   "type": "Reality",
+   "genres": [],
+   "network": null,
+   "rating": {
+    "average": 6.5
+   }
+  }
+ },
+ {
+  "id": 3770917,
+  "name": "Episode 9",
+  "season": 24,
+  "number": 9,
+  "airstamp": "2026-10-08T17:30:00+00:00",
+  "airtime": "18:30",
+  "runtime": 30,
+  "show": {
+   "id": 4394,
+   "name": "Strictly Come Dancing - It Takes Two",
+   "type": "Reality",
+   "genres": [],
+   "network": {
+    "id": 37,
+    "name": "BBC Two",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.co.uk/bbctwo"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3773584,
+  "name": "Episode 199",
+  "season": 2026,
+  "number": 199,
+  "airstamp": "2026-10-08T17:55:00+00:00",
+  "airtime": "18:55",
+  "runtime": 5,
+  "show": {
+   "id": 79168,
+   "name": "5 News at 18.55",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3774916,
+  "name": "Episode 2",
+  "season": 2,
+  "number": 2,
+  "airstamp": "2026-10-08T18:00:00+00:00",
+  "airtime": "19:00",
+  "runtime": 55,
+  "show": {
+   "id": 90947,
+   "name": "Sam & Ade Go Birding",
+   "type": "Documentary",
+   "genres": [
+    "Adventure",
+    "Travel"
+   ],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3782583,
+  "name": "Buyer Beware: Retirement Properties",
+  "season": 2026,
+  "number": 22,
+  "airstamp": "2026-10-08T18:30:00+00:00",
+  "airtime": "19:30",
+  "runtime": 30,
+  "show": {
+   "id": 10148,
+   "name": "Tonight",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 35,
+    "name": "ITV1",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.itv.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3773613,
+  "name": "Episode 199",
+  "season": 2026,
+  "number": 199,
+  "airstamp": "2026-10-08T18:55:00+00:00",
+  "airtime": "19:55",
+  "runtime": 5,
+  "show": {
+   "id": 79169,
+   "name": "5 News at 19:55",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3770849,
+  "name": "Episode 3",
+  "season": 2,
+  "number": 3,
+  "airstamp": "2026-10-08T19:00:00+00:00",
+  "airtime": "20:00",
+  "runtime": 65,
+  "show": {
+   "id": 79108,
+   "name": "The Celebrity Traitors",
+   "type": "Game Show",
+   "genres": [],
+   "network": {
+    "id": 12,
+    "name": "BBC One",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.co.uk/bbcone"
+   },
+   "rating": {
+    "average": 8.9
+   }
+  }
+ },
+ {
+  "id": 3770890,
+  "name": "Episode 9",
+  "season": 23,
+  "number": 9,
+  "airstamp": "2026-10-08T19:00:00+00:00",
+  "airtime": "20:00",
+  "runtime": 60,
+  "show": {
+   "id": 15121,
+   "name": "The Yorkshire Vet",
+   "type": "Documentary",
+   "genres": [
+    "Nature",
+    "Medical"
+   ],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": 7.3
+   }
+  }
+ },
+ {
+  "id": 3774301,
+  "name": "Episode 281",
+  "season": 2026,
+  "number": 281,
+  "airstamp": "2026-10-08T19:00:00+00:00",
+  "airtime": "20:00",
+  "runtime": 30,
+  "show": {
+   "id": 9377,
+   "name": "An Là",
+   "type": "News",
+   "genres": [],
+   "network": {
+    "id": 565,
+    "name": "BBC Alba",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.bbc.com/alba"
+   },
+   "rating": {
+    "average": null
+   }
+  }
+ },
+ {
+  "id": 3774995,
+  "name": "Mercedes 380SL, Vauxhall, Talbot Sunbeam Lotus",
+  "season": 14,
+  "number": 12,
+  "airstamp": "2026-10-08T19:00:00+00:00",
+  "airtime": "20:00",
+  "runtime": 60,
+  "show": {
+   "id": 41561,
+   "name": "Bangers & Cash",
+   "type": "Reality",
+   "genres": [],
+   "network": {
+    "id": 345,
+    "name": "U&Yesterday",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://u.co.uk/channel/yesterday"
+   },
+   "rating": {
+    "average": 6.8
+   }
+  }
+ },
+ {
+  "id": 3768347,
+  "name": "Doppelgänger",
+  "season": 7,
+  "number": 4,
+  "airstamp": "2026-10-08T20:00:00+00:00",
+  "airtime": "21:00",
+  "runtime": 60,
+  "show": {
+   "id": 42836,
+   "name": "All Creatures Great and Small",
+   "type": "Scripted",
+   "genres": [
+    "Drama",
+    "Comedy"
+   ],
+   "network": {
+    "id": 135,
+    "name": "5",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel5.com/"
+   },
+   "rating": {
+    "average": 8
+   }
+  }
+ },
+ {
+  "id": 3770879,
+  "name": "08/10/2026",
+  "season": 2026,
+  "number": 23,
+  "airstamp": "2026-10-08T20:00:00+00:00",
+  "airtime": "21:00",
+  "runtime": 59,
+  "show": {
+   "id": 875,
+   "name": "Question Time",
+   "type": "News",
+   "genres": [],
+   "network": null,
+   "rating": {
+    "average": 5
+   }
+  }
+ },
+ {
+  "id": 3781773,
+  "name": "Episode 23",
+  "season": 4,
+  "number": 23,
+  "airstamp": "2026-10-08T20:00:00+00:00",
+  "airtime": "21:00",
+  "runtime": 60,
+  "show": {
+   "id": 71810,
+   "name": "Big Brother",
+   "type": "Reality",
+   "genres": [],
+   "network": {
+    "id": 54,
+    "name": "ITV2",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.itv.com/hub/itv2"
+   },
+   "rating": {
+    "average": 7
+   }
+  }
+ },
+ {
+  "id": 3770247,
+  "name": "To Void An Oblong",
+  "season": 22,
+  "number": 6,
+  "airstamp": "2026-10-08T20:05:00+00:00",
+  "airtime": "21:05",
+  "runtime": 60,
+  "show": {
+   "id": 2955,
+   "name": "Taskmaster",
+   "type": "Game Show",
+   "genres": [
+    "Comedy"
+   ],
+   "network": {
+    "id": 45,
+    "name": "Channel 4",
+    "country": {
+     "name": "United Kingdom",
+     "code": "GB",
+     "timezone": "Europe/London"
+    },
+    "officialSite": "https://www.channel4.com/"
+   },
+   "rating": {
+    "average": 8.1
+   }
+  }
+ }
+]
