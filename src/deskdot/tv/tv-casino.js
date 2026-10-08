@@ -1401,6 +1401,146 @@
     burstDraw(S, name, x, y, age, S.th.accent_hi || S.th.accent);
   }
 
+  // ------------------------------------------------------------------------------------------------ the dolly
+  // Roulette's win marker, as on a real table: the dealer lowers a crystal dolly on a gold base onto the winning
+  // number, its shadow firming up as it comes down, and it stays there until the round clears. Two sprites drawn
+  // once (the dolly, its shadow), moved by transform / opacity only.
+  const DOLLY_W = 96;
+  const DOLLY_H = 132;
+  function dollyLayers(S, root, name) {
+    const k = wheelK();
+    const sh = layer(root, 0, 0, DOLLY_W, DOLLY_W / 2, k, true);
+    const d = layer(root, 0, 0, DOLLY_W, DOLLY_H, k, true);
+    sh.c.style.opacity = "0";
+    d.c.style.opacity = "0";
+    d.c.style.transformOrigin = `50% ${DOLLY_H - 12}px`;
+    S.L[name] = { d, sh, painted: false };
+  }
+  function dollyPaint(S, name) {
+    const L = S.L[name];
+    if (L.painted) return;
+    L.painted = true;
+    const W = DOLLY_W;
+    const H = DOLLY_H;
+    const cx = W / 2;
+    // the shadow: a soft ellipse on the felt
+    const sg = L.sh.g;
+    sg.setTransform(L.sh.k, 0, 0, L.sh.k, 0, 0);
+    const sr = sg.createRadialGradient(cx, W / 4, 2, cx, W / 4, W / 2);
+    sr.addColorStop(0, "rgba(0,0,0,0.55)");
+    sr.addColorStop(0.6, "rgba(0,0,0,0.22)");
+    sr.addColorStop(1, "rgba(0,0,0,0)");
+    sg.fillStyle = sr;
+    sg.beginPath();
+    sg.ellipse(cx, W / 4, W / 2, W / 4, 0, 0, TAU);
+    sg.fill();
+    const g = L.d.g;
+    g.setTransform(L.d.k, 0, 0, L.d.k, 0, 0);
+    g.clearRect(0, 0, W, H);
+    const baseY = H - 22; // centre of the base's top face
+    const gold = () => {
+      const l = g.createLinearGradient(cx - 28, 0, cx + 28, 0);
+      l.addColorStop(0, "#7a5410");
+      l.addColorStop(0.28, "#f6dc8a");
+      l.addColorStop(0.5, "#fff6d6");
+      l.addColorStop(0.72, "#d6a33a");
+      l.addColorStop(1, "#6a470c");
+      return l;
+    };
+    // the gold base: a short cylinder seen from slightly above
+    g.fillStyle = gold();
+    g.beginPath();
+    g.ellipse(cx, baseY + 10, 28, 9, 0, 0, Math.PI);
+    g.lineTo(cx - 28, baseY);
+    g.ellipse(cx, baseY, 28, 9, 0, Math.PI, 0, true);
+    g.closePath();
+    g.fill();
+    g.fillStyle = "#f3d27a";
+    g.beginPath();
+    g.ellipse(cx, baseY, 28, 9, 0, 0, TAU);
+    g.fill();
+    g.strokeStyle = "rgba(90,60,10,0.6)";
+    g.lineWidth = 1.2;
+    g.stroke();
+    // the crystal body: a waisted pawn with a round head, see-through with bright edges
+    const body = () => {
+      g.beginPath();
+      g.moveTo(cx - 20, baseY + 1);
+      g.bezierCurveTo(cx - 20, baseY - 18, cx - 9, baseY - 30, cx - 8, baseY - 52);
+      g.bezierCurveTo(cx - 7, baseY - 64, cx - 15, baseY - 70, cx - 15, baseY - 78);
+      g.lineTo(cx + 15, baseY - 78);
+      g.bezierCurveTo(cx + 15, baseY - 70, cx + 7, baseY - 64, cx + 8, baseY - 52);
+      g.bezierCurveTo(cx + 9, baseY - 30, cx + 20, baseY - 18, cx + 20, baseY + 1);
+      g.closePath();
+    };
+    const glass = g.createLinearGradient(cx - 20, 0, cx + 20, 0);
+    glass.addColorStop(0, "rgba(255,255,255,0.55)");
+    glass.addColorStop(0.22, "rgba(210,232,255,0.16)");
+    glass.addColorStop(0.55, "rgba(190,215,245,0.10)");
+    glass.addColorStop(0.8, "rgba(255,255,255,0.32)");
+    glass.addColorStop(1, "rgba(150,180,220,0.35)");
+    g.fillStyle = glass;
+    body();
+    g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.75)";
+    g.lineWidth = 1.6;
+    g.stroke();
+    // the gold collar and the crystal head
+    g.fillStyle = gold();
+    g.beginPath();
+    g.ellipse(cx, baseY - 78, 17, 5, 0, 0, TAU);
+    g.fill();
+    const head = g.createRadialGradient(cx - 6, baseY - 100, 2, cx, baseY - 94, 18);
+    head.addColorStop(0, "rgba(255,255,255,0.95)");
+    head.addColorStop(0.35, "rgba(220,236,255,0.45)");
+    head.addColorStop(1, "rgba(160,190,230,0.30)");
+    g.fillStyle = head;
+    g.beginPath();
+    g.arc(cx, baseY - 94, 16, 0, TAU);
+    g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.8)";
+    g.stroke();
+    // a long glint down the left of the body
+    g.strokeStyle = "rgba(255,255,255,0.85)";
+    g.lineWidth = 2.4;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(cx - 15, baseY - 8);
+    g.quadraticCurveTo(cx - 6, baseY - 30, cx - 4, baseY - 58);
+    g.stroke();
+  }
+  /** Place the dolly with its base on (x, y): `age` s since it touched down (< 0: being lowered; null: off). */
+  function dollyMove(S, name, x, y, age) {
+    const L = S.L[name];
+    const ds = L.d.c.style;
+    const ss = L.sh.c.style;
+    const FALL = 0.45;
+    if (age == null || age < -FALL) {
+      if (L.op !== "0") ds.opacity = ss.opacity = L.op = "0";
+      L.tf = null;
+      return;
+    }
+    let lift = 0;
+    let op = 1;
+    let sy = 1;
+    if (age < 0) {
+      const u = (age + FALL) / FALL; // lowered by the dealer's hand: eases down
+      lift = 70 * (1 - easeOut(u));
+      op = Math.min(1, u * 1.6);
+    } else if (age < 0.18) {
+      sy = 1 - 0.035 * Math.sin((age / 0.18) * Math.PI); // a soft settle on the felt
+    }
+    const tf = `translate(${(x - DOLLY_W / 2).toFixed(1)}px,${(y - (DOLLY_H - 22) - lift).toFixed(1)}px) scale(1,${sy.toFixed(3)})`;
+    if (L.tf !== tf) {
+      ds.transform = L.tf = tf; // resting: no style writes at all
+      const near = 1 - lift / 70;
+      ss.transform = `translate(${(x - DOLLY_W / 2).toFixed(1)}px,${(y - DOLLY_W / 4 + 10).toFixed(1)}px) scale(${(0.7 + 0.3 * near).toFixed(3)})`;
+      ss.opacity = (op * (0.35 + 0.65 * near)).toFixed(3);
+    }
+    const o = op.toFixed(3);
+    if (L.op !== o) ds.opacity = L.op = o;
+  }
+
   /** Device px per stage px for the table's canvases: the stage's own (≤ 1.5), ¾ of it in the lite tier. */
   const tableK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 1.5) * (lite() ? 0.75 : 1);
 
@@ -2084,17 +2224,17 @@
       }
     },
     overlays(S, root) {
-      stampLayers(S, root, "stamp");
+      dollyLayers(S, root, "dolly");
     },
-    // the winning number gets stamped the moment the ball settles in its pocket (the panel's t_settle)
+    // the dealer sets the dolly on the winning number the moment the ball settles in its pocket (the panel's t_settle)
     stamp(S) {
       const rv = revealOf(S, "roulette");
       const n = rv ? rouletteWheel(S)[obj(rv.outcome).pocket] : undefined;
-      if (n == null) return stampMove(S, "stamp", 0, 0, null);
+      if (n == null) return dollyMove(S, "dolly", 0, 0, null);
       const tSettle = num(rv.lock_s, LOCK) + num(rv.spin_s, 7.5) - 1.0;
       const [x, y] = rouletteCenter(n, rouletteBoard(rouletteWheel(S).length === 38));
-      stampPaint(S, "stamp", rLabel(n), S.th.accent);
-      stampMove(S, "stamp", x, y, sinceLockOf(rv, S.T) - tSettle, 112, -0.18 + 0.36 * hash01(`st${rv.round}`));
+      dollyPaint(S, "dolly");
+      dollyMove(S, "dolly", x, y + 14, sinceLockOf(rv, S.T) - tSettle);
     },
     // the table layer only redraws for a countdown tick while betting; never while the wheel is spinning
     slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : 0),

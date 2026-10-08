@@ -325,7 +325,7 @@
 
   const forcedTier = tierFromQuery(location.search);
 
-  /** The panel look: "hd" (the frame upscaled with smooth edges) or "led" (the classic LED matrix). */
+  /** The panel look: "led" (the classic LED matrix, the default) or "hd" (the frame upscaled with smooth edges). */
   function lookFromQuery(search) {
     try {
       const v = (new URLSearchParams(search || "").get("look") || "").toLowerCase();
@@ -334,7 +334,7 @@
       return null;
     }
   }
-  const LOOK_KEY = "deskdot.tv.look";
+  const LOOK_KEY = "deskdot.tv.panel-look"; // a new key: the old one may still hold "hd" from when HD was the default
   function initialLook() {
     const q = lookFromQuery(location.search);
     if (q) return q;
@@ -344,7 +344,7 @@
     } catch {
       /* storage blocked */
     }
-    return "hd";
+    return "led"; // the classic LED look, like the panel; HD is opt-in (?look=hd, or select on the remote)
   }
 
   // =========================================================================================== stage scaling
@@ -1092,7 +1092,7 @@
   }
 
   /**
-   * Paints a 32×32 RGB frame big: the HD look (default) or the classic LED matrix (opts.look / TV.look = "led").
+   * Paints a 32×32 RGB frame big: the classic LED matrix (default) or the HD look (opts.look / TV.look = "hd").
    * opts: pitch (stage px per LED; sets the CSS size), glow 0..1 (default 0.6), round (LED dots, default true),
    * data (another 3072-byte frame), look ("hd" | "led").
    */
