@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var status: TextView
     private val main = Handler(Looper.getMainLooper())
     private var loaded = false
+    private var failed = false // the last load hit an error page (the engine was still starting)
 
     private val permissions: Array<String>
         get() = buildList {
@@ -58,11 +59,14 @@ class MainActivity : ComponentActivity() {
             settings.mediaPlaybackRequiresUserGesture = false
             webViewClient = object : WebViewClient() {
                 override fun onReceivedError(v: WebView, req: WebResourceRequest, err: WebResourceError) {
-                    if (req.isForMainFrame) retrySoon() // the engine is still starting
+                    if (req.isForMainFrame) {
+                        failed = true // the error page's onPageFinished must not count as loaded
+                        retrySoon() // the engine is still starting
+                    }
                 }
 
                 override fun onPageFinished(v: WebView, url: String) {
-                    if (url.startsWith(STUDIO)) {
+                    if (url.startsWith(STUDIO) && !failed) {
                         loaded = true
                         status.visibility = View.GONE
                     }
@@ -113,6 +117,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun load() {
+        failed = false
         web.loadUrl(STUDIO)
     }
 
@@ -120,7 +125,7 @@ class MainActivity : ComponentActivity() {
         loaded = false
         status.visibility = View.VISIBLE
         status.text = getString(R.string.starting)
-        main.postDelayed({ if (!loaded) load() }, 1500)
+        main.postDelayed({ if (!loaded || failed) load() }, 1500)
     }
 
     override fun onDestroy() {
