@@ -423,6 +423,43 @@
     );
   }
   const initial = { look: resolveDisplay("look"), quality: resolveDisplay("quality") };
+
+  // =========================================================================================== light / dark
+  // A TV sits in a dark room: dark unless the address says ?theme=light or someone picked Light in the options menu
+  // on this TV (deskdot.tv.theme). The address wins over the stored pick. html[data-theme] = light | dark; the
+  // stylesheet (tv.html) holds both palettes. A casino table keeps its own dark room in both (stage[data-table]).
+  const THEMES = ["dark", "light"];
+  /** The theme in the address (?theme=light|dark), or null. Pure (tests). */
+  function themeFromQuery(search) {
+    try {
+      const v = (new URLSearchParams(search || "").get("theme") || "").toLowerCase();
+      return THEMES.includes(v) ? v : null;
+    } catch {
+      return null;
+    }
+  }
+  function readTheme() {
+    try {
+      const v = String(localStorage.getItem("deskdot.tv.theme") || "").replace(/"/g, "");
+      return THEMES.includes(v) ? v : null;
+    } catch {
+      return null;
+    }
+  }
+  const themeUrl = themeFromQuery(location.search);
+  const startTheme = themeUrl || readTheme() || "dark";
+  function paintTheme(v) {
+    try {
+      const root = document.documentElement;
+      root.dataset.theme = v;
+      if (root.style) root.style.colorScheme = v;
+      const meta = document.querySelector && document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", v === "light" ? "#f4f0e8" : "#000000");
+    } catch {
+      /* no DOM (tests) */
+    }
+  }
+  paintTheme(startTheme);
   disp.from.look = initial.look.from;
   disp.from.quality = initial.quality.from;
   const startTier = initial.quality.v === "auto" ? "hq" : initial.quality.v;
@@ -443,6 +480,10 @@
     qualityMode: initial.quality.v, // the choice: "auto" | "hq" | "lite"
     qualityForced: initial.quality.v !== "auto",
     look: initial.look.v, // "pixel" | "led" | "glow"
+    theme: startTheme, // "dark" | "light"
+    themeFrom: themeUrl ? "url" : readTheme() ? "tv" : "default",
+    setTheme: (v) => setTheme(v),
+    themeFromQuery,
     looks: LOOKS,
     qualities: QUALITIES,
     every,
@@ -580,6 +621,22 @@
     disp.local[key] = { v, rev: disp.studio.rev };
     writePref(key, disp.local[key]);
     applyDisplay();
+  }
+
+  /** Light or dark on this TV (the options menu, TV.setTheme): applied at once and remembered here. */
+  function setTheme(v) {
+    if (!THEMES.includes(v)) return;
+    try {
+      localStorage.setItem("deskdot.tv.theme", v);
+    } catch {
+      /* storage blocked: lasts until the page reloads */
+    }
+    TV.themeFrom = "tv";
+    if (v !== TV.theme) {
+      TV.theme = v;
+      paintTheme(v); // the scenes restyle through CSS; the panels are the same device in both themes
+    }
+    renderMenu();
   }
 
   /** The studio's choices (hello / state `display`): applied whenever its revision changes. */
@@ -1551,7 +1608,9 @@
   function renderBar() {
     const name = (ctx.meta && ctx.meta.name) || (ctx.app ? ctx.app : "DeskDot");
     $("bar-name").textContent = ctx.connected || ctx.app ? name : "Connecting…";
-    $("bar-cat").textContent = ctx.meta ? catName(ctx.meta.category) : "";
+    const cat = ctx.meta ? catName(ctx.meta.category) : "";
+    $("bar-cat").textContent = cat;
+    $("bar-cat").hidden = !cat;
     document.title = ctx.meta ? `${name} · DeskDot TV` : "DeskDot TV";
     const lob = ctx.lobby;
     const join = $("bar-join");
@@ -1562,12 +1621,18 @@
     } else join.hidden = true;
   }
 
+  const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function tickClock() {
     const d = new Date(Date.now() + 0);
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
     const c = $("bar-clock");
-    if (c) c.textContent = `${hh}:${mm}`;
+    const hm = `${hh}:${mm}`;
+    if (c && c.textContent !== hm) c.textContent = hm; // ticks every second, writes once a minute
+    const dt = $("bar-date");
+    const day = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    if (dt && dt.textContent !== day) dt.textContent = day;
   }
 
   function setDot(state) {
@@ -1597,7 +1662,14 @@
     v.dataset.tone = S[0];
     $("veil-title").textContent = S[1];
     $("veil-text").textContent = S[2];
-    $("veil-code").textContent = /^[A-Z0-9]{4}$/.test(code) ? `TV CODE  ${code}` : "";
+    // the TV code on a little plate, one tile per character (easy to read out from the sofa)
+    const plate = $("veil-code");
+    const okCode = /^[A-Z0-9]{4}$/.test(code);
+    if (plate.dataset.code !== (okCode ? code : "")) {
+      plate.dataset.code = okCode ? code : "";
+      plate.replaceChildren(...(okCode ? [el("span", "veil-code-k", "TV code"), ...code.split("").map((ch) => el("b", null, ch))] : []));
+    }
+    plate.hidden = !okCode;
     v.classList.remove("fade");
     v.hidden = false;
   }
@@ -1768,7 +1840,7 @@
       if (v) st.setProperty(k, v);
       else st.removeProperty(k);
     }
-    $("stage").dataset.theme = id || "";
+    $("stage").dataset.tableTheme = id || ""; // (data-theme on <html> is light / dark)
     $("stage").dataset.table = id ? "1" : ""; // a casino table: the bar and the page take its theme
   }
 
@@ -1808,9 +1880,10 @@
         <div class="g-side">
           <div class="g-cat"><i></i><span class="tv-label g-catname"></span></div>
           <div class="g-name"></div>
+          <div class="g-rule"></div>
           <div class="g-chips"></div>
           <div class="g-lobby" hidden><div class="tv-label" style="margin-bottom:16px">Players</div><div class="g-players"></div></div>
-          <div class="g-hint">Live from the DeskDot panel</div>
+          <div class="g-hint"><span class="g-live"><i></i>Live</span>from the DeskDot panel</div>
         </div>`;
       this.canvas = root.querySelector(".g-led");
       this.ambEl = root.querySelector(".g-ambient");
@@ -1919,7 +1992,22 @@
       key: "quality", label: "Quality", opts: QUALITIES, names: QUALITY_NAMES,
       hints: { auto: "Picks for this screen", hq: "Full quality, always", lite: "Same picture, less work" },
     },
+    {
+      key: "theme", label: "Theme", opts: THEMES, names: { dark: "Dark", light: "Light" },
+      hints: { dark: "For a dark room", light: "Porcelain and ivory" },
+    },
   ]; // fmt: skip
+  // the Theme row's little rooms: a dark one and an ivory one, each with a lit panel on the wall
+  const roomSwatch = (v) => {
+    const wall = v === "light" ? "#f4f0e8" : "#0c0c10";
+    const bar = v === "light" ? "#ffffff" : "#1b1b22";
+    const line = v === "light" ? "#d8d0c2" : "#33333d";
+    return `<svg viewBox="0 0 60 60" aria-hidden="true"><rect width="60" height="60" fill="${wall}"/><rect width="60" height="11" fill="${bar}"/>` +
+      `<rect y="11" width="60" height="1" fill="${line}"/><rect x="9" y="19" width="26" height="26" rx="3" fill="#060608"/>` +
+      `<rect x="14" y="24" width="7" height="7" rx="1.6" fill="#ff3f78"/><rect x="23" y="24" width="7" height="7" rx="1.6" fill="#ffcc33"/>` +
+      `<rect x="14" y="33" width="7" height="7" rx="1.6" fill="#36c5f0"/><rect x="23" y="33" width="7" height="7" rx="1.6" fill="#3ddc84"/>` +
+      `<rect x="40" y="21" width="13" height="4" rx="2" fill="${line}"/><rect x="40" y="29" width="10" height="4" rx="2" fill="${line}"/></svg>`;
+  };
   const menu = { el: null, open: false, row: 0, col: 0, timer: 0, hideTimer: 0, pushed: false, skipPop: false };
 
   function buildMenu() {
@@ -1933,9 +2021,9 @@
     const rows = MENU_ROWS.map((r, ri) => {
       const opts = r.opts.map((v, ci) =>
         `<button type="button" class="tvm-opt" role="radio" data-row="${ri}" data-col="${ci}" aria-checked="false">` +
-        `${r.key === "look" ? swatch(v) : ""}<div><b>${esc(r.names[v])}</b><span>${esc(r.hints[v])}</span></div></button>`,
+        `${r.key === "look" ? swatch(v) : r.key === "theme" ? roomSwatch(v) : ""}<div><b>${esc(r.names[v])}</b><span>${esc(r.hints[v])}</span></div></button>`,
       ).join("");
-      return `<div class="tvm-row" role="radiogroup" aria-label="${esc(r.label)}"><div class="tvm-label">${esc(r.label)}<small></small></div><div class="tvm-opts">${opts}</div></div>`;
+      return `<div class="tvm-row" role="radiogroup" aria-label="${esc(r.label)}"><div class="tvm-label">${esc(r.label)}<small></small></div><div class="tvm-opts" style="--n:${r.opts.length}">${opts}</div></div>`;
     }).join("");
     m.innerHTML =
       '<svg width="0" height="0" style="position:absolute"><filter id="tvm-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2"/></filter></svg>' +
@@ -1957,7 +2045,7 @@
   function renderMenu() {
     const m = menu.el;
     if (!m) return;
-    const cur = { look: TV.look, quality: TV.qualityMode };
+    const cur = { look: TV.look, quality: TV.qualityMode, theme: TV.theme };
     m.querySelectorAll(".tvm-opt").forEach((b) => {
       const r = MENU_ROWS[Number(b.dataset.row)];
       const v = r.opts[Number(b.dataset.col)];
@@ -1970,7 +2058,8 @@
       }
     });
     m.querySelectorAll(".tvm-row").forEach((row, ri) => {
-      const from = disp.from[MENU_ROWS[ri].key];
+      const key = MENU_ROWS[ri].key;
+      const from = key === "theme" ? TV.themeFrom : disp.from[key];
       const note = from === "studio" ? "Set from the studio" : from === "url" ? "Set in the address" : "";
       const small = row.querySelector("small");
       if (small.textContent !== note) small.textContent = note;
@@ -2041,7 +2130,8 @@
   function pickFocused() {
     const r = MENU_ROWS[menu.row];
     const v = r && r.opts[menu.col];
-    if (v) choose(r.key, v);
+    if (v && r.key === "theme") setTheme(v);
+    else if (v) choose(r.key, v);
   }
 
   /** A key as the menu understands it: TV remotes send the arrows and Enter; Back varies by browser. */

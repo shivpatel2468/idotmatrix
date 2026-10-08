@@ -273,6 +273,19 @@
   const code = (location.pathname.split("/").filter(Boolean).pop() || "").toUpperCase();
   // /tv/<code>: a TV watching the host's panel (docs/TV_VIEW.md) — same link, the read-only TV page instead of a pad
   const isTv = /^\/tv\//.test(location.pathname);
+  // Light / dark for this card (the page it loads picks its own the same way, docs/TV_VIEW.md §2): a phone follows the
+  // studio's switch (localStorage deskdot.theme = light | dark | system) or its own preference; a TV is dark unless
+  // the address says ?theme=light or the TV's options menu picked light (deskdot.tv.theme).
+  const uiMode = (() => {
+    const read = (k) => { try { return String(localStorage.getItem(k) || "").replace(/"/g, ""); } catch (e) { return ""; } };
+    let q = "";
+    try { q = new URLSearchParams(location.search).get("theme") || ""; } catch (e) { /* old browser */ }
+    if (isTv) return q === "light" || (q !== "dark" && read("deskdot.tv.theme") === "light") ? "light" : "dark";
+    const v = q || read("deskdot.theme");
+    if (v === "light" || v === "dark") return v;
+    try { return window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) { return "dark"; }
+  })();
+  try { document.documentElement.dataset.theme = uiMode; } catch (e) { /* no DOM yet */ }
   const realFetch = window.fetch.bind(window);
   const RealWebSocket = window.WebSocket;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -346,7 +359,7 @@
     const css = el("link");
     css.rel = "stylesheet";
     css.href = "/app/join/join.css" + VERSION;
-    const veil = el("div", "veil");
+    const veil = el("div", uiMode === "light" ? "veil light" : "veil");
     veil.hidden = true;
     veil.setAttribute("role", "status");
     veil.setAttribute("aria-live", "polite");
