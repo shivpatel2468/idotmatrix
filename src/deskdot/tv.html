@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <meta name="robots" content="noindex">
 <title>DeskDot TV</title>
 <!-- DeskDotTV: the read-only TV view (docs/TV_VIEW.md). No inline script: the web app's CSP forbids it. -->
@@ -13,7 +13,7 @@
   --chassis-0: #08080a; --chassis-1: #0f0f13; --chassis-2: #16161b; --chassis-3: #1e1e25; --chassis-4: #27272f;
   --line: #25252d; --line-2: #33333d;
   --ink-1: #efece4; --ink-2: #b6b2a8; --ink-3: #7a7783; --ink-4: #484651;
-  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --pink: #ff3f78;
+  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --gold-text: #ffcc33; --pink: #ff3f78;
   --ok: #3ddc84; --warn: #ffb020; --bad: #ff4757; --info: #36c5f0;
   --font: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "SF Pro Display", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", ui-monospace, Menlo, monospace;
@@ -47,14 +47,22 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 .bar-sep { width: 1px; height: 46px; background: var(--line-2); }
 #bar-app { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
 #bar-name { font-size: 34px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#bar-cat { font: 600 17px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink-3); }
+#bar-cat { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; padding: 5px 14px 5px 12px; border-radius: 999px;
+  font: 600 15px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink-2);
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--line-2); }
+#bar-cat::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 10px var(--ember); }
+/* the brand's two LED colours as a hairline under the bar (static) */
+#bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 2%, rgba(255, 63, 120, .7) 26%, rgba(255, 204, 51, .7) 74%, transparent 98%); opacity: .55; }
+#bar-time { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#bar-date { font: 600 15px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); }
 #bar-join { display: flex; align-items: center; gap: 16px; padding: 8px 16px 8px 8px; border-radius: 14px;
   background: var(--chassis-2); border: 1px solid var(--line-2); }
-#bar-join canvas { width: 72px; height: 72px; border-radius: 6px; background: #fff; }
+#bar-join canvas { width: 72px; height: 72px; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
 #bar-join .jt { display: flex; flex-direction: column; gap: 4px; }
 #bar-join .jl { font: 600 15px/1 var(--mono); letter-spacing: .2em; color: var(--ink-3); text-transform: uppercase; }
 #bar-join .jc { font: 700 34px/1 var(--mono); letter-spacing: .14em; color: var(--gold); }
-#bar-clock { font: 600 36px/1 var(--mono); color: var(--ink-1); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+#bar-clock { font: 600 38px/1 var(--mono); color: var(--ink-1); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 #bar-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--ink-4); box-shadow: 0 0 0 3px rgba(255,255,255,.04); transition: background .3s, box-shadow .3s; }
 #bar-dot[data-on="ok"] { background: var(--ok); box-shadow: 0 0 14px var(--ok); }
 #bar-dot[data-on="warn"] { background: var(--warn); box-shadow: 0 0 14px var(--warn); animation: blink 1s infinite; }
@@ -118,15 +126,20 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 .g-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 260px; pointer-events: none;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .55)); }
 .g-panel { position: absolute; left: 112px; top: 62px; }
+/* the panel stands on a soft pool of shadow (a static gradient: painted once) */
+.g-panel::after { content: ""; position: absolute; left: 6%; right: 6%; bottom: -46px; height: 70px; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0)); }
 .g-side { position: absolute; left: 1080px; top: 64px; width: 760px; bottom: 56px; display: flex; flex-direction: column; gap: 30px; }
 .g-cat { display: flex; align-items: center; gap: 16px; }
 .g-cat i { width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 14px var(--ember); }
+.g-rule { width: 168px; height: 4px; margin-top: -8px; border-radius: 2px; background: linear-gradient(90deg, var(--pink), var(--gold)); opacity: .85; }
 .g-name { font: 800 92px/1.02 var(--font); letter-spacing: -.025em; overflow-wrap: anywhere; text-wrap: balance;
   max-height: 2.1em; overflow: hidden; }
 .g-desc { font-size: 30px; color: var(--ink-2); line-height: 1.35; }
 .g-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.g-stat { padding: 20px 24px; border-radius: 18px; background: linear-gradient(180deg, rgba(39,39,47,.7), rgba(22,22,27,.75));
-  border: 1px solid var(--line-2); min-width: 0; }
+.g-stat { position: relative; padding: 20px 24px 20px 28px; border-radius: 18px; background: linear-gradient(180deg, rgba(39,39,47,.7), rgba(22,22,27,.75));
+  border: 1px solid var(--line-2); min-width: 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 18px 40px -24px rgba(0, 0, 0, .7); }
+.g-stat::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 18px; width: 4px; border-radius: 0 3px 3px 0; background: var(--ember); opacity: .8; }
 .g-stat b { display: block; font: 700 46px/1.1 var(--font); margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .g-stat .tv-label { font-size: 19px; }
 .g-players { display: flex; flex-direction: column; gap: 14px; }
@@ -136,7 +149,13 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 .g-player span { font: 700 34px/1 var(--font); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .g-player em { font: 600 20px/1 var(--mono); letter-spacing: .16em; color: var(--ink-3); font-style: normal; text-transform: uppercase; }
 .g-player em.ready { color: var(--ok); }
-.g-hint { margin-top: auto; font: 500 24px/1.4 var(--font); color: var(--ink-3); }
+.g-hint { margin-top: auto; display: flex; align-items: center; gap: 16px; font: 500 24px/1.4 var(--font); color: var(--ink-3); }
+.g-live { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 12px; border-radius: 999px; font: 700 19px/1 var(--mono);
+  letter-spacing: .2em; text-transform: uppercase; color: var(--ink-1); background: rgba(255, 63, 120, .14); border: 1px solid rgba(255, 63, 120, .45); }
+/* the live dot breathes on its own opacity (a composited animation: nothing repaints) */
+.g-live i { width: 12px; height: 12px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 10px var(--pink); animation: live 2s ease-in-out infinite; }
+@keyframes live { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .g-live i { animation: none; } }
 
 /* ------------------------------------------------------------------ the table theme on the bar and the page
    While a casino table shows (stage[data-table]), the bar, the page behind the scene and the veil take the table
@@ -175,6 +194,11 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 /* ------------------------------------------------------------------ veil (waiting / closed) */
 #veil { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
   background: radial-gradient(1200px 800px at 50% 45%, #15151b, #050506 70%); transition: opacity .6s; }
+/* a wall of unlit LEDs behind the card, fading out from the middle (static: painted once) */
+#veil::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, .05) 3px, transparent 3.6px) 0 0 / 30px 30px;
+  -webkit-mask-image: radial-gradient(900px 620px at 50% 46%, #000 10%, transparent 75%); mask-image: radial-gradient(900px 620px at 50% 46%, #000 10%, transparent 75%); }
+.veil-card { position: relative; }
 #veil[hidden] { display: none; }
 [hidden] { display: none !important; } /* "hidden" must win over component display rules (e.g. #bar-join) */
 #veil.fade { opacity: 0; pointer-events: none; }
@@ -190,7 +214,11 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 @keyframes pulse { 0%, 100% { transform: scale(.7); opacity: .35; } 50% { transform: scale(1); opacity: 1; } }
 #veil h1 { margin: 0; font: 800 76px/1.1 var(--font); letter-spacing: -.02em; }
 #veil p { margin: 0; font: 400 34px/1.45 var(--font); color: var(--ink-2); }
-#veil .veil-code { font: 700 30px/1 var(--mono); letter-spacing: .3em; color: var(--ink-3); }
+#veil .veil-code { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+.veil-code-k { margin-right: 10px; font: 600 22px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--ink-3); }
+.veil-code b { width: 74px; height: 92px; display: grid; place-items: center; border-radius: 16px; font: 700 52px/1 var(--mono); color: var(--ink-1);
+  background: linear-gradient(180deg, var(--chassis-3), var(--chassis-1)); border: 1px solid var(--line-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 30px -16px rgba(0, 0, 0, .8); }
 @media (prefers-reduced-motion: reduce) { .veil-dots i { animation: none; opacity: .8; } }
 
 /* ------------------------------------------------------------------ a short notice (e.g. the studio changed the look) */
@@ -211,14 +239,17 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 30px 80px rgba(0, 0, 0, .65);
   transform: translateY(28px); transition: transform .24s cubic-bezier(.2, .9, .25, 1.1); }
 #tv-menu.on .tvm-card { transform: none; }
+.tvm-card { position: relative; }
+.tvm-card::before { content: ""; position: absolute; left: 40px; right: 40px; top: 0; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--pink) 30%, var(--gold) 70%, transparent); opacity: .7; }
 .tvm-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
 .tvm-title { font: 800 40px/1 var(--font); letter-spacing: -.01em; }
 .tvm-sub { font: 600 20px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
-.tvm-row { display: grid; grid-template-columns: 236px 1fr; align-items: center; gap: 22px; padding: 18px 0; }
+.tvm-row { display: grid; grid-template-columns: 236px 1fr; align-items: center; gap: 22px; padding: 14px 0; }
 .tvm-row + .tvm-row { border-top: 1px solid var(--line); }
 .tvm-label { font: 700 23px/1.2 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
-.tvm-label small { display: block; margin-top: 10px; font: 600 19px/1.25 var(--font); letter-spacing: 0; text-transform: none; color: var(--gold); }
-.tvm-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tvm-label small { display: block; margin-top: 10px; font: 600 19px/1.25 var(--font); letter-spacing: 0; text-transform: none; color: var(--gold-text); }
+.tvm-opts { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 16px; }
 .tvm-opt { position: relative; display: flex; align-items: center; gap: 18px; min-height: 104px; padding: 16px 20px;
   border-radius: 20px; background: var(--chassis-2); border: 2px solid var(--line-2); color: var(--ink-2);
   font: inherit; text-align: left; cursor: pointer; transition: transform .14s ease, background .14s, border-color .14s; }
@@ -234,6 +265,92 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 .tvm-hint kbd { display: inline-block; min-width: 38px; padding: 6px 10px; margin-right: 8px; border-radius: 8px;
   background: var(--chassis-3); border: 1px solid var(--line-2); font: 700 19px/1 var(--mono); color: var(--ink-1); text-align: center; }
 @media (prefers-reduced-motion: reduce) { #tv-menu, .tvm-card, .tvm-opt { transition: none; } }
+
+/* ------------------------------------------------------------------ light mode (html[data-theme="light"], tv.js)
+   A TV is dark unless ?theme=light or the options menu picked Light. The studio's light palette ("Gallery":
+   porcelain and ivory, deep ink, hairlines and long soft shadows — docs/STUDIO_UI.md); the panel stays a dark device
+   on its plinth, the LED logo sits on a small LED sign, and a casino table keeps its own dark room (stage[data-table]).
+   Same cost as dark: static gradients and shadows only, nothing animated. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --chassis-0: #f4f0e8; --chassis-1: #fbf9f5; --chassis-2: #ffffff; --chassis-3: #f0ebe2; --chassis-4: #e6e0d5;
+  --line: #e7e1d6; --line-2: #d8d0c2;
+  --ink-1: #1c1a22; --ink-2: #4a4652; --ink-3: #6b6673; --ink-4: #a49ea8;
+  --ember: #b81f4b; --ember-2: #d6386a; --gold: #b8892a; --gold-text: #8a6412; --pink: #b81f4b;
+  --ok: #18794e; --warn: #9a5b00; --bad: #c8203e; --info: #0b6f9e;
+}
+:root[data-theme="light"], :root[data-theme="light"] body, :root[data-theme="light"] #viewport { background: #e9e3d8; }
+:root[data-theme="light"] #stage { background: radial-gradient(1400px 900px at 50% 40%, #fdfcf9 0%, #f4f0e8 55%, #e9e3d8 100%); }
+:root[data-theme="light"] #bar {
+  background: linear-gradient(180deg, #ffffff, #fbf9f5); border-bottom-color: var(--line);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .8), 0 14px 34px -18px rgba(64, 48, 24, .35);
+}
+:root[data-theme="light"] #bar::after { background: linear-gradient(90deg, transparent 2%, #d6386a 26%, #c9a24a 74%, transparent 98%); opacity: .45; }
+/* the LED logo needs the dark: a small LED sign with a gold-leaf rim */
+:root[data-theme="light"] .wordmark canvas { border-radius: 14px; background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -6px 14px rgba(0, 0, 0, .6), 0 0 0 3px #e6cd8a, 0 10px 24px -12px rgba(64, 48, 24, .55); }
+:root[data-theme="light"] .wordmark { margin-left: 0; gap: 14px; }
+:root[data-theme="light"] #bar-cat { background: var(--chassis-1); }
+:root[data-theme="light"] #bar-cat::before { box-shadow: 0 0 0 3px rgba(184, 31, 75, .16); }
+:root[data-theme="light"] #bar-join { background: #ffffff; box-shadow: 0 10px 24px -16px rgba(64, 48, 24, .45); }
+:root[data-theme="light"] #bar-join .jc { color: var(--gold-text); }
+:root[data-theme="light"] #bar-dot { box-shadow: 0 0 0 3px rgba(64, 48, 24, .06); }
+:root[data-theme="light"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 4px rgba(24, 121, 78, .16); }
+:root[data-theme="light"] #bar-dot[data-on="warn"] { box-shadow: 0 0 0 4px rgba(154, 91, 0, .16); }
+:root[data-theme="light"] #bar-dot[data-on="bad"] { box-shadow: 0 0 0 4px rgba(200, 32, 62, .16); }
+:root[data-theme="light"] .tv-bezel {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 38%), linear-gradient(180deg, #2c2c33 0%, #17171c 48%, #0d0d10 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 -2px 0 rgba(0, 0, 0, .65), 0 0 0 1px #0b0b0e,
+    0 2px 4px rgba(40, 30, 16, .12), 0 60px 90px -40px rgba(40, 30, 16, .6), 0 22px 30px -18px rgba(40, 30, 16, .35);
+}
+:root[data-theme="light"] .tv-card { background: linear-gradient(180deg, #ffffff, #fbf9f5); border-color: var(--line);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, .05), 0 24px 50px -28px rgba(64, 48, 24, .4); }
+:root[data-theme="light"] .tv-chip { background: var(--chassis-1); }
+:root[data-theme="light"] .g-ambient { opacity: .45; }
+:root[data-theme="light"] .g-floor { background: linear-gradient(180deg, rgba(64, 48, 24, 0), rgba(64, 48, 24, .07)); }
+:root[data-theme="light"] .g-panel::after { background: radial-gradient(closest-side, rgba(40, 30, 16, .32), rgba(40, 30, 16, 0)); }
+:root[data-theme="light"] .g-cat i { box-shadow: 0 0 0 4px rgba(184, 31, 75, .14); }
+:root[data-theme="light"] .g-rule { background: linear-gradient(90deg, #d6386a, #c9a24a); }
+:root[data-theme="light"] .g-stat { background: linear-gradient(180deg, #ffffff, #fbf9f5); border-color: var(--line);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, .05), 0 20px 40px -26px rgba(64, 48, 24, .4); }
+:root[data-theme="light"] .g-player { background: #ffffff; border-color: var(--line); box-shadow: 0 14px 30px -22px rgba(64, 48, 24, .4); }
+:root[data-theme="light"] .g-player span { color: color-mix(in srgb, var(--c) 55%, #000); }
+:root[data-theme="light"] .g-live { background: rgba(184, 31, 75, .08); border-color: rgba(184, 31, 75, .35); }
+:root[data-theme="light"] .g-live i { box-shadow: 0 0 0 3px rgba(184, 31, 75, .15); }
+/* waiting / closed */
+:root[data-theme="light"] #veil { background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe5da 75%); }
+:root[data-theme="light"] #veil::before { background: radial-gradient(circle, rgba(64, 48, 24, .1) 3px, transparent 3.6px) 0 0 / 30px 30px; }
+:root[data-theme="light"] #veil-logo { border-radius: 40px; background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -10px 30px rgba(0, 0, 0, .6), 0 0 0 5px #e6cd8a, 0 40px 70px -34px rgba(64, 48, 24, .6);
+  margin: 0 0 6px; }
+:root[data-theme="light"] .veil-dots i { box-shadow: 0 0 0 8px rgba(184, 31, 75, .1); }
+:root[data-theme="light"] .veil-dots i:nth-child(2) { background: #d6386a; box-shadow: 0 0 0 8px rgba(214, 56, 106, .1); }
+:root[data-theme="light"] .veil-dots i:nth-child(3) { background: #c9a24a; box-shadow: 0 0 0 8px rgba(201, 162, 74, .14); }
+:root[data-theme="light"] .veil-dots i:nth-child(4) { box-shadow: 0 0 0 8px rgba(11, 111, 158, .1); }
+:root[data-theme="light"] .veil-code b { background: linear-gradient(180deg, #ffffff, #fbf9f5);
+  box-shadow: inset 0 1px 0 #fff, 0 18px 34px -20px rgba(64, 48, 24, .45); }
+/* the notice and the options menu */
+:root[data-theme="light"] #tv-toast { background: rgba(255, 255, 255, .97); box-shadow: 0 20px 44px -22px rgba(64, 48, 24, .5); }
+:root[data-theme="light"] #tv-menu { background: linear-gradient(180deg, rgba(42, 34, 24, 0) 35%, rgba(42, 34, 24, .32)); }
+:root[data-theme="light"] .tvm-card { background: linear-gradient(180deg, #ffffff, #fbf9f5); border-color: var(--line);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(64, 48, 24, .06), 0 40px 90px -30px rgba(64, 48, 24, .55); }
+:root[data-theme="light"] .tvm-opt { background: #ffffff; box-shadow: 0 8px 18px -14px rgba(64, 48, 24, .4); }
+:root[data-theme="light"] .tvm-opt[aria-checked="true"] { background: linear-gradient(180deg, rgba(184, 31, 75, .13), rgba(184, 31, 75, .04)), #ffffff; }
+:root[data-theme="light"] .tvm-opt[aria-checked="true"]::after { color: var(--ember); }
+:root[data-theme="light"] .tvm-opt.focus { border-color: var(--ink-1); box-shadow: 0 0 0 4px var(--ink-1), 0 22px 40px -18px rgba(64, 48, 24, .55); }
+:root[data-theme="light"] .tvm-hint kbd { background: var(--chassis-1); }
+
+/* a casino table keeps its own dark room in both themes: its scene and its themed bar are drawn for the dark */
+:root[data-theme="light"] #stage[data-table="1"] {
+  color-scheme: dark; color: #efece4;
+  --chassis-0: #08080a; --chassis-1: #0f0f13; --chassis-2: #16161b; --chassis-3: #1e1e25; --chassis-4: #27272f;
+  --line: #25252d; --line-2: #33333d;
+  --ink-1: #efece4; --ink-2: #b6b2a8; --ink-3: #7a7783; --ink-4: #484651;
+  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --gold-text: #ffcc33; --pink: #ff3f78;
+  --ok: #3ddc84; --warn: #ffb020; --bad: #ff4757; --info: #36c5f0;
+}
+:root[data-theme="light"] #stage[data-table="1"] #bar { box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .45); }
+:root[data-theme="light"] #stage[data-table="1"] #bar-cat { background: rgba(0, 0, 0, .25); }
 </style>
 </head>
 <body>
@@ -244,7 +361,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
       <div class="bar-sep"></div>
       <div id="bar-app"><div id="bar-name">Connecting…</div><div id="bar-cat"></div></div>
       <div id="bar-join" hidden><canvas id="bar-qr" width="72" height="72"></canvas><div class="jt"><div class="jl">Scan to join</div><div class="jc" id="bar-code"></div></div></div>
-      <div id="bar-clock">--:--</div>
+      <div id="bar-time"><div id="bar-clock">--:--</div><div id="bar-date"></div></div>
       <div id="bar-dot" title="connection"></div>
     </header>
     <main id="scene"></main>

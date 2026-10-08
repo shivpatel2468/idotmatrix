@@ -586,6 +586,16 @@
 .tvg-opt i{flex:none;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;background:var(--chassis-4,#27272f)}
 .tvg-opt.sel{border-color:var(--gold,#ffcc33);box-shadow:0 0 40px -8px var(--gold,#ffcc33)}
 .tvg-opt.sel i{background:var(--gold,#ffcc33);color:#000}
+/* light mode (tv.js: html[data-theme=light]): the tokens above turn porcelain; players' colours as text deepen (same
+   hue) to read on white; avatars keep a small dark plate; the countdown / banner sit over the dark panel as before */
+:root[data-theme="light"] .tvg{background:radial-gradient(1200px 900px at 22% 50%,rgba(255,255,255,.75),transparent 60%),var(--chassis-0)}
+:root[data-theme="light"] :is(.tvg-seat .nm,.tvg-team h3,.tvg-pick .col h4,.tvg-duel .sym,.tvg-duel .nm,.tvg-hand .nm){color:color-mix(in srgb,var(--c) 55%,#000);text-shadow:none}
+:root[data-theme="light"] .tvg-pill{color:color-mix(in srgb,var(--p) 55%,#000)}
+:root[data-theme="light"] .tvg-av{background:#17130f}
+:root[data-theme="light"] :is(.tvg-tag,.tvg-wait){background:rgba(64,48,24,.07)}
+:root[data-theme="light"] .tvg-key{box-shadow:0 3px 0 #d3cabb}
+:root[data-theme="light"] .tvg-team{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,#fff),var(--chassis-1))}
+:root[data-theme="light"] .tvg-stat{box-shadow:0 16px 32px -22px rgba(64,48,24,.4)}
 `;
 
   function ensureCss() {

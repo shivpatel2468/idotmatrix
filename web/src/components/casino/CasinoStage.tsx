@@ -229,7 +229,7 @@ function LobbyStrip({ app }: { app: string }) {
         <button className="block max-w-full truncate font-mono text-[10.5px] text-ink-3 hover:text-ink-1" onClick={copy} title="Copy the join address">
           {lobby.url?.replace(/^https?:\/\//, "")} {copied ? "✓" : ""}
         </button>
-        {!lobby.lan_ready && <span className="block text-[10.5px] text-[#ff6b8a]">Phones can't reach this computer: set host = "0.0.0.0" in deskdot.toml.</span>}
+        {!lobby.lan_ready && <span className="block text-[10.5px] cz-neg">Phones can't reach this computer: set host = "0.0.0.0" in deskdot.toml.</span>}
       </span>
       {tvKey}
       {waiting ? (
@@ -389,7 +389,7 @@ export function CasinoStage() {
     </div>
   );
   return (
-    <div ref={root} className="cz" data-wide={wide || undefined} data-theme={theme?.id ?? "classic"} style={themeVars(theme)}>
+    <div ref={root} className="cz" data-wide={wide || undefined} data-table={theme?.id ?? "classic"} style={themeVars(theme)}>
       <ChipCascade run={entered} />
       <CasinoAlert />
       {wide ? (

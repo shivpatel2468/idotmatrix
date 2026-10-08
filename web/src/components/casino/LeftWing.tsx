@@ -165,11 +165,11 @@ function HouseForm({ house }: { house: House }) {
       <HouseRow label="Auto-next round" hint="Off: the table waits for you to press Start round.">
         <Toggle on={house.auto_next} onChange={(v) => set("auto_next", v)} label="Auto-next round" />
       </HouseRow>
-      <div className="mt-2 rounded-[10px] border border-white/[0.06] bg-black/20 p-2.5">
+      <div className="cz-well mt-2 rounded-[10px] border p-2.5">
         {confirm ? (
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-ink-2">
             <span className="min-w-0 flex-1">Everyone back to <b className="text-[var(--gold)]">{fmt(house.base_credits)}</b>, stats and history cleared?</span>
-            <button className="key !h-8 !border-[#ff3f78]/60 !text-[#ff8aa8]" onClick={() => { setConfirm(false); casinoOp("reset_session").then(() => toast("New session: wallets reset", "ok")).catch(() => undefined); }}>Reset</button>
+            <button className="key !h-8 !border-[#ff3f78]/60 cz-neg" onClick={() => { setConfirm(false); casinoOp("reset_session").then(() => toast("New session: wallets reset", "ok")).catch(() => undefined); }}>Reset</button>
             <button className="key !h-8" onClick={() => setConfirm(false)}>Keep</button>
           </div>
         ) : (

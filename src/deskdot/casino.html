@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#063823"><meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#063823"><meta name="color-scheme" content="dark light">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <title>DeskDot casino</title>
 <style>
@@ -25,6 +25,8 @@
   --c:#ffcc33;--ca:rgba(255,204,51,.35);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --disp:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* engraved display type for headings (system serifs only: phones on the LAN may be offline) */
+  --serif:"Didot","Bodoni 72","Bodoni MT","Playfair Display",Georgia,"Noto Serif","Times New Roman",serif;
   --st:env(safe-area-inset-top,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:dark;
@@ -48,6 +50,94 @@
 :root{transition:--felt .7s ease,--felt2 .7s ease,--felt3 .7s ease,--gold .7s ease,--gold2 .7s ease,--gold-hi .7s ease,--gold-deep .7s ease,--gold-ink .7s ease,
   --gold-text .7s ease,--felt-ink .7s ease,--bg .7s ease,--s1 .7s ease,--s2 .7s ease,--s3 .7s ease,--s4 .7s ease}
 @media (prefers-reduced-motion:reduce){:root{transition:none}}
+/* ---------- light mode (docs/CASINO.md §5): the studio's switch (localStorage deskdot.theme: light | dark | system)
+   puts html[data-theme=light|dark]; without a pick the phone's own preference decides (the media query below covers
+   the first paint). The felt, the chips, the cards and the game tiles never change: the ROOM around the table turns
+   to porcelain, ivory and champagne, with black-lacquer plaques and gold-leaf details. The room tokens beat the
+   inline values applyTheme sets (!important): every table theme gets the same ivory room, faintly tinted by its
+   felt, and its accent deepened to bronze for text (AA on every light surface for all 21 themes). */
+:root[data-theme=light]{
+  --bg:color-mix(in srgb,#f4f0e8 95%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 96%,var(--felt))!important;
+  --s2:color-mix(in srgb,#ffffff 97%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 95%,var(--felt))!important;
+  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 36%,#1a1206)!important;
+  --well:color-mix(in srgb,var(--s3) 60%,#fff);--veil:color-mix(in srgb,var(--s1) 95%,transparent);--toastbg:color-mix(in srgb,var(--s2) 97%,transparent);
+  --accent-soft:rgba(var(--gold-rgb),.16);--glow:rgba(var(--gold-rgb),.3);
+  --line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);--ink:#1c1a22;--dim:#4a4652;--mute:#625d6a;--ok:#18794e;--bad:#c8203e;
+  --lacq:#17130f;--lacq2:#2b241c;--sh1:0 1px 2px rgba(64,48,24,.07),0 12px 28px -16px rgba(64,48,24,.32);
+  --sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
+  color-scheme:light}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --bg:color-mix(in srgb,#f4f0e8 95%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 96%,var(--felt))!important;
+  --s2:color-mix(in srgb,#ffffff 97%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 95%,var(--felt))!important;
+  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 36%,#1a1206)!important;
+  --ink:#1c1a22;--dim:#4a4652;--mute:#625d6a;--line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);color-scheme:light}}
+[data-theme=light] .app{background:radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--felt) 14%,transparent),transparent 62%),
+  radial-gradient(90% 40% at 50% 110%,rgba(var(--gold-rgb),.14),transparent 70%),var(--bg)}
+/* the LED logo on a little LED sign (the tubes need the dark) */
+[data-theme=light] .ddlogo{margin:0 auto 10px;border-radius:18px;background:radial-gradient(130% 150% at 50% 0,#1d1c22,#09090b 72%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 14px rgba(0,0,0,.6),0 0 0 3px color-mix(in srgb,var(--gold) 50%,#d9d2c3),var(--sh2)}
+[data-theme=light] .h1 em{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 46%,#1a1206),color-mix(in srgb,var(--gold) 62%,#000),color-mix(in srgb,var(--gold) 40%,#1a1206));
+  -webkit-background-clip:text;background-clip:text}
+[data-theme=light] .stack i{box-shadow:0 10px 22px -6px rgba(64,48,24,.5),inset 0 0 0 9px rgba(0,0,0,.14)}
+[data-theme=light] :is(.panel,.phase,.ib,.hb,.act,.pv-hand,.hs-now,.hs-box,.pv-slide){box-shadow:var(--sh1)}
+[data-theme=light] .panel{background:linear-gradient(180deg,var(--s2),var(--s1))}
+[data-theme=light] .phase{background:linear-gradient(180deg,var(--s2),var(--s1));border-color:color-mix(in srgb,var(--gold) 34%,var(--s4))}
+[data-theme=light] .ring .tr{stroke:rgba(64,48,24,.12)}
+[data-theme=light] .ring.hurry span{color:var(--bad)}
+/* the bank plaque: black lacquer, a gold-leaf rim, the credits in gold */
+[data-theme=light] .bank{background:radial-gradient(120% 130% at 50% 0,rgba(var(--gold-rgb),.18),transparent 62%),linear-gradient(180deg,var(--lacq2),var(--lacq));
+  border-color:color-mix(in srgb,var(--gold) 62%,#000);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 0 0 1px rgba(0,0,0,.45),var(--sh1)}
+[data-theme=light] .bk-who span{color:#cbc4b4}
+[data-theme=light] .bk-who span.staked,[data-theme=light] #credits{color:var(--gold-hi)}
+[data-theme=light] #credits.up{color:#4dff8a}[data-theme=light] #credits.down{color:#ff8a9c}
+[data-theme=light] .act.on{background:rgba(24,121,78,.1);border-color:rgba(24,121,78,.42)}
+[data-theme=light] .rack .chip{box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 55%,#000),0 9px 14px -6px rgba(64,48,24,.5)}
+[data-theme=light] .rack .chip[aria-checked=true]{box-shadow:0 11px 0 color-mix(in srgb,var(--cc) 55%,#000),0 18px 22px -8px rgba(64,48,24,.5),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.5)}
+[data-theme=light] .lockb{color:#9c1830;box-shadow:var(--sh2)}
+[data-theme=light] :is(.toast,.howto .card,.tour-card,.win.lose .card){box-shadow:var(--sh2)}
+[data-theme=light] .al-card{box-shadow:0 0 0 6px rgba(var(--gold-rgb),.16),0 0 50px rgba(var(--gold-rgb),.28),var(--sh2)}
+/* a win: a black-lacquer plaque with the amount in gold */
+[data-theme=light] .win:not(.lose) .card{background:radial-gradient(circle at 50% 0,rgba(var(--gold-rgb),.32),transparent 70%),linear-gradient(180deg,var(--lacq2),var(--lacq));
+  color:#f3efe4;box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 30%,transparent),0 0 70px rgba(var(--gold-rgb),.4),var(--sh2)}
+[data-theme=light] .win:not(.lose) .card b{color:var(--gold-hi)}
+[data-theme=light] .win:not(.lose) .card :is(small,span){color:#cbc4b4}
+[data-theme=light] .win.lose .card{border-color:var(--line2)}
+[data-theme=light] .paused{color:var(--gold-hi)}
+[data-theme=light] .scrim{background:rgba(30,22,10,.38)}
+[data-theme=light] .howto{background:rgba(30,22,10,.42)}
+[data-theme=light] .sheet{border-top-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 -24px 60px -22px rgba(64,48,24,.45)}
+[data-theme=light] :is(.howto .card,.tour-card){background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--gold) 13%,var(--s2)),var(--s2) 70%)}
+[data-theme=light] .steps li::before{color:var(--gold-hi)}
+[data-theme=light] .tour-dots i{background:rgba(64,48,24,.2)}
+[data-theme=light] .neg{color:var(--bad)!important}
+/* on the felt: felt ink; on the game tiles: white (the tiles are semantic colours) */
+[data-theme=light] :is(.tray,.pv-felt,.hz-top,.hg-felt,.bj-spot){color:var(--felt-ink)}
+[data-theme=light] :is(.zone,.hz-z){color:#fff}
+[data-theme=light] :is(.rt .felt,.tray,.pv-felt,.hg-felt){box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.4),inset 0 0 30px rgba(0,0,0,.45),0 0 0 4px color-mix(in srgb,var(--gold) 22%,var(--s3)),0 18px 40px -18px rgba(64,48,24,.6)}
+[data-theme=light] :is(.zone,.hz-z,.bc-z){box-shadow:inset 0 0 0 2px rgba(255,255,255,.22),0 10px 22px -10px rgba(64,48,24,.55)}
+[data-theme=light] .rt .tip{color:var(--ink);box-shadow:var(--sh2)}
+[data-theme=light] .pv-btn.fold{background:#fbeaee;border-color:rgba(194,38,74,.35);color:#9c1830}
+[data-theme=light] .pv-btn.call{background:#e8f1fb;border-color:rgba(30,100,190,.35);color:#14508a}
+[data-theme=light] .pv-btn.show{background:#f2eafb;border-color:rgba(120,60,190,.35);color:#5b2a8f}
+[data-theme=light] .pv-btn.see{background:#e3f4f6;border-color:rgba(10,120,140,.35);color:#0b5a66}
+[data-theme=light] :is(.pv-wait,.bj-badge,.hs-bd i){background:rgba(64,48,24,.05)}
+[data-theme=light] :is(.pv-timer,.hg-clock,.hs-meta .bar){background:rgba(64,48,24,.1)}
+[data-theme=light] .bj-badge.push{background:rgba(64,48,24,.1)}
+[data-theme=light] :is(.bj-badge.lose,.bj-badge.bust){color:var(--bad)}
+[data-theme=light] .hs-nm{color:var(--gold-text)}
+[data-theme=light] .hs-cl.mine{box-shadow:0 0 0 2px var(--ink),0 0 14px rgba(64,48,24,.3)}
+[data-theme=light] .hs-bd i.last{box-shadow:0 0 0 2px var(--ink)}
+[data-theme=light] .hs-t{box-shadow:inset 0 3px 0 var(--felt),0 0 0 1px rgba(64,48,24,.12),0 8px 18px -8px rgba(64,48,24,.45)}
+[data-theme=light] .livep{background:radial-gradient(80% 70% at 50% 45%,color-mix(in srgb,var(--felt) 22%,transparent),color-mix(in srgb,var(--bg) 88%,transparent))}
+/* players' colours are made for the dark: as text on ivory they are deepened (same hue) */
+[data-theme=light] :is(.pv-seat b,.row b,.pv-res .r b,.hs-buyers span,.lbl b){filter:brightness(.5) saturate(1.4)}
+[data-theme=light] .pv-seat .tag{box-shadow:0 0 0 1px var(--line2),0 2px 4px rgba(64,48,24,.2)}
+/* the gold as a metal: pale accents (ivory, champagne, silver) would vanish on ivory, so rings use it deepened */
+[data-theme=light] .ring .pr{stroke:color-mix(in srgb,var(--gold) 74%,#4a4438)}
+[data-theme=light] .hud::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gold) 70%,#4a4438) 30%,color-mix(in srgb,var(--gold) 70%,#4a4438) 70%,transparent)}
+/* gold keys: pale accents (ivory, champagne, silver, ice) need an engraved metal edge to stand off the ivory */
+[data-theme=light] :is(.go,.act.hot,.pill.hot,.sl-go,.pv-btn.raise,.htabs button[aria-selected=true],.sl-bet[aria-checked=true],.hs-mini[aria-pressed="true"]){border:1px solid color-mix(in srgb,var(--gold) 55%,#4a4438)}
+[data-theme=light] .livep-bz{box-shadow:0 0 0 2px rgba(var(--gold-rgb),.6),0 0 0 7px var(--lacq),0 0 0 8px color-mix(in srgb,var(--gold) 50%,transparent),0 30px 60px -20px rgba(64,48,24,.6)}
 [hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 html{scrollbar-color:rgba(var(--gold-rgb),.4) transparent;accent-color:var(--gold);caret-color:var(--gold)}
@@ -86,13 +176,13 @@ canvas.av{display:block;image-rendering:pixelated}
 @keyframes flip{0%,70%,100%{filter:none}35%{filter:brightness(1.35) drop-shadow(0 0 14px var(--gold))}}
 .h1{margin:0;font:900 clamp(26px,8vw,36px)/1.05 var(--disp);letter-spacing:-.01em}
 .ddlogo{display:block;margin:-12px auto -10px;max-width:100%}/* the DeskDot logo in LEDs (DeskDotLogo); the canvas has glow room */
-.h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold-hi),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.h1 em{display:block;margin-top:2px;font:600 clamp(22px,6.6vw,30px)/1.1 var(--serif);letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;font-style:normal;background:linear-gradient(90deg,var(--gold-hi),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{margin:0;color:var(--dim);max-width:32ch}
 .code{font:800 15px/1 var(--mono);letter-spacing:.3em;padding:8px 14px;border-radius:10px;background:var(--s2);border:1px solid rgba(var(--gold-rgb),.35);color:var(--gold-text)}
 
 /* ---------- seat (profile) ---------- */
 .bar{display:flex;align-items:center;gap:12px;padding:calc(var(--st) + 14px) calc(var(--sr) + 16px) 8px calc(var(--sl) + 16px)}
-.bar h2{margin:0;font:850 21px/1.15 var(--disp)}
+.bar h2{margin:0;font:700 23px/1.15 var(--serif);letter-spacing:.01em}
 .scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px calc(var(--sr) + 14px) 16px calc(var(--sl) + 14px);touch-action:pan-y}
 .cs{display:grid;gap:12px;max-width:640px;margin:0 auto}
 .panel{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--line);border-radius:18px;padding:14px}
@@ -111,18 +201,20 @@ canvas.av{display:block;image-rendering:pixelated}
 .sw button[aria-disabled=true]{opacity:.2}
 .foot{padding:10px calc(var(--sr) + 14px) calc(var(--sb) + 12px) calc(var(--sl) + 14px);border-top:1px solid var(--line);background:var(--veil)}
 .go{width:100%;min-height:58px;border-radius:18px;background:linear-gradient(180deg,var(--gold-hi),var(--gold) 45%,var(--gold2));color:var(--gold-ink);
-  font:900 19px/1 var(--disp);box-shadow:0 6px 0 var(--gold-deep),0 0 34px var(--glow);transition:transform .1s,box-shadow .1s}
+  font:900 19px/1 var(--disp);letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.12),0 6px 0 var(--gold-deep),0 0 34px var(--glow);transition:transform .1s,box-shadow .1s}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--gold-deep)}
 .go:disabled{filter:grayscale(.8) brightness(.6)}
 
 /* ---------- table: HUD — avatar · the bank plaque (name, credits) · icon buttons; nothing overlaps from 320 px up ---------- */
-.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
+.hud{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
   padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 8px calc(var(--sl) + 10px)}
 .meb{position:relative;width:46px;height:46px;border-radius:14px;border:2px solid var(--c);background:var(--well);padding:4px;box-shadow:0 0 16px var(--ca)}
 .meb .dot{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border:2px solid var(--bg)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);flex:none}
 .dot.off{background:var(--warn);box-shadow:0 0 8px var(--warn);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
+.hud::after{content:"";position:absolute;left:calc(var(--sl) + 18px);right:calc(var(--sr) + 18px);bottom:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(var(--gold-rgb),.5) 20%,rgba(var(--gold-rgb),.75) 50%,rgba(var(--gold-rgb),.5) 80%,transparent)}
 /* the bank plaque: who you are on top, your credits big underneath (abbreviated when they don't fit: 1.25M) */
 .bank{min-width:0;max-width:380px;height:50px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 12px 5px 10px;border-radius:14px;
   background:linear-gradient(180deg,rgba(var(--gold-rgb),.11),rgba(var(--gold-rgb),.02)),var(--well);border:1px solid rgba(var(--gold-rgb),.34);
@@ -181,9 +273,10 @@ canvas.av{display:block;image-rendering:pixelated}
 .dock{padding:8px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:8px}
 .rack{display:flex;gap:5px;justify-content:center;align-items:flex-end;min-height:62px}
 .chip{--cc:#d9d9d9;--ct:#111;position:relative;flex:none;width:var(--cw,54px);height:var(--cw,54px);border-radius:50%;
-  background:repeating-conic-gradient(var(--cc) 0 20deg,var(--ce,#fff) 0 30deg,var(--cc) 0 45deg);
+  background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.3),transparent 55%),repeating-conic-gradient(var(--cc) 0 20deg,var(--ce,#fff) 0 30deg,var(--cc) 0 45deg);
   box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 0 2px rgba(0,0,0,.25);transition:transform .15s var(--ease),box-shadow .15s;display:grid;place-items:center}
-.chip::before{content:"";position:absolute;inset:15%;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 2px var(--ce,rgba(255,255,255,.6))}
+.chip::before{content:"";position:absolute;inset:15%;border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),transparent 62%),var(--cc);
+  box-shadow:inset 0 0 0 2px var(--ce,rgba(255,255,255,.6)),inset 0 0 0 3.5px rgba(0,0,0,.14),inset 0 3px 5px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.25)}
 .chip span{position:relative;font:900 calc(var(--cw,54px) * .25)/1 var(--mono);color:var(--ct);letter-spacing:-.03em;text-align:center}
 .chip.call span{font-size:calc(var(--cw,54px) * .21)}
 .chip[aria-checked=true]{transform:translateY(-8px) scale(1.06);box-shadow:0 13px 0 rgba(0,0,0,.35),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.55)}
@@ -251,7 +344,7 @@ canvas.av{display:block;image-rendering:pixelated}
 @media (min-width:700px){.sheet{left:50%;right:auto;width:560px;margin-left:-280px}}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 .sh-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
-.sh-h h2{flex:1;margin:0;font:850 19px/1.2 var(--disp)}
+.sh-h h2{flex:1;margin:0;font:700 21px/1.2 var(--serif);letter-spacing:.01em}
 .sh-h button{min-height:44px;padding:0 14px;border-radius:12px;background:var(--s3);border:1px solid rgba(var(--gold-rgb),.25);color:var(--gold-text);font-weight:800}
 .sh-b{overflow-y:auto;padding:0 calc(var(--sr) + 16px) calc(var(--sb) + 16px) calc(var(--sl) + 16px);touch-action:pan-y;-webkit-overflow-scrolling:touch}
 /* how to play / rulebook / payouts (casino/rulebook.py, sent once in hello) */
@@ -271,7 +364,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .howto{position:absolute;inset:0;z-index:80;display:grid;place-items:end center;padding:16px calc(var(--sr) + 12px) calc(var(--sb) + 16px) calc(var(--sl) + 12px);background:rgba(0,0,0,.6);animation:fade .2s}
 .howto .card{width:100%;max-width:440px;max-height:calc(100% - var(--st) - 16px);overflow-y:auto;padding:18px 16px 16px;border-radius:22px;
   background:radial-gradient(120% 70% at 50% 0%,var(--felt2),var(--s1) 70%);border:1px solid rgba(var(--gold-rgb),.45);box-shadow:0 20px 70px rgba(0,0,0,.7);animation:up .3s var(--ease)}
-.howto h2{margin:0 0 2px;font:900 22px/1.15 var(--disp)}
+.howto h2{margin:0 0 2px;font:700 24px/1.15 var(--serif)}
 .howto .eng{color:var(--gold-text)}
 .howto .bt{display:flex;gap:8px;margin-top:14px}.howto .bt button{flex:1}
 .row{display:grid;grid-template-columns:28px 38px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -298,7 +391,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .pays td{padding:7px 0;border-bottom:1px solid var(--line)}.pays td:last-child{text-align:right;font:800 13px/1 var(--mono);color:var(--gold-text)}
 .end{position:absolute;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:var(--veil)}
 .endcard{max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
-.endcard h2{margin:0;font:900 26px/1.1 var(--disp)}.endcard p{margin:0;color:var(--dim)}
+.endcard h2{margin:0;font:700 28px/1.1 var(--serif)}.endcard p{margin:0;color:var(--dim)}
 .paused{position:absolute;left:50%;top:50%;z-index:20;transform:translate(-50%,-50%);padding:12px 22px;border-radius:14px;background:rgba(0,0,0,.8);border:1px solid var(--gold);color:var(--gold-text);font:900 18px/1 var(--mono);letter-spacing:.2em;pointer-events:none}
 
 /* ---------- chip flights, drag & drop, who is on a spot, the tour ---------- */
@@ -330,7 +423,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .tour-card{position:absolute;left:12px;right:12px;top:40%;max-width:420px;margin:0 auto;padding:14px 14px 12px;border-radius:18px;
   background:radial-gradient(120% 80% at 50% 0,var(--felt2),var(--s1) 75%);border:1px solid rgba(var(--gold-rgb),.5);box-shadow:0 18px 50px rgba(0,0,0,.7);transition:top .3s var(--ease)}
 .tour-card .eng{color:var(--gold-text)}
-.tour-card h3{margin:4px 0 4px;font:900 19px/1.15 var(--disp)}
+.tour-card h3{margin:4px 0 4px;font:700 21px/1.15 var(--serif)}
 .tour-card p{margin:0;color:var(--ink);font-size:14.5px;line-height:1.4}
 .tour-card p b{color:var(--gold-text)}
 .tour-bt{display:flex;gap:8px;align-items:center;margin-top:12px}
@@ -781,6 +874,25 @@ html,body,.board,.dock{touch-action:manipulation}
 
 <script>
 "use strict";
+// Light / dark (docs/CASINO.md §5): the studio's switch, localStorage deskdot.theme = light | dark | system (same
+// origin as the studio on this device), else the phone's own preference. html[data-theme] = light | dark; first so
+// the page never paints in the wrong one (the stylesheet's media query covers the instant before this runs).
+const UiMode = (() => {
+  const root = document.documentElement;
+  let mq = null;
+  try { mq = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null; } catch (_) {}
+  const pick = () => { let v = ""; try { v = String(localStorage.getItem("deskdot.theme") || "").replace(/"/g, ""); } catch (_) {} return v === "light" || v === "dark" ? v : mq && mq.matches ? "light" : "dark"; };
+  const api = { mode: "dark", onChange: null };
+  const apply = () => {
+    const m = pick(); if (m === api.mode && root.dataset.theme === m) return;
+    api.mode = m; try { root.dataset.theme = m; } catch (_) {}
+    if (typeof api.onChange === "function") api.onChange(m);
+  };
+  apply();
+  try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.theme") apply(); }); } catch (_) {}
+  return api;
+})();
 
 // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
 // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
@@ -1837,10 +1949,17 @@ function applyTheme(t) {
   // the felt's motif: every theme has one (classic too); an older engine sends none
   if (css.pattern) { st.setProperty("--pat", css.pattern); st.setProperty("--pat-size", css.pattern_size || "auto"); }
   else { st.removeProperty("--pat"); st.removeProperty("--pat-size"); }
-  document.documentElement.dataset.theme = id;
-  const meta = document.querySelector('meta[name="theme-color"]'); // the phone's browser bar follows the felt
-  if (meta) meta.setAttribute("content", (id !== "classic" && css.felt3) || "#063823");
+  document.documentElement.dataset.table = id; // (data-theme is light / dark: UiMode)
+  paintBrowserBar();
 }
+/** The phone's browser bar: the felt in the dark room, the porcelain in the light one. */
+function paintBrowserBar() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const css = (S.pub && S.pub.table_theme && S.pub.table_theme.css) || {};
+  if (meta) meta.setAttribute("content", UiMode.mode === "light" ? "#f4f0e8" : (themeId !== "classic" && css.felt3) || "#063823");
+}
+UiMode.onChange = () => { try { paintBrowserBar(); } catch (_) {} };
+try { paintBrowserBar(); } catch (_) {}
 
 /* ------------------------------------------------ the live panel: the engine's frames (binary 32×32×3, opt-in, ≤ 10 fps)
    Big and glowing over the board while the table plays (no more bets, spinning, dealing, the result); back to the

@@ -52,6 +52,8 @@
   /* the felt's motif (table theme `pattern` / `pattern_size`: pure CSS gradients, one size per layer) */
   --cz-pat: none;
   --cz-pat-size: auto;
+  /* engraved display type for the salon's headings (system serifs, nothing to download) */
+  --cz-serif: "Didot", "Bodoni 72", "Bodoni MT", "Playfair Display", Georgia, "Noto Serif", serif;
   /* derived once: text tones (tinted by the theme; AA on the wings, tests/test_casino_themes.py) and lines */
   --cz-ink-1: color-mix(in srgb, #fff 75%, var(--gold-2));
   --cz-ink-2: color-mix(in srgb, var(--felt-ink) 80%, var(--gold-2));
@@ -150,7 +152,7 @@
 .cz-section { padding: 10px 0 6px; }
 .cz-section + .cz-section { border-top: 1px solid rgba(var(--gold-rgb), 0.08); margin-top: 6px; }
 .cz-section > header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-.cz-section h3 { font-family: var(--font-display); font-size: 15px; font-weight: 650; letter-spacing: -0.01em; color: var(--cz-ink-1); }
+.cz-section h3 { font-family: var(--cz-serif); font-size: 16px; font-weight: 700; letter-spacing: 0.01em; color: var(--cz-ink-1); }
 .cz-section header p { font-size: 11px; line-height: 1.35; color: var(--cz-dim); margin-top: 1px; }
 .cz-empty { font-size: 12px; line-height: 1.45; color: var(--cz-dim); padding: 14px 12px; border-radius: 10px; border: 1px dashed rgba(var(--gold-rgb), 0.18); background: rgba(0, 0, 0, 0.18); }
 .cz-foot { font-size: 10.5px; line-height: 1.4; color: var(--cz-mute); margin-top: 10px; }
@@ -272,6 +274,9 @@
 .cz-rank[data-top="true"] { border-color: color-mix(in srgb, var(--m) 35%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--m) 10%, transparent), rgba(0, 0, 0, 0.2) 60%); }
 .cz-rank-n { width: 18px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; color: var(--cz-mute); }
 .cz-rank .cz-credits { color: var(--cz-ink-1); }
+.cz-pos { color: #3ddc97; }
+.cz-neg { color: #ff6b8a !important; }
+.cz-well { border-color: rgba(255, 255, 255, 0.06); background: rgba(0, 0, 0, 0.2); }
 
 .cz-round { border-radius: 10px; padding: 7px 9px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.04); }
 .cz-round-n { font-family: var(--font-mono); font-size: 10px; color: var(--cz-mute); width: 34px; }
@@ -361,7 +366,7 @@ button.cz-chip:hover { transform: translateY(-2px); }
 .cz:not([data-wide]) .cz-centre { width: 100%; }
 .cz-title { display: flex; align-items: center; gap: 10px; min-height: 30px; }
 .cz-title-name {
-  font-family: var(--font-display); font-size: 19px; font-weight: 720; letter-spacing: -0.02em;
+  font-family: var(--cz-serif); font-size: 21px; font-weight: 700; letter-spacing: 0.01em;
   background: linear-gradient(90deg, var(--gold-2), var(--gold) 45%, var(--gold-lo) 80%, var(--felt-ink)); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 14px rgba(var(--gold-rgb), 0.25));
 }
@@ -650,3 +655,148 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 
 /* the TV key under the panel (CasinoStage LobbyStrip): the gold key, lobby-row height */
 .cz-tvkey { height: 2rem; padding: 0 0.8rem; flex: none; }
+
+/* ------------------------------------------------------------- light mode (html[data-theme="light"], docs/CASINO.md §6)
+ * "The salon": the felt, the chips, the cards, the LED panel and the result tiles never change; the room around the
+ * table turns to porcelain and ivory (the studio's light tokens, faintly tinted by the felt), framed in gold leaf,
+ * with the accent deepened to bronze wherever it is text (AA on every light surface, all 21 themes) and to an
+ * antique metal for rings and rules. The theme's inline wing / surface values are overridden here (!important).
+ * The text on the felt (the play board) keeps the felt's ink. */
+:root[data-theme="light"] .cz {
+  --cz-wing: color-mix(in srgb, #fbf9f5 95%, var(--felt)) !important;
+  --cz-wing-2: color-mix(in srgb, #f8f5ef 95%, var(--felt)) !important;
+  --cz-wing-3: color-mix(in srgb, #f3efe7 95%, var(--felt)) !important;
+  --cz-bg: color-mix(in srgb, #f4f0e8 95%, var(--felt)) !important;
+  --cz-s1: color-mix(in srgb, #fbf9f5 96%, var(--felt)) !important;
+  --cz-s2: color-mix(in srgb, #ffffff 97%, var(--felt)) !important;
+  --cz-s3: color-mix(in srgb, #f0ebe2 95%, var(--felt)) !important;
+  --cz-s4: color-mix(in srgb, #e6e0d5 95%, var(--felt)) !important;
+  --gold-text: color-mix(in srgb, var(--gold) 36%, #1a1206) !important;
+  --cz-ink-1: #1c1a22;
+  --cz-ink-2: #2f2b36;
+  --cz-ink-3: #4a4652;
+  --cz-dim: #4a4652;
+  --cz-mute: #625d6a;
+  --cz-line: color-mix(in srgb, var(--gold) 20%, #e7e1d6);
+  --cz-line-2: color-mix(in srgb, var(--gold) 30%, #d8d0c2);
+  --cz-edge: color-mix(in srgb, var(--gold-lo) 55%, #000);
+  --cz-bad: #c8203e;
+  --cz-metal: color-mix(in srgb, var(--gold) 74%, #4a4438); /* the accent as antique metal: rings, rules, frames */
+  --cz-sh: 0 1px 2px rgba(64, 48, 24, 0.06), 0 12px 26px -16px rgba(64, 48, 24, 0.3);
+  --color-ember: var(--cz-metal);
+  --color-ember-2: var(--gold);
+  --color-ember-deep: color-mix(in srgb, var(--gold) 16%, #fff);
+  --color-on-ember: var(--gold-ink);
+  color-scheme: light;
+  scrollbar-color: color-mix(in srgb, var(--cz-metal) 45%, transparent) transparent;
+}
+/* the play board is felt: its labels keep the felt's ink */
+:root[data-theme="light"] .cz .cz-board { --cz-ink-1: var(--felt-ink); --cz-ink-2: var(--felt-ink); color: var(--felt-ink); }
+
+/* wings: ivory panels in an engraved double rule of gold leaf, lifted by a long soft shadow */
+:root[data-theme="light"] .cz-wing {
+  border-color: color-mix(in srgb, var(--cz-metal) 38%, #e7e1d6);
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(var(--gold-rgb), 0.1), transparent 60%),
+    linear-gradient(180deg, var(--cz-wing), var(--cz-wing-2) 55%, var(--cz-wing-3));
+  box-shadow:
+    inset 0 1px 0 #fff, inset 0 0 0 4px color-mix(in srgb, var(--cz-wing) 70%, transparent),
+    inset 0 0 0 5px color-mix(in srgb, var(--cz-metal) 22%, transparent),
+    0 1px 2px rgba(64, 48, 24, 0.06), 0 34px 70px -40px rgba(64, 48, 24, 0.5);
+}
+:root[data-theme="light"] .cz-wing::before { opacity: 0; }
+:root[data-theme="light"] .cz-tabs { background: color-mix(in srgb, var(--cz-s3) 80%, transparent); border-color: var(--cz-line); }
+:root[data-theme="light"] .cz-tabs > button:hover { color: var(--cz-ink-1); }
+:root[data-theme="light"] .cz-tabs > button[data-on="true"] { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 6px -2px rgba(64, 48, 24, 0.35); }
+:root[data-theme="light"] .cz-tabs > button > i { color: var(--gold-text); background: rgba(var(--gold-rgb), 0.2); }
+:root[data-theme="light"] .cz-section + .cz-section { border-top-color: var(--cz-line); }
+:root[data-theme="light"] .cz-empty { background: rgba(64, 48, 24, 0.03); border-color: var(--cz-line-2); }
+:root[data-theme="light"] .cz-row { border-bottom-color: rgba(64, 48, 24, 0.07); }
+:root[data-theme="light"] .cz .seg { background: var(--cz-s3); border-color: var(--cz-line); }
+:root[data-theme="light"] .cz .field,
+:root[data-theme="light"] .cz-num { background: #fff; border-color: var(--cz-line-2); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.08); }
+:root[data-theme="light"] .cz-pill { background: #fff; border-color: var(--cz-line-2); }
+:root[data-theme="light"] .cz-pill:hover { color: var(--cz-ink-1); background: color-mix(in srgb, var(--gold) 10%, #fff); }
+:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme, .cz-lobby) {
+  background: linear-gradient(180deg, #fff, var(--cz-s1)); border-color: var(--cz-line); box-shadow: var(--cz-sh);
+}
+:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme)[data-on="true"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 14%, #fff), #fff); border-color: var(--cz-metal);
+  box-shadow: 0 0 0 1px var(--cz-metal), 0 10px 24px -14px rgba(64, 48, 24, 0.45);
+}
+:root[data-theme="light"] :is(.cz-preset em, .cz-preset-ic, .cz-odds-row > span:nth-child(2), .cz-game em) { color: var(--gold-text); }
+:root[data-theme="light"] :is(.cz-odds-row, .cz-everyone, .cz-rank, .cz-round, .cz-steps li, .cz-myresult) { background: rgba(64, 48, 24, 0.04); }
+:root[data-theme="light"] .cz-round { border-color: rgba(64, 48, 24, 0.06); }
+:root[data-theme="light"] .cz-edge { background: rgba(64, 48, 24, 0.05); }
+:root[data-theme="light"] .cz-rtp { background: color-mix(in srgb, var(--gold) 9%, #fff); border-color: color-mix(in srgb, var(--cz-metal) 45%, transparent); }
+:root[data-theme="light"] .cz-seat {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 12%, #fff), #fff 48%); border-color: color-mix(in srgb, var(--c) 40%, #e7e1d6);
+  box-shadow: var(--cz-sh);
+}
+:root[data-theme="light"] .cz-seat-tools { border-top-color: var(--cz-line); }
+/* avatars are LED art: they keep a small black-lacquer plate */
+:root[data-theme="light"] .cz-avatar { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 24%, #2b241c), #17130f); }
+:root[data-theme="light"] .cz-rank[data-top="true"] { background: linear-gradient(90deg, color-mix(in srgb, var(--m) 14%, #fff), rgba(64, 48, 24, 0.03) 60%); }
+:root[data-theme="light"] .cz-credits[data-dir="up"] { color: #18794e !important; text-shadow: none; }
+:root[data-theme="light"] .cz-credits[data-dir="down"] { color: #c8203e !important; text-shadow: none; }
+:root[data-theme="light"] .cz-pos { color: #18794e; }
+:root[data-theme="light"] .cz-neg { color: #c8203e !important; }
+:root[data-theme="light"] .cz-well { border-color: var(--cz-line); background: rgba(64, 48, 24, 0.04); }
+:root[data-theme="light"] .cz-myresult.cz-win { background: linear-gradient(90deg, rgba(24, 121, 78, 0.12), transparent); color: #18794e; }
+:root[data-theme="light"] .cz-myresult.cz-lose { background: linear-gradient(90deg, rgba(200, 32, 62, 0.1), transparent); color: #c8203e; }
+:root[data-theme="light"] .cz-steps li::before { color: var(--gold-2); }
+:root[data-theme="light"] :is(.cz-steps b, .cz-rules b) { color: var(--gold-text); }
+:root[data-theme="light"] .cz-rules li::marker { color: var(--cz-metal); }
+
+/* centre: the bronze title, a porcelain host bar, the felt table on a champagne plinth */
+:root[data-theme="light"] .cz-title-name {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 46%, #1a1206), color-mix(in srgb, var(--gold) 64%, #000) 55%, color-mix(in srgb, var(--gold) 38%, #1a1206));
+  -webkit-background-clip: text; background-clip: text; filter: none;
+}
+:root[data-theme="light"] .cz .cz-gold, :root[data-theme="light"] .cz .key-ember, :root[data-theme="light"] .cz-tabs > button[data-on="true"],
+:root[data-theme="light"] .cz-pill[data-on="true"], :root[data-theme="light"] .cz .seg > button[data-active="true"] {
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, #4a4438); /* pale accents need a metal edge on ivory */
+}
+:root[data-theme="light"] .cz-hostbar {
+  background: linear-gradient(180deg, #fff, var(--cz-s1)); border-color: color-mix(in srgb, var(--cz-metal) 34%, #e7e1d6);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, 0.05), 0 18px 36px -26px rgba(64, 48, 24, 0.45);
+}
+:root[data-theme="light"] .cz-phase[data-tone="red"] b, :root[data-theme="light"] .cz-ring[data-hurry="true"] b { color: #c8203e; }
+:root[data-theme="light"] .cz-phase[data-tone="gold"] .cz-phase-dot { background: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.25); }
+:root[data-theme="light"] .cz-ring-track { fill: rgba(64, 48, 24, 0.04); stroke: rgba(64, 48, 24, 0.12); }
+:root[data-theme="light"] .cz-ring-fill { stroke: var(--cz-metal); }
+:root[data-theme="light"] .cz-ring b { color: var(--cz-ink-1); }
+:root[data-theme="light"] .cz-table {
+  box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.55), inset 0 0 0 7px color-mix(in srgb, var(--gold-deep) 70%, #000), inset 0 0 0 9px rgba(var(--gold-rgb), 0.25),
+    inset 0 10px 40px rgba(0, 0, 0, 0.55), 0 0 0 5px color-mix(in srgb, var(--cz-metal) 30%, #f3efe7), 0 0 0 6px color-mix(in srgb, var(--cz-metal) 40%, transparent),
+    0 44px 80px -40px rgba(64, 48, 24, 0.7);
+}
+:root[data-theme="light"] .cz-notice { color: color-mix(in srgb, var(--cz-warn) 55%, #000); }
+:root[data-theme="light"] .cz-qrbig { background: rgba(42, 34, 24, 0.45); }
+:root[data-theme="light"] .cz-qrbig > div { box-shadow: 0 30px 80px -24px rgba(64, 48, 24, 0.55); }
+:root[data-theme="light"] .cz-split > span { background: color-mix(in srgb, var(--cz-metal) 35%, transparent); }
+
+/* the page around the casino view in light mode: the studio's porcelain, faintly felt-tinted, the accent bronze */
+:root[data-theme="light"][data-cz] {
+  --color-chassis-0: color-mix(in srgb, #f4f0e8 95%, var(--cz-page-felt));
+  --color-chassis-1: #fbf9f5;
+  --color-chassis-2: #ffffff;
+  --color-chassis-3: #f0ebe2;
+  --color-chassis-4: #e6e0d5;
+  --color-line: color-mix(in srgb, var(--cz-page-accent) 16%, #e7e1d6);
+  --color-line-2: color-mix(in srgb, var(--cz-page-accent) 24%, #d8d0c2);
+  --color-ink-1: #1c1a22;
+  --color-ink-2: #4a4652;
+  --color-ink-3: #6b6673;
+  --color-ink-4: #a49ea8;
+  --color-ember: color-mix(in srgb, var(--cz-page-accent) 40%, #1a1206);
+  --color-ember-2: color-mix(in srgb, var(--cz-page-accent) 62%, #1a1206);
+  --color-ember-deep: color-mix(in srgb, var(--cz-page-accent) 14%, #fff);
+}
+:root[data-theme="light"][data-cz] body {
+  background-image:
+    radial-gradient(1400px 620px at 50% -12%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(1200px 700px at 50% 42%, color-mix(in srgb, var(--cz-page-felt) 9%, transparent), transparent 62%),
+    radial-gradient(circle at 1px 1px, rgba(64, 48, 24, 0.06) 1px, transparent 0);
+  background-size: auto, auto, 22px 22px;
+}
