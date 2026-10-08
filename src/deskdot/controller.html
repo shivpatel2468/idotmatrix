@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#08080a"><meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#08080a"><meta name="color-scheme" content="dark light">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <title>DeskDot controller</title>
 <style>
@@ -44,6 +44,69 @@ canvas.av{display:block;image-rendering:pixelated}
 .scr.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .18s var(--ease),transform .24s var(--ease),visibility 0s}
 .scr.back{transform:translateY(-14px) scale(.985)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.scr,.scr.back{transform:none}}
+/* ---------- light mode: the studio's switch (localStorage deskdot.theme: light | dark | system) sets
+   html[data-theme=light|dark]; without a pick the phone's preference decides (the media query covers the first paint).
+   Porcelain and ivory screens with the studio's light tokens (docs/STUDIO_UI.md); the pad becomes a white console
+   controller with soft shadows; LED things (avatars, the seat badge, the logo) keep a small dark plate. Your colour
+   as text is deepened (--ct, same hue) so it reads on white. */
+.app{--ct:var(--c)}
+:root[data-theme=light]{--bg:#f4f0e8;--s1:#fbf9f5;--s2:#ffffff;--s3:#f0ebe2;--s4:#e6e0d5;--line:#e7e1d6;--line2:#d8d0c2;
+  --ink:#1c1a22;--dim:#4a4652;--mute:#6b6673;--ok:#18794e;--bad:#c8203e;--amber:#9a5b00;--ember:#b81f4b;--cyan:#0b6f9e;
+  --key-floor:#d3cabb;--sh1:0 1px 2px rgba(64,48,24,.06),0 12px 26px -16px rgba(64,48,24,.3);--sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
+  color-scheme:light}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f4f0e8;--s1:#fbf9f5;--s2:#ffffff;--s3:#f0ebe2;--s4:#e6e0d5;
+  --line:#e7e1d6;--line2:#d8d0c2;--ink:#1c1a22;--dim:#4a4652;--mute:#6b6673;color-scheme:light}}
+[data-theme=light] .app{--ct:color-mix(in srgb,var(--c) 52%,#000);
+  background:radial-gradient(120% 55% at 50% -14%,var(--ca20),transparent 60%),radial-gradient(circle,rgba(64,48,24,.06) 1px,transparent 1.4px) 0 0/14px 14px,var(--bg)}
+[data-theme=light] .ddlogo{margin:0 auto 6px;border-radius:18px;background:radial-gradient(130% 150% at 50% 0,#1d1c22,#09090b 72%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 14px rgba(0,0,0,.6),0 0 0 3px #e6cd8a,var(--sh2)}
+[data-theme=light] .net{background:rgba(255,255,255,.88);box-shadow:var(--sh1)}
+[data-theme=light] :is(.who b,.rdy,.fb.a,.lay button[aria-checked=true],.wheel.go,.sw-glyph,.fx,.tzh.on svg,.last,.rps-msg.hot,.mc svg,.rbk h3,.rbk b){color:var(--ct)}
+[data-theme=light] .rbk ol li::before{color:var(--ct)}
+[data-theme=light] :is(.rdy,.rps-msg.hot){text-shadow:none}
+[data-theme=light] :is(.panel,.pl,.gear,.card,.mcard,.rps-vs,.bm,.code,.tapnext,.ghost,.pillb,.act){box-shadow:var(--sh1)}
+[data-theme=light] :is(.name,.tile,.pl){background:#fff}
+[data-theme=light] .pl.me{background:linear-gradient(90deg,var(--ca10),transparent 70%),#fff}
+[data-theme=light] :is(.seg,.lay){background:var(--s3)}
+[data-theme=light] .seg button[aria-checked=true]{background:#fff;box-shadow:inset 0 0 0 1.5px var(--tc,var(--c)),0 1px 3px rgba(64,48,24,.18)}
+[data-theme=light] .lay button[aria-checked=true]{background:#fff}
+[data-theme=light] .foot{background:rgba(251,249,245,.94)}
+[data-theme=light] .go{box-shadow:0 6px 0 color-mix(in srgb,var(--c) 55%,#000),0 14px 26px -10px var(--ca55),inset 0 1px 0 rgba(255,255,255,.4)}
+[data-theme=light] .go:active{box-shadow:0 2px 0 color-mix(in srgb,var(--c) 55%,#000)}
+[data-theme=light] .chip-c[aria-checked=true]{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--sc),0 6px 16px -4px rgba(64,48,24,.4)}
+/* the pad: a white console controller */
+[data-theme=light] :is(.k,.rps-b){border-color:#d8d0c2;background:linear-gradient(180deg,#ffffff,#efe9df);color:var(--ink);
+  box-shadow:inset 0 1px 0 #fff,0 6px 0 var(--key-floor),0 14px 22px -8px rgba(64,48,24,.4)}
+[data-theme=light] .rps-b{color:var(--dim)}
+[data-theme=light] .k.on{background:var(--c);color:#050507;border-color:transparent;box-shadow:0 1px 0 var(--key-floor),0 0 30px var(--ca55),inset 0 2px 8px rgba(0,0,0,.18)}
+[data-theme=light] .fb.a.on{color:#050507}
+[data-theme=light] .rps-b.on{box-shadow:0 1px 0 var(--key-floor),0 0 30px var(--ca55)}
+[data-theme=light] .rps-b.sel{color:var(--ink);background:linear-gradient(180deg,var(--ca35),var(--ca10)),#fff}
+[data-theme=light] .cross{filter:drop-shadow(0 6px 0 var(--key-floor)) drop-shadow(0 14px 14px rgba(64,48,24,.28))}
+[data-theme=light] :is(.arm,.hub){background:#fbf9f5;color:#8a8494}
+[data-theme=light] .hub{background:radial-gradient(circle,#ece6dc 0 36%,#fbf9f5 38%)}
+[data-theme=light] .arm.on{background:var(--c);color:#050507}
+[data-theme=light] .stick-zone{border-color:rgba(64,48,24,.16);background:radial-gradient(circle at 50% 60%,rgba(64,48,24,.035),transparent 70%)}
+[data-theme=light] .stick-base{background:radial-gradient(circle,#f5f1ea 0 56%,#e9e3d8 57%);border-color:#d8d0c2;box-shadow:inset 0 6px 20px rgba(64,48,24,.16),0 0 0 7px rgba(64,48,24,.03)}
+[data-theme=light] .stick-base::before{border-color:rgba(64,48,24,.16)}
+[data-theme=light] .stick-knob{background:radial-gradient(circle at 36% 30%,#ffffff,#e2dbcf 68%);border-color:#cfc6b7;box-shadow:0 8px 16px rgba(64,48,24,.32),inset 0 1px 0 #fff}
+[data-theme=light] .swipe{background:radial-gradient(circle,rgba(64,48,24,.09) 1.2px,transparent 1.8px) 0 0/22px 22px,radial-gradient(circle at 50% 45%,var(--ca10),transparent 65%),var(--s1)}
+[data-theme=light] .sw-glyph{opacity:.2}
+[data-theme=light] :is(.cap,.gpd .g){border-color:#d8d0c2}
+[data-theme=light] .cap{background:#fff;box-shadow:0 3px 0 var(--key-floor)}
+[data-theme=light] .cap.on{background:var(--c);box-shadow:0 1px 0 var(--key-floor),0 0 18px var(--ca55)}
+[data-theme=light] .rps-side b{filter:brightness(.5) saturate(1.4)}
+[data-theme=light] .bm.cur{box-shadow:0 0 0 1px rgba(154,91,0,.25),var(--sh1)}
+/* toasts, sheets, the end screen */
+[data-theme=light] .toast{background:#fff;box-shadow:var(--sh2)}
+[data-theme=light] .recon{background:#fff7e6;border-color:rgba(154,91,0,.4);color:#6e4c00;box-shadow:var(--sh2)}
+[data-theme=light] .end{background:rgba(244,240,232,.94)}
+[data-theme=light] :is(.scrim,.rbk){background:rgba(42,34,24,.38)}
+[data-theme=light] :is(.sheet,.rbk .in){background:var(--s1);border-color:var(--line2);box-shadow:0 -24px 60px -22px rgba(64,48,24,.45)}
+[data-theme=light] .row{border-bottom-color:var(--line)}
+[data-theme=light] .tg{background:#e6e0d5}
+[data-theme=light] .tg i,[data-theme=light] [aria-checked=true]>.tg i{background:#fff;box-shadow:0 1px 3px rgba(64,48,24,.35)}
+[data-theme=light] .why{background:#fff7e6;border-color:#ecd9a8;color:#6e4c00}
 
 /* ---------- connection pill (every screen) ---------- */
 .net{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(17,17,21,.85);border:1px solid var(--line2);
@@ -621,6 +684,25 @@ canvas.av{display:block;image-rendering:pixelated}
 
 <script>
 "use strict";
+// Light / dark: the studio's switch, localStorage deskdot.theme = light | dark | system (same origin as the studio on
+// this device), else the phone's own preference. html[data-theme] = light | dark, set first (no flash).
+(() => {
+  const root = document.documentElement;
+  let mq = null;
+  try { mq = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null; } catch (_) {}
+  const apply = () => {
+    let v = ""; try { v = String(localStorage.getItem("deskdot.theme") || "").replace(/"/g, ""); } catch (_) {}
+    const m = v === "light" || v === "dark" ? v : mq && mq.matches ? "light" : "dark";
+    try {
+      root.dataset.theme = m;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", m === "light" ? "#f4f0e8" : "#08080a");
+    } catch (_) {}
+  };
+  apply();
+  try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.theme") apply(); }); } catch (_) {}
+})();
 
 // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
 // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops

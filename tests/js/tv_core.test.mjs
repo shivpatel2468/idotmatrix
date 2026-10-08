@@ -123,3 +123,21 @@ test("bloom: the studio's two Gaussian blurs, centred on the light, none for the
   // the LED look's bloom is the stronger one (0.55 + 0.3 against 0.28 + 0.2), as in the studio
   assert.ok(TV.bloomField(frame, "led", n)[(32 * n + 32) * 3] > TV.bloomField(frame, "glow", n)[(32 * n + 32) * 3]);
 });
+
+test("theme: dark by default, ?theme= wins over the TV's stored pick, html[data-theme] set before anything draws", () => {
+  const plain = load();
+  assert.equal(plain.TV.theme, "dark");
+  assert.equal(plain.doc.documentElement.dataset.theme, "dark");
+  assert.equal(plain.TV.themeFrom, "default");
+  const stored = load("", { "deskdot.tv.theme": "light" });
+  assert.equal(stored.TV.theme, "light");
+  assert.equal(stored.TV.themeFrom, "tv");
+  assert.equal(stored.doc.documentElement.dataset.theme, "light");
+  const url = load("?theme=dark", { "deskdot.tv.theme": "light" });
+  assert.equal(url.TV.theme, "dark");
+  assert.equal(url.TV.themeFrom, "url");
+  assert.equal(plain.TV.themeFromQuery("?theme=LIGHT"), "light");
+  assert.equal(plain.TV.themeFromQuery("?theme=sepia"), null);
+  // a TV ignores the studio's own key (a TV in a dark room stays dark unless asked)
+  assert.equal(load("", { "deskdot.theme": "light" }).TV.theme, "dark");
+});

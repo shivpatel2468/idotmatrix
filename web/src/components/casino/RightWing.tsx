@@ -48,7 +48,7 @@ function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: 
           <Credits value={p.credits} className="cz-seat-credits" />
           <span className="cz-seat-sub justify-end">
             {p.staked > 0 && <span title="On the table (escrow)">⛁ {short(p.staked)}</span>}
-            <span className={p.net > 0 ? "text-[#3ddc97]" : p.net < 0 ? "text-[#ff6b8a]" : ""} title="Net this session">{p.net > 0 ? "+" : ""}{short(p.net)}</span>
+            <span className={p.net > 0 ? "cz-pos" : p.net < 0 ? "cz-neg" : ""} title="Net this session">{p.net > 0 ? "+" : ""}{short(p.net)}</span>
           </span>
         </span>
         <ChevronDown size={14} className={clsx("shrink-0 text-ink-4 transition", open && "rotate-180")} />
@@ -70,7 +70,7 @@ function SeatCard({ p, betting, done }: { p: PlayerRow; betting: boolean; done: 
             <span>Biggest win <b className="text-ink-1">{fmt(p.biggest)}</b></span>
             <span>On the table <b className="text-ink-1">{fmt(p.staked)}</b></span>
             {p.seat !== "host" && t && (
-              <button className="ml-auto inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-[#ff8aa8] hover:bg-[#ff3f78]/10"
+              <button className="ml-auto inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] cz-neg hover:bg-[#ff3f78]/10"
                 onClick={() => casinoOp("kick", { ...t, on: !p.kicked }).catch(() => undefined)}>
                 {p.kicked ? <><UserCheck size={12} /> Let back in</> : <><Ban size={12} /> Kick</>}
               </button>
@@ -137,7 +137,7 @@ function Ranking() {
               <span className="cz-rank-n">{i < 3 ? <Medal size={14} style={{ color: medal[i] }} /> : i + 1}</span>
               <AvatarPix id={p.avatar} color={p.color} name={p.name} size={26} />
               <span className="min-w-0 flex-1 truncate text-[12.5px]">{p.name}{!p.online && <span className="text-ink-4"> · away</span>}</span>
-              <span className={clsx("w-14 text-right font-mono text-[10.5px]", p.net > 0 ? "text-[#3ddc97]" : p.net < 0 ? "text-[#ff6b8a]" : "text-ink-3")}>{p.net > 0 ? "+" : ""}{short(p.net)}</span>
+              <span className={clsx("w-14 text-right font-mono text-[10.5px]", p.net > 0 ? "cz-pos" : p.net < 0 ? "cz-neg" : "text-ink-3")}>{p.net > 0 ? "+" : ""}{short(p.net)}</span>
               <Credits value={p.credits + p.staked} className="w-20 text-right font-display text-[15px] font-[650]" />
             </li>
           ))}
@@ -169,7 +169,7 @@ function Round({ h }: { h: HistoryEntry }) {
         <span className="cz-round-n">#{h.round}</span>
         <span className="cz-round-tile" style={{ background: TONE[h.tone ?? ""] ?? "#3a3a46" }}>{h.label ?? "?"}</span>
         <span className="min-w-0 flex-1 truncate text-[11px] text-ink-3">{describe(h.outcome)}</span>
-        {v && v !== "busy" && (v.ok ? <CircleCheck size={14} className="text-[#3ddc97]" /> : <CircleX size={14} className="text-[#ff3f78]" />)}
+        {v && v !== "busy" && (v.ok ? <CircleCheck size={14} className="cz-pos" /> : <CircleX size={14} className="cz-neg" />)}
         <ChevronDown size={13} className={clsx("text-ink-4 transition", open && "rotate-180")} />
       </button>
       {open && pr && (
@@ -185,7 +185,7 @@ function Round({ h }: { h: HistoryEntry }) {
               <ShieldCheck size={13} /> {v === "busy" ? "Checking…" : "Verify"}
             </button>
             {v && v !== "busy" && (
-              <span className={clsx("text-[11.5px] font-[600]", v.ok ? "text-[#3ddc97]" : "text-[#ff6b8a]")}>{v.ok ? "Fair — it all checks out" : v.error ?? "Mismatch"}</span>
+              <span className={clsx("text-[11.5px] font-[600]", v.ok ? "cz-pos" : "cz-neg")}>{v.ok ? "Fair — it all checks out" : v.error ?? "Mismatch"}</span>
             )}
           </div>
           {v && v !== "busy" && (

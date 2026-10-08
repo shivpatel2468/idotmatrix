@@ -78,6 +78,16 @@ games) → result → idle`.
 ## 5. Phone page (`casino.html`)
 
 - A single self-contained file, mobile-first, matching the controller's dark style.
+- **Light and dark** (both luxury): the studio's switch (`localStorage deskdot.theme` = light | dark | system, same
+  origin on the device) else the phone's preference puts `html[data-theme]`; a media query covers the first paint.
+  The felt, chips, cards and game tiles never change; in light the *room* (page, HUD, phase strip, dock, sheets,
+  how-to, tour, toasts) turns porcelain / ivory (`#f4f0e8` / `#fbf9f5` / white, faintly tinted by the felt), ink
+  `#1c1a22`, and the theme's accent becomes bronze for text (`color-mix(accent 36 %, #1a1206)`: AA on every light
+  surface for all 21 themes) and an antique metal for rings and hairlines; the bank plaque and the win card are black
+  lacquer with the amount in gold; gold keys get a metal edge (pale accents stay visible); players' colours as text
+  are deepened; the LED logo sits on a small dark LED sign. Headings use a system serif (`--serif`: Didot / Bodoni /
+  Georgia — nothing downloaded), chips are embossed (sheen + engraved inlay) and the HUD rests on a gold hairline,
+  in both themes. The table theme's id is on `html[data-table]` (`data-theme` is light / dark).
 - Every colour comes from the table theme (§11: felt, accent, the derived surfaces); classic is felt green and gold.
 - **Always visible:** the header is avatar · bank plaque · three icon keys (**?**, players, sound) on a 3-column grid
   that never overlaps from 320 px phones to a laptop window: the plaque holds the name (and what you have on the
@@ -180,6 +190,12 @@ games) → result → idle`.
 - **Centre:** the panel mirror plus the host bar: game picker (casino games), Start round / Next, the countdown,
   pause, and the QR for joining.
 - **Leaving:** exits back to the normal studio.
+- **Light mode** ("the salon", `:root[data-theme="light"]` in `casino.css`): the wings, host bar, lobby strip, cards
+  and fields turn ivory in a double gold-leaf rule with long soft shadows; text is the studio's light ink, the accent
+  is bronze as text and antique metal for rings (`--cz-metal`); the felt table sits on a champagne plinth and the play
+  board keeps the felt's ink; avatars keep a lacquer plate. `html[data-cz]` keeps the page porcelain in light (the
+  dark remap applies only in dark). Section titles and the game name use a serif (`--cz-serif`) in both themes. The
+  `.cz` root carries the table id as `data-table`.
 
 ## 7. Games, rules and payouts
 

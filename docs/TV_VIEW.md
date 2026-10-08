@@ -41,7 +41,8 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   device pixels one stage pixel covers (canvases size their backing store with it, so they are crisp on a 4K TV).
 - **Top bar** (`#bar`, 96 px): the animated DeskDot LED logo (`DeskDotLogo` in tv.js, a copy of the studio's
   `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) with a small "TV" label, the app's name and
-  category, the join QR + room code while a multiplayer lobby is open, a clock and the connection dot.
+  category (a pill), the join QR + room code while a multiplayer lobby is open, the clock with the date under it and
+  the connection dot; a static rose → gold hairline (the logo's two colours) runs under the bar.
 - **Scene area** `#scene`: **1920×984**, below the bar. Exactly one scene is mounted in it.
 - **Panel look** (`TV.look`): the studio's three looks (`web/src/lib/look.ts`, drawn as `LedPanel.tsx` draws them):
   `pixel` (sharp square pixels), `led` (the default here — a physical LED matrix: rounded LEDs, 13 % inset, 24 %
@@ -65,16 +66,27 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   Choices apply at once, without a reload (panels redraw; a quality change re-mounts the scene). A change from the
   studio shows a short notice on the TV.
 - **Options menu** (for a TV remote, a mouse or a keyboard): OK / select / Enter, the menu key (also M, play-pause),
-  or a click / tap anywhere opens a card at the bottom of the screen: *Panel look: Pixel · LED · Glow* and *Quality:
-  Auto · HQ · Lite* (with "now HQ / Lite" under Auto, and "Set from the studio" when that's where the value came
+  or a click / tap anywhere opens a card at the bottom of the screen: *Panel look: Pixel · LED · Glow*, *Quality:
+  Auto · HQ · Lite* and *Theme: Dark · Light* (with "now HQ / Lite" under Auto, and "Set from the studio" when that's where the value came
   from). The D-pad arrows move a white focus ring (scaled up, readable from 3 m), OK picks (the chosen option is
   filled ember with a ✓), Back / Escape or the menu key closes it, and it closes itself after 8 s without a key. Back
   on a TV browser goes back in history, so an open menu holds one history entry and Back just pops it; Back with the
   menu closed is the browser's own. Mouse: hover moves the focus, a click picks, a click outside the card closes.
+- **Theme** (`TV.theme` = `dark` | `light`, on `html[data-theme]`): a TV sits in a dark room, so it is dark unless
+  the address says `?theme=light|dark` (wins) or someone picked *Light* in the options menu on this TV
+  (`localStorage` `deskdot.tv.theme`, raw `light` / `dark`); it ignores the studio's own `deskdot.theme`. Light uses
+  the studio's "Gallery" tokens (docs/STUDIO_UI.md: porcelain `#f4f0e8`, ivory `#fbf9f5`, ink `#1c1a22`, rose
+  `#b81f4b`, antique gold `#b8892a` / gold text `#8a6412`) under the same token names (`--chassis-*`, `--ink-*`,
+  `--ember`, `--gold`, `--gold-text`, …); the panel stays a dark device in its bezel, the LED logo sits on a small
+  dark LED sign with a gold rim, and **a casino table keeps its own dark room** (`#stage[data-table="1"]` re-declares
+  the dark tokens: its scene and themed bar are drawn for the dark). Same cost as dark: static gradients and shadows
+  only (tests: `tests/js/tv_core.test.mjs`). `TV.setTheme(v)` switches at once.
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
   (the studio stopped it or the code is wrong; the page keeps checking every 20 s in case the same code comes back).
+- The waiting / closed card stands on a static wall of unlit LEDs (a masked dot-grid gradient) and shows the TV code
+  on four big tiles.
 - No scrollbars, the cursor hides after 3 s still, the screen never sleeps (Wake Lock API, re-acquired on
-  visibility change), dark design using the studio's tokens.
+  visibility change), the studio's tokens in both themes.
 
 ## 3. The socket — `WS /ws/tv/{code}`
 
@@ -205,7 +217,8 @@ Scenes live in `src/deskdot/tv/`: `tv.js` (core + the generic scene), `tv-games.
 ## 5. The generic scene
 
 Every app falls back to it: the live panel centred, huge, in a bezel (in the TV's look — Pixel, LED or Glow — in a
-recessed well with a diffuser sheen), the app's name, category and the status chips (the status's simple values:
+recessed well with a diffuser sheen) standing on a soft pool of shadow, the app's name over a rose → gold rule, its
+category and the status chips (cards with an accent edge), a *LIVE* pill whose dot breathes on its own opacity (the status's simple values:
 score, best, level, player, phase…) at the side, the lobby's players and the join QR when a lobby is open.
 
 ## 6. Performance on TV sticks (Fire TV, Android TV, Chromecast)

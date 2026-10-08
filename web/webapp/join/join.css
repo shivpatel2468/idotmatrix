@@ -8,6 +8,12 @@ body {
   background: #08080a;
   color: #efece4;
 }
+/* light mode (join.js uiMode → html[data-theme], .veil.light): the studio's porcelain palette (docs/STUDIO_UI.md) */
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background: #f4f0e8;
+  color: #1c1a22;
+}
 
 :host {
   --c0: #08080a;
@@ -209,4 +215,78 @@ button:active {
   margin-top: 16px;
   font-size: 12px;
   color: var(--ink3);
+}
+
+/* ------------------------------------------------------------------ light mode: porcelain card, rose accent, LED sign */
+.veil.light {
+  --c0: #f4f0e8;
+  --c2: #fbf9f5;
+  --c3: #ffffff;
+  --line2: #d8d0c2;
+  --ink1: #1c1a22;
+  --ink2: #4a4652;
+  --ink3: #6b6673;
+  --ember: #b81f4b;
+  --ember2: #d6386a;
+  --ok: #18794e;
+  --warn: #9a5b00;
+  --bad: #c8203e;
+  color-scheme: light;
+  background: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.1), transparent 60%), var(--c0);
+}
+.veil.light.over {
+  background: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.08), transparent 60%), rgba(244, 240, 232, 0.9);
+}
+.veil.light .card {
+  border-color: #e7e1d6;
+  box-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 30px 70px -26px rgba(64, 48, 24, 0.4), inset 0 1px 0 #fff;
+}
+/* the LED logo needs the dark: a small LED sign with a gold-leaf rim */
+.veil.light .logo {
+  margin: 0 auto 10px;
+  border-radius: 16px;
+  background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 -6px 14px rgba(0, 0, 0, 0.6), 0 0 0 3px #e6cd8a,
+    0 12px 26px -12px rgba(64, 48, 24, 0.55);
+}
+.veil.light .dots i {
+  background: #e6e0d5;
+  box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18);
+}
+@keyframes chase-light {
+  0%,
+  60%,
+  100% {
+    background: #e6e0d5;
+    box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18);
+  }
+  25% {
+    background: var(--ember);
+    box-shadow: 0 0 0 3px rgba(184, 31, 75, 0.18);
+  }
+}
+.veil.light.busy .dots i,
+.veil.light .busy .dots i {
+  animation-name: chase-light;
+}
+.veil.light .bad .dots i {
+  background: var(--bad);
+  box-shadow: 0 0 0 3px rgba(200, 32, 62, 0.16);
+}
+.veil.light .warn .dots i {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px rgba(154, 91, 0, 0.16);
+}
+.veil.light .code {
+  background: #fff;
+}
+.veil.light button {
+  color: #fff;
+  box-shadow: 0 10px 24px -10px rgba(184, 31, 75, 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .veil.light .busy .dots i {
+    animation: none;
+    background: var(--ember);
+  }
 }
