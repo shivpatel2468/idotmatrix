@@ -5,9 +5,11 @@
  *   - stored in localStorage `deskdot.theme` (pages served by the engine share the origin, so it carries over);
  *   - applied as `<html data-theme="light|dark">` plus `color-scheme`, BEFORE first paint (inline script in
  *     web/index.html — keep it in step with `apply()` below);
- *   - colours come from the tokens in web/src/index.css (`--color-*`, `--m-*`).
+ *   - colours come from the tokens in web/src/index.css (`--color-*`, `--m-*`);
+ *   - inside the Android app, Android's status / navigation bars follow too (lib/android.ts → DeskDotAndroid.setBars).
  */
 import { useSyncExternalStore } from "react";
+import { syncSystemBars } from "./android";
 
 export type ThemePref = "light" | "dark" | "system";
 export type Theme = "light" | "dark";
@@ -49,6 +51,7 @@ function apply(theme: Theme, animate: boolean) {
   root.dataset.theme = theme;
   root.style.colorScheme = theme;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", BAR[theme]);
+  syncSystemBars(theme);
   current = theme;
   listeners.forEach((l) => l());
 }
@@ -66,6 +69,7 @@ export function setThemePref(pref: ThemePref) {
 /** Wire the live updates: the OS switching light/dark (pref = system) and another tab changing the pref. */
 export function installTheme() {
   apply(resolveTheme(getThemePref()), false);
+  syncSystemBars(current); // index.html already applied the theme (apply() skipped): still tell the Android app
   media?.addEventListener?.("change", () => getThemePref() === "system" && apply(resolveTheme("system"), true));
   window.addEventListener("storage", (e) => e.key === THEME_KEY && apply(resolveTheme(getThemePref()), true));
 }
@@ -74,5 +78,8 @@ const subscribe = (l: () => void) => (listeners.add(l), () => void listeners.del
 
 /** The theme on screen now ("light" | "dark"). */
 export const useTheme = () => useSyncExternalStore(subscribe, () => current, () => current);
+/** One tap: the other theme, as an explicit choice (the floating theme key). */
+export const toggleTheme = () => setThemePref(current === "dark" ? "light" : "dark");
+
 /** The stored choice ("light" | "dark" | "system"). */
 export const useThemePref = () => useSyncExternalStore(subscribe, getThemePref, getThemePref);

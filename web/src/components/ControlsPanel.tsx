@@ -10,6 +10,7 @@ import { GLYPHS, type PadInfo, onPadActivity, testRumble, usePads } from "../lib
 import { EMPTY_LIST, appMeta, useStore } from "../lib/store";
 import type { SeatStatus } from "../lib/types";
 import { SEAT_COLORS } from "./Multiplayer";
+import { Picker } from "./Picker";
 
 /**
  * Play mode's Controls panel: per player (P1..P{max_players}) the keyboard preset or custom binding, the gamepad,
@@ -113,24 +114,21 @@ function PlayerCard({ n, cfg, pads, bad, seat, coarse }: {
       <div className="mt-3 flex flex-col gap-2.5">
         <label className="flex items-center gap-2.5">
           <Keyboard size={14} className="shrink-0 text-ink-3" />
-          <select className="field !h-8 !text-[12.5px]" value={cfg.kb} aria-label={`Player ${n} keyboard`}
-            onChange={(e) => {
-              const kb = e.target.value as KbPreset;
+          <Picker label={`Player ${n} keyboard`} size="sm" value={cfg.kb}
+            onChange={(v) => {
+              const kb = v as KbPreset;
               setPlayer(n, kb === "custom" ? { kb, custom: cfg.kb === "none" || cfg.kb === "custom" ? cfg.custom : { ...bindingOf(cfg) } } : { kb });
-            }}>
-            {KB_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-          </select>
+            }}
+            options={KB_OPTIONS.map((o) => ({ value: o.id, label: o.label, icon: o.id === "none" ? "circle-off" : "keyboard" }))} />
         </label>
         {cfg.kb !== "none" && <BindingGrid player={n} cfg={cfg} bad={bad} />}
         <label className="flex items-center gap-2.5">
           <Gamepad2 size={14} className="shrink-0 text-ink-3" />
-          <select className="field !h-8 !text-[12.5px]" value={mine[0]?.key ?? ""} aria-label={`Player ${n} gamepad`}
-            onChange={(e) => pickPad(e.target.value)} disabled={!pads.length}>
-            <option value="">{pads.length ? "No gamepad" : "No gamepad connected"}</option>
-            {pads.map((p) => (
-              <option key={p.key} value={p.key}>{p.name}{assign[p.key] && assign[p.key] !== n ? ` (now P${assign[p.key]})` : ""}</option>
-            ))}
-          </select>
+          <Picker label={`Player ${n} gamepad`} size="sm" value={mine[0]?.key ?? ""} onChange={pickPad} disabled={!pads.length}
+            options={[
+              { value: "", label: pads.length ? "No gamepad" : "No gamepad connected", icon: "circle-off" },
+              ...pads.map((p) => ({ value: p.key, label: p.name, icon: "gamepad-2", hint: assign[p.key] && assign[p.key] !== n ? `Now on player ${assign[p.key]}` : undefined })),
+            ]} />
         </label>
         <div className="flex items-center gap-2.5">
           <Smartphone size={14} className="shrink-0 text-ink-3" />
@@ -158,15 +156,13 @@ function PadRow({ pad, player, max }: { pad: PadInfo; player: number | undefined
           </div>
         </div>
         <Light on={flash} color={player ? SEAT_COLORS[player] : "#efece4"} />
-        <select className="field !h-8 !w-[108px] !text-[12px]" aria-label={`${pad.name} player`}
+        <Picker label={`${pad.name} player`} size="sm" className="!w-[124px]" placeholder="Press a button…"
           value={player === undefined ? "" : String(player)}
-          onChange={(e) => useControls.getState().set({ pads: { ...useControls.getState().pads, [pad.key]: Number(e.target.value || 0) } })}>
-          {player === undefined && <option value="">Press a button…</option>}
-          <option value="0">Off</option>
-          {Array.from({ length: 4 }, (_, i) => i + 1).map((p) => (
-            <option key={p} value={p}>Player {p}{p > max ? " (not in this game)" : ""}</option>
-          ))}
-        </select>
+          onChange={(v) => useControls.getState().set({ pads: { ...useControls.getState().pads, [pad.key]: Number(v || 0) } })}
+          options={[
+            { value: "0", label: "Off" },
+            ...Array.from({ length: 4 }, (_, i) => i + 1).map((p) => ({ value: String(p), label: `Player ${p}`, swatch: SEAT_COLORS[p], hint: p > max ? "Not in this game" : undefined })),
+          ]} />
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-3">
         <span><Glyph t={g.a} /> A</span>

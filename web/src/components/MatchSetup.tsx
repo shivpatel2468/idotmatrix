@@ -8,6 +8,7 @@ import { EMPTY_MAP, appMeta, useStore } from "../lib/store";
 import type { GameFlow, GameMode, GameOutcome, JsonSchemaProp, RosterEntry } from "../lib/types";
 import { sendInput } from "../lib/ws";
 import { SEAT_COLORS } from "./Multiplayer";
+import { Picker } from "./Picker";
 
 /**
  * Play mode's game setup, mirroring the game's own flow on the panel (games_core.GameApp):
@@ -282,13 +283,9 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 
 function Select({ value, options, onChange, label }: { value: string; options: Option[]; onChange: (v: string) => void; label: string }) {
   return (
-    <select className="field !h-9 !text-[12.5px]" value={value} aria-label={label}
-      onChange={(e) => {
-        onChange(e.target.value);
-        e.currentTarget.blur(); // hand the arrow keys back to the game
-      }}>
-      {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-    </select>
+    // returnFocus=false: hand the arrow keys back to the game after a choice
+    <Picker label={label} value={value} onChange={onChange} returnFocus={false} className="!h-9 !text-[12.5px]"
+      options={options.map((o) => ({ value: o.id, label: o.label }))} />
   );
 }
 

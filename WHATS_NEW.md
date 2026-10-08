@@ -11,9 +11,36 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
-## 3.6.0 — 9 Oct 2026 · 14 new live apps and a check-up for every data source
+## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 
 ### New
+
+- **Light mode**
+  - Before: DeskDot only came in dark.
+  - Now: a premium light look — warm ivory, deep rose and champagne gold — for the studio, the phone app, the
+    phone pages and the TV. Pick Light, Dark or Auto (follows your device) in Settings → Display & colour.
+- **Light / dark button on phones**
+  - Before: you had to dig into Settings to change the look.
+  - Now: a small round button in the bottom-left corner switches light and dark with one tap (hold it for Auto). The
+    phone's own top and bottom bars change colour too.
+- **A luxury casino**
+  - Before: the casino rooms were plain and dark only.
+  - Now: gold-framed tables, engraved headings, embossed chips and an ivory "salon" in light mode — and all 21 table
+    themes look right in both light and dark.
+- **Choose the app's icon**
+  - Before: the phone app had one icon.
+  - Now: pick from seven icon designs in Settings → Display & colour → App icon.
+- **Apps right under the panel**
+  - Before: the phone's Panel screen showed only the panel; apps were on another tab.
+  - Now: swipe rows of your favourite, recent and other apps sit right under the panel — tap one to show it.
+- **Connection panel**
+  - Before: when the panel wasn't connected it was hard to tell where it was connected or how to fix it.
+  - Now: tap the status at the top to see what's connected and where, with one button to reconnect or move the
+    panel to this tab, and plain-language help when something's wrong.
+- **TV options from the remote**
+  - Before: changing the TV's look meant editing its web address.
+  - Now: press OK on the remote to pick the panel look (Pixel, LED or Glow), the quality and light or dark — or set
+    every TV at once from the studio's Show on TV panel.
 
 - **Aurora Watch**
   - Before: there was no way to know if the northern (or southern) lights might show up.
@@ -72,6 +99,12 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Fixed
 
+- **Phone app black screen**
+  - Before: if the app opened before DeskDot had started on the phone, it could stay on a black screen.
+  - Now: it waits and loads by itself, and after an update it never shows the old version.
+- **See-through bars on phones**
+  - Before: apps showed through the search bar, the section titles and the bottom tab bar.
+  - Now: those bars are solid.
 - **Museum art in Photo Frame**
   - Before: since 1 October, art from The Met stopped loading because the museum changed its search.
   - Now: it uses the museum's new search and loads again.
@@ -89,6 +122,20 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: it switches to the same prices from a mirror that works everywhere.
 
 ### Better
+
+- **Smoother phone app**
+  - Before: the app ran at 60 frames a second with occasional stutter.
+  - Now: it asks for your screen's full speed (up to 120 Hz) and heavy effects that caused stutter are gone.
+- **Simpler display settings**
+  - Before: the gear opened a long page with everything about the screen in one place.
+  - Now: it opens a small menu with three picture tiles (Glow, Pixel, LED), one slider, and the rest under "More".
+- **Richer icons, presets and menus**
+  - Before: plain icons, plain preset cards and small dropdowns.
+  - Now: detailed two-tone icons, preset cards with artwork and a big play button, and pickers that slide up from
+    the bottom on phones.
+- **Lite mode on the TV looks the same**
+  - Before: Lite made the TV smoother by dropping glows and sharpness.
+  - Now: Lite looks exactly like the full mode; both were made faster instead.
 
 - **A health check for every data source**
   - Before: when a free data source changed or shut down, an app simply went quiet until someone noticed.

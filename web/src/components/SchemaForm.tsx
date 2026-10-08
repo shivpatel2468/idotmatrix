@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { PLATFORM_LABEL, platformsLabel, supportedOn } from "../lib/platform";
 import { EMPTY_MAP, useStore } from "../lib/store";
 import type { AppSchema, JsonSchemaProp, MediaItem } from "../lib/types";
+import { Picker } from "./Picker";
 
 type Props = {
   schema: AppSchema;
@@ -14,7 +15,7 @@ type Props = {
 
 /**
  * Renders any app's pydantic settings model. Mapping (keep in sync with docs/APP_SDK.md):
- *   enum ≤ 4 options -> segmented · enum > 4 -> select · boolean -> toggle
+ *   enum ≤ 4 options -> segmented · enum > 4 -> picker (components/Picker) · boolean -> toggle
  *   number/integer with min+max -> fader · format "color" -> swatches + picker
  *   format "media" -> media library picker · format "password" -> masked secret · long string -> textarea
  *   string -> input
@@ -151,13 +152,12 @@ function Field({ name, p, v, set }: { name: string; p: JsonSchemaProp; v: unknow
       );
     }
     return row(
-      <select className="field" value={String(v)} onChange={(e) => set(e.target.value)}>
-        {p.enum.map((opt) => (
-          <option key={opt} value={opt} disabled={optBlocked(opt)}>
-            {optBlocked(opt) && p.enumPlatforms?.[opt] ? `${labels[opt]} (${platformsLabel(p.enumPlatforms[opt])})` : labels[opt]}
-          </option>
-        ))}
-      </select>,
+      <Picker label={label} value={String(v)} onChange={set}
+        options={p.enum.map((opt) => {
+          const [name, hint] = splitLabel(labels[opt] ?? opt);
+          const off = optBlocked(opt) && p.enumPlatforms?.[opt];
+          return { value: opt, label: name, hint: off ? platformsLabel(p.enumPlatforms![opt]) : hint ? hint[0].toUpperCase() + hint.slice(1) : undefined, disabled: optBlocked(opt) };
+        })} />,
     );
   }
   if (p.type === "boolean") {

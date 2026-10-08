@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { Check, ChevronDown, ChevronUp, GripVertical, Maximize2, Plus, Save, Search, Shuffle, SkipBack, SkipForward, Square, Play, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { api, loadPresets } from "../lib/api";
 import { DOCK_MAX_SHARE, EMPTY_LIST, appMeta, toast, useStore } from "../lib/store";
 import type { AppMeta, PlaylistItem, Preset } from "../lib/types";
-import { Icon } from "./Icon";
+import { Icon, IconTile } from "./Icon";
 import { NowPlaying } from "./NowPlaying";
 
 /**
@@ -36,26 +36,28 @@ export function usePlayback() {
   return { pl, running, focus, active, activeId, cur, next, items };
 }
 
-/** A thin bar that fills while the current playlist item is on screen (animated locally, no re-renders). */
+/**
+ * A thin bar that fills while the current playlist item is on screen. No per-frame JavaScript: on each state update
+ * it jumps to the right spot and a linear CSS transition of `transform` (compositor only — no layout, no paint)
+ * runs it to the end, so it stays smooth at 120 Hz.
+ */
 export function Progress({ duration, className }: { duration: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const rem = useStore((s) => s.state?.engine.playlist.remaining);
+  const stateAt = useStore((s) => s.stateAt);
   useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      const { state, stateAt } = useStore.getState();
-      const rem = state?.engine.playlist.remaining;
-      if (ref.current && rem != null) {
-        const left = Math.max(0, rem - (performance.now() - stateAt) / 1000);
-        ref.current.style.width = `${Math.min(100, (1 - left / duration) * 100)}%`;
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
-    return () => cancelAnimationFrame(raf);
-  }, [duration]);
+    const el = ref.current;
+    if (!el || rem == null || duration <= 0) return;
+    const left = Math.max(0, rem - (performance.now() - stateAt) / 1000);
+    el.style.transition = "none";
+    el.style.transform = `scaleX(${Math.min(1, Math.max(0, 1 - left / duration))})`;
+    void el.offsetWidth; // commit the start position before the transition
+    el.style.transition = `transform ${left}s linear`;
+    el.style.transform = "scaleX(1)";
+  }, [rem, stateAt, duration]);
   return (
     <div className={clsx("h-[3px] overflow-hidden rounded-full bg-chassis-4", className)}>
-      <div ref={ref} className="h-full w-0 rounded-full bg-ember shadow-[0_0_8px_var(--color-ember)]" />
+      <div ref={ref} className="h-full w-full origin-left rounded-full bg-ember shadow-[0_0_8px_var(--color-ember)]" style={{ transform: "scaleX(0)" }} />
     </div>
   );
 }
@@ -81,54 +83,127 @@ async function play(p: Preset) {
 }
 
 // ------------------------------------------------------------------ preset cards
+/** The category most of a preset's apps belong to: its tint. */
+function presetTone(p: Preset): string {
+  const n: Record<string, number> = {};
+  for (const it of p.items) {
+    const c = appMeta(it.app)?.category;
+    if (c) n[c] = (n[c] ?? 0) + 1;
+  }
+  return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "ember";
+}
+
+/** A small deterministic random sequence from a string (the same preset always gets the same cover). */
+function seeded(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+/** A preset's cover: an LED equaliser in its tint, different for every preset (static SVG — nothing animates). */
+const PresetArt = memo(function PresetArt({ id }: { id: string }) {
+  const cols = 18, rows = 7;
+  const rnd = seeded(id);
+  const phase = rnd() * 6, freq = 0.35 + rnd() * 0.5, base = 1 + rnd() * 2;
+  const dots: React.ReactNode[] = [];
+  for (let x = 0; x < cols; x++) {
+    const h = Math.max(1, Math.min(rows, Math.round(base + (Math.sin(x * freq + phase) + 1) * 2 + rnd() * 1.6)));
+    for (let y = 0; y < rows; y++) {
+      const level = rows - y; // 1 = bottom row
+      const lit = level <= h;
+      dots.push(<circle key={`${x}-${y}`} cx={x * 10 + 5} cy={y * 10 + 5} r={lit ? 3.3 : 2.1}
+        className={!lit ? "pa-off" : level === h ? "pa-top" : "pa-lit"} />);
+    }
+  }
+  return <svg viewBox={`0 0 ${cols * 10} ${rows * 10}`} preserveAspectRatio="xMidYMid slice" className="preset-dots" aria-hidden>{dots}</svg>;
+});
+
+const minutes = (p: Preset) => Math.max(1, Math.round(p.items.reduce((t, it) => t + (it.duration || 0), 0) / 60));
+
 function PresetCard({ p, active, variant }: { p: Preset; active: boolean; variant: Variant }) {
   const [confirm, setConfirm] = useState(false);
   const n = p.items.length;
+  const tone = presetTone(p);
   if (confirm) {
     return (
-      <div className={clsx("flex shrink-0 items-center gap-2 rounded-[11px] border border-bad/40 bg-bad/10 px-3", variant === "dock" ? "h-12" : "h-16")}>
+      <div className={clsx("flex shrink-0 items-center gap-2 rounded-[11px] border border-bad/40 bg-bad/10 px-3",
+        variant === "dock" ? "h-12" : "min-h-[150px] flex-col justify-center !gap-2.5 !rounded-[16px] p-3 text-center")}>
         <span className="text-[12.5px] text-ink-1">Delete “{p.name}”?</span>
-        <button className="key !h-8 !px-2.5 !text-bad" onClick={async () => { await api.deletePreset(p.id); setConfirm(false); toast("Preset deleted", "ok"); loadPresets(); }}>
-          <Trash2 size={12} /> Delete
-        </button>
-        <button className="key key-ghost !h-8 !px-2" onClick={() => setConfirm(false)}>Keep</button>
+        <span className="flex gap-2">
+          <button className="key !h-8 !px-2.5 !text-bad" onClick={async () => { await api.deletePreset(p.id); setConfirm(false); toast("Preset deleted", "ok"); loadPresets(); }}>
+            <Trash2 size={12} /> Delete
+          </button>
+          <button className="key key-ghost !h-8 !px-2" onClick={() => setConfirm(false)}>Keep</button>
+        </span>
       </div>
     );
   }
+  const del = !p.builtin && (
+    <button onClick={(e) => { e.stopPropagation(); setConfirm(true); }} title={`Delete ${p.name}`} aria-label={`Delete preset ${p.name}`}
+      className={clsx("grid place-items-center rounded-full transition hover:text-bad focus:opacity-100",
+        variant === "dock"
+          ? "absolute -right-1.5 -top-1.5 h-6 w-6 border border-line-2 bg-chassis-3 text-ink-3 opacity-0 shadow group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+          : "theme-dark absolute right-2 top-2 z-[2] h-7 w-7 bg-black/45 text-ink-1")}>
+      <X size={variant === "dock" ? 11 : 13} />
+    </button>
+  );
+
+  if (variant === "dock") {
+    return (
+      <div className="group relative shrink-0">
+        <button onClick={() => play(p)} aria-pressed={active}
+          title={active ? `${p.name} is playing — tap to restart it` : `Play ${p.name}: ${n} app${n === 1 ? "" : "s"} in a row`}
+          className={clsx("flex h-12 w-full min-w-[150px] max-w-[220px] items-center gap-2.5 rounded-[11px] border pl-2 pr-3.5 text-left transition",
+            active ? "border-ember-line bg-ember-deep/70 shadow-[0_0_26px_-12px_var(--color-ember)]"
+              : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2")}>
+          <IconTile name={p.icon || "list-music"} tone={tone} size={32} glyph={16} solid={active} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-[600] leading-tight tracking-[-0.01em]">{p.name}</span>
+            <span className={clsx("mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-wider", active ? "text-ember" : "text-ink-3")}>
+              {active && <span className="led !h-[6px] !w-[6px] animate-pulse-dot" data-on="ember" />}
+              {active ? "Playing" : `${n} app${n === 1 ? "" : "s"}`}
+              {!p.builtin && !active && <span className="text-ink-4">· yours</span>}
+            </span>
+          </span>
+        </button>
+        {del}
+      </div>
+    );
+  }
+
+  // phones (Presets tab): a cover card — artwork, name, what's in it, and one clear play key
+  const icons = [...new Set(p.items.map((it) => appMeta(it.app)?.icon).filter(Boolean))].slice(0, 3) as string[];
   return (
-    <div className={clsx("group relative shrink-0", variant === "sheet" && "min-w-0")}>
-      <button
-        onClick={() => play(p)}
-        aria-pressed={active}
-        title={active ? `${p.name} is playing — tap to restart it` : `Play ${p.name}: ${n} app${n === 1 ? "" : "s"} in a row`}
-        className={clsx(
-          "flex w-full items-center gap-2.5 rounded-[11px] border text-left transition",
-          variant === "dock" ? "h-12 min-w-[150px] max-w-[220px] pl-2 pr-3.5" : "h-16 px-3",
-          active
-            ? "border-ember-line bg-ember-deep/70 shadow-[0_0_26px_-12px_var(--color-ember)]"
-            : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2",
-        )}
-      >
-        <span className={clsx("grid shrink-0 place-items-center rounded-[8px] border",
-          variant === "dock" ? "h-8 w-8" : "h-10 w-10",
-          active ? "border-ember-line bg-chassis-0/60 text-ember" : "border-line-2 bg-chassis-3 text-ink-2 group-hover:text-ink-1")}>
-          <Icon name={p.icon || "list-music"} size={variant === "dock" ? 15 : 18} />
-        </span>
+    <div className="preset-card" data-tone={tone} data-active={active} role="listitem">
+      <button className="preset-hit" onClick={() => play(p)} aria-pressed={active}
+        aria-label={active ? `${p.name} is playing — restart it` : `Play ${p.name}: ${n} apps, about ${minutes(p)} minutes`} />
+      <div className="preset-art">
+        <PresetArt id={p.id} />
+        <IconTile name={p.icon || "list-music"} tone={tone} size={38} glyph={19} solid className="preset-badge" />
+        {active && <span className="preset-playing theme-dark"><span className="eq" aria-hidden><i /><i /><i /></span>Playing</span>}
+        {del}
+      </div>
+      <div className="preset-foot">
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-[600] leading-tight tracking-[-0.01em]">{p.name}</span>
-          <span className={clsx("mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-wider", active ? "text-ember" : "text-ink-3")}>
-            {active && <span className="led !h-[6px] !w-[6px] animate-pulse-dot" data-on="ember" />}
-            {active ? "Playing" : `${n} app${n === 1 ? "" : "s"}`}
-            {!p.builtin && !active && <span className="text-ink-4">· yours</span>}
+          <span className="block truncate text-[14px] font-[640] leading-tight tracking-[-0.01em]">{p.name}</span>
+          <span className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-3">
+            {icons.length > 0 && (
+              <span className="flex -space-x-1">
+                {icons.map((ic) => <span key={ic} className="preset-mini"><Icon name={ic} size={10} /></span>)}
+              </span>
+            )}
+            <span className="truncate">{n} app{n === 1 ? "" : "s"} · {minutes(p)} min{!p.builtin ? " · yours" : ""}</span>
           </span>
         </span>
-      </button>
-      {!p.builtin && (
-        <button onClick={() => setConfirm(true)} title={`Delete ${p.name}`} aria-label={`Delete preset ${p.name}`}
-          className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full border border-line-2 bg-chassis-3 text-ink-3 opacity-0 shadow transition hover:text-bad focus:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
-          <X size={11} />
+        <button className="preset-play" aria-label={active ? `Stop ${p.name}` : `Play ${p.name}`} title={active ? "Stop — keep showing the current app" : "Play"}
+          onClick={(e) => { e.stopPropagation(); if (active) api.playlist("stop"); else play(p); }}>
+          {active ? <Square size={13} fill="currentColor" /> : <Play size={15} fill="currentColor" className="translate-x-[1px]" />}
         </button>
-      )}
+      </div>
     </div>
   );
 }
@@ -171,7 +246,7 @@ function PresetSkeleton({ variant }: { variant: Variant }) {
   return (
     <>
       {[0, 1, 2, 3, 4].map((i) => (
-        <div key={i} className={clsx("skeleton shrink-0 rounded-[11px]", variant === "dock" ? "h-12 w-[160px]" : "h-16")} />
+        <div key={i} className={clsx("skeleton shrink-0", variant === "dock" ? "h-12 w-[160px] rounded-[11px]" : "h-[150px] rounded-[16px]")} />
       ))}
     </>
   );
@@ -196,12 +271,12 @@ export function PresetList({ variant, wrap = false }: { variant: Variant; wrap?:
       {mine.length > 0 && (
         <div>
           <div className="engrave mb-2">Your presets</div>
-          <div className="grid grid-cols-2 gap-2">{cards(mine)}</div>
+          <div className="preset-grid" role="list">{cards(mine)}</div>
         </div>
       )}
       <div>
         {mine.length > 0 && <div className="engrave mb-2">Ready-made</div>}
-        <div className="grid grid-cols-2 gap-2">{presets === null ? <PresetSkeleton variant={variant} /> : cards(builtin)}</div>
+        <div className="preset-grid" role="list">{presets === null ? <PresetSkeleton variant={variant} /> : cards(builtin)}</div>
       </div>
       <SavePreset variant={variant} disabled={!items.length} />
     </div>
@@ -305,7 +380,7 @@ function AddApp({ onAdd, variant }: { onAdd: (id: string) => void; variant: Vari
             {list.map((a) => (
               <button key={a.id} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] hover:bg-chassis-3"
                 onClick={() => { onAdd(a.id); setOpen(false); setQ(""); }}>
-                <Icon name={a.icon} size={14} className="text-ink-2" /> {a.name}
+                <IconTile name={a.icon} tone={a.category} size={26} glyph={14} /> {a.name}
               </button>
             ))}
             {!list.length && <p className="px-3 py-4 text-center text-[12px] text-ink-3">No app matches.</p>}
@@ -364,7 +439,7 @@ function Queue({ variant, wrap = false }: { variant: Variant; wrap?: boolean }) 
               ) : (
                 <GripVertical size={14} className="shrink-0 text-ink-4" />
               )}
-              <Icon name={m?.icon ?? "square"} size={14} className={clsx("shrink-0", isCur ? "text-ember" : "text-ink-2")} />
+              <IconTile name={m?.icon ?? "square"} tone={m?.category ?? "neutral"} size={variant === "dock" ? 22 : 28} glyph={variant === "dock" ? 12 : 15} solid={isCur} />
               <span className="min-w-0 flex-1 truncate text-[12.5px] font-[560]">{m?.name ?? it.app}</span>
               {overrides > 0 && <span className="engrave !text-[8px] !text-info" title={`Own settings: ${JSON.stringify(it.settings)}`}>+{overrides}</span>}
             </div>

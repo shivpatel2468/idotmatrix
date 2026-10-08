@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { EMPTY_LIST, toast, useStore } from "../lib/store";
 import type { AppMeta, AutopilotRule } from "../lib/types";
+import { Picker } from "./Picker";
 
 /** Autopilot: "when this app is in front, show that on the panel". Rules are checked top to bottom. */
 export function AutopilotEditor() {
@@ -42,9 +43,8 @@ export function AutopilotEditor() {
             <input className="field !h-7 !text-[12px]" value={r.match} placeholder="spotify · code · title:youtube"
               onChange={(e) => edit(i, { match: e.target.value })} />
             <span className="font-mono text-[9px] text-ink-4">SHOW</span>
-            <select className="field !h-7 !w-40 !text-[12px]" value={r.app} onChange={(e) => edit(i, { app: e.target.value })}>
-              {apps.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+            <Picker label="Show which app" size="sm" className="!w-44" value={r.app} onChange={(v) => edit(i, { app: v })}
+              options={apps.map((a) => ({ value: a.id, label: a.name, icon: a.icon, tone: a.category, hint: a.description }))} />
             <button className="text-ink-4 hover:text-bad" title="Remove" onClick={() => { setDirty(true); setRules(rules.filter((_, k) => k !== i)); }}>
               <X size={13} />
             </button>

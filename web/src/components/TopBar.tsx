@@ -1,7 +1,7 @@
-import { Bell, Ellipsis, RefreshCw, Search, Settings2, Sun } from "lucide-react";
+import { Ellipsis, RefreshCw, Search, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
-import { openSettings, useStore } from "../lib/store";
+import { type SettingsTab, openSettings, useStore } from "../lib/store";
 import { usePhone } from "../lib/useMedia";
 import { useFlyPlaying } from "../lib/flyControl";
 import { useFly } from "../lib/fly";
@@ -14,6 +14,8 @@ import { SafetySwitch } from "./SafetySwitch";
 import { ConnectionSheet, openConnection, useConnection } from "./ConnectionSheet";
 import { Dices } from "lucide-react";
 import { openCasino, rememberCasino, useCasinoApp, useCasinoView } from "./casino/state";
+import { IconTile } from "./Icon";
+import { inAndroidApp } from "../lib/android";
 
 /** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
@@ -143,6 +145,7 @@ function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { v, input } = useBrightness();
   const roam = useFly((s) => s.gfx.roam);
   const set = useStore((s) => s.set);
+  const android = inAndroidApp();
   const go = (fn: () => void) => () => { onClose(); fn(); };
   return (
     <Sheet open={open} onClose={onClose} title="Quick controls">
@@ -182,10 +185,13 @@ function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             <span className="min-w-0 flex-1 text-[12.5px] text-ink-2">{roam ? "The fly roams your screen — tap the sign to spray it away." : "No flies on screen — tap the sign to let it back."}</span>
           </div>
         </section>
-        <div className="grid grid-cols-3 gap-2">
-          <button className="qs-tile" onClick={go(() => set({ palette: true }))}><Search size={18} />Find</button>
-          <button className="qs-tile" onClick={go(() => set({ notifyOpen: true }))}><Bell size={18} />Message</button>
-          <button className="qs-tile" onClick={go(() => openSettings("display"))}><Settings2 size={18} />Settings</button>
+        <div className={android ? "grid grid-cols-4 gap-2" : "grid grid-cols-3 gap-2"}>
+          <button className="qs-tile" onClick={go(() => set({ palette: true }))}><IconTile name="search" tone="info" size={34} />Find</button>
+          <button className="qs-tile" onClick={go(() => set({ notifyOpen: true }))}><IconTile name="bell-ring" tone="creative" size={34} />Message</button>
+          <button className="qs-tile" onClick={go(() => openSettings("display"))}><IconTile name="settings-2" tone="neutral" size={34} />Settings</button>
+          {android && (
+            <button className="qs-tile" onClick={go(() => openSettings("appicon" as SettingsTab))}><IconTile name="smartphone" tone="gold" size={34} />App icon</button>
+          )}
         </div>
       </div>
     </Sheet>

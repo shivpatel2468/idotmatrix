@@ -1051,3 +1051,213 @@ body { overscroll-behavior: none; }
 /* light: the phone header and lists sit on porcelain */
 :root[data-theme="light"] .mini-now { box-shadow: 0 1px 2px rgba(64, 48, 24, 0.06), 0 10px 22px -16px rgba(64, 48, 24, 0.3); }
 :root[data-theme="light"] .tabbar-btn[aria-current="page"] .tabbar-pill { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 30%, transparent); }
+
+/* ============================================================= phone app polish (docs/STUDIO_UI.md: Phones, Icons)
+   Smoothness first: the phone app runs at 120 Hz where the screen can. Nothing here animates layout or paint per
+   frame, and the expensive whole-screen effects of the desktop are switched off on touch screens. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  /* the film-grain overlay is a full-screen blend layer: every frame of the LED preview re-blends the whole screen */
+  .noise::before { display: none; }
+  /* a blurred backdrop re-blurs whenever the live panel behind it changes: a plain scrim on phones */
+  .sheet-scrim, :root[data-theme="light"] .sheet-scrim { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* a CSS filter on an animated GIF is re-run on every GIF frame, for every visible thumbnail */
+  .led-preview img { filter: none; }
+  /* the roaming fly: its breathing glow re-filters the canvas every frame */
+  .roam-fly canvas, .roam-fly[data-skin] canvas { animation: none; filter: none; }
+  /* theme switch: colours cross-fade, shadows swap at once (a box-shadow transition repaints every element) */
+  html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
+    transition: background-color 0.3s ease, color 0.2s ease, fill 0.2s ease !important;
+  }
+}
+
+/* phone Panel tab: one scroll area with the panel, its tools and the app rows */
+.phone-stage { padding: 0 12px 72px; overflow-x: hidden; overscroll-behavior-y: contain; scrollbar-width: none; }
+.phone-stage::-webkit-scrollbar { display: none; }
+/* room for the floating theme key, bottom-left (components/ThemeFab.tsx): a spacer after the content (not more
+   padding, which would also move the Settings tab's sticky Show / Playlist bar — that tab lifts the key instead) */
+.phone-scroll::after { content: ""; flex: none; height: 52px; }
+.phone-scroll[data-tab="tune"]::after { display: none; }
+
+/* ---- the floating theme key */
+.theme-fab { position: fixed; left: 12px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 32; }
+.theme-fab[data-lift="true"] { bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+.theme-fab-key {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px;
+  color: var(--color-gold-text);
+  background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom));
+  border: 1px solid var(--color-line-2);
+  box-shadow: inset 0 1px 0 var(--m-hi-key), 0 2px 0 var(--m-key-floor), 0 10px 24px -10px rgba(0, 0, 0, 0.85);
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation;
+  transition: transform 0.12s var(--ease-out-soft);
+}
+:root[data-theme="light"] .theme-fab-key { box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--m-key-floor), 0 10px 22px -10px rgba(64, 48, 24, 0.45); }
+.theme-fab-key:active { transform: scale(0.9); }
+.theme-fab-sun, .theme-fab-moon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform 0.5s var(--ease-snap), opacity 0.25s ease; }
+.theme-fab-key[data-theme-now="dark"] .theme-fab-sun { opacity: 0; transform: rotate(-120deg) scale(0.4); }
+.theme-fab-key[data-theme-now="light"] .theme-fab-moon { opacity: 0; transform: rotate(120deg) scale(0.4); }
+.theme-fab-auto {
+  position: absolute; right: -3px; top: -3px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 99px;
+  font: 700 8.5px/16px var(--font-mono); text-align: center; color: var(--color-on-ember); background: var(--color-ember);
+  box-shadow: 0 0 0 2px var(--color-chassis-0);
+}
+.theme-fab-menu {
+  position: absolute; left: 0; bottom: 54px; width: 236px; padding: 6px; border-radius: 18px;
+  background: var(--color-chassis-2); border: 1px solid var(--color-line-2); box-shadow: var(--m-pop-shadow);
+  transform-origin: 22px 100%; animation: fab-pop 0.28s var(--ease-snap) both;
+}
+@keyframes fab-pop { from { opacity: 0; transform: translateY(8px) scale(0.92); } }
+.theme-fab-menu > button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 8px 10px; border-radius: 12px; text-align: left; }
+.theme-fab-menu > button[aria-checked="true"] { background: color-mix(in oklab, var(--color-ember) 9%, transparent); }
+.theme-fab-menu > button:active { background: var(--color-chassis-3); }
+.theme-fab-ico { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; color: var(--color-ink-2); background: var(--color-chassis-0); border: 1px solid var(--color-line); }
+
+/* ---- tints: one family per app category, plus named accents. --tint follows the theme (deep on ivory); --led
+   stays bright: it lights LED artwork, which is dark hardware in both themes. */
+[data-tone] { --tint: var(--color-ember); --led: #ff7a4d; }
+[data-tone="time"] { --tint: #ffb020; --led: #ffb020; }
+[data-tone="data"] { --tint: #37c8ff; --led: #37c8ff; }
+[data-tone="media"] { --tint: #b18cff; --led: #b18cff; }
+[data-tone="creative"] { --tint: #ff4f7b; --led: #ff4f7b; }
+[data-tone="ambient"] { --tint: #2ee6c2; --led: #2ee6c2; }
+[data-tone="productivity"] { --tint: #9be15d; --led: #9be15d; }
+[data-tone="pets"] { --tint: #ff8ad8; --led: #ff8ad8; }
+[data-tone="games"] { --tint: #ff7a4d; --led: #ff7a4d; }
+[data-tone="casino"], [data-tone="gold"] { --tint: #ffcc33; --led: #ffcc33; }
+[data-tone="device"] { --tint: #9aa6b8; --led: #b8c4d6; }
+[data-tone="ok"] { --tint: var(--color-ok); --led: #3ddc97; }
+[data-tone="info"] { --tint: var(--color-info); --led: #37c8ff; }
+[data-tone="neutral"] { --tint: var(--color-ink-2); --led: #efece4; }
+:root[data-theme="light"] [data-tone="time"] { --tint: #a35f00; }
+:root[data-theme="light"] [data-tone="data"] { --tint: #0b6f9e; }
+:root[data-theme="light"] [data-tone="media"] { --tint: #6b3fc4; }
+:root[data-theme="light"] [data-tone="creative"] { --tint: #b81f4b; }
+:root[data-theme="light"] [data-tone="ambient"] { --tint: #0f7a69; }
+:root[data-theme="light"] [data-tone="productivity"] { --tint: #3f7a12; }
+:root[data-theme="light"] [data-tone="pets"] { --tint: #b0307e; }
+:root[data-theme="light"] [data-tone="games"] { --tint: #c2410c; }
+:root[data-theme="light"] :is([data-tone="casino"], [data-tone="gold"]) { --tint: #8a6412; }
+:root[data-theme="light"] [data-tone="device"] { --tint: #4b5565; }
+
+/* ---- icon tile: a duotone glyph on a tinted, softly lit tile (components/Icon.tsx IconTile) */
+.icon-tile {
+  display: inline-grid; place-items: center; flex-shrink: 0; color: var(--tint);
+  background: linear-gradient(155deg, color-mix(in oklab, var(--tint) 30%, var(--color-chassis-2)), color-mix(in oklab, var(--tint) 11%, var(--color-chassis-1)));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in oklab, var(--tint) 34%, transparent);
+}
+:root[data-theme="light"] .icon-tile {
+  background: linear-gradient(155deg, color-mix(in oklab, var(--tint) 17%, #fff), color-mix(in oklab, var(--tint) 7%, #fff));
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px color-mix(in oklab, var(--tint) 24%, transparent), 0 1px 2px rgba(64, 48, 24, 0.08);
+}
+.icon-tile[data-solid], :root[data-theme="light"] .icon-tile[data-solid] {
+  color: color-mix(in oklab, var(--tint) 18%, #0a0a0c);
+  background: linear-gradient(160deg, color-mix(in oklab, var(--tint) 72%, white), var(--tint) 55%, color-mix(in oklab, var(--tint) 82%, black));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 14px -6px color-mix(in oklab, var(--tint) 75%, transparent);
+}
+:root[data-theme="light"] .icon-tile[data-solid] { color: #fff; }
+.icon-tile[data-solid] svg { fill-opacity: 0.3; }
+
+/* ---- Panel tab: app rows under the panel (components/AppRail.tsx) */
+.rails { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
+/* full-bleed rows: the row box spans the screen (content-visibility clips painting to it), the track scrolls edge to edge */
+.rail { margin: 0 -12px; padding: 0 12px; content-visibility: auto; contain-intrinsic-size: auto 180px; }
+.rail-head { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+.rail-all { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 6px 0 12px; border-radius: 99px; font: 500 11px var(--font-mono); color: var(--color-ink-3); }
+.rail-all:active { background: var(--color-chassis-3); color: var(--color-ink-1); }
+.rail-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3.3); gap: 10px;
+  margin: 0 -12px; padding: 4px 12px 6px; scroll-padding-inline: 12px;
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.rail-track::-webkit-scrollbar { display: none; }
+@media (min-width: 520px) { .rail-track { grid-auto-columns: calc((100% - 40px) / 5.3); } }
+.rail-card {
+  position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; text-align: left; scroll-snap-align: start;
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: transform 0.18s var(--ease-out-soft);
+}
+.rail-card:active { transform: scale(0.95); }
+.rail-card .led-preview { border-radius: 14px; box-shadow: 0 0 0 1px var(--color-line-2), 0 10px 22px -14px rgba(0, 0, 0, 0.9); }
+:root[data-theme="light"] .rail-card .led-preview { box-shadow: 0 0 0 1px #0b0b0e, 0 8px 18px -10px rgba(40, 30, 16, 0.5); }
+.rail-card[data-live="true"] .led-preview { box-shadow: 0 0 0 2px var(--color-ember), 0 0 24px -6px var(--color-ember); }
+.rail-name { padding: 0 2px; font-size: 12px; font-weight: 560; letter-spacing: -0.01em; color: var(--color-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-card[data-live="true"] .rail-name { color: var(--color-ink-1); }
+.rail-live {
+  position: absolute; left: 6px; top: 6px; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 99px;
+  font: 600 7.5px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-ember); background: rgba(0, 0, 0, 0.72);
+}
+
+/* ---- Presets tab: cover cards (components/PlaylistDock.tsx PresetCard) */
+.preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 560px) { .preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.preset-card {
+  position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-radius: 16px;
+  background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1)); border: 1px solid var(--color-line);
+  box-shadow: inset 0 1px 0 var(--m-hi), var(--m-surface-shadow); transition: transform 0.18s var(--ease-out-soft), border-color 0.2s;
+}
+.preset-card:active { transform: scale(0.97); }
+.preset-card[data-active="true"] { border-color: var(--color-ember-line); box-shadow: 0 0 0 1px var(--color-ember-line), 0 16px 30px -20px var(--color-ember); }
+.preset-hit { position: absolute; inset: 0; z-index: 1; border-radius: inherit; -webkit-touch-callout: none; }
+.preset-art {
+  position: relative; aspect-ratio: 16 / 8.6; overflow: hidden;
+  background: radial-gradient(130% 120% at 18% 0%, color-mix(in oklab, var(--led) 30%, #16161b), #09090c 72%);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+.preset-dots { position: absolute; inset: 9px 9px 12px; width: calc(100% - 18px); height: calc(100% - 21px); }
+.preset-dots .pa-off { fill: rgba(255, 255, 255, 0.07); }
+.preset-dots .pa-lit { fill: var(--led); opacity: 0.8; }
+.preset-dots .pa-top { fill: color-mix(in oklab, var(--led) 45%, white); }
+.preset-badge { position: absolute; left: 9px; bottom: 9px; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 6px 14px -4px rgba(0, 0, 0, 0.7) !important; }
+.preset-playing {
+  position: absolute; left: 9px; top: 9px; display: flex; align-items: center; gap: 6px; padding: 3px 8px 3px 7px; border-radius: 99px;
+  font: 600 8.5px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: #fff; background: rgba(0, 0, 0, 0.62);
+}
+.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+.eq i { width: 2px; height: 10px; border-radius: 1px; background: var(--led); transform-origin: bottom; animation: eq-bar 0.9s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: -0.3s; }
+.eq i:nth-child(3) { animation-delay: -0.6s; }
+@keyframes eq-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.preset-foot { display: flex; align-items: flex-end; gap: 8px; padding: 9px 9px 10px 12px; }
+.preset-mini { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 99px; color: var(--color-ink-2); background: var(--color-chassis-3); border: 1.5px solid var(--color-chassis-1); }
+.preset-play {
+  position: relative; z-index: 2; display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 999px;
+  color: var(--color-on-ember); background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 18px -8px color-mix(in oklab, var(--color-ember) 85%, transparent);
+  transition: transform 0.12s var(--ease-out-soft);
+}
+.preset-play:active { transform: scale(0.9); }
+.preset-card[data-active="true"] .preset-play { color: var(--color-ink-1); background: var(--color-chassis-3); box-shadow: inset 0 0 0 1px var(--color-line-2); }
+.preset-card > .preset-art > button { z-index: 2; }
+
+/* ---- the studio's dropdown (components/Picker.tsx) */
+.picker-trigger { display: flex; align-items: center; gap: 8px; text-align: left; cursor: pointer; }
+.picker-trigger:disabled { opacity: 0.5; cursor: default; }
+.picker-trigger[aria-expanded="true"] { border-color: var(--color-ember); }
+.picker-sm { height: 2rem; padding: 0 0.55rem 0 0.65rem; font-size: 12.5px; }
+@media (pointer: coarse) { .picker-trigger { min-height: 2.75rem; } }
+.picker-pop { position: fixed; z-index: 95; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 1px 0 var(--m-hi), var(--m-pop-shadow); }
+.picker-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 6px 9px; border-radius: 8px; text-align: left; }
+.picker-item[data-active="true"] { background: var(--color-chassis-3); }
+.picker-item:disabled { opacity: 0.4; }
+.picker-sheet { display: flex; flex-direction: column; gap: 2px; }
+.picker-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 10px; border-radius: 14px; text-align: left; }
+.picker-row:active { background: var(--color-chassis-3); }
+.picker-row[aria-selected="true"] { background: color-mix(in oklab, var(--color-ember) 9%, transparent); }
+.picker-row:disabled { opacity: 0.4; }
+
+/* ---- Settings, Android app only: launcher icon options (components/AppIconPicker.tsx) */
+.appicon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+.appicon {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 10px 6px 9px; border-radius: 14px;
+  border: 1px solid var(--color-line); background: var(--color-chassis-1); transition: border-color 0.2s, transform 0.15s var(--ease-out-soft);
+}
+.appicon:active { transform: scale(0.96); }
+.appicon[aria-checked="true"] { border-color: var(--color-ember); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ember) 16%, transparent); }
+.appicon > svg { display: block; width: 60px; height: 60px; border-radius: 26%; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 16px -8px rgba(0, 0, 0, 0.75); }
+:root[data-theme="light"] .appicon > svg { box-shadow: 0 0 0 1px rgba(64, 48, 24, 0.08), 0 8px 16px -8px rgba(40, 30, 16, 0.45); }
+.appicon-check {
+  position: absolute; right: 6px; top: 6px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 99px;
+  color: var(--color-on-ember); background: var(--color-ember); box-shadow: 0 0 0 2px var(--color-chassis-1);
+}
+
+/* the casino table on the phone Panel tab keeps the side margins the panel scroll area has */
+.phone-panel > main:not(.phone-stage) { padding-inline: 12px; }

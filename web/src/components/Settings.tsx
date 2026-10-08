@@ -9,11 +9,14 @@ import { ColourCalibration } from "./calibration/ColourCalibration";
 import { MotionLab } from "./calibration/MotionLab";
 import { Row, Slider, Toggle } from "./controls";
 import { IntegrationsTab } from "./IntegrationsTab";
-import { Icon } from "./Icon";
+import { Icon, IconTile } from "./Icon";
 import { Modal } from "./Overlays";
 import { SFX_NAMES, SOUND_CATEGORIES, type SfxName, getSound, onSound, setSound, sfx, sfxCategory } from "../lib/sound";
 import { ThemeTiles } from "./ThemePicker";
 import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
+import { Picker } from "./Picker";
+import { AppIconPicker } from "./AppIconPicker";
+import { inAndroidApp } from "../lib/android";
 
 type St = EngineState;
 
@@ -38,6 +41,7 @@ const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
 /** What the settings search knows about: label, extra words, and the block it lives in. */
 const INDEX: [string, string, SettingsTab | string][] = [
   ["Studio theme", "light dark mode auto system appearance white black colour scheme", "theme"],
+  ["App icon", "launcher home screen android phone logo icon", "appicon"],
   ["Brightness", "dim bright level", "display-basics"],
   ["Night mode", "dim overnight schedule sleep dark", "display-basics"],
   ["Rotate 180°", "flip upside down mount", "display-basics"],
@@ -67,7 +71,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Link statistics", "frames sent dropped telemetry latency", "sources"],
 ];
 const INDEX_SECTION: Record<string, SettingsSection> = {
-  "display-basics": "display", theme: "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
+  "display-basics": "display", theme: "display", appicon: "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
   homeassistant: "alerts", transitions: "playlist", presets: "playlist", sources: "device",
 };
 const sectionOf = (block: string): SettingsSection => BLOCK_SECTION[block as SettingsTab] ?? INDEX_SECTION[block] ?? "display";
@@ -79,7 +83,7 @@ function Block({ id, title, hint, icon, children, tone }: {
   return (
     <section id={`set-${id}`} className={clsx("scroll-mt-4 rounded-xl", tone !== "plain" && "border border-line bg-chassis-0/60 p-4 light:bg-chassis-1 light:shadow-[0_1px_2px_rgba(64,48,24,0.05)]")}>
       <div className="mb-1 flex items-center gap-2">
-        {icon && <Icon name={icon} size={15} className="text-ember" />}
+        {icon && <IconTile name={icon} tone="ember" size={28} glyph={15} />}
         <h3 className="font-display text-[15px] font-[640] tracking-[-0.01em]">{title}</h3>
       </div>
       {hint && <p className="mb-2 text-[12px] leading-relaxed text-ink-3">{hint}</p>}
@@ -166,9 +170,8 @@ function SoundBlock() {
         </Row>
         <Row label="Try them" hint="Test plays one effect from each category that is on; or pick any effect and press play.">
           <button className="key" disabled={!p.on} onClick={test} data-sfx="off"><Icon name="volume-2" size={13} /> Test</button>
-          <select className="field !h-8 !w-40" value={pick} aria-label="Effect" onChange={(e) => setPick(e.target.value as SfxName)}>
-            {SFX_NAMES.map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <Picker label="Effect" size="sm" className="!w-44" value={pick} onChange={(v) => setPick(v as SfxName)}
+            options={SFX_NAMES.map((n) => ({ value: n, label: n, hint: SOUND_CATEGORIES.find(([c]) => c === sfxCategory(n))?.[1] }))} />
           <button className="key key-icon" disabled={!p.on} aria-label={`Play ${pick}`} title="Play it" onClick={() => sfx(pick)} data-sfx="off"><Icon name="play" size={12} /></button>
         </Row>
       </div>
@@ -293,9 +296,11 @@ function HandoffSection({ st }: { st: St }) {
         </Row>
         {h.mode === "app" && (
           <Row label="Which app" hint="Recorded as a loop the panel plays by itself (live data freezes at that moment).">
-            <select className="field !h-8 !w-48" value={h.app} onChange={(e) => save({ app: e.target.value })}>
-              {apps.map((a) => <option key={a} value={a}>{name(a)}</option>)}
-            </select>
+            <Picker label="Which app" size="sm" className="!w-52" value={h.app} onChange={(v) => save({ app: v })}
+              options={apps.map((a) => {
+                const m = meta?.apps.find((x) => x.id === a);
+                return { value: a, label: name(a), icon: m?.icon, tone: m?.category, hint: m?.description };
+              })} />
           </Row>
         )}
         {h.mode === "clock" && (
@@ -336,7 +341,7 @@ function PresetManager() {
     <div className="space-y-1.5">
       {mine.map((p) => (
         <div key={p.id} className="flex items-center gap-3 rounded-lg bg-chassis-0 px-3 py-2">
-          <Icon name={p.icon || "list-music"} size={14} className="text-ink-2" />
+          <IconTile name={p.icon || "list-music"} tone="ember" size={28} glyph={14} />
           <span className="flex-1 text-[13px]">{p.name}</span>
           <span className="font-mono text-[10.5px] text-ink-4">{p.items.length} apps</span>
           <button className="key !h-8" onClick={() => api.playPreset(p.id, useStore.getState().shuffle)}><Icon name="play" size={12} /> Play</button>
@@ -462,6 +467,12 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
           hint="How the studio looks on this device: light, dark, or following your system. The LED panel itself is unchanged.">
           <ThemeTiles />
         </Block>
+        {inAndroidApp() && (
+          <Block id="appicon" title="App icon" icon="smartphone"
+            hint="How DeskDot looks on your phone's home screen and app drawer.">
+            <AppIconPicker />
+          </Block>
+        )}
         <DisplayBasics st={st} />
         <SoundBlock />
         <Block id="intro" title="Intro & outro" icon="clapperboard"
@@ -571,7 +582,7 @@ export function SettingsSheet() {
             <button key={id} onClick={() => go(id)} aria-current={section === id && !results ? "page" : undefined}
               className={clsx("flex shrink-0 items-start gap-2.5 rounded-lg px-3 py-2.5 text-left transition",
                 section === id && !results ? "bg-chassis-3 text-ink-1" : "text-ink-3 hover:bg-chassis-2 hover:text-ink-1")}>
-              <Icon name={icon} size={15} className={clsx("mt-0.5 shrink-0", section === id && !results && "text-ember")} />
+              <IconTile name={icon} tone={section === id && !results ? "ember" : "neutral"} size={28} glyph={15} solid={section === id && !results} />
               <span>
                 <span className="block text-[13px] leading-tight">{label}</span>
                 <span className="mt-0.5 hidden text-[10.5px] leading-snug text-ink-4 sm:block">{hint}</span>
