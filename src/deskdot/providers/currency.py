@@ -24,7 +24,7 @@ from collections.abc import Sequence
 from datetime import date, timedelta
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 FRANKFURTER = "https://api.frankfurter.dev/v1"
 FAWAZ = (
@@ -116,6 +116,25 @@ def fawaz_rate(payload: dict[str, Any], base: str, code: str) -> float | None:
 
 class CurrencyProvider(Provider[dict[str, Any]]):
     name = "currency"
+    endpoints = (
+        Endpoint(
+            "Frankfurter (ECB)",
+            FRANKFURTER + "/2026-01-01..2026-01-09?symbols=USD,INR",
+            check=lambda d: parse_frankfurter(d, "INR", ["USD", "EUR"]).get("USD"),
+        ),
+        Endpoint(
+            "currency-api (jsDelivr)",
+            "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/inr.json",
+            check=lambda d: fawaz_rate(d, "INR", "AED"),
+            role="fallback",
+        ),
+        Endpoint(
+            "currency-api (pages.dev)",
+            "https://latest.currency-api.pages.dev/v1/currencies/inr.json",
+            check=lambda d: fawaz_rate(d, "INR", "AED"),
+            role="fallback",
+        ),
+    )
     interval = 1800.0  # reference rates change once a day; crypto on fawaz daily too
     retry = 60.0
 

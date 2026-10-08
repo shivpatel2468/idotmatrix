@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 HOURLY = (
@@ -55,6 +55,16 @@ def summarise(d: dict[str, Any], hours: int = 6) -> dict[str, Any]:
 
 class WearProvider(Provider[dict[str, Any]]):
     name = "wear"
+    endpoints = (
+        Endpoint(
+            "Open-Meteo forecast",
+            OPEN_METEO
+            + "?latitude=51.5074&longitude=-0.1278&current=temperature_2m&hourly="
+            + HOURLY
+            + "&forecast_hours=13&timezone=auto",
+            check=summarise,
+        ),
+    )
     interval = 900.0
     retry = 60.0
 

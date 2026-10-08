@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 MARINE = "https://marine-api.open-meteo.com/v1/marine"
 HOURLY = "wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,sea_level_height_msl"
@@ -90,6 +90,17 @@ def compass(deg: float) -> str:
 
 class TidesProvider(Provider[dict[str, Any]]):
     name = "tides"
+    endpoints = (
+        Endpoint(
+            "Open-Meteo marine",
+            MARINE
+            + "?latitude=50.71&longitude=-1.87&hourly="
+            + HOURLY
+            + "&timezone=auto&past_days=1&forecast_days=2",
+            check=parse_marine,
+            expect=("hourly.sea_level_height_msl.0", "hourly.wave_height.0"),
+        ),
+    )
     interval = 1800.0
     retry = 120.0
 

@@ -1,0 +1,7 @@
+{
+ "fastestFee": 3,
+ "halfHourFee": 3,
+ "hourFee": 1,
+ "economyFee": 1,
+ "minimumFee": 1
+}

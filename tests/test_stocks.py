@@ -17,12 +17,12 @@ from deskdot.providers.stocks import (
     aggregate_candles,
     downsample,
     market_state,
+    nasdaq_symbol,
     normalize_symbol,
     parse_chart,
+    parse_nasdaq,
     parse_spark,
-    parse_stooq,
     parse_symbols,
-    stooq_symbol,
 )
 
 NOW = 1790190000.0  # inside the regular session of the fixture below
@@ -95,7 +95,6 @@ YAHOO_SPARK = {
         "error": None,
     }
 }
-STOOQ_CSV = "Symbol,Date,Time,Open,High,Low,Close,Volume\r\nAAPL.US,2026-09-23,22:00:00,339.1,341.8,335.61,337.02,31482942\r\n"
 
 
 # ----------------------------------------------------------------------------- provider parsing
@@ -136,12 +135,20 @@ def test_parse_spark_batch() -> None:
     assert len(e["candles"]) == 2  # synthesised from consecutive closes
 
 
-def test_parse_stooq_csv() -> None:
-    out = parse_stooq(STOOQ_CSV, {"aapl.us": "AAPL"}, "1d", NOW)
-    e = out["AAPL"]
-    assert e["price"] == 337.02 and e["prev_close"] == 339.1 and e["change"] < 0
-    assert stooq_symbol("AAPL") == "aapl.us" and stooq_symbol("^GSPC") == "^spx"
-    assert stooq_symbol("RELIANCE.NS") is None
+def test_parse_nasdaq_fallback() -> None:
+    """Recorded api.nasdaq.com chart answer (2026-10-08, trimmed); Stooq's quote CSV is gone (404)."""
+    import json
+    from pathlib import Path
+
+    payload = json.loads((Path(__file__).parent / "fixtures" / "health" / "nasdaq_chart.json").read_text())
+    e = parse_nasdaq(payload, "AAPL", "1d", NOW)
+    assert e["price"] == 338.04 and e["prev_close"] == pytest.approx(336.67)
+    assert e["change"] == pytest.approx(1.37) and len(e["history"]) == 6
+    assert e["name"].startswith("Apple") and e["currency"] == "USD"
+    with pytest.raises(ValueError):
+        parse_nasdaq({"data": None, "status": {"rCode": 400}}, "ZZZZ")
+    assert nasdaq_symbol("AAPL") == ("AAPL", ("stocks", "etf")) and nasdaq_symbol("^IXIC") == ("COMP", ("index",))
+    assert nasdaq_symbol("RELIANCE.NS") is None and nasdaq_symbol("^GSPC") is None
 
 
 def test_symbol_validation() -> None:

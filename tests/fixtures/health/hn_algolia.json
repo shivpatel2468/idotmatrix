@@ -1,0 +1,53 @@
+{
+ "hits": [
+  {
+   "objectID": "49998895",
+   "title": "Margaret Hamilton has died",
+   "url": "https://news.mit.edu/2026/margaret-hamilton-computing-pioneer-dies-1007",
+   "author": "muglug",
+   "points": 1968,
+   "num_comments": 223,
+   "created_at_i": 1791407778,
+   "_tags": [
+    "story",
+    "author_muglug",
+    "story_49998895",
+    "front_page"
+   ],
+   "story_id": 49998895
+  },
+  {
+   "objectID": "49996437",
+   "title": "Claude Haiku 5.5",
+   "url": "https://www.anthropic.com/claude-haiku-5-5",
+   "author": "sfkgtbor",
+   "points": 985,
+   "num_comments": 465,
+   "created_at_i": 1791396092,
+   "_tags": [
+    "story",
+    "author_sfkgtbor",
+    "story_49996437",
+    "front_page"
+   ],
+   "story_id": 49996437
+  },
+  {
+   "objectID": "49996425",
+   "title": "GPT\u20116 and Intelligent UI for everyone",
+   "url": "https://openai.com/index/gpt-6-for-everyone/",
+   "author": "joshuawright11",
+   "points": 718,
+   "num_comments": 421,
+   "created_at_i": 1791396058,
+   "_tags": [
+    "story",
+    "author_joshuawright11",
+    "story_49996425",
+    "front_page"
+   ],
+   "story_id": 49996425
+  }
+ ],
+ "hitsPerPage": 3
+}

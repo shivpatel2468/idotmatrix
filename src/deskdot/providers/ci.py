@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 from .radiator import EventLog, safe_error
 
 API = "https://api.github.com"
@@ -132,6 +132,14 @@ class CIProvider(EventLog, Provider[dict[str, Any]]):
     """
 
     name = "ci"
+    endpoints = (
+        Endpoint(
+            "GitHub Actions runs",
+            API + "/repos/python/cpython/actions/runs?per_page=1",
+            expect=("workflow_runs.0.status", "workflow_runs.0.head_branch"),
+            note="60 requests/h without a token",
+        ),
+    )
     interval = 120.0
     retry = 120.0
 

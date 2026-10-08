@@ -16,7 +16,7 @@ import re
 import time
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 GAMERPOWER = "https://www.gamerpower.com/api/giveaways"
 CHEAPSHARK = "https://www.cheapshark.com/api/1.0"
@@ -178,6 +178,15 @@ class GameDealsProvider(Provider[dict[str, Any]]):
     """``value = {"giveaways": [...], "deals": [...], "updated": epoch}``; see the parsers for item fields."""
 
     name = "gamedeals"
+    endpoints = (
+        Endpoint("GamerPower giveaways", GAMERPOWER + "?platform=pc&type=game", check=parse_giveaways),
+        Endpoint(
+            "CheapShark deals",
+            CHEAPSHARK + "/deals?sortBy=Deal%20Rating&pageSize=5&onSale=1",
+            check=lambda d: parse_deals(d, {}),
+        ),
+        Endpoint("CheapShark stores", CHEAPSHARK + "/stores", expect=("0.storeID", "0.storeName")),
+    )
     interval = 1800.0
     retry = 60.0
 

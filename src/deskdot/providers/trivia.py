@@ -18,7 +18,7 @@ import zlib
 from typing import Any
 from urllib.parse import unquote
 
-from .base import Provider
+from .base import Endpoint, Provider
 from .daily import clean_text, is_safe
 
 API = "https://opentdb.com/api.php"
@@ -135,6 +135,12 @@ class TriviaProvider(Provider[list[dict[str, Any]]]):
     """``value`` = the queued questions. Apps call ``want(category, difficulty, kind)`` and ``take()``."""
 
     name = "trivia"
+    endpoints = (
+        Endpoint(
+            "Open Trivia DB", API + "?amount=3", check=lambda d: parse_batch(d)[1], note="1 request / 5 s"
+        ),
+        Endpoint("Open Trivia DB token", TOKEN + "?command=request", expect=("token",)),
+    )
     interval = 15.0
     retry = 12.0
 

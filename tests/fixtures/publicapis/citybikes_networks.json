@@ -1,0 +1,414 @@
+{
+ "networks": [
+  {
+   "id": "altervelo",
+   "name": "alterV\u00e9lo libre service",
+   "location": {
+    "latitude": -21.3414,
+    "longitude": 55.4777,
+    "city": "Saint-Pierre",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "aqta",
+   "name": "VLS AQTAs",
+   "location": {
+    "latitude": 47.665705,
+    "longitude": -2.983669,
+    "city": "Auray-Quiberon",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "auxrmlevelo",
+   "name": "AuxR_M",
+   "location": {
+    "latitude": 47.796054,
+    "longitude": 3.571375,
+    "city": "Auxerre",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "aventura",
+   "name": "Aventura BCycle",
+   "location": {
+    "latitude": 25.95711,
+    "longitude": -80.1395,
+    "city": "Aventura, FL",
+    "country": "US"
+   }
+  },
+  {
+   "id": "bay-wheels",
+   "name": "Bay Wheels",
+   "location": {
+    "latitude": 37.7141454,
+    "longitude": -122.25,
+    "city": "San Francisco Bay Area, CA",
+    "country": "US"
+   }
+  },
+  {
+   "id": "belfastbikes-belfast",
+   "name": "BelfastBikes",
+   "location": {
+    "latitude": 54.5969,
+    "longitude": -5.92918,
+    "city": "Belfast",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "bentonville",
+   "name": "Bentonville BCycle",
+   "location": {
+    "latitude": 36.3605,
+    "longitude": -94.1996,
+    "city": "Bentonville, AR",
+    "country": "US"
+   }
+  },
+  {
+   "id": "beryl-bcp",
+   "name": "Beryl - Bournemouth, Christchurch and Poole",
+   "location": {
+    "latitude": 50.7196,
+    "longitude": -1.8734,
+    "city": "Bournemouth, Christchurch and Poole",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-brighton",
+   "name": "Beryl - Brighton",
+   "location": {
+    "latitude": 50.8222,
+    "longitude": -0.1403,
+    "city": "Brighton",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-cornwall",
+   "name": "Beryl - Cornwall",
+   "location": {
+    "latitude": 50.2616,
+    "longitude": -5.051,
+    "city": "Cornwall",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-dorchester-weymouth-portland",
+   "name": "Beryl - Dorchester, Weymouth and Portland",
+   "location": {
+    "latitude": 50.6085,
+    "longitude": -2.454,
+    "city": "Dorchester, Weymouth and Portland",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-eastleigh",
+   "name": "Beryl - Eastleigh",
+   "location": {
+    "latitude": 50.9691,
+    "longitude": -1.3603,
+    "city": "Eastleigh",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-greater-manchester",
+   "name": "Beryl - Greater Manchester",
+   "location": {
+    "latitude": 53.4795,
+    "longitude": -2.2436,
+    "city": "Greater Manchester",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-guildford",
+   "name": "Beryl - Guildford",
+   "location": {
+    "latitude": 51.2397,
+    "longitude": -0.5764,
+    "city": "Guildford",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-hereford",
+   "name": "Beryl - Hereford",
+   "location": {
+    "latitude": 52.0549,
+    "longitude": -2.7156,
+    "city": "Hereford",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-hertsmere",
+   "name": "Beryl - Hertsmere",
+   "location": {
+    "latitude": 51.6577,
+    "longitude": -0.2695,
+    "city": "Hertsmere",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-leeds",
+   "name": "Beryl - Leeds",
+   "location": {
+    "latitude": 53.7971,
+    "longitude": -1.5438,
+    "city": "Leeds",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-norwich",
+   "name": "Beryl - Norwich",
+   "location": {
+    "latitude": 52.6288,
+    "longitude": 1.2934,
+    "city": "Norwich",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-plymouth",
+   "name": "Beryl - Plymouth",
+   "location": {
+    "latitude": 50.3714,
+    "longitude": -4.1421,
+    "city": "Plymouth",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-stevenage",
+   "name": "Beryl - Stevenage",
+   "location": {
+    "latitude": 51.9059,
+    "longitude": -0.1905,
+    "city": "Stevenage",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-watford",
+   "name": "Beryl - Watford",
+   "location": {
+    "latitude": 51.6556,
+    "longitude": -0.3953,
+    "city": "Watford",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-west-midlands",
+   "name": "Beryl - West Midlands",
+   "location": {
+    "latitude": 52.4798,
+    "longitude": -1.9014,
+    "city": "West Midlands",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "beryl-worcester",
+   "name": "Beryl - Worcester",
+   "location": {
+    "latitude": 52.1912,
+    "longitude": -2.2206,
+    "city": "Worcester",
+    "country": "GB"
+   }
+  },
+  {
+   "id": "bicloo",
+   "name": "Bicloo",
+   "location": {
+    "latitude": 47.218371,
+    "longitude": -1.553621,
+    "city": "Nantes",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "bike-chattanooga",
+   "name": "Bike Chattanooga",
+   "location": {
+    "latitude": 35.0456297,
+    "longitude": -85.3096801,
+    "city": "Chattanooga, TN",
+    "country": "US"
+   }
+  },
+  {
+   "id": "biketown",
+   "name": "BIKETOWN",
+   "location": {
+    "latitude": 45.52175423291714,
+    "longitude": -122.68107935786247,
+    "city": "Portland, OR",
+    "country": "US"
+   }
+  },
+  {
+   "id": "biketown-whq",
+   "name": "Biketown WHQ (Nike campus)",
+   "location": {
+    "latitude": 45.5087,
+    "longitude": -122.8294,
+    "city": "Beaverton, OR",
+    "country": "US"
+   }
+  },
+  {
+   "id": "bird-los-angeles",
+   "name": "Bird Los Angeles",
+   "location": {
+    "latitude": 34.0522,
+    "longitude": -118.2437,
+    "city": "Los Angeles, CA",
+    "country": "US"
+   }
+  },
+  {
+   "id": "bird-seattle",
+   "name": "Bird Seattle",
+   "location": {
+    "latitude": 47.6062,
+    "longitude": -122.3321,
+    "city": "Seattle, WA",
+    "country": "US"
+   }
+  },
+  {
+   "id": "bismarck",
+   "name": "BisPArks BCycle",
+   "location": {
+    "latitude": 46.8082,
+    "longitude": -100.7847,
+    "city": "Bismarck, ND",
+    "country": "US"
+   }
+  },
+  {
+   "id": "blue-bikes",
+   "name": "Blue Bikes",
+   "location": {
+    "latitude": 42.3584308,
+    "longitude": -71.0597732,
+    "city": "Boston, MA",
+    "country": "US"
+   }
+  },
+  {
+   "id": "boulder",
+   "name": "Boulder BCycle",
+   "location": {
+    "latitude": 40.00811,
+    "longitude": -105.26385,
+    "city": "Boulder, CO",
+    "country": "US"
+   }
+  },
+  {
+   "id": "brennus",
+   "name": "Brennus \u00e0 v\u00e9lo",
+   "location": {
+    "latitude": 48.197815,
+    "longitude": 3.282785,
+    "city": "Sens",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "broward",
+   "name": "Broward BCycle",
+   "location": {
+    "latitude": 26.12026,
+    "longitude": -80.14819,
+    "city": "Fort Lauderdale, FL",
+    "country": "US"
+   }
+  },
+  {
+   "id": "bublr-bikes",
+   "name": "Bublr Bikes",
+   "location": {
+    "latitude": 43.0369,
+    "longitude": -87.89667,
+    "city": "Milwaukee, WI",
+    "country": "US"
+   }
+  },
+  {
+   "id": "c-velo",
+   "name": "C.v\u00e9lo",
+   "location": {
+    "latitude": 45.7831,
+    "longitude": 3.0824,
+    "city": "Clermont-Ferrand",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "capital-bikeshare",
+   "name": "Capital BikeShare",
+   "location": {
+    "latitude": 38.8967584,
+    "longitude": -77.03701629999999,
+    "city": "Washington, DC",
+    "country": "US"
+   }
+  },
+  {
+   "id": "capmetro-austin",
+   "name": "CapMetro Bikeshare",
+   "location": {
+    "latitude": 30.26408,
+    "longitude": -97.74355,
+    "city": "Austin, TX",
+    "country": "US"
+   }
+  },
+  {
+   "id": "chantrerie-captainbike",
+   "name": "Chantrerie VLS (Captain Bike)",
+   "location": {
+    "latitude": 47.2868203,
+    "longitude": -1.5210917,
+    "city": "La Chantrerie, Nantes",
+    "country": "FR"
+   }
+  },
+  {
+   "id": "chartered-bike-bhopal",
+   "name": "Chartered Bike",
+   "location": {
+    "latitude": 23.258546,
+    "longitude": 77.401851,
+    "city": "Bhopal",
+    "country": "IN"
+   }
+  },
+  {
+   "id": "santander-cycles",
+   "name": "Santander Cycles",
+   "location": {
+    "latitude": 51.51121389999999,
+    "longitude": -0.1198244,
+    "city": "London",
+    "country": "GB"
+   }
+  }
+ ]
+}

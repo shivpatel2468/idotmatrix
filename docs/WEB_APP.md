@@ -244,9 +244,11 @@ Legend: ✅ works · 🟡 works with a limit · ❌ not available.
 | Claude Mascot, Ambient, Flocking Boids, Neuromorphic Cortex, Fly Brain, Emotes, Loops, Pixabots, QR Code, Falling Sand, Synthwave Horizon, Text, Canvas, Firmware Modes | ✅ | baked clips / native modes; clip bakes take ~0.1–0.4 s in WebAssembly |
 | Gallery, Photo Frame (uploads) | ✅ | uploads live in IndexedDB |
 | Weather, Air Quality, Tides & Surf, What to Wear, Sun & Moon, Day & Night, Planets Tonight, Pet World | ✅ | Open-Meteo, sunrise-sunset.org (CORS). Location by IP goes through the proxy (ip-api.com is http only) — set a city to skip it |
-| Live Scores, Crypto Ticker, Currency, Earthquakes, Rain Radar, Space (+ ISS), Trivia, Pokédex, Chess Puzzle, Holidays, Headlines, Daily Dose, Game Deals, Pixel Avatar, GitHub Graph, Stocks | ✅ | direct where the API allows CORS; Yahoo/Stooq (stocks), Hacker News/Lobsters, ZenQuotes, CheapShark, Mojang, github.com, open-notify, Google holiday calendars through `/app/proxy` |
+| Live Scores, Crypto Ticker, Currency, Earthquakes, Rain Radar, Space (+ ISS), Trivia, Pokédex, Chess Puzzle, Holidays, Headlines, Daily Dose, Game Deals, Pixel Avatar, GitHub Graph, Stocks | ✅ | direct where the API allows CORS; Yahoo/Nasdaq (stocks), Hacker News/Lobsters, ZenQuotes, CheapShark, Mojang, github.com, open-notify, Google holiday calendars through `/app/proxy` |
+| Aurora Watch, Bitcoin Network, Crypto Market, Race Countdown, Long Weekend, Bike Share, Earth Events, World Flags, Rain Chance, Wind Compass, Wiki Trending, Game Server, TV Tonight (3.6.0) | ✅ | every API allows CORS (checked by `scripts/api_health.py`, column "Web") |
+| Asteroid Flyby (3.6.0) | ✅ | NASA/JPL's close-approach API has no CORS: through `/app/proxy` |
 | Photo Frame (online sources) | ✅ | Met and Cleveland Museum images come from CDNs without CORS: proxied |
-| Flight Radar | 🟡 | adsb.lol / airplanes.live / OpenSky have no CORS: every poll is a proxy call, so the browser polls every 15 s instead of 8 s |
+| Flight Radar | 🟡 | adsb.lol / adsb.fi / OpenSky have no CORS: every poll is a proxy call, so the browser polls every 15 s instead of 8 s |
 | Calendar | 🟡 | Google, Outlook / Microsoft 365 and iCloud published `.ics` links go through the proxy (the secret URL passes through the site's function, never logged); other hosts must allow CORS |
 | CI Radiator | ✅ | api.github.com allows CORS (a token is kept in this browser's storage) |
 | Home Assistant | 🟡 | needs an **https** URL (Nabu Casa or your reverse proxy) with `https://idotmatrix.com` in HA's `http: cors_allowed_origins`; `http://homeassistant.local` is blocked (mixed content) and the error says so |

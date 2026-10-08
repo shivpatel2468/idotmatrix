@@ -31,6 +31,24 @@ Location-aware providers use `Hub.location()` (settings lat/lon → geocoded cit
 | Gaming | Chess Puzzle `chess` | chess.com public API | daily + random puzzle |
 | Gaming | Game Deals `gamedeals` | GamerPower, CheapShark | free-game alerts |
 
+| Space | Aurora Watch `aurora` | NOAA SWPC Kp, Kp forecast, OVATION nowcast *(not on the list; NOAA public data)* | OVATION is ~0.9 MB: polled every 15 min, reduced to a 32×16 grid in a thread |
+| Space | Asteroid Flyby `asteroidflyby` | NASA/JPL SBDB close-approach API *(keyless, unlike NeoWs)* | no CORS: proxied on the web |
+| Planet | Earth Events `earthevents` | NASA EONET v3 | slow (2–7 s): every 30 min |
+| Weather | Rain Chance `rainchance`, Wind Compass `windcompass` | Open-Meteo hourly | shared provider `hourly` |
+| Money | Bitcoin Network `btcnet` | mempool.space | 4 small calls a minute |
+| Money | Crypto Market `cryptomarket` | CoinGecko public API, alternative.me Fear & Greed | CoinGecko ≈ 5–15 calls/min per IP: 2 calls / 5 min |
+| Sports | Race Countdown `racecountdown` | Jolpica (the Ergast successor; Ergast itself shut down end of 2024) | |
+| Calendar | Long Weekend `longweekend` | Nager.Date LongWeekend | 204 for uncovered countries (India) → "NOT COVERED" |
+| Transport | Bike Share `bikeshare` | CityBikes | network list cached a day; ~0.3 MB per big system |
+| Geography | World Flags `worldflags` | flagcdn.com codes + PNGs | REST Countries now needs a key (v3.1 "deprecated") |
+| Open data | Wiki Trending `wikitrending` (+ Photo Frame "picture of the day") | Wikimedia featured feed | one ~0.3 MB call a day |
+| Games | Game Server `gameserver` | mcsrvstat.us | the API caches 1–5 min |
+| TV | TV Tonight `tvtonight` | TVMaze schedule | |
+
+Second pass (3.6.0, 2026-10-08): the list now has 2,047 entries, **911 keyless + HTTPS**. Picked for glanceability at
+32×32; verified live; health of every adopted endpoint in [API_HEALTH.md](API_HEALTH.md). Dead or changed when probed:
+dictionaryapi.dev (522), Foodish (suspended), Shibe.Online (TLS error), Random Lexicon (404), REST Countries (key).
+
 Already in use before this survey: Open-Meteo (weather), Binance (crypto), Yahoo Finance (stocks), ESPN (sports),
 adsb.lol / airplanes.live / OpenSky / adsbdb (flights), LRCLIB + iTunes Search (music), GitHub (contribution graph).
 
@@ -48,6 +66,5 @@ adsb.lol / airplanes.live / OpenSky / adsbdb (flights), LRCLIB + iTunes Search (
 
 ## Good candidates for later
 
-City Bikes (nearest bike-share dock), Radio Browser (panel as a station display if the engine ever plays audio),
-Minecraft Server Status, TETR.IO / Chess.com player stats, Mempool.space (BTC fees), TVMaze schedule
-("tonight on TV"), REST Countries (flag of the day), Open Food Facts (barcode → nutrition card).
+Radio Browser (panel as a station display if the engine ever plays audio),
+TETR.IO / Chess.com player stats, Open Food Facts (barcode → nutrition card).

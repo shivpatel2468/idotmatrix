@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 DAILY = "https://api.chess.com/pub/puzzle"
 RANDOM = "https://api.chess.com/pub/puzzle/random"
@@ -303,6 +303,10 @@ class ChessProvider(Provider[dict[str, Puzzle]]):
     """``value = {"daily": Puzzle, "random": Puzzle}`` (whichever were asked for)."""
 
     name = "chess"
+    endpoints = (
+        Endpoint("chess.com daily puzzle", DAILY, check=lambda d: parse_puzzle(d).moves),
+        Endpoint("chess.com random puzzle", RANDOM, check=lambda d: parse_puzzle(d, "random").moves),
+    )
     interval = 3600.0
     retry = 30.0
 

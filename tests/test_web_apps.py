@@ -70,6 +70,21 @@ CORS_OK = {
     "corquaid.github.io",
     "api.wheretheiss.at",
     "opentdb.com",
+    "hn.algolia.com",  # verified 2026-10-08 (echoes the origin)
+    "data-api.binance.vision",
+    "services.swpc.noaa.gov",
+    "mempool.space",
+    "api.coingecko.com",
+    "api.alternative.me",
+    "api.jolpi.ca",
+    "api.citybik.es",
+    "eonet.gsfc.nasa.gov",
+    "flagcdn.com",
+    "api.mcsrvstat.us",
+    "api.tvmaze.com",
+    "upload.wikimedia.org",
+    "thumb.wikimedia.org",  # picture of the day (Photo Frame), verified 2026-10-08
+    "latest.currency-api.pages.dev",  # the currency-api mirror (sample URL in CurrencyProvider.endpoints)
 }
 # hosts that only appear at run time (image URLs inside API answers), with the provider that fetches them
 DYNAMIC = {

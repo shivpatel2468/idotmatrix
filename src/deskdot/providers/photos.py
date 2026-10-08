@@ -27,13 +27,15 @@ import re
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import numpy as np
 from PIL import Image, ImageFilter, ImageOps
 
 from ..gfx.color import calibrate
-from .base import Provider
+from .base import Endpoint, Provider
+from .daily import WIKI_HEADERS
 
 SOURCES: dict[str, str] = {
     "met": "The Met",
@@ -43,11 +45,18 @@ SOURCES: dict[str, str] = {
     "cats": "Cats",
     "foxes": "Foxes",
     "ducks": "Ducks",
+    "potd": "Wikimedia picture of the day",
 }
 ART = ("met", "cleveland")
 MET = "https://collectionapi.metmuseum.org/public/collection/v1"
+# v1/search was retired on 2026-10-01 (HTTP 410); v1.1/search is paginated ({"total", "objectIDs"}, offset + limit)
+MET_SEARCH = "https://collectionapi.metmuseum.org/public/collection/v1.1/search"
+MET_PAGE = 100
 CLEVELAND = "https://openaccess-api.clevelandart.org/api/artworks/"
 PICSUM = "https://picsum.photos"
+# Wikimedia Commons picture of the day (the featured feed's 960 px thumbnail; free licences, credit = artist)
+POTD_FEED = "https://api.wikimedia.org/feed/v1/wikipedia/en/featured/{y:04d}/{m:02d}/{d:02d}"
+POTD_DAYS = 7  # rotate through the last week's pictures
 QUEUE = 8  # photos kept (ring buffer)
 PREFETCH = 3  # unseen photos the provider tries to keep ready
 KB_FRAMES = 24  # Ken-Burns loop length (frames)
@@ -243,6 +252,28 @@ class PhotosProvider(Provider[list[Photo]]):
     """
 
     name = "photos"
+    endpoints = (
+        Endpoint(
+            "The Met search",
+            MET_SEARCH + "?hasImages=true&isHighlight=true&q=sunflowers&limit=5",
+            expect=("objectIDs.0", "total"),
+        ),
+        Endpoint("The Met object", MET + "/objects/436535", check=parse_met_object),
+        Endpoint(
+            "Cleveland Museum", CLEVELAND + "?has_image=1&cc0=1&type=Painting&limit=2", check=parse_cleveland
+        ),
+        Endpoint("Lorem Picsum", PICSUM + "/v2/list?page=1&limit=3", expect=("0.id", "0.width")),
+        Endpoint("dog.ceo", "https://dog.ceo/api/breeds/image/random", expect=("message",)),
+        Endpoint("cataas", "https://cataas.com/cat?json=true", expect=("id",)),
+        Endpoint("RandomFox", "https://randomfox.ca/floof/", expect=("image",)),
+        Endpoint("RandomDuck", "https://random-d.uk/api/v2/random", expect=("url",)),
+        Endpoint(
+            "Wikimedia picture of the day",
+            POTD_FEED.format(y=2026, m=1, d=15),
+            expect=("image.thumbnail.source",),
+            headers=tuple(WIKI_HEADERS.items()),
+        ),
+    )
     interval = 30.0
     retry = 20.0
 
@@ -257,6 +288,10 @@ class PhotosProvider(Provider[list[Photo]]):
         self._seen: set[int] = set()
         self._rr = 0
         self._met_ids: dict[str, tuple[float, list[int]]] = {}
+        self._met_total: dict[str, int] = {}
+        self._potd: dict[
+            str, dict[str, Any]
+        ] = {}  # ISO day -> picture of the day  # v1.1 search: total hits per query (random page next time)
         self._cle_total: int | None = None
         self._picsum: list[dict[str, Any]] = []
         self._fails: dict[str, int] = {}
@@ -319,7 +354,12 @@ class PhotosProvider(Provider[list[Photo]]):
             q = self.query
             cached = self._met_ids.get(q)
             if not cached or time.time() - cached[0] > 6 * 3600:
-                d = await self._json(f"{MET}/search", hasImages="true", isHighlight="true", q=q)
+                total = self._met_total.get(q, 0)
+                offset = rng.randrange(total - MET_PAGE + 1) if total > MET_PAGE else 0
+                d = await self._json(
+                    MET_SEARCH, hasImages="true", isHighlight="true", q=q, limit=MET_PAGE, offset=offset
+                )
+                self._met_total[q] = int(d.get("total") or 0)
                 ids = list(d.get("objectIDs") or [])
                 if not ids:
                     raise ValueError(f"met: nothing for {q!r}")
@@ -357,6 +397,20 @@ class PhotosProvider(Provider[list[Photo]]):
         if source == "foxes":
             d = await self._json("https://randomfox.ca/floof/")
             return str(d["image"]), "FOX", "", f"fox:{d['image']}"
+        if source == "potd":
+            from .wiki import parse_picture
+
+            day = (datetime.now(UTC) - timedelta(days=rng.randrange(POTD_DAYS))).date()
+            pic = self._potd.get(day.isoformat())
+            if pic is None:
+                r = await self.hub.http.get(
+                    POTD_FEED.format(y=day.year, m=day.month, d=day.day), headers=WIKI_HEADERS, timeout=20.0
+                )
+                r.raise_for_status()
+                pic = self._potd[day.isoformat()] = parse_picture(r.json()) or {}
+            if not pic:
+                raise ValueError("potd: no picture that day")
+            return pic["url"], pic["title"], pic["artist"], f"potd:{day.isoformat()}"
         if source == "ducks":
             d = await self._json("https://random-d.uk/api/v2/random")
             url = str(d["url"]).replace("http://", "https://", 1)

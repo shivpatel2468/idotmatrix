@@ -3,6 +3,39 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.6.0 — 2026-10-09 · API health check, 14 new public-API apps
+
+- API health: every provider declares the external URLs it calls (`Provider.endpoints`, `providers/base.py`
+  `Endpoint` with a concrete sample, `expect` paths and a `check` that runs the provider's own parser).
+  `scripts/api_health.py` probes them all (status, latency, shape, CORS / proxy reachability for the web app), prints
+  a table, writes `docs/API_HEALTH.md` and exits 1 when a primary endpoint fails. `tests/test_api_health.py` keeps
+  the registry complete (every provider module with a URL declares endpoints) and tests the checker offline.
+- Fixed (found by the health check; tests on recorded payloads in `tests/fixtures/health/`):
+  - Photo Frame / The Met: `public/collection/v1/search` was retired on 2026-10-01 (410) → `v1.1/search`
+    (paginated; a random page once the total is known).
+  - Stocks: the Stooq fallback is dead (quote CSV 404, downloads behind a JS challenge) → replaced by
+    `api.nasdaq.com/api/quote/{SYM}/chart` (`parse_nasdaq`; US stocks/ETFs + `^IXIC`/`^NDX`).
+  - Flight Radar: airplanes.live answers 403 to anonymous clients → replaced by `opendata.adsb.fi` (`parse_readsb`
+    reads `aircraft` as well as `ac`).
+  - Headlines: Hacker News falls back to `hn.algolia.com` when Firebase fails (ISP DNS blocks of `*.firebaseio.com`).
+  - Crypto Ticker (`markets`): on 451/403 from `api.binance.com` (US geo-block) the provider switches to
+    `data-api.binance.vision` for the session.
+  - CORS proxy allowlist: + `api.nasdaq.com`, `opendata.adsb.fi`, `ssd-api.jpl.nasa.gov`; − `stooq.com`,
+    `api.airplanes.live`.
+- New apps (keyless APIs from the public-apis list plus NOAA / NASA / Jolpica, all verified live; providers in
+  `src/deskdot/providers/`, shared app helpers in `apps/_feed.py`, tests on recorded payloads in
+  `tests/test_publicapis.py` + `tests/fixtures/publicapis/`): `aurora` (Aurora Watch — NOAA SWPC Kp, Kp forecast,
+  OVATION nowcast; provider `spaceweather`), `btcnet` (Bitcoin Network — mempool.space; `bitcoin`), `cryptomarket`
+  (Crypto Market — CoinGecko global/markets + alternative.me Fear & Greed), `racecountdown` (Race Countdown — Jolpica,
+  the Ergast successor; `racing`), `longweekend` (Long Weekend — Nager.Date LongWeekend), `bikeshare` (Bike Share —
+  CityBikes), `earthevents` (Earth Events — NASA EONET), `worldflags` (World Flags — flagcdn.com; `flags`),
+  `rainchance` (Rain Chance) and `windcompass` (Wind Compass) — both Open-Meteo hourly (`hourly`), `wikitrending`
+  (Wiki Trending — Wikimedia featured feed; `wiki`), `asteroidflyby` (Asteroid Flyby — JPL SBDB close-approach API,
+  proxied on the web; `asteroids`), `gameserver` (Game Server — mcsrvstat.us), `tvtonight` (TV Tonight — TVMaze;
+  `tvguide`).
+- Photo Frame: new source "Picture of the day (Wikimedia)" (`potd`: the last week's featured pictures).
+- Not adopted, noted in docs/API_HEALTH.md: REST Countries now needs a key; dictionaryapi.dev answered 522.
+
 ## 3.3.0 – 3.5.0 — 2026-10-02 to 2026-10-07
 
 (3.3.0 = up to 2 Oct, 3.4.0 = 4 Oct, 3.5.0 = 5–8 Oct; newest first.)

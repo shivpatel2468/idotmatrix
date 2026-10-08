@@ -1,0 +1,347 @@
+{
+ "title": "EONET Events",
+ "description": "Natural events from EONET.",
+ "link": "https://eonet.gsfc.nasa.gov/api/v3/events",
+ "events": [
+  {
+   "id": "EONET_25094",
+   "title": "Tropical Storm Simon",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25094",
+   "closed": null,
+   "categories": [
+    {
+     "id": "severeStorms",
+     "title": "Severe Storms"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 35.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-07T18:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      -101.3,
+      15.2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25063",
+   "title": "Hurricane Isaias",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25063",
+   "closed": null,
+   "categories": [
+    {
+     "id": "severeStorms",
+     "title": "Severe Storms"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 60.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-08T03:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      -91.9,
+      22.9
+     ]
+    },
+    {
+     "magnitudeValue": 70.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-08T09:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      -91.2,
+      23.3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25046",
+   "title": "Tropical Storm Koguma",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25046",
+   "closed": null,
+   "categories": [
+    {
+     "id": "severeStorms",
+     "title": "Severe Storms"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 55.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-08T00:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      161.2,
+      16.9
+     ]
+    },
+    {
+     "magnitudeValue": 60.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-08T06:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      160.1,
+      17.5
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25043",
+   "title": "Prescribed Fire D3 Bear RX, Greenlee, Arizona",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25043",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 5072.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-10-02T17:58:00Z",
+     "type": "Point",
+     "coordinates": [
+      -109.401883,
+      33.447133
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25042",
+   "title": "Wildfire Bull, Washoe, Nevada",
+   "description": "15 Miles W from Reno, NV",
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25042",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 1529.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-10-02T14:26:00Z",
+     "type": "Point",
+     "coordinates": [
+      -119.987683,
+      39.539067
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25045",
+   "title": "Prescribed Fire Starvation 11A Rx, Wallowa, Oregon",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25045",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 719.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-09-30T15:52:00Z",
+     "type": "Point",
+     "coordinates": [
+      -117.251676,
+      45.701354
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_24962",
+   "title": "Super Typhoon Choi-wan",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_24962",
+   "closed": null,
+   "categories": [
+    {
+     "id": "severeStorms",
+     "title": "Severe Storms"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 80.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-06T12:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      147.6,
+      33.7
+     ]
+    },
+    {
+     "magnitudeValue": 75.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-10-06T18:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      149.5,
+      36.3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_24964",
+   "title": "Wildfire SAN FRANCISCO 2, Starr, Texas",
+   "description": "2 Miles S from LA CASITA, TX",
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_24964",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 510.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-09-30T08:56:00Z",
+     "type": "Point",
+     "coordinates": [
+      -98.692222,
+      26.286667
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_24963",
+   "title": "Wildfire Hatch Grade, Walla Walla, Washington",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_24963",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 5000.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-09-29T19:50:00Z",
+     "type": "Point",
+     "coordinates": [
+      -118.8588,
+      46.0322
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_24965",
+   "title": "Wildfire 3 ALPHA SIERRA, Broward, Florida",
+   "description": "5 Miles W from WESTON, FL",
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_24965",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 774.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-09-28T21:53:00Z",
+     "type": "Point",
+     "coordinates": [
+      -80.5952778,
+      26.1341667
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_24909",
+   "title": "Tropical Storm Hanna",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_24909",
+   "closed": null,
+   "categories": [
+    {
+     "id": "severeStorms",
+     "title": "Severe Storms"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 35.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-09-30T09:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      -43.9,
+      33.5
+     ]
+    },
+    {
+     "magnitudeValue": 30.0,
+     "magnitudeUnit": "kts",
+     "date": "2026-09-30T15:00:00Z",
+     "type": "Point",
+     "coordinates": [
+      -43.6,
+      33.4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "EONET_25041",
+   "title": "Prescribed Fire Walker Hill Piles RX, Coconino, Arizona",
+   "description": null,
+   "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_25041",
+   "closed": null,
+   "categories": [
+    {
+     "id": "wildfires",
+     "title": "Wildfires"
+    }
+   ],
+   "geometry": [
+    {
+     "magnitudeValue": 725.0,
+     "magnitudeUnit": "acres",
+     "date": "2026-09-28T09:55:00Z",
+     "type": "Point",
+     "coordinates": [
+      -111.847278,
+      35.281778
+     ]
+    }
+   ]
+  }
+ ]
+}

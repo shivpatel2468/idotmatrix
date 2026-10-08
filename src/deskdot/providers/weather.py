@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 # WMO weather code -> (condition id, label)
 WMO: dict[int, tuple[str, str]] = {
@@ -42,6 +42,29 @@ WMO: dict[int, tuple[str, str]] = {
 
 class WeatherProvider(Provider[dict[str, Any]]):
     name = "weather"
+    endpoints = (
+        Endpoint(
+            "Open-Meteo forecast",
+            "https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278"
+            "&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m"
+            "&hourly=temperature_2m&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=2"
+            "&timezone=auto",
+            expect=("current.temperature_2m", "current.weather_code", "hourly.time.0", "daily.sunrise.0"),
+        ),
+        Endpoint(
+            "Open-Meteo geocoding",
+            "https://geocoding-api.open-meteo.com/v1/search?name=London&count=1",
+            expect=("results.0.latitude", "results.0.country_code"),
+            note="Settings city -> coordinates (all location-aware apps)",
+        ),
+        Endpoint(
+            "ip-api.com",
+            "http://ip-api.com/json/?fields=status,city,lat,lon,countryCode",
+            expect=("lat", "lon"),
+            role="fallback",
+            note="location when no city is set; http only (proxied on the web)",
+        ),
+    )
     interval = 600.0
     retry = 60.0
 

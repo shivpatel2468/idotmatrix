@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
 
@@ -75,6 +75,18 @@ def parse_air(payload: dict[str, Any], city: str = "") -> dict[str, Any]:
 
 class AirQualityProvider(Provider[dict[str, Any]]):
     name = "airquality"
+    endpoints = (
+        Endpoint(
+            "Open-Meteo air quality",
+            URL
+            + "?latitude=51.5074&longitude=-0.1278&current="
+            + ",".join([*CURRENT, *POLLEN])
+            + "&hourly="
+            + ",".join(HOURLY)
+            + "&forecast_days=2&timezone=auto",
+            check=parse_air,
+        ),
+    )
     interval = 900.0  # the model is hourly
     retry = 60.0
 

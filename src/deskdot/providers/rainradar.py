@@ -24,7 +24,7 @@ from typing import Any
 
 import numpy as np
 
-from .base import Provider
+from .base import Endpoint, Provider
 
 MAPS = "https://api.rainviewer.com/public/weather-maps.json"
 TILE = "{host}{path}/256/{z}/{lat:.4f}/{lon:.4f}/2/0_1.png"
@@ -210,6 +210,14 @@ def parse_maps(payload: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
 # ---------------------------------------------------------------------------- provider
 class RainRadarProvider(Provider[dict[str, Any]]):
     name = "rainradar"
+    endpoints = (
+        Endpoint("RainViewer maps", MAPS, check=lambda d: parse_maps(d)[1]),
+        Endpoint(
+            "Open-Meteo elevation",
+            ELEVATION + "?latitude=51.5,51.6&longitude=-0.1,-0.2",
+            expect=("elevation.1",),
+        ),
+    )
     interval = 300.0  # new radar frames every 10 minutes
     retry = 60.0
 

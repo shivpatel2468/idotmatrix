@@ -12,12 +12,13 @@ const ALLOW = new Set([
   "api.open-notify.org", // astronauts (http only)
   "query1.finance.yahoo.com",
   "query2.finance.yahoo.com",
-  "stooq.com",
+  "api.nasdaq.com", // stocks fallback (Stooq's quote CSV is gone)
   "zenquotes.io",
   "lobste.rs",
   "hacker-news.firebaseio.com",
   "api.adsb.lol",
-  "api.airplanes.live",
+  "opendata.adsb.fi", // flights fallback (replaced airplanes.live, which now answers 403)
+  "ssd-api.jpl.nasa.gov", // Asteroid Flyby (JPL close-approach data has no CORS)
   "opensky-network.org",
   "random-d.uk",
   "openaccess-api.clevelandart.org",
