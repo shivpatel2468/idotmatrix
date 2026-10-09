@@ -57,9 +57,9 @@
    inline values applyTheme sets (!important): every table theme gets the same ivory room, faintly tinted by its
    felt, and its accent deepened to bronze for text (AA on every light surface for all 21 themes). */
 :root[data-theme=light]{
-  --bg:color-mix(in srgb,#f4f0e8 95%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 96%,var(--felt))!important;
-  --s2:color-mix(in srgb,#ffffff 97%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 95%,var(--felt))!important;
-  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 36%,#1a1206)!important;
+  --bg:color-mix(in srgb,#f4f0e8 90%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 94%,var(--felt))!important;
+  --s2:color-mix(in srgb,#ffffff 96%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 93%,var(--felt))!important;
+  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 33%,#1a1206)!important;
   --well:color-mix(in srgb,var(--s3) 60%,#fff);--veil:color-mix(in srgb,var(--s1) 95%,transparent);--toastbg:color-mix(in srgb,var(--s2) 97%,transparent);
   --accent-soft:rgba(var(--gold-rgb),.16);--glow:rgba(var(--gold-rgb),.3);
   --line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);--ink:#1c1a22;--dim:#4a4652;--mute:#625d6a;--ok:#18794e;--bad:#c8203e;
@@ -67,9 +67,9 @@
   --sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
   color-scheme:light}
 @media (prefers-color-scheme:light){:root:not([data-theme=dark]){
-  --bg:color-mix(in srgb,#f4f0e8 95%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 96%,var(--felt))!important;
-  --s2:color-mix(in srgb,#ffffff 97%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 95%,var(--felt))!important;
-  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 36%,#1a1206)!important;
+  --bg:color-mix(in srgb,#f4f0e8 90%,var(--felt))!important;--s1:color-mix(in srgb,#fbf9f5 94%,var(--felt))!important;
+  --s2:color-mix(in srgb,#ffffff 96%,var(--felt))!important;--s3:color-mix(in srgb,#f0ebe2 93%,var(--felt))!important;
+  --s4:color-mix(in srgb,#e6e0d5 95%,var(--felt))!important;--gold-text:color-mix(in srgb,var(--gold) 33%,#1a1206)!important;
   --ink:#1c1a22;--dim:#4a4652;--mute:#625d6a;--line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);color-scheme:light}}
 [data-theme=light] .app{background:radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--felt) 14%,transparent),transparent 62%),
   radial-gradient(90% 40% at 50% 110%,rgba(var(--gold-rgb),.14),transparent 70%),var(--bg)}
@@ -138,6 +138,55 @@
 /* gold keys: pale accents (ivory, champagne, silver, ice) need an engraved metal edge to stand off the ivory */
 [data-theme=light] :is(.go,.act.hot,.pill.hot,.sl-go,.pv-btn.raise,.htabs button[aria-selected=true],.sl-bet[aria-checked=true],.hs-mini[aria-pressed="true"]){border:1px solid color-mix(in srgb,var(--gold) 55%,#4a4438)}
 [data-theme=light] .livep-bz{box-shadow:0 0 0 2px rgba(var(--gold-rgb),.6),0 0 0 7px var(--lacq),0 0 0 8px color-mix(in srgb,var(--gold) 50%,transparent),0 30px 60px -20px rgba(64,48,24,.6)}
+/* light, the salon's materials (as the studio's casino.css light block): the room washed with the felt and lit by the
+   accent from above, a fine felt-tinted dot grid and linen weave with a warm vignette; raised porcelain keys with a
+   white top highlight and a key floor; gold-leaf keys with a glossy sheen and an accent halo (light's glow); the felt
+   on a champagne plinth standing in a soft halo of its own colour; a recessed rail under the chips */
+[data-theme=light]{
+  /* MATERIALS v2, mirrored by name from web/src/index.css (docs/STUDIO_UI.md § Materials) */
+  --m-key-floor:#ddd5c8;--m-vignette:rgba(92,70,40,.15);
+  --m-linen:repeating-linear-gradient(0deg,rgba(64,48,24,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(64,48,24,.013) 0 1px,transparent 1px 4px);
+  --m-bevel:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(64,48,24,.07);
+  --m-raised-shadow:0 2px 0 var(--m-key-floor),0 1px 2px rgba(64,48,24,.08),0 6px 12px -6px rgba(64,48,24,.26);
+  --m-sheen:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.08) 48%,rgba(255,255,255,0) 52%);
+  /* … re-tinted by the table: the accent as gold leaf and antique metal, the felt as the halo */
+  --leaf:linear-gradient(180deg,var(--gold-hi),var(--gold) 52%,var(--gold2));--metal:color-mix(in srgb,var(--gold) 74%,#4a4438);
+  --halo:color-mix(in srgb,var(--felt) 40%,transparent);
+  --m-texture:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--felt) 15%,transparent) 1px,transparent 0);
+  --key:linear-gradient(180deg,#fff,color-mix(in srgb,var(--s1) 70%,var(--s3)));--keysh:var(--m-bevel),var(--m-raised-shadow)}
+[data-theme=light] .app{background:
+  radial-gradient(120% 50% at 50% -8%,color-mix(in srgb,var(--felt) 22%,transparent),transparent 64%),
+  radial-gradient(70% 30% at 0% 0%,rgba(var(--gold-rgb),.14),transparent 70%),radial-gradient(70% 30% at 100% 0%,rgba(var(--gold-rgb),.14),transparent 70%),
+  radial-gradient(90% 40% at 50% 112%,rgba(var(--gold-rgb),.18),transparent 70%),
+  radial-gradient(140% 100% at 50% 45%,transparent 62%,var(--m-vignette)),
+  var(--m-texture) 0 0/18px 18px,var(--m-linen),var(--bg)}
+[data-theme=light] .hud::after{height:2px;background:linear-gradient(90deg,transparent,var(--metal) 20%,var(--gold-hi) 50%,var(--metal) 80%,transparent);
+  box-shadow:0 1px 0 rgba(255,255,255,.9)}
+[data-theme=light] :is(.ib,.hb){background:var(--key);border-color:color-mix(in srgb,var(--metal) 26%,var(--line2));box-shadow:var(--keysh)}
+[data-theme=light] :is(.ib,.hb):active{transform:translateY(2px);box-shadow:inset 0 1px 2px rgba(64,48,24,.15),0 0 0 var(--m-key-floor)}
+[data-theme=light] .ib .n{background:var(--leaf);box-shadow:0 0 0 2px #fff,0 3px 6px -2px rgba(var(--gold-rgb),.7)}
+[data-theme=light] .meb{box-shadow:0 0 0 2px #fff,0 6px 14px -6px var(--c)}
+[data-theme=light] .phase{background:linear-gradient(90deg,color-mix(in srgb,var(--felt) 8%,transparent),transparent 50%,rgba(var(--gold-rgb),.08)),linear-gradient(180deg,#fff,var(--s1));
+  border-color:color-mix(in srgb,var(--metal) 40%,var(--line));
+  box-shadow:inset 0 2px 0 -.5px rgba(var(--gold-rgb),.55),inset 0 1px 0 #fff,0 1px 2px rgba(64,48,24,.07),0 16px 30px -20px var(--halo)}
+[data-theme=light] .ring .tr{stroke:color-mix(in srgb,var(--metal) 22%,#e4ddd1)}
+[data-theme=light] .ring svg{filter:drop-shadow(0 1px 1px rgba(64,48,24,.2))}
+[data-theme=light] .ph-t b{text-shadow:0 1px 0 #fff}
+[data-theme=light] .hist i:first-child{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--metal)}
+[data-theme=light] :is(.rt .felt,.tray,.pv-felt,.hg-felt){box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.5),inset 0 0 0 5px rgba(0,0,0,.18),inset 0 0 30px rgba(0,0,0,.45),
+  0 0 0 1px color-mix(in srgb,var(--metal) 70%,#000),0 0 0 5px color-mix(in srgb,var(--gold-hi) 42%,#f6f1e6),0 0 0 6px color-mix(in srgb,var(--metal) 50%,transparent),
+  0 22px 40px -20px rgba(40,30,16,.55),0 26px 60px -24px var(--halo)}
+[data-theme=light] .rack{position:relative}
+[data-theme=light] .rack::before{content:"";position:absolute;left:2px;right:2px;bottom:-5px;height:30px;border-radius:16px;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--s3) 80%,var(--felt)),var(--s2));border:1px solid color-mix(in srgb,var(--metal) 30%,var(--line));
+  box-shadow:inset 0 3px 6px rgba(64,48,24,.2),0 1px 0 #fff}
+[data-theme=light] .act{background:var(--key);border-color:color-mix(in srgb,var(--metal) 26%,var(--line2));box-shadow:var(--keysh)}
+[data-theme=light] .act:active{background:var(--s3);transform:translateY(2px);box-shadow:inset 0 1px 2px rgba(64,48,24,.15)}
+[data-theme=light] :is(.go,.act.hot){background:var(--m-sheen),var(--leaf);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 0 rgba(0,0,0,.1),0 4px 0 color-mix(in srgb,var(--gold2) 50%,#000),0 14px 24px -10px rgba(var(--gold-rgb),.65)}
+[data-theme=light] .act.hot:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--gold2) 50%,#000)}
+[data-theme=light] .panel{box-shadow:inset 0 1px 0 #fff,0 0 0 4px color-mix(in srgb,var(--s1) 50%,transparent) inset,var(--sh1)}
+[data-theme=light] .foot{background:linear-gradient(180deg,color-mix(in srgb,var(--s1) 92%,transparent),var(--s1));border-top:1px solid color-mix(in srgb,var(--metal) 35%,var(--line))}
 [hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 html{scrollbar-color:rgba(var(--gold-rgb),.4) transparent;accent-color:var(--gold);caret-color:var(--gold)}

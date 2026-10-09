@@ -56,7 +56,7 @@ function StatusPill() {
     <div className="flex min-w-0 items-center">
       <ConnectionSheet />
       <button onClick={openConnection} title={detail ? `${detail} — click for details` : "Connection details"} aria-label={`Panel: ${label} — connection details`}
-        className="flex min-w-0 items-center gap-2.5 rounded-full border border-line bg-chassis-1 py-1.5 pl-3 pr-3 transition hover:border-line-2">
+        className="status-pill flex min-w-0 items-center gap-2.5 rounded-full border border-line bg-chassis-1 py-1.5 pl-3 pr-3 transition hover:border-line-2">
         <span className="led shrink-0" data-on={tone} />
         <span className="max-w-[40vw] truncate text-[12.5px] font-medium sm:max-w-[180px]">{label}</span>
         {dev?.kind === "sim" && <span className="engrave rounded bg-chassis-3 px-1.5 py-0.5 !text-[8px] !text-info" title="Simulated panel">Sim</span>}

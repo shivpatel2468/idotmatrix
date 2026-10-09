@@ -81,7 +81,7 @@ function Block({ id, title, hint, icon, children, tone }: {
   id: string; title: string; hint?: React.ReactNode; icon?: string; children: React.ReactNode; tone?: "plain";
 }) {
   return (
-    <section id={`set-${id}`} className={clsx("scroll-mt-4 rounded-xl", tone !== "plain" && "border border-line bg-chassis-0/60 p-4 light:bg-chassis-1 light:shadow-[0_1px_2px_rgba(64,48,24,0.05)]")}>
+    <section id={`set-${id}`} className={clsx("scroll-mt-4 rounded-xl", tone !== "plain" && "set-block border border-line bg-chassis-0/60 p-4 light:bg-chassis-1 light:shadow-[0_1px_2px_rgba(64,48,24,0.05)]")}>
       <div className="mb-1 flex items-center gap-2">
         {icon && <IconTile name={icon} tone="ember" size={28} glyph={15} />}
         <h3 className="font-display text-[15px] font-[640] tracking-[-0.01em]">{title}</h3>
@@ -580,7 +580,7 @@ export function SettingsSheet() {
           </label>
           {SECTIONS.map(([id, label, icon, hint]) => (
             <button key={id} onClick={() => go(id)} aria-current={section === id && !results ? "page" : undefined}
-              className={clsx("flex shrink-0 items-start gap-2.5 rounded-lg px-3 py-2.5 text-left transition",
+              className={clsx("set-nav flex shrink-0 items-start gap-2.5 rounded-lg px-3 py-2.5 text-left transition",
                 section === id && !results ? "bg-chassis-3 text-ink-1" : "text-ink-3 hover:bg-chassis-2 hover:text-ink-1")}>
               <IconTile name={icon} tone={section === id && !results ? "ember" : "neutral"} size={28} glyph={15} solid={section === id && !results} />
               <span>

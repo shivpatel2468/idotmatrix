@@ -153,6 +153,89 @@
   --m-led-ring: rgba(64, 48, 24, 0.12);
 }
 
+/* =====================================================================================================================
+ * MATERIALS v2 — atmosphere, depth, light-as-a-material, accent. One set of names, both themes (docs/STUDIO_UI.md
+ * § Materials). Plain-HTML pages mirror these by name (casino.html, controller.html, join, tv.html, launcher, host.css).
+ *
+ *   atmosphere  --m-daylight (top light) · --m-wash-a (accent bloom) · --m-wash-b (metal bloom) · --m-vignette
+ *               --m-texture + --m-texture-size (dot grid) · --m-linen (fine woven texture; light only)
+ *   depth       page → well → card → raised:  --m-well-bg / --m-well-shadow · --m-card-bg / --m-card-shadow /
+ *               --m-card-shadow-hover · --m-raised-shadow · --m-bevel (inner top highlight + bottom shade) · --m-rim
+ *   metal       --m-gold-leaf (gradient, fills / borders) · --m-brass · --m-champagne (flat tint) · --m-sheen (gloss
+ *               overlay for primary buttons) · --m-rule (fading hairline) · --m-rule-gold (gilded hairline)
+ *               --m-emboss (letterpress text-shadow for small caps)
+ *   accent      --m-accent-wash (selected background) · --m-accent-edge (selected border) · --m-accent-halo (coloured
+ *               soft shadow / glow) · --m-focus-ring
+ *
+ * Materials that mix the accent or the chassis are declared on every element that re-tints them (the root, `.cz`,
+ * `.theme-dark`, `[data-accent-scope]`) — a custom property computes where it is declared, so a subtree that changes
+ * --color-ember must also carry `data-accent-scope` to get matching washes and halos.
+ * ===================================================================================================================== */
+:root {
+  --m-daylight: transparent;
+  --m-wash-a: var(--m-page-glow);
+  --m-wash-b: rgba(55, 200, 255, 0.022);
+  --m-vignette: rgba(0, 0, 0, 0.32);
+  --m-texture: radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
+  --m-texture-size: 22px 22px;
+  --m-linen: linear-gradient(transparent, transparent);
+  --m-rim: rgba(255, 255, 255, 0.06);
+  --m-bevel: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+  --m-card-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 14px 28px -20px rgba(0, 0, 0, 0.9);
+  --m-card-shadow-hover: 0 18px 34px -18px rgba(0, 0, 0, 0.95);
+  --m-raised-shadow: 0 2px 0 var(--m-key-floor);
+  --m-well-shadow: var(--m-inset);
+  --m-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%);
+  --m-gold-leaf: linear-gradient(135deg, #fff1b8 0%, #ffcc33 36%, #b8862a 60%, #ffe08a 100%);
+  --m-brass: linear-gradient(180deg, #ffe08a, #c8962e);
+  --m-champagne: #2a2418;
+  --m-rule-gold: linear-gradient(90deg, transparent, rgba(255, 204, 51, 0.32) 25%, rgba(255, 204, 51, 0.32) 75%, transparent);
+  --m-emboss: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
+:root, .cz, .theme-dark, [data-accent-scope] {
+  --m-card-bg: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1));
+  --m-well-bg: var(--color-chassis-0);
+  --m-rule: linear-gradient(90deg, transparent, var(--color-line-2) 18%, var(--color-line-2) 82%, transparent);
+  --m-accent-wash: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 16%, var(--color-chassis-2)), color-mix(in oklab, var(--color-ember) 7%, var(--color-chassis-1)));
+  --m-accent-edge: var(--color-ember-line);
+  --m-accent-halo: 0 0 24px -8px var(--color-ember);
+  --m-focus-ring: 0 0 0 3px color-mix(in oklab, var(--color-ember) 22%, transparent);
+}
+
+/* light: porcelain on a linen wall, daylight from above, warm umber shadows in three layers, gold leaf for metal */
+:root[data-theme="light"] {
+  --m-daylight: rgba(255, 255, 255, 0.95);
+  --m-wash-a: rgba(214, 56, 106, 0.1);
+  --m-wash-b: rgba(184, 137, 42, 0.12);
+  --m-vignette: rgba(92, 70, 40, 0.15);
+  --m-texture: radial-gradient(circle at 1px 1px, rgba(64, 48, 24, 0.075) 1px, transparent 0);
+  --m-texture-size: 22px 22px;
+  --m-linen:
+    repeating-linear-gradient(0deg, rgba(64, 48, 24, 0.018) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(64, 48, 24, 0.013) 0 1px, transparent 1px 4px);
+  --m-rim: #ffffff;
+  --m-bevel: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(64, 48, 24, 0.07);
+  --m-card-shadow: 0 0 0 1px rgba(64, 48, 24, 0.02), 0 1px 1px rgba(64, 48, 24, 0.05), 0 3px 6px -2px rgba(64, 48, 24, 0.07), 0 14px 28px -16px rgba(64, 48, 24, 0.24);
+  --m-card-shadow-hover: 0 1px 2px rgba(64, 48, 24, 0.06), 0 8px 16px -6px rgba(64, 48, 24, 0.12), 0 26px 44px -22px rgba(64, 48, 24, 0.4);
+  --m-raised-shadow: 0 1px 0 var(--m-key-floor), 0 1px 2px rgba(64, 48, 24, 0.08), 0 4px 10px -4px rgba(64, 48, 24, 0.2);
+  --m-well-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.11), inset 0 0 0 1px rgba(64, 48, 24, 0.025), 0 1px 0 rgba(255, 255, 255, 0.9);
+  --m-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 48%, rgba(255, 255, 255, 0) 52%);
+  --m-gold-leaf: linear-gradient(135deg, #f6e7b8 0%, #d9b45a 30%, #a87a22 55%, #e8cf88 78%, #b8892a 100%);
+  --m-brass: linear-gradient(180deg, #ecd9a0, #b8892a);
+  --m-champagne: #f6eedd;
+  --m-rule-gold: linear-gradient(90deg, transparent, rgba(184, 137, 42, 0.5) 22%, rgba(214, 180, 98, 0.85) 50%, rgba(184, 137, 42, 0.5) 78%, transparent);
+  --m-emboss: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+:root[data-theme="light"], :root[data-theme="light"] :is(.cz, [data-accent-scope]) {
+  --m-card-bg: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1) 70%, color-mix(in oklab, var(--color-chassis-1) 88%, var(--color-chassis-3)));
+  --m-well-bg: linear-gradient(180deg, color-mix(in oklab, var(--color-chassis-3) 70%, var(--color-chassis-2)), var(--color-chassis-2) 60%);
+  --m-rule: linear-gradient(90deg, transparent, var(--color-line-2) 18%, var(--color-line-2) 82%, transparent);
+  --m-accent-wash: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 11%, #fff), color-mix(in oklab, var(--color-ember) 4%, #fff));
+  --m-accent-edge: color-mix(in oklab, var(--color-ember) 45%, #e7e1d6);
+  --m-accent-halo: 0 0 0 1px color-mix(in oklab, var(--color-ember) 14%, transparent), 0 10px 24px -12px color-mix(in oklab, var(--color-ember) 55%, transparent);
+  --m-focus-ring: 0 0 0 3px color-mix(in oklab, var(--color-ember) 18%, transparent);
+}
+
 /* A subtree that stays dark in both themes (hardware, 3D scenes). Mirrors the DARK values above. */
 :root[data-theme="light"] :is(.theme-dark, .bezel, .fly-wing, .fly-full, .roam-tip) {
   color-scheme: dark;
@@ -170,6 +253,11 @@
   --m-inset: inset 0 1px 3px rgba(0, 0, 0, 0.6); --m-glass: rgba(14, 14, 18, 0.9); --m-glass-line: rgba(255, 255, 255, 0.06);
   --m-shimmer: rgba(255, 255, 255, 0.045); --m-led-ring: rgba(0, 0, 0, 0.35);
   --m-thumb-top: #f4f2ec; --m-thumb-bottom: #b9b6ad; --m-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  --m-rim: rgba(255, 255, 255, 0.06); --m-bevel: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+  --m-card-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 14px 28px -20px rgba(0, 0, 0, 0.9);
+  --m-card-shadow-hover: 0 18px 34px -18px rgba(0, 0, 0, 0.95); --m-raised-shadow: 0 2px 0 #050507;
+  --m-well-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6); --m-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%);
+  --m-emboss: 0 1px 0 rgba(0, 0, 0, 0.55); --m-champagne: #2a2418;
 }
 
 /* theme changes cross-fade (lib/theme.ts adds this class for ~400 ms; never on first paint) */
@@ -199,13 +287,18 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
       radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
     background-size: auto, 22px 22px;
   }
-  /* light: a gallery wall — warm daylight from the top, a faint rose bloom behind the panel */
+  /* light: a gallery wall — warm daylight from the top, a rose bloom behind the panel, gold light pooling in two
+     corners, a soft umber vignette, a fine dot grid over linen. All static gradients: painted once. */
   :root[data-theme="light"] body {
     background-image:
-      radial-gradient(1400px 620px at 50% -12%, rgba(255, 255, 255, 0.95), transparent 70%),
-      radial-gradient(900px 600px at 50% 46%, var(--m-page-glow), transparent 65%),
-      radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
-    background-size: auto, auto, 22px 22px;
+      radial-gradient(1400px 620px at 50% -12%, var(--m-daylight), transparent 70%),
+      radial-gradient(900px 620px at 50% 46%, var(--m-wash-a), transparent 66%),
+      radial-gradient(820px 560px at -6% 104%, var(--m-wash-b), transparent 70%),
+      radial-gradient(760px 520px at 106% -4%, var(--m-wash-b), transparent 70%),
+      radial-gradient(150% 115% at 50% 38%, transparent 58%, var(--m-vignette)),
+      var(--m-texture),
+      var(--m-linen);
+    background-size: auto, auto, auto, auto, auto, var(--m-texture-size), auto;
   }
   ::selection { background: var(--color-ember); color: var(--color-on-ember); }
   * { scrollbar-width: thin; scrollbar-color: var(--color-chassis-4) transparent; }
@@ -220,8 +313,19 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     box-shadow: inset 0 1px 0 var(--m-hi), var(--m-surface-shadow);
     border-radius: var(--radius-chassis);
   }
-  /* light: lift by shadow, not by border */
-  :root[data-theme="light"] .surface { border-color: color-mix(in oklab, var(--color-line) 70%, transparent); }
+  /* light: porcelain lifted by a three-layer umber shadow, a white rim along the top, a whisper of the accent in the
+     top light and a gilded hairline catching it — the light-mode answer to dark's lit edges */
+  :root[data-theme="light"] .surface {
+    border-color: color-mix(in oklab, var(--color-line) 78%, transparent);
+    background:
+      linear-gradient(90deg, transparent 6%, color-mix(in oklab, var(--color-gold-2) 70%, transparent) 50%, transparent 94%) top / 100% 1px no-repeat,
+      radial-gradient(120% 46% at 50% 0%, color-mix(in oklab, var(--color-ember) 4%, transparent), transparent 72%),
+      var(--m-card-bg);
+    box-shadow:
+      inset 0 1px 0 var(--m-rim), inset 0 -1px 0 rgba(64, 48, 24, 0.035),
+      0 0 0 1px rgba(64, 48, 24, 0.018), 0 1px 2px rgba(64, 48, 24, 0.05), 0 6px 14px -8px rgba(64, 48, 24, 0.12),
+      0 24px 48px -28px rgba(64, 48, 24, 0.3);
+  }
   /* engraved label: the studio's signature typographic voice */
   .engrave {
     font-family: var(--font-mono);
@@ -230,6 +334,8 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     text-transform: uppercase;
     color: var(--color-ink-3);
   }
+  /* light: small caps pressed into the paper (letterpress) */
+  :root[data-theme="light"] .engrave { text-shadow: var(--m-emboss); }
   /* hardware key */
   .key {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
@@ -244,8 +350,9 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   }
   .key:hover { border-color: var(--m-key-hover); }
   .key:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 0 0 var(--m-key-floor); }
-  :root[data-theme="light"] .key { box-shadow: inset 0 1px 0 var(--m-hi-key), 0 1px 0 var(--m-key-floor), 0 3px 6px -3px rgba(64, 48, 24, 0.18); }
-  :root[data-theme="light"] .key:active { box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.12); }
+  :root[data-theme="light"] .key { box-shadow: var(--m-bevel), var(--m-raised-shadow); text-shadow: var(--m-emboss); }
+  :root[data-theme="light"] .key:hover { border-color: color-mix(in oklab, var(--color-ember) 22%, var(--m-key-hover)); box-shadow: var(--m-bevel), 0 1px 0 var(--m-key-floor), 0 2px 3px rgba(64, 48, 24, 0.08), 0 8px 16px -8px rgba(64, 48, 24, 0.28); }
+  :root[data-theme="light"] .key:active { box-shadow: inset 0 1px 3px rgba(64, 48, 24, 0.16), inset 0 0 0 1px rgba(64, 48, 24, 0.03); background: linear-gradient(180deg, var(--m-key-bottom), var(--m-key-top)); }
   .key:disabled { opacity: 0.4; pointer-events: none; }
   .key-ember {
     color: var(--color-on-ember);
@@ -254,9 +361,17 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 color-mix(in oklab, var(--color-ember) 40%, black), 0 0 24px -6px color-mix(in oklab, var(--color-ember) 70%, transparent);
   }
   .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 45%, white); }
-  :root[data-theme="light"] .key-ember {
-    border-color: color-mix(in oklab, var(--color-ember) 85%, black);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 0 color-mix(in oklab, var(--color-ember) 55%, black), 0 10px 20px -10px color-mix(in oklab, var(--color-ember) 80%, transparent);
+  :root[data-theme="light"]:not([data-cz]) .key-ember {
+    /* lacquer: a glossy top half (sheen), deepening toward the base, a coloured halo instead of a glow */
+    background:
+      var(--m-sheen),
+      linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember) 55%, color-mix(in oklab, var(--color-ember) 86%, black));
+    border-color: color-mix(in oklab, var(--color-ember) 80%, black);
+    text-shadow: 0 -1px 0 color-mix(in oklab, var(--color-ember) 60%, black);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.12),
+      0 1px 0 color-mix(in oklab, var(--color-ember) 55%, black), 0 2px 4px -1px color-mix(in oklab, var(--color-ember) 35%, transparent),
+      0 10px 22px -10px color-mix(in oklab, var(--color-ember) 75%, transparent);
   }
   :root[data-theme="light"] .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 70%, black); filter: brightness(1.06); }
   .key-ghost { background: transparent; border-color: transparent; box-shadow: none !important; color: var(--color-ink-2); }
@@ -286,7 +401,10 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     color: var(--color-ink-1); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .field:focus { outline: none; border-color: var(--color-ember); box-shadow: var(--m-inset), 0 0 0 3px color-mix(in oklab, var(--color-ember) 16%, transparent); }
-  :root[data-theme="light"] .field { background: var(--color-chassis-2); }
+  /* light: an inset well — shaded at the top lip, a white catch-light under the bottom edge */
+  :root[data-theme="light"] .field { background: var(--m-well-bg); box-shadow: var(--m-well-shadow); border-color: color-mix(in oklab, var(--color-line-2) 80%, transparent); }
+  :root[data-theme="light"] .field:hover { border-color: var(--color-line-2); }
+  :root[data-theme="light"] .field:focus { background: var(--color-chassis-2); border-color: var(--color-ember); box-shadow: var(--m-well-shadow), var(--m-focus-ring), 0 8px 18px -12px color-mix(in oklab, var(--color-ember) 60%, transparent); }
   .field::placeholder { color: var(--color-ink-4); }
   :root[data-theme="light"] .field::placeholder { color: var(--color-ink-3); opacity: 0.7; }
   textarea.field { height: auto; padding: 0.55rem 0.7rem; resize: vertical; min-height: 4.2rem; }
@@ -306,15 +424,33 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     box-shadow: var(--m-thumb-shadow), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
   }
   .fader::-moz-range-thumb { width: 16px; height: 16px; border-radius: 5px; background: var(--m-thumb-bottom); border: 1px solid var(--m-thumb-top); box-shadow: var(--m-thumb-shadow); }
-  :root[data-theme="light"] .fader::-webkit-slider-thumb { border-color: var(--color-line-2); }
-  :root[data-theme="light"] .fader::-moz-range-thumb { border-color: var(--color-line-2); }
+  /* light: an engraved groove filled with lacquer, a pearl knob with a champagne rim */
+  :root[data-theme="light"] .fader::-webkit-slider-runnable-track {
+    background:
+      linear-gradient(90deg, color-mix(in oklab, var(--color-ember) 72%, white), var(--color-ember) var(--fill, 50%), transparent var(--fill, 50%)),
+      var(--color-chassis-4);
+    box-shadow: inset 0 1px 1px rgba(64, 48, 24, 0.18), 0 1px 0 #fff;
+  }
+  :root[data-theme="light"] .fader::-moz-range-track { box-shadow: inset 0 1px 1px rgba(64, 48, 24, 0.18), 0 1px 0 #fff; }
+  :root[data-theme="light"] .fader::-webkit-slider-thumb {
+    border-radius: 99px; border-color: color-mix(in oklab, var(--color-gold-2) 70%, var(--color-line-2));
+    background: radial-gradient(circle at 50% 30%, #fff 0 35%, #f3ede2 75%, #e6dccb);
+    box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.12), 0 1px 2px rgba(64, 48, 24, 0.25), 0 4px 10px -2px rgba(64, 48, 24, 0.3), 0 0 0 3px color-mix(in oklab, var(--color-ember) 10%, transparent);
+  }
+  :root[data-theme="light"] .fader::-moz-range-thumb { border-radius: 99px; border-color: color-mix(in oklab, var(--color-gold-2) 70%, var(--color-line-2)); background: #f6f1e8; }
 
   /* segmented control */
   .seg { display: flex; padding: 3px; gap: 3px; border-radius: 10px; background: var(--color-chassis-0); border: 1px solid var(--color-line); box-shadow: var(--m-inset); }
   .seg > button { flex: 1; height: 1.75rem; border-radius: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-3); transition: all 0.15s; white-space: nowrap; padding: 0 0.4rem; }
   .seg > button:hover { color: var(--color-ink-1); }
   .seg > button[data-active="true"] { color: var(--color-ink-1); background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom)); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 1px 0 var(--m-key-floor); }
-  :root[data-theme="light"] .seg > button[data-active="true"] { box-shadow: 0 1px 2px rgba(64, 48, 24, 0.14), 0 0 0 1px rgba(64, 48, 24, 0.06); }
+  /* light: a recessed tray; the chosen option is a raised porcelain key inked in the accent, with a lacquer underline */
+  :root[data-theme="light"] .seg { background: var(--m-well-bg); box-shadow: var(--m-well-shadow); border-color: color-mix(in oklab, var(--color-line-2) 70%, transparent); }
+  :root[data-theme="light"]:not([data-cz]) .seg > button[data-active="true"] {
+    color: var(--color-ember);
+    background: linear-gradient(180deg, #fff, var(--m-key-bottom));
+    box-shadow: var(--m-bevel), inset 0 -2px 0 color-mix(in oklab, var(--color-ember) 55%, transparent), 0 1px 2px rgba(64, 48, 24, 0.14), 0 3px 8px -3px rgba(64, 48, 24, 0.18);
+  }
 
   /* toggle */
   .toggle { position: relative; width: 38px; height: 22px; border-radius: 99px; background: var(--color-chassis-0); border: 1px solid var(--color-line-2); transition: background 0.2s; flex-shrink: 0; }
@@ -322,10 +458,13 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   .toggle[aria-checked="true"] { background: var(--color-ember-deep); border-color: var(--color-ember-line); }
   .toggle[aria-checked="true"]::after { transform: translateX(16px); background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember); }
   /* light: an iOS-style pill — white knob, the track fills with rose */
-  :root[data-theme="light"] .toggle { background: var(--color-chassis-4); border-color: transparent; box-shadow: var(--m-inset); }
-  :root[data-theme="light"] .toggle::after { background: #fff; box-shadow: 0 1px 3px rgba(64, 48, 24, 0.3); }
-  :root[data-theme="light"] .toggle[aria-checked="true"] { background: var(--color-ember); }
-  :root[data-theme="light"] .toggle[aria-checked="true"]::after { background: #fff; box-shadow: 0 1px 3px rgba(64, 48, 24, 0.35); }
+  :root[data-theme="light"] .toggle { background: linear-gradient(180deg, color-mix(in oklab, var(--color-chassis-4) 85%, #cfc6b6), var(--color-chassis-4)); border-color: transparent; box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18), 0 1px 0 #fff; }
+  :root[data-theme="light"] .toggle::after { background: radial-gradient(circle at 50% 30%, #fff 0 40%, #f4efe6); box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.1), 0 1px 3px rgba(64, 48, 24, 0.3); }
+  :root[data-theme="light"] .toggle[aria-checked="true"] {
+    background: var(--m-sheen), linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 82%, white), var(--color-ember));
+    box-shadow: inset 0 1px 2px color-mix(in oklab, var(--color-ember) 50%, black), 0 1px 0 #fff, 0 4px 12px -6px color-mix(in oklab, var(--color-ember) 70%, transparent);
+  }
+  :root[data-theme="light"] .toggle[aria-checked="true"]::after { background: radial-gradient(circle at 50% 30%, #fff 0 40%, #f4efe6); box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.1), 0 1px 3px color-mix(in oklab, var(--color-ember) 50%, rgba(64, 48, 24, 0.5)); }
 
 }
 
@@ -1261,3 +1400,184 @@ body { overscroll-behavior: none; }
 
 /* the casino table on the phone Panel tab keeps the side margins the panel scroll area has */
 .phone-panel > main:not(.phone-stage) { padding-inline: 12px; }
+
+/* =====================================================================================================================
+ * MATERIALS v2 in use — ornament, hierarchy and the accent in the studio (docs/STUDIO_UI.md § Materials).
+ * Both themes get the structure (ornaments, hooks); light gets the porcelain / lacquer / gold-leaf treatment.
+ * ===================================================================================================================== */
+
+/* ---- utilities */
+/* a fading hairline (gilded in light) */
+.m-rule { display: block; height: 1px; border: 0; background: var(--m-rule); }
+:root[data-theme="light"] .m-rule { background: var(--m-rule-gold); }
+/* a round empty-state badge: a chassis well in dark, a champagne medallion with a gold rim in light */
+.m-medallion { position: relative; box-shadow: var(--m-inset), 0 0 0 4px color-mix(in oklab, var(--color-chassis-2) 70%, transparent); }
+:root[data-theme="light"] .m-medallion {
+  width: 3.25rem; height: 3.25rem; color: var(--color-gold-text); border-color: color-mix(in oklab, var(--color-gold) 45%, #fff);
+  background: radial-gradient(circle at 50% 28%, #fff 0 30%, var(--m-champagne) 72%, color-mix(in oklab, var(--color-gold-2) 60%, var(--m-champagne)));
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(184, 137, 42, 0.18), 0 0 0 4px rgba(255, 255, 255, 0.7),
+    0 0 0 5px color-mix(in oklab, var(--color-gold) 25%, transparent), 0 12px 24px -12px rgba(64, 48, 24, 0.4);
+}
+
+/* ---- the header: the status pill is a raised porcelain lozenge; the header rule is gilded with a centre jewel */
+:root[data-theme="light"] .status-pill { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-raised-shadow); }
+:root[data-theme="light"] .status-pill:hover { border-color: color-mix(in oklab, var(--color-ember) 25%, var(--color-line-2)); }
+:root[data-theme="light"] .studio-head::after { opacity: 1; background: var(--m-rule-gold); }
+:root[data-theme="light"] .studio-head::before {
+  content: ""; position: absolute; left: 50%; bottom: -2.5px; width: 6px; height: 6px; transform: translateX(-50%) rotate(45deg);
+  background: var(--m-gold-leaf); box-shadow: 0 0 0 2px var(--color-chassis-0); pointer-events: none; z-index: 1;
+}
+
+/* ---- the LED panel on a gallery mount: an ivory passe-partout ring and a champagne fillet around the graphite,
+   a long umber drop and a faint accent-coloured bounce light under it */
+:root[data-theme="light"] .bezel {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 0 1px #0b0b0e, 0 0 0 5px rgba(255, 255, 255, 0.78), 0 0 0 6px color-mix(in oklab, var(--color-gold) 40%, transparent),
+    0 2px 4px rgba(40, 30, 16, 0.12), 0 26px 50px -24px rgba(40, 30, 16, 0.5),
+    0 60px 90px -50px color-mix(in oklab, var(--color-ember) 40%, rgba(40, 30, 16, 0.4));
+}
+
+/* ---- splitters: an engraved double groove in light (visible at rest, like a seam in the paper) */
+:root[data-theme="light"] .splitter::after {
+  width: 3px; left: 3.5px; top: 42%; bottom: 42%;
+  background: linear-gradient(90deg, rgba(64, 48, 24, 0.18) 0 1px, #fff 1px 2px, transparent 2px);
+}
+:root[data-theme="light"] .splitter:hover::after, :root[data-theme="light"] .splitter[data-drag="true"]::after {
+  width: 2px; left: 4px; top: 12%; bottom: 12%; background: var(--color-ember); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ember) 14%, transparent);
+}
+
+/* ---- library: engraved section heads with an ornament, chips, cards that lift, the live card in lacquer */
+.lib-sechead::after { content: ""; flex: 1; height: 1px; margin-left: 4px; background: var(--m-rule); opacity: 0.8; }
+:root[data-theme="light"] .lib-sechead::before {
+  content: ""; width: 5px; height: 5px; flex: none; transform: rotate(45deg); background: var(--m-gold-leaf);
+  box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--color-gold) 18%, transparent);
+}
+:root[data-theme="light"] .lib-sechead::after { background: linear-gradient(90deg, color-mix(in oklab, var(--color-gold) 45%, var(--color-line-2)), transparent); opacity: 1; }
+
+:root[data-theme="light"] .lib-chip:not([aria-selected="true"]) { background: var(--color-chassis-2); box-shadow: var(--m-bevel), 0 1px 2px rgba(64, 48, 24, 0.06); }
+:root[data-theme="light"] .lib-chip:not([aria-selected="true"]):hover { border-color: color-mix(in oklab, var(--color-ember) 28%, var(--color-line-2)); }
+.lib-chip[aria-selected="true"] { box-shadow: var(--m-accent-halo); }
+:root[data-theme="light"] .lib-chip[aria-selected="true"] {
+  font-weight: 600; background: var(--m-accent-wash); border-color: var(--m-accent-edge);
+  box-shadow: inset 0 1px 0 #fff, var(--m-accent-halo);
+}
+
+:root[data-theme="light"] .lib-card {
+  background: var(--m-card-bg); border-color: color-mix(in oklab, var(--color-line) 85%, transparent);
+  box-shadow: var(--m-bevel), var(--m-card-shadow);
+}
+:root[data-theme="light"] .lib-card:hover { border-color: color-mix(in oklab, var(--color-ember) 22%, var(--color-line-2)); box-shadow: var(--m-bevel), var(--m-card-shadow-hover); }
+:root[data-theme="light"] .lib-card[data-sel] { background: var(--m-accent-wash); border-color: var(--m-accent-edge); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .lib-card[data-live] {
+  background:
+    linear-gradient(90deg, transparent 10%, color-mix(in oklab, var(--color-gold-2) 90%, transparent) 50%, transparent 90%) top / 100% 1px no-repeat,
+    var(--m-accent-wash);
+  border-color: color-mix(in oklab, var(--color-ember) 55%, #e7e1d6);
+  box-shadow: inset 0 1px 0 #fff, 0 0 0 1px color-mix(in oklab, var(--color-ember) 22%, transparent), 0 14px 30px -14px color-mix(in oklab, var(--color-ember) 60%, transparent);
+}
+:root[data-theme="light"] .lib-row[data-sel] { background: var(--m-accent-wash); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 18%, transparent); }
+:root[data-theme="light"] .lib-row[data-live] { background: linear-gradient(90deg, color-mix(in oklab, var(--color-ember) 9%, #fff), transparent 80%); }
+:root[data-theme="light"] .lib-row:not([data-sel]):not([data-live]):hover { background: var(--color-chassis-2); box-shadow: var(--m-bevel), 0 1px 2px rgba(64, 48, 24, 0.06); }
+
+/* ---- the settings panel's head picks up the app's own tint (data-tone) as a soft wash, sealed with a gilded rule */
+.insp-head { position: relative; background: radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--tint) 9%, transparent), transparent 70%); }
+:root[data-theme="light"] .insp-head {
+  border-bottom-color: transparent;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-gold) 45%, var(--color-line-2)) 15%, color-mix(in oklab, var(--color-gold) 45%, var(--color-line-2)) 85%, transparent) bottom / 100% 1px no-repeat,
+    radial-gradient(90% 130% at 0% 0%, color-mix(in oklab, var(--tint) 11%, transparent), transparent 70%);
+}
+
+/* ---- dialogs: a header sealed with a gilded rule; the settings sections are porcelain cards with a tinted crown */
+:root[data-theme="light"] .modal-head {
+  border-bottom-color: transparent;
+  background: var(--m-rule-gold) bottom / 100% 1px no-repeat, linear-gradient(180deg, #fff, transparent);
+}
+:root[data-theme="light"] .set-block {
+  background:
+    radial-gradient(70% 90px at 0% 0%, color-mix(in oklab, var(--color-ember) 5%, transparent), transparent 100%),
+    var(--m-card-bg);
+  box-shadow: var(--m-bevel), var(--m-card-shadow);
+}
+.set-nav[aria-current="page"] { position: relative; }
+.set-nav[aria-current="page"]::before {
+  content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--color-ember);
+  box-shadow: 0 0 10px var(--color-ember);
+}
+:root[data-theme="light"] .set-nav[aria-current="page"] { background: var(--m-accent-wash); box-shadow: var(--m-bevel), inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 16%, transparent), 0 6px 16px -10px color-mix(in oklab, var(--color-ember) 45%, transparent); }
+:root[data-theme="light"] .set-nav[aria-current="page"]::before { box-shadow: none; }
+:root[data-theme="light"] .set-nav:not([aria-current="page"]):hover { background: var(--color-chassis-2); box-shadow: var(--m-bevel), 0 1px 2px rgba(64, 48, 24, 0.06); }
+
+/* ---- popovers, menus, pickers: the pop material plus a white rim; the picked row in the accent wash */
+:root[data-theme="light"] .picker-pop, :root[data-theme="light"] .theme-fab-menu { box-shadow: inset 0 1px 0 #fff, var(--m-pop-shadow); }
+:root[data-theme="light"] .picker-item[data-active="true"], :root[data-theme="light"] .picker-row[aria-selected="true"],
+:root[data-theme="light"] .theme-fab-menu > button[aria-checked="true"] { background: var(--m-accent-wash); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 14%, transparent); }
+
+/* ---- playback dock: preset keys are porcelain; the playing one in the accent wash with a halo */
+:root[data-theme="light"] .dock-preset { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-raised-shadow); }
+:root[data-theme="light"] .dock-preset:hover { border-color: color-mix(in oklab, var(--color-ember) 22%, var(--color-line-2)); box-shadow: var(--m-bevel), 0 1px 0 var(--m-key-floor), 0 10px 20px -10px rgba(64, 48, 24, 0.32); }
+:root[data-theme="light"] .dock-preset[aria-pressed="true"] { background: var(--m-accent-wash); border-color: var(--m-accent-edge); box-shadow: inset 0 1px 0 #fff, var(--m-accent-halo); }
+
+/* ---- small things: key caps, icon tiles, the theme tiles, app icons */
+:root[data-theme="light"] .kbd { background: linear-gradient(180deg, #fff, var(--m-key-bottom)); box-shadow: var(--m-bevel), 0 1px 0 var(--m-key-floor); text-shadow: var(--m-emboss); }
+:root[data-theme="light"] .icon-tile {
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 color-mix(in oklab, var(--tint) 14%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--tint) 24%, transparent),
+    0 1px 2px rgba(64, 48, 24, 0.08), 0 4px 8px -4px color-mix(in oklab, var(--tint) 30%, transparent);
+}
+:root[data-theme="light"] .icon-tile[data-solid] {
+  background: var(--m-sheen), linear-gradient(160deg, color-mix(in oklab, var(--tint) 72%, white), var(--tint) 55%, color-mix(in oklab, var(--tint) 82%, black));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 6px 14px -6px color-mix(in oklab, var(--tint) 75%, transparent);
+}
+:root[data-theme="light"] .theme-tile { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .theme-tile[aria-pressed="true"] { background: var(--m-accent-wash); border-color: var(--color-ember); box-shadow: inset 0 1px 0 #fff, var(--m-focus-ring), 0 14px 26px -14px color-mix(in oklab, var(--color-ember) 55%, transparent); }
+:root[data-theme="light"] .appicon { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .appicon[aria-checked="true"] { background: var(--m-accent-wash); box-shadow: inset 0 1px 0 #fff, var(--m-focus-ring); }
+
+/* ---- Play mode in light: the showroom gets the linen wall and a vignette; keys are bevelled porcelain, A is lacquer */
+:root[data-theme="light"] .playmode {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(ellipse 80% 70% at 50% 45%, var(--m-wash-a), transparent 75%),
+    radial-gradient(130% 100% at 50% 45%, transparent 55%, rgba(92, 70, 40, 0.16)),
+    var(--m-texture), var(--m-linen),
+    radial-gradient(ellipse at 50% 50%, #f7f3ec 0%, #e9e2d6 85%);
+  background-size: auto, auto, auto, var(--m-texture-size), auto, auto, auto;
+}
+:root[data-theme="light"] .keycap, :root[data-theme="light"] .padkey { box-shadow: var(--m-bevel), 0 3px 0 var(--m-key-floor), 0 6px 12px -6px rgba(64, 48, 24, 0.3); }
+:root[data-theme="light"] :is(.padkey-a, .keycap[data-down], .padkey[data-down], .tapzone[data-down]) {
+  background: var(--m-sheen), linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember) 60%, color-mix(in oklab, var(--color-ember) 86%, black));
+}
+:root[data-theme="light"] .tapzone { background: var(--m-card-bg); box-shadow: var(--m-bevel), 0 4px 0 var(--m-key-floor), 0 8px 14px -8px rgba(64, 48, 24, 0.3); }
+:root[data-theme="light"] .stickzone { background: var(--m-well-bg); box-shadow: var(--m-well-shadow); }
+
+/* ---- phones: porcelain bars sealed with gilded rules, a lacquer-tinted pill for the open tab, bevelled cards, sheets */
+:root[data-theme="light"] .phone-head {
+  border-bottom-color: transparent;
+  background: var(--m-rule-gold) bottom / 100% 1px no-repeat, linear-gradient(180deg, var(--color-chassis-2), var(--m-glass));
+  box-shadow: 0 10px 22px -18px rgba(64, 48, 24, 0.35);
+}
+:root[data-theme="light"] .tabbar { border-top-color: transparent; background: var(--m-rule-gold) top / 100% 1px no-repeat, linear-gradient(180deg, var(--color-chassis-2), var(--m-glass)); }
+:root[data-theme="light"] .tabbar-btn[aria-current="page"] .tabbar-pill {
+  background: var(--m-accent-wash);
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px color-mix(in oklab, var(--color-ember) 28%, transparent), 0 4px 12px -6px color-mix(in oklab, var(--color-ember) 55%, transparent);
+}
+:root[data-theme="light"] .mini-now { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .sheet {
+  background: linear-gradient(90deg, transparent 8%, color-mix(in oklab, var(--color-gold-2) 80%, transparent) 50%, transparent 92%) top / 100% 1px no-repeat, var(--m-card-bg);
+  box-shadow: inset 0 1px 0 #fff, 0 -30px 60px -24px rgba(64, 48, 24, 0.45);
+}
+:root[data-theme="light"] .sheet-handle { background: linear-gradient(180deg, var(--color-chassis-4), color-mix(in oklab, var(--color-chassis-4) 80%, #bfb5a4)); box-shadow: inset 0 1px 1px rgba(64, 48, 24, 0.15), 0 1px 0 #fff; }
+:root[data-theme="light"] .qs-card, :root[data-theme="light"] .qs-tile { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .qs-tile:active { background: var(--m-accent-wash); }
+:root[data-theme="light"] .preset-card { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .preset-card[data-active="true"] { background: var(--m-accent-wash); box-shadow: inset 0 1px 0 #fff, 0 0 0 1px var(--color-ember-line), 0 18px 32px -18px color-mix(in oklab, var(--color-ember) 70%, transparent); }
+:root[data-theme="light"] .preset-art { box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05), 0 1px 0 color-mix(in oklab, var(--color-gold) 40%, transparent); }
+:root[data-theme="light"] .preset-play { background: var(--m-sheen), linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember) 60%, color-mix(in oklab, var(--color-ember) 86%, black)); }
+:root[data-theme="light"] .preset-card[data-active="true"] .preset-play { background: var(--color-chassis-3); }
+:root[data-theme="light"] .insp-actions { border-top-color: transparent; background: var(--m-rule-gold) top / 100% 1px no-repeat, var(--color-chassis-0); }
+:root[data-theme="light"] .lib-head { box-shadow: 0 1px 0 color-mix(in oklab, var(--color-gold) 25%, var(--color-line)); }
+:root[data-theme="light"] .theme-fab-key {
+  background: radial-gradient(circle at 50% 25%, #fff 0 30%, var(--m-champagne) 85%); border-color: color-mix(in oklab, var(--color-gold) 45%, #fff);
+  box-shadow: var(--m-bevel), 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 0 4px color-mix(in oklab, var(--color-gold) 25%, transparent), 0 10px 22px -10px rgba(64, 48, 24, 0.45);
+}

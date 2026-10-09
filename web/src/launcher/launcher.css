@@ -36,7 +36,37 @@
   --rose: #b81f4b; --tangerine: #b2461a; --gold: #b8892a; --ember: #b81f4b;
   --ok: #18794e; --warn: #9a5b00; --bad: #c8203e;
   --panel-bg: #f7f4ee; --card-wash: #fbe8ed99; --tan-line: #b81f4b33; --tan-fill: #b81f4b0d; --tan-sel: #b81f4b44;
+  /* materials v2 (web/src/index.css § MATERIALS v2): linen + dot texture, gilded rules, bevels, warm layered shadows */
+  --m-texture: radial-gradient(circle at 1px 1px, rgba(64, 48, 24, 0.075) 1px, transparent 0);
+  --m-linen: repeating-linear-gradient(0deg, rgba(64, 48, 24, 0.018) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(64, 48, 24, 0.013) 0 1px, transparent 1px 4px);
+  --m-rule-gold: linear-gradient(90deg, transparent, rgba(184, 137, 42, 0.5) 22%, rgba(214, 180, 98, 0.85) 50%, rgba(184, 137, 42, 0.5) 78%, transparent);
+  --m-bevel: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(64, 48, 24, 0.07);
+  --m-card-shadow: 0 0 0 1px rgba(64, 48, 24, 0.02), 0 1px 1px rgba(64, 48, 24, 0.05), 0 3px 6px -2px rgba(64, 48, 24, 0.07), 0 14px 28px -16px rgba(64, 48, 24, 0.24);
+  --m-well-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.11), inset 0 0 0 1px rgba(64, 48, 24, 0.025), 0 1px 0 rgba(255, 255, 255, 0.9);
+  --m-accent-wash: linear-gradient(180deg, #fbeef2, #fdf7f9);
+  --m-emboss: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
+/* light: the bar is a porcelain card on linen; the search row is sealed with a gilded rule; rows and tiles lift */
+:root[data-theme="light"]:not([data-shell="mac"]):not([data-shell="gtk"]) body { background-image: var(--m-texture), var(--m-linen); background-size: 22px 22px, auto; }
+:root[data-theme="light"] .lx-card {
+  background: radial-gradient(130% 70% at 0% 0%, var(--card-wash), transparent 60%), linear-gradient(180deg, #fff, var(--c1) 70%);
+  box-shadow: inset 0 1px 0 #fff, var(--m-card-shadow);
+}
+html[data-shell="browser"][data-theme="light"] .lx-card { box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(64, 48, 24, 0.06), 0 40px 90px -30px rgba(64, 48, 24, 0.45); }
+:root[data-theme="light"] .lx-search { border-bottom-color: transparent; background: var(--m-rule-gold) bottom / 100% 1px no-repeat; }
+:root[data-theme="light"] .lx-seg { background: var(--c3); box-shadow: var(--m-well-shadow); }
+:root[data-theme="light"] .lx-seg button.on { background: linear-gradient(180deg, #fff, #f6f2ec); color: var(--rose); box-shadow: var(--m-bevel), 0 1px 2px rgba(64, 48, 24, 0.14); }
+:root[data-theme="light"] .lx-row.sel { background: var(--m-accent-wash); box-shadow: inset 0 0 0 1px #b81f4b22, 0 6px 14px -10px #b81f4b66; }
+:root[data-theme="light"] .lx-row.sel::before { background: linear-gradient(180deg, #d6386a, #b81f4b); }
+:root[data-theme="light"] .lx-ico { background: linear-gradient(180deg, #fff, var(--c1)); box-shadow: var(--m-bevel), 0 1px 2px rgba(64, 48, 24, 0.08); }
+:root[data-theme="light"] .lx-tile.sel { background: var(--m-accent-wash); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -12px #b81f4b77; }
+:root[data-theme="light"] :is(.lx-group, .lx-grid h3, .lx-preview dt) { color: var(--ink3); text-shadow: var(--m-emboss); }
+:root[data-theme="light"] .lx-led { box-shadow: inset 0 0 0 1px #000, 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 0 5px #b8892a55, 0 18px 34px -16px rgba(40, 30, 16, 0.5); }
+:root[data-theme="light"] .lx-big-ico { background: radial-gradient(circle at 50% 25%, #fff 0 30%, #f6eedd 85%); border-color: #e6cd8a; box-shadow: var(--m-bevel), 0 12px 24px -12px rgba(64, 48, 24, 0.4); }
+:root[data-theme="light"] .lx-preview { background: linear-gradient(180deg, #faf7f1, var(--panel-bg)); }
+:root[data-theme="light"] .lx-foot { border-top-color: transparent; background: var(--m-rule-gold) top / 100% 1px no-repeat, var(--c1); }
+:root[data-theme="light"] :is(.lx-title mark, .lx-toast:not(.bad)) { color: #8a6412; } /* gold as text: the text-safe gold (5.1:1) */
+:root[data-theme="light"] .lx-hint kbd { background: linear-gradient(180deg, #fff, #f6f2ec); box-shadow: var(--m-bevel); }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {

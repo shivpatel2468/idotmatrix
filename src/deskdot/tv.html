@@ -340,6 +340,47 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 :root[data-theme="light"] .tvm-opt.focus { border-color: var(--ink-1); box-shadow: 0 0 0 4px var(--ink-1), 0 22px 40px -18px rgba(64, 48, 24, .55); }
 :root[data-theme="light"] .tvm-hint kbd { background: var(--chassis-1); }
 
+/* light, round 2 — MATERIALS v2 mirrored by name from web/src/index.css (docs/STUDIO_UI.md § Materials). Static
+   gradients and box-shadows only, painted once (docs/TV_VIEW.md §6): daylight from the top, a rose and a gold-leaf
+   bloom in the corners and a warm vignette on the stage; an engraved double rule of gold leaf inside the cards; a
+   gilded rule under the bar; the players' rows cast a soft halo in their own colour. */
+:root[data-theme="light"] {
+  --m-daylight: rgba(255, 255, 255, .95); --m-wash-a: rgba(214, 56, 106, .1); --m-wash-b: rgba(184, 137, 42, .12);
+  --m-vignette: rgba(92, 70, 40, .15); --m-bevel: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(64, 48, 24, .07);
+  --m-rule-gold: linear-gradient(90deg, transparent, rgba(184, 137, 42, .5) 22%, rgba(214, 180, 98, .85) 50%, rgba(184, 137, 42, .5) 78%, transparent);
+  --m-gold-leaf: linear-gradient(135deg, #f6e7b8 0%, #d9b45a 30%, #a87a22 55%, #e8cf88 78%, #b8892a 100%);
+}
+:root[data-theme="light"] #stage:not([data-table="1"]) {
+  background:
+    radial-gradient(1500px 520px at 50% -6%, var(--m-daylight), transparent 70%),
+    radial-gradient(900px 640px at 0% 0%, var(--m-wash-a), transparent 70%),
+    radial-gradient(900px 640px at 100% 100%, var(--m-wash-b), transparent 70%),
+    radial-gradient(150% 120% at 50% 45%, transparent 58%, var(--m-vignette)),
+    radial-gradient(1400px 900px at 50% 40%, #fdfcf9 0%, #f4f0e8 55%, #e9e3d8 100%);
+}
+:root[data-theme="light"] #stage:not([data-table="1"]) #bar::after { height: 2px; background: var(--m-rule-gold); opacity: 1; box-shadow: 0 1px 0 rgba(255, 255, 255, .9); }
+:root[data-theme="light"] #stage:not([data-table="1"]) :is(.tv-card, .g-stat) {
+  box-shadow: var(--m-bevel), inset 0 0 0 5px rgba(255, 255, 255, .7), inset 0 0 0 6px rgba(184, 137, 42, .16),
+    0 1px 2px rgba(64, 48, 24, .05), 0 8px 16px -8px rgba(64, 48, 24, .12), 0 26px 50px -28px rgba(64, 48, 24, .42);
+}
+:root[data-theme="light"] #stage:not([data-table="1"]) .g-stat::before { background: var(--m-gold-leaf); opacity: 1; }
+:root[data-theme="light"] .g-rule { height: 3px; background: var(--m-rule-gold); opacity: 1; box-shadow: 0 1px 0 #fff; }
+:root[data-theme="light"] .g-player {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c, #888) 10%, #fff), #fff 45%);
+  box-shadow: var(--m-bevel), 0 2px 4px rgba(64, 48, 24, .06), 0 16px 30px -20px color-mix(in srgb, var(--c, #888) 60%, transparent);
+}
+:root[data-theme="light"] .g-player canvas { box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(184, 137, 42, .3), 0 6px 12px -6px rgba(40, 30, 16, .5); }
+:root[data-theme="light"] .tvm-card { box-shadow: var(--m-bevel), inset 0 0 0 6px rgba(255, 255, 255, .7), inset 0 0 0 7px rgba(184, 137, 42, .18),
+  0 2px 6px rgba(64, 48, 24, .06), 0 40px 90px -30px rgba(64, 48, 24, .55); }
+:root[data-theme="light"] .tvm-opt { box-shadow: var(--m-bevel), 0 8px 18px -14px rgba(64, 48, 24, .4); }
+:root[data-theme="light"] #veil {
+  background:
+    radial-gradient(900px 640px at 0% 0%, var(--m-wash-a), transparent 70%),
+    radial-gradient(900px 640px at 100% 100%, var(--m-wash-b), transparent 70%),
+    radial-gradient(150% 120% at 50% 45%, transparent 58%, var(--m-vignette)),
+    radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe5da 75%);
+}
+
 /* a casino table keeps its own dark room in both themes: its scene and its themed bar are drawn for the dark */
 :root[data-theme="light"] #stage[data-table="1"] {
   color-scheme: dark; color: #efece4;

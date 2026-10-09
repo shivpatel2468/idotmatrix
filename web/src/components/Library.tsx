@@ -46,6 +46,7 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
     <div role="button" tabIndex={0} onClick={onPick} onDoubleClick={() => api.activate(a.id)}
       onKeyDown={(e) => { if (e.key === "Enter") api.activate(a.id); if (e.key === " ") { e.preventDefault(); onPick(); } }}
       title={`${a.description}${offWeb ? `\n\nNot on Browser: ${offWeb}` : ""}\n\nClick for settings · double-click to show`} aria-label={`${a.name}${live ? " (on the panel)" : ""}`}
+      data-live={live || undefined} data-sel={(!live && selected) || undefined}
       className={clsx("lib-card group relative cursor-pointer rounded-[12px] border p-1.5 transition", offWeb && !live && "opacity-60",
         live ? "border-ember-line bg-ember-deep/40 shadow-[0_0_24px_-10px_var(--color-ember)]"
           : selected ? "border-line-2 bg-chassis-3" : "border-line bg-chassis-1 hover:-translate-y-0.5 hover:border-line-2 hover:bg-chassis-2")}>
@@ -78,7 +79,8 @@ function ListRow({ a, live, selected, fav, onPick, onFav }: CardProps) {
     <div role="button" tabIndex={0} onClick={onPick} onDoubleClick={() => api.activate(a.id)}
       onKeyDown={(e) => { if (e.key === "Enter") api.activate(a.id); if (e.key === " ") { e.preventDefault(); onPick(); } }}
       aria-label={`${a.name}${live ? " (on the panel)" : ""}`}
-      className={clsx("group relative flex cursor-pointer items-center gap-3 rounded-[10px] px-2 py-1.5 transition",
+      data-live={live || undefined} data-sel={(!live && selected) || undefined}
+      className={clsx("lib-row group relative flex cursor-pointer items-center gap-3 rounded-[10px] px-2 py-1.5 transition",
         selected ? "bg-chassis-3" : "hover:bg-chassis-2")}>
       {live && <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-full bg-ember shadow-[0_0_8px_var(--color-ember)]" />}
       <div className="w-10 shrink-0"><Preview id={a.id} /></div>
@@ -208,7 +210,7 @@ export function Library({ fill = false, flat = false }: {
         <div ref={chipRow} className="relative -mx-3 flex gap-1 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none]" role="tablist" aria-label="Categories">
           {chips.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={category === id} onClick={() => pickChip(id)}
-              className={clsx("shrink-0 rounded-full border px-2.5 py-[5px] text-[11.5px] transition",
+              className={clsx("lib-chip shrink-0 rounded-full border px-2.5 py-[5px] text-[11.5px] transition",
                 category === id ? "border-ember-line bg-ember-deep text-ember" : "border-line text-ink-3 hover:border-line-2 hover:text-ink-1")}>
               {label}
             </button>
@@ -221,7 +223,7 @@ export function Library({ fill = false, flat = false }: {
           <div className="pt-3"><Skeleton view={view} size={cardSize} /></div>
         ) : total === 0 ? (
           <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-            <span className="grid h-11 w-11 place-items-center rounded-full border border-line bg-chassis-0 text-ink-3">
+            <span className="m-medallion grid h-11 w-11 place-items-center rounded-full border border-line bg-chassis-0 text-ink-3">
               {category === "fav" && !f ? <Star size={18} /> : <Search size={18} />}
             </span>
             {category === "fav" && !f ? (
@@ -240,7 +242,7 @@ export function Library({ fill = false, flat = false }: {
         ) : (
           sections.map((s) => (
             <section key={s.id} aria-label={s.label}>
-              <h3 className={clsx("sticky z-[2] flex items-center gap-2 pb-2 pt-3", flat ? "lib-sec -mx-3 bg-chassis-0 px-4" : "top-0 -mx-2.5 bg-chassis-1 px-3.5")}
+              <h3 className={clsx("lib-sechead sticky z-[2] flex items-center gap-2 pb-2 pt-3", flat ? "lib-sec -mx-3 bg-chassis-0 px-4" : "top-0 -mx-2.5 bg-chassis-1 px-3.5")}
                 style={flat ? { top: headH - 10 } : undefined}>
                 {s.id === "fav" && <Star size={11} className="text-gold" fill="currentColor" />}
                 <span className="engrave !text-ink-2">{s.label}</span>

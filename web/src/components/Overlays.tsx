@@ -27,7 +27,7 @@ export function Modal({ open, onClose, title, children, width = 440, header, bod
     <div className="fixed inset-0 z-50 grid grid-cols-[minmax(0,1fr)] place-items-center bg-scrim/60 light:bg-scrim/28 sm:backdrop-blur-[3px] sm:light:backdrop-blur-[6px] sm:p-4" onMouseDown={onClose}>
       <div className="surface flex h-screen h-[100dvh] w-full animate-rise flex-col max-sm:!rounded-none sm:h-auto" style={{ maxWidth: width }}
         onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
-        <div className="flex shrink-0 items-center border-b border-line px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5 sm:pt-3">
+        <div className="modal-head flex shrink-0 items-center border-b border-line px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5 sm:pt-3">
           <h2 className="font-display text-[17px] font-[640] tracking-[-0.015em]">{title}</h2>
           <span className="flex-1" />
           {header}
