@@ -13,7 +13,11 @@ engraved monospace labels, hardware keys that depress, faders like a mixing desk
 **Light — "gallery".** The same instrument on a gallery wall: porcelain / ivory layers (never flat white everywhere),
 deep ink type, hairlines and long, soft warm shadows instead of heavy borders. The accent becomes the brand **rose**
 re-tuned for white (AA as text), and **gold** is a metal only (the logo plate's rim, stars, the header hairline) —
-never body text. Keys are white enamel with a 1 px floor; toggles fill with rose; dialogs float on a warm umber scrim.
+never body text. Keys are bevelled white enamel with a 1 px floor; the primary key is glossy rose lacquer; toggles fill
+with lacquer; fields and segmented controls are inset wells; dialogs float on a warm umber scrim. The page is linen
+paper in daylight (dot grid, washes of rose and gold, a vignette); cards lift on three-layer warm shadows with a
+white rim and a gilded hairline where dark has lit edges; the selected tab, chip, card and row carry the accent as a
+tinted wash, edge and halo; section heads carry a gold-leaf jewel and a fading gilded rule.
 
 In both themes the LED preview sits in a graphite bezel with screws, a recessed well, per-LED bloom and a diffuser
 sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LED logo sits on a small near-black
@@ -76,6 +80,21 @@ Materials (`--m-*`, plain CSS): `--m-hi` / `--m-hi-key` (inner top highlight), `
 `--m-glass` (tab bar, phone header), `--m-page-glow` / `--m-page-dots`, `--m-thumb-*` (fader knob),
 `--m-bezel-shadow`, `--m-led-ring`, `--m-shimmer`.
 
+**Materials v2** (`index.css` § MATERIALS v2 — same names in both themes; the plain-HTML pages, the launcher and the
+web app's `host.css` mirror them by name). Light is as detailed as dark, but with what makes light rich — paper,
+porcelain, lacquer and gold leaf — instead of glow:
+
+| Group | Names | Light | Dark |
+| --- | --- | --- | --- |
+| atmosphere | `--m-daylight` `--m-wash-a` `--m-wash-b` `--m-vignette` `--m-texture` (+`-size`) `--m-linen` | daylight from the top, a rose bloom behind the panel, gold light in two corners, an umber vignette, a fine dot grid over linen | the ember glow and dot grid (unchanged) |
+| depth | `--m-well-bg` `--m-well-shadow` · `--m-card-bg` `--m-card-shadow` `--m-card-shadow-hover` · `--m-raised-shadow` · `--m-bevel` `--m-rim` | page → inset well → porcelain card → raised key; three-layer warm umber shadows, white top rims, bevelled keys and chips | chassis gradients, black floors |
+| metal | `--m-gold-leaf` `--m-brass` `--m-champagne` `--m-sheen` `--m-rule` `--m-rule-gold` `--m-emboss` | gold-leaf jewels and gilded hairlines, champagne medallions, a gloss sheen on lacquer (primary) keys, letterpress small caps | brass / gold for the casino, a faint sheen |
+| accent | `--m-accent-wash` `--m-accent-edge` `--m-accent-halo` `--m-focus-ring` | the accent (rose; bronze in the casino view) as a tinted wash, border and coloured soft shadow on every selected thing | the ember wash and glow |
+
+The accent / chassis mixes are declared on `:root`, `.cz`, `.theme-dark` and `[data-accent-scope]` — a custom property
+computes where it is declared, so a subtree that re-tints `--color-ember` carries `data-accent-scope` to get matching
+washes. Everything is static gradients (painted once): no animated blur, no `backdrop-filter` dependence (phones).
+
 Fonts are bundled with `@fontsource` — the studio works fully offline.
 
 ## Components (CSS classes in `index.css`)
@@ -98,6 +117,9 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | `.icon-tile`, `[data-tone]` | tinted duotone icon tile and its tint families (see Icons) |
 | `.picker-*` | the dropdown: trigger, popover list, phone sheet rows (see Dropdowns) |
 | `.theme-fab*` | the phone's floating theme key and its menu |
+| `.m-rule`, `.m-medallion` | a fading (gilded in light) hairline; the round empty-state badge (a champagne medallion in light) |
+| `.lib-sechead`, `.lib-chip`, `.lib-card[data-live|data-sel]`, `.lib-row` | library ornaments: section heads with a gold jewel and a fading rule, chips, cards (live = lacquer wash + halo) |
+| `.insp-head[data-tone]`, `.set-block`, `.set-nav`, `.modal-head`, `.dock-preset`, `.status-pill` | the settings panel's tinted crown, settings section cards and nav, the gilded dialog head, playlist preset keys, the connection pill |
 | `.rail*` | the Panel tab's swipeable app rows |
 | `.preset-*`, `.eq` | the Presets tab's cover cards, the "playing" bars |
 | `.appicon*` | Settings → App icon tiles (Android app) |

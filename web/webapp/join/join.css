@@ -231,15 +231,33 @@ button:active {
   --ok: #18794e;
   --warn: #9a5b00;
   --bad: #c8203e;
+  /* MATERIALS v2, mirrored by name from web/src/index.css (docs/STUDIO_UI.md § Materials) */
+  --m-daylight: rgba(255, 255, 255, 0.95);
+  --m-wash-a: rgba(214, 56, 106, 0.1);
+  --m-wash-b: rgba(184, 137, 42, 0.12);
+  --m-vignette: rgba(92, 70, 40, 0.15);
+  --m-texture: radial-gradient(circle at 1px 1px, rgba(64, 48, 24, 0.075) 1px, transparent 0);
+  --m-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 48%, rgba(255, 255, 255, 0) 52%);
+  --m-well-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.11), inset 0 0 0 1px rgba(64, 48, 24, 0.025), 0 1px 0 rgba(255, 255, 255, 0.9);
   color-scheme: light;
-  background: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.1), transparent 60%), var(--c0);
+  /* a gallery wall: daylight from the top, a rose and a gold-leaf wash in the corners, a fine dot grid, a warm vignette */
+  background:
+    radial-gradient(120% 60% at 50% -10%, var(--m-daylight), transparent 65%),
+    radial-gradient(60% 40% at 0% 0%, var(--m-wash-a), transparent 70%),
+    radial-gradient(60% 40% at 100% 100%, var(--m-wash-b), transparent 70%),
+    radial-gradient(150% 110% at 50% 45%, transparent 60%, var(--m-vignette)),
+    var(--m-texture) 0 0 / 18px 18px,
+    var(--c0);
 }
 .veil.light.over {
   background: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.08), transparent 60%), rgba(244, 240, 232, 0.9);
 }
 .veil.light .card {
-  border-color: #e7e1d6;
-  box-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 30px 70px -26px rgba(64, 48, 24, 0.4), inset 0 1px 0 #fff;
+  border-color: #e2d6bf;
+  background: radial-gradient(120% 60% at 50% 0%, rgba(230, 205, 138, 0.16), transparent 60%), linear-gradient(180deg, #fff, var(--c2));
+  /* an engraved double rule of gold leaf inside, a long warm shadow and a faint rose halo outside */
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 5px #fff, inset 0 0 0 6px rgba(184, 137, 42, 0.22),
+    0 2px 6px rgba(64, 48, 24, 0.06), 0 30px 70px -26px rgba(64, 48, 24, 0.4), 0 40px 90px -40px rgba(214, 56, 106, 0.35);
 }
 /* the LED logo needs the dark: a small LED sign with a gold-leaf rim */
 .veil.light .logo {
@@ -282,7 +300,11 @@ button:active {
 }
 .veil.light button {
   color: #fff;
-  box-shadow: 0 10px 24px -10px rgba(184, 31, 75, 0.55);
+  background: var(--m-sheen), linear-gradient(180deg, var(--ember2), var(--ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 10px 24px -10px rgba(184, 31, 75, 0.55);
+}
+.veil.light .code {
+  box-shadow: var(--m-well-shadow);
 }
 @media (prefers-reduced-motion: reduce) {
   .veil.light .busy .dots i {

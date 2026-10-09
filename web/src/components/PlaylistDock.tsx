@@ -157,7 +157,7 @@ function PresetCard({ p, active, variant }: { p: Preset; active: boolean; varian
       <div className="group relative shrink-0">
         <button onClick={() => play(p)} aria-pressed={active}
           title={active ? `${p.name} is playing — tap to restart it` : `Play ${p.name}: ${n} app${n === 1 ? "" : "s"} in a row`}
-          className={clsx("flex h-12 w-full min-w-[150px] max-w-[220px] items-center gap-2.5 rounded-[11px] border pl-2 pr-3.5 text-left transition",
+          className={clsx("dock-preset flex h-12 w-full min-w-[150px] max-w-[220px] items-center gap-2.5 rounded-[11px] border pl-2 pr-3.5 text-left transition",
             active ? "border-ember-line bg-ember-deep/70 shadow-[0_0_26px_-12px_var(--color-ember)]"
               : "border-line bg-chassis-1 hover:-translate-y-px hover:border-line-2 hover:bg-chassis-2")}>
           <IconTile name={p.icon || "list-music"} tone={tone} size={32} glyph={16} solid={active} />

@@ -82,12 +82,17 @@ games) → result → idle`.
   origin on the device) else the phone's preference puts `html[data-theme]`; a media query covers the first paint.
   The felt, chips, cards and game tiles never change; in light the *room* (page, HUD, phase strip, dock, sheets,
   how-to, tour, toasts) turns porcelain / ivory (`#f4f0e8` / `#fbf9f5` / white, faintly tinted by the felt), ink
-  `#1c1a22`, and the theme's accent becomes bronze for text (`color-mix(accent 36 %, #1a1206)`: AA on every light
+  `#1c1a22`, and the theme's accent becomes bronze for text (`color-mix(accent 33 %, #1a1206)`: AA on every light
   surface for all 21 themes) and an antique metal for rings and hairlines; the bank plaque and the win card are black
   lacquer with the amount in gold; gold keys get a metal edge (pale accents stay visible); players' colours as text
   are deepened; the LED logo sits on a small dark LED sign. Headings use a system serif (`--serif`: Didot / Bodoni /
   Georgia — nothing downloaded), chips are embossed (sheen + engraved inlay) and the HUD rests on a gold hairline,
-  in both themes. The table theme's id is on `html[data-table]` (`data-theme` is light / dark).
+  in both themes. The table theme's id is on `html[data-table]` (`data-theme` is light / dark). Light also uses the
+  studio's MATERIALS v2 by name (`--m-linen`, `--m-texture`, `--m-vignette`, `--m-bevel`, `--m-raised-shadow`,
+  `--m-sheen`; docs/STUDIO_UI.md § Materials) re-tinted by the table: the room is washed with the felt from the top
+  and lit by the accent in the corners over a felt-tinted dot grid; HUD / dock keys are raised porcelain; Done and
+  the gold keys are gold leaf (`--leaf`) with a sheen and an accent halo; the felt stands on a champagne plinth in a
+  soft halo of its own colour (`--halo`); the chips sit in a recessed rail.
 - Every colour comes from the table theme (§11: felt, accent, the derived surfaces); classic is felt green and gold.
 - **Always visible:** the header is avatar · bank plaque · three icon keys (**?**, players, sound) on a 3-column grid
   that never overlaps from 320 px phones to a laptop window: the plaque holds the name (and what you have on the
@@ -195,7 +200,14 @@ games) → result → idle`.
   is bronze as text and antique metal for rings (`--cz-metal`); the felt table sits on a champagne plinth and the play
   board keeps the felt's ink; avatars keep a lacquer plate. `html[data-cz]` keeps the page porcelain in light (the
   dark remap applies only in dark). Section titles and the game name use a serif (`--cz-serif`) in both themes. The
-  `.cz` root carries the table id as `data-table`.
+  `.cz` root carries the table id as `data-table`. Round 2 materials (`--cz-leaf`, `--cz-rule`, `--cz-halo`, plus the
+  studio's `--m-*`): each wing has a **rail** across the top — a strip of the table's own felt and motif edged in gold
+  leaf, the tabs sit on it (felt ink, gold-leaf active tab); section titles end on a gold-leaf rule with a lozenge;
+  empty states are felt-washed cards with the four suits engraved; cards lift on hover with a halo in the felt's
+  colour and the chosen one is gilded; the table's plinth and the wings cast the felt's colour (where dark glows,
+  light casts a coloured shadow); the page is washed with the felt and the accent, with the dot grid tinted by the
+  felt, linen and a vignette (`html[data-cz]` re-tints `--m-wash-a/b` and `--m-texture`), and the top bar's gold
+  keys are gold leaf in the table's accent.
 
 ## 7. Games, rules and payouts
 

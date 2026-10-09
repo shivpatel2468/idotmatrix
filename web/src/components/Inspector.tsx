@@ -33,7 +33,7 @@ export function Inspector({ fill = false, flat = false }: {
           </div>
         ) : (
           <>
-            <span className="grid h-11 w-11 place-items-center rounded-full border border-line bg-chassis-0 text-ink-3"><LayoutGrid size={18} /></span>
+            <span className="m-medallion grid h-11 w-11 place-items-center rounded-full border border-line bg-chassis-0 text-ink-3"><LayoutGrid size={18} /></span>
             <p className="text-[13px] text-ink-2">Pick an app to see its settings.</p>
             <button className="key" onClick={() => (isPhone() ? useStore.setState({ mobileTab: "apps" }) : useStore.setState({ drawer: window.innerWidth < 768 ? "library" : null }))}>
               Browse apps
@@ -127,7 +127,7 @@ export function Inspector({ fill = false, flat = false }: {
 
   return (
     <aside className={`surface inspector-box flex min-h-0 flex-col overflow-hidden ${fill ? "flex-1" : ""}`} aria-label={`${meta.name} settings`}>
-      <div className="border-b border-line p-4">
+      <div className="insp-head border-b border-line p-4" data-tone={meta.category}>
         <div className="flex items-start gap-3">
           <IconTile name={meta.icon} tone={meta.category} size={40} glyph={19} solid={live} />
           <div className="min-w-0">
