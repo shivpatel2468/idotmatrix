@@ -17,7 +17,7 @@ _1,024 pixels. Zero subscriptions._
 [![React + Vite](https://img.shields.io/badge/studio-React%20%2B%20Vite-61dafb.svg?logo=react&logoColor=white)](web)
 [![MCP](https://img.shields.io/badge/MCP-21%20tools-8a2be2.svg)](docs/MCP.md)
 [![Website](https://img.shields.io/badge/web-idotmatrix.com-111.svg)](https://idotmatrix.com)
-[![Version 3.5.0](https://img.shields.io/badge/version-3.5.0-ffcc33.svg)](WHATS_NEW.md)
+[![Version 3.6.0](https://img.shields.io/badge/version-3.6.0-ffcc33.svg)](WHATS_NEW.md)
 
 **[Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next) · [What's New](WHATS_NEW.md)**
 
@@ -226,6 +226,11 @@ lan_studio = false              # true = open the full studio to other devices o
 
 ## 🎨 The Studio
 
+> **Light or dark.** The studio, phone pages, casino and TV come in a premium light theme (paper, porcelain and
+> gold leaf) and the original dark one — Settings → Display & colour → Studio theme, or the round key bottom-left on
+> phones. The panel connection lives behind the status pill at the top (Connection sheet: reconnect, move it to
+> this tab, release it).
+
 <table>
 <tr>
 <td width="50%"><a href="docs/media/studio.png"><img src="docs/media/studio.png" alt="The studio: app library, live panel preview and settings"/></a><br/><sub><b>Library · live preview · settings.</b> The preview mirrors the LEDs; the right panel is resizable.</sub></td>
@@ -363,7 +368,7 @@ The full list, with the APIs we tried and rejected (and why): [DATA_SOURCES.md](
 | **Windows 10/11** | ✅ Verified on hardware | Bluetooth LE via WinRT; sleep/wake hand-off |
 | **Raspberry Pi OS / Debian / Ubuntu** | 🟡 Supported, installer untested on a real Pi | BlueZ; `scripts/install-pi.sh` sets up a systemd service |
 | **macOS** | 🟡 Should work, untested | CoreBluetooth hides MAC addresses, so DeskDot finds the panel by its `IDM-` name |
-| **Android 8+ (64-bit)** | 🧪 Beta, not yet run on a phone | the [Android app](android/README.md) runs the whole engine on the phone |
+| **Android 8+ (64-bit)** | 🧪 Beta — runs on a real phone (Android 14, 120 Hz) | the [Android app](android/README.md) runs the whole engine on the phone |
 | **iPhone / iPad** | ❌ as a host | iOS suspends background apps; use it as a studio or controller instead |
 | **Any browser** | ✅ Studio & controller | Chrome, Edge, Firefox, Safari; gamepads in desktop browsers |
 
