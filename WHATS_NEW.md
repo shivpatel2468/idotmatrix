@@ -18,7 +18,8 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 - **Light mode**
   - Before: DeskDot only came in dark.
   - Now: a premium light look — warm ivory, deep rose and champagne gold — for the studio, the phone app, the
-    phone pages and the TV. Pick Light, Dark or Auto (follows your device) in Settings → Display & colour.
+    phone pages and the TV, with paper-like texture, soft depth and gold-leaf details as rich as dark mode. Pick Light,
+    Dark or Auto (follows your device) in Settings → Display & colour.
 - **Light / dark button on phones**
   - Before: you had to dig into Settings to change the look.
   - Now: a small round button in the bottom-left corner switches light and dark with one tap (hold it for Auto). The
@@ -97,6 +98,27 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Before: Photo Frame showed museum art, nature photos and animals.
   - Now: it can also show Wikimedia's picture of the day from the last week.
 
+### Better
+
+- **Smoother phone app**
+  - Before: the app ran at 60 frames a second with occasional stutter.
+  - Now: it asks for your screen's full speed (up to 120 Hz) and heavy effects that caused stutter are gone.
+- **Simpler display settings**
+  - Before: the gear opened a long page with everything about the screen in one place.
+  - Now: it opens a small menu with three picture tiles (Glow, Pixel, LED), one slider, and the rest under "More".
+- **Richer icons, presets and menus**
+  - Before: plain icons, plain preset cards and small dropdowns.
+  - Now: detailed two-tone icons, preset cards with artwork and a big play button, and pickers that slide up from
+    the bottom on phones.
+- **Lite mode on the TV looks the same**
+  - Before: Lite made the TV smoother by dropping glows and sharpness.
+  - Now: Lite looks exactly like the full mode; both were made faster instead.
+
+- **A health check for every data source**
+  - Before: when a free data source changed or shut down, an app simply went quiet until someone noticed.
+  - Now: one command checks all 100+ sources DeskDot uses — whether they answer, how fast, and whether the answer
+    still looks the way the apps expect — and writes a report.
+
 ### Fixed
 
 - **Phone app black screen**
@@ -120,27 +142,6 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 - **Crypto Ticker in the USA**
   - Before: the price source refuses visitors from the USA, so the ticker stayed empty there.
   - Now: it switches to the same prices from a mirror that works everywhere.
-
-### Better
-
-- **Smoother phone app**
-  - Before: the app ran at 60 frames a second with occasional stutter.
-  - Now: it asks for your screen's full speed (up to 120 Hz) and heavy effects that caused stutter are gone.
-- **Simpler display settings**
-  - Before: the gear opened a long page with everything about the screen in one place.
-  - Now: it opens a small menu with three picture tiles (Glow, Pixel, LED), one slider, and the rest under "More".
-- **Richer icons, presets and menus**
-  - Before: plain icons, plain preset cards and small dropdowns.
-  - Now: detailed two-tone icons, preset cards with artwork and a big play button, and pickers that slide up from
-    the bottom on phones.
-- **Lite mode on the TV looks the same**
-  - Before: Lite made the TV smoother by dropping glows and sharpness.
-  - Now: Lite looks exactly like the full mode; both were made faster instead.
-
-- **A health check for every data source**
-  - Before: when a free data source changed or shut down, an app simply went quiet until someone noticed.
-  - Now: one command checks all 100+ sources DeskDot uses — whether they answer, how fast, and whether the answer
-    still looks the way the apps expect — and writes a report.
 
 ## 3.5.0 — 7 Oct 2026 · Housie, the TV view and a high-roller casino
 

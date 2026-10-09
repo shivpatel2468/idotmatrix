@@ -3,7 +3,37 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.6.0 — 2026-10-09 · API health check, 14 new public-API apps
+## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
+
+- **Themes:** a light theme ("Gallery") beside dark, one switch Light · Dark · Auto (`web/src/lib/theme.ts`, key
+  `deskdot.theme`, `data-theme` on `<html>` set before first paint; Settings → Display & colour, the Display menu,
+  phone Quick controls and a floating key bottom-left on phones). Tokens per theme in `web/src/index.css` plus the
+  "MATERIALS v2" `--m-*` materials (daylight, washes, linen + dot texture, wells, cards, bevels, gold leaf, brass,
+  sheen, accent halos) — static gradients only, no reliance on `backdrop-filter`. The logo sits on a dark LED plate
+  in light. Mirrored in casino.html, controller.html, join pages, the launcher, the web-app landing and the TV
+  (TV defaults to dark; `?theme=light` or the TV menu's Theme row). Light casino "salon": felt rails under the wing
+  tabs, gilded keys in the table's accent, a champagne plinth; all 21 table themes adapt (bronze text =
+  accent 33 % + ink, ≥ 4.97:1); the table theme id moved to `html[data-table]`. docs/STUDIO_UI.md "Themes".
+- **Android app:** highest refresh rate requested (120 Hz), hardware accelerated, `DeskDotAndroid` JS bridge —
+  `setBars()` colours the status / navigation bars and window for the theme, `setIcon()` switches between 7
+  launcher icons (`<activity-alias>` each, adaptive + monochrome, drawn by `android/tools/gen_icons.py`; Settings →
+  App icon inside the app); keeps retrying the studio until the engine is up; clears the WebView cache once per
+  install (APK assets share one mtime, so a same-size page would revalidate as unchanged). Links off 127.0.0.1 open
+  in the browser.
+- **Phone studio:** apps in swipeable rows right under the panel (`AppRail`, Favourites / Recent / categories),
+  duotone icons (`IconTile`), preset cards with LED covers, `Picker` bottom-sheet dropdowns, opaque bars and a
+  sticky search pinned flush (nothing shows through), LED panel drawn at most once per refresh and only on change.
+- **Connection:** `ConnectionSheet` (one status pill → where the panel is connected, signal, attempts, one primary
+  action), `device/diagnose.py` (human reasons + next step), `POST /api/device/reconnect {only_if_down}`
+  ("Reconnect now" cuts the back-off, never disconnects), explicit "Release the panel" (ADR 0013), `/api/health`
+  adds `kind` / `panel` / `link_enabled` (CORS + Private-Network-Access only for idotmatrix.com). Web app: cross-tab
+  handover (BroadcastChannel + Web Lock, "Use it here" / "Take it back"), silent reconnects via `getDevices()` +
+  advertisements, detects the desktop engine holding the panel.
+- **Display menu:** the top-bar gear opens a small menu (Glow / Pixel / LED tiles with live previews, one Glow
+  slider, "More", Reset) instead of the full Settings page (`DisplayMenu.tsx`).
+- **TV:** the options menu (OK / menu on the remote) and the studio's Show on TV sheet (`POST /api/tv/settings`)
+  set the panel look (Pixel · LED · Glow, like the studio; the HD upscale is gone), quality (Auto · HQ · Lite —
+  Lite now draws the same picture as HQ, both faster) and theme.
 
 - API health: every provider declares the external URLs it calls (`Provider.endpoints`, `providers/base.py`
   `Endpoint` with a concrete sample, `expect` paths and a `check` that runs the provider's own parser).
