@@ -79,7 +79,10 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   `#b81f4b`, antique gold `#b8892a` / gold text `#8a6412`) under the same token names (`--chassis-*`, `--ink-*`,
   `--ember`, `--gold`, `--gold-text`, …); the panel stays a dark device in its bezel, the LED logo sits on a small
   dark LED sign with a gold rim, and **a casino table keeps its own dark room** (`#stage[data-table="1"]` re-declares
-  the dark tokens: its scene and themed bar are drawn for the dark). Same cost as dark: static gradients and shadows
+  the dark tokens: its scene and themed bar are drawn for the dark). Light mirrors the studio's MATERIALS v2 by name
+  (`--m-daylight`, `--m-wash-a/b`, `--m-vignette`, `--m-bevel`, `--m-rule-gold`, `--m-gold-leaf`): daylight, a rose and
+  a gold bloom and a vignette on the stage and the veil, a gilded rule under the bar, an engraved gold double rule
+  inside cards / stats / the options card, players' rows with a halo in their colour. Same cost as dark: static gradients and shadows
   only (tests: `tests/js/tv_core.test.mjs`). `TV.setTheme(v)` switches at once.
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
   (the studio stopped it or the code is wrong; the page keeps checking every 20 s in case the same code comes back).
