@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from functools import lru_cache
 from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -142,6 +143,10 @@ class FontLab(App):
     icon = "case-sensitive"
     category = "creative"
     Settings = FontLabSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "color": "text",
+        "color2": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 10.0
     clip_fps = 10.0  # the fastest GIF rate verified on the panel
     clip_colors = 64

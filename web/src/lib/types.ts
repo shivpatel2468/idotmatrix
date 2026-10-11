@@ -169,6 +169,7 @@ export type EngineState = {
     night_active: boolean;
     calibration: Record<string, number | boolean | string>; // lib/calib.ts `toCalib()` reads it
     integrations?: Integrations;
+    page_theme?: string; // the page theme id (lib/pageTheme.ts); absent on engines older than 3.7
   };
   apps: Record<string, Record<string, unknown>>;
   providers: Record<string, { updated: number | null; error: string | null; active: boolean }>;

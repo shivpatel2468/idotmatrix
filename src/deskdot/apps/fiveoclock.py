@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import math
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -181,6 +181,7 @@ class FiveOClock(App):
     icon = "beer"
     category = "time"
     Settings = FiveSettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 10.0
     clip_fps = 10.0
     clip_colors = 64

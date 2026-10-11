@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import ClassVar
 
 from pydantic import Field
 
@@ -42,6 +43,10 @@ class Text(App):
     icon = "type"
     category = "creative"
     Settings = TextSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "color": "text",
+        "color2": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
 
     # ------------------------------------------------------------- layout

@@ -14,6 +14,13 @@
         r.setAttribute("data-theme", t);
         r.style.colorScheme = t;
         if (t === "light") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f4f0e8");
+        try { // the page theme (lib/pageTheme.ts) cached by the last visit: painted before the first frame
+          var pt = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
+          if (pt && pt !== "ember" && css) {
+            var st = document.createElement("style"); st.id = "dd-page-theme"; st.textContent = css;
+            document.head.appendChild(st); document.documentElement.setAttribute("data-page-theme", pt);
+          }
+        } catch (e) {}
       })();
     </script>
     <link rel="icon" href="/favicon.svg" />

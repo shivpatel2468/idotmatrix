@@ -136,6 +136,7 @@ class Trivia(App):
     icon = "circle-question-mark"
     category = "games"
     Settings = TriviaSettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = FPS
     uses = ("trivia",)
     actions = (

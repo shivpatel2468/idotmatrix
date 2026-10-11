@@ -12,6 +12,7 @@ import { IntegrationsTab } from "./IntegrationsTab";
 import { Icon, IconTile } from "./Icon";
 import { Modal } from "./Overlays";
 import { SFX_NAMES, SOUND_CATEGORIES, type SfxName, getSound, onSound, setSound, sfx, sfxCategory } from "../lib/sound";
+import { PageThemeGrid } from "./PageThemePicker";
 import { ThemeTiles } from "./ThemePicker";
 import { INTRO_THEMES, type IntroTheme, getIntroTheme, replayIntro, setIntroTheme } from "../lib/intro";
 import { Picker } from "./Picker";
@@ -25,7 +26,7 @@ type St = EngineState;
  * links (the old tab ids) and the search box scroll straight to it.
  */
 const SECTIONS: [SettingsSection, string, string, string][] = [
-  ["display", "Display & colour", "monitor", "Studio theme, brightness, night mode, sounds, colours, smooth motion"],
+  ["display", "Display & colour", "monitor", "Page theme, light or dark, brightness, night mode, sounds, colours, smooth motion"],
   ["alerts", "Notifications & integrations", "bell-ring", "Computer alerts, On Air, eye breaks, phone pushes, smart home"],
   ["playlist", "Playlist & hand-off", "list-music", "Transitions, presets, following your apps, running without the computer"],
   ["device", "Device", "bluetooth", "Connection, location, sound input, data sources"],
@@ -41,6 +42,7 @@ const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
 /** What the settings search knows about: label, extra words, and the block it lives in. */
 const INDEX: [string, string, SettingsTab | string][] = [
   ["Studio theme", "light dark mode auto system appearance white black colour scheme", "theme"],
+  ["Page theme", "colour color theme accent palette look skin royal galaxy sakura volcano neon apps panel", "pagetheme"],
   ["App icon", "launcher home screen android phone logo icon", "appicon"],
   ["Brightness", "dim bright level", "display-basics"],
   ["Night mode", "dim overnight schedule sleep dark", "display-basics"],
@@ -466,6 +468,10 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
         <Block id="theme" title="Studio theme" icon="sun-moon"
           hint="How the studio looks on this device: light, dark, or following your system. The LED panel itself is unchanged.">
           <ThemeTiles />
+        </Block>
+        <Block id="pagetheme" title="Page theme" icon="palette"
+          hint="The colours of the studio, the phone app and the launcher — on every device at once. Clocks, dashboards and text apps on the panel take the theme's colours too (any colour you picked yourself stays). The casino keeps its own table themes.">
+          <PageThemeGrid />
         </Block>
         {inAndroidApp() && (
           <Block id="appicon" title="App icon" icon="smartphone"

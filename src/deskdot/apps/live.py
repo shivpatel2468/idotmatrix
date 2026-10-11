@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -12,7 +12,7 @@ from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import Frame, hsv, mix, scale
 from ..gfx.adjust import ImageControls
 from ..platforms import DESKTOP, FEATURES
-from ._kit import loading, offline, unsupported
+from ._kit import INFO, loading, offline, unsupported
 
 FALL = 1.2  # bars fall at most this share of full height per second: a smooth decay, not a drop
 PEAK_HOLD = 0.35  # seconds a peak dot hangs before it falls
@@ -32,7 +32,9 @@ class VisualizerSettings(AppSettings):
             "rings": "Pulse rings",
         },
     )
-    palette: str = Choice("rainbow", {"rainbow": "Rainbow", "heat": "Heat", "mono": "Single colour"})
+    palette: str = Choice(
+        "rainbow", {"rainbow": "Rainbow", "heat": "Heat", "mono": "Single colour", "theme": "Page theme"}
+    )
     color: Color = Field("#00ff8c", title="Colour (single-colour palette)")
     peaks: bool = Field(True, title="Peak dots")
     gain: float = Field(1.0, ge=0.3, le=3.0, title="Sensitivity")
@@ -48,6 +50,9 @@ class Visualizer(App):
     Settings = VisualizerSettings
     fps = 12.0
     uses = ("audio",)
+    theme_colors: ClassVar[dict[str, str]] = {
+        "color": "accent"
+    }  # "Page theme" palette: the theme's three accents, low → high
     # sound capture (soundcard); in the web app the page's mic / shared-tab sound (providers/webmedia.py); the
     # Android app can't capture other apps' audio
     platforms = (*DESKTOP, "web")
@@ -58,6 +63,11 @@ class Visualizer(App):
         self._pk: np.ndarray | None = None
         self._pk_age: np.ndarray | None = None
         self._t: float | None = None
+        self._tri = (
+            (0, 220, 255),
+            (255, 170, 0),
+            (255, 72, 24),
+        )  # the "Page theme" palette (render() refreshes it)
 
     def _smooth(self, bands: np.ndarray, peaks: np.ndarray, t: float) -> tuple[np.ndarray, np.ndarray]:
         """Instant attack, even fall. The capture already decays, but between 12 fps frames a bar could
@@ -92,6 +102,10 @@ class Visualizer(App):
             return mix((255, 30, 0), (255, 230, 60), v)
         if s.palette == "mono":
             return scale(s.color, 0.35 + 0.65 * v)
+        if s.palette == "theme":  # accent3 → accent2 → accent across the spectrum, brighter as it rises
+            a, b, c = self._tri
+            base = mix(a, b, i * 2) if i < 0.5 else mix(b, c, i * 2 - 1)
+            return scale(base, 0.45 + 0.55 * v)
         return hsv(0.66 - 0.66 * i)
 
     def render(self, f: Frame, t: float) -> None:
@@ -101,9 +115,19 @@ class Visualizer(App):
             if not self.supported_here():
                 unsupported(f, "AUDIO")
             else:
-                (offline(f, "AUDIO", "NO DEVICE") if p.error else loading(f, t, "AUDIO"))
+                (
+                    offline(f, "AUDIO", "NO DEVICE")
+                    if p.error
+                    else loading(f, t, "AUDIO", self.themed("accent", INFO))
+                )
             return
         s = self.settings
+        if s.palette == "theme":
+            self._tri = (
+                self.themed("accent3", "#00dcff"),
+                self.themed("accent2", "#ffaa00"),
+                self.themed("accent", "#ff4818"),
+            )
         bands = np.clip(np.asarray(d["bands"], np.float32) * s.gain, 0, 1)
         peaks = np.clip(np.asarray(d["peaks"], np.float32) * s.gain, 0, 1)
         bands, peaks = self._smooth(bands, peaks, t)

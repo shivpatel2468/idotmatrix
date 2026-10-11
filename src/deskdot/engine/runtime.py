@@ -39,13 +39,14 @@ from ..gfx.calib import apply as apply_calibration
 from ..gfx.calib import pattern as calibration_pattern
 from ..gfx.image import encode_gif_budget
 from ..gfx.testvideo import CalCard, MotionCard, StillCard
+from ..gfx.themes import PAGE_THEMES, PageTheme, page_theme
 from ..providers import Hub, Provider
 from ..providers.custom import NAME as CUSTOM_NAME
 from ..providers.custom import CustomApp
 from ..providers.onair import filter_apps
 from ..providers.sports import LEAGUE_SPORT
 from . import integrations as integ
-from .app import REGISTRY, App, AppSettings, Clip
+from .app import REGISTRY, App, AppSettings, Clip, themed_settings
 from .overlay import ActiveNotice, Notice, Transition, transition
 from .persistent import ActiveIndicator, Indicator, draw_indicators, draw_onair_badge, draw_onair_glow
 
@@ -54,6 +55,10 @@ log = logging.getLogger("deskdot.engine")
 TRANSITION_SECONDS = 0.4
 #: Minimum seconds between motion-test GIF uploads (frequent uploads stall the panel, HARDWARE_PROTOCOL #16).
 TEST_GIF_COOLDOWN = 20.0
+#: A page-theme pick reaches the panel after this many quiet seconds (someone browsing the swatches re-bakes once)
+THEME_SETTLE_S = 1.2
+#: …and never sooner than this after the previous one: every re-baked clip is a GIF upload (HARDWARE_PROTOCOL #16)
+THEME_MIN_GAP_S = 6.0
 IDLE_RESET_S = (
     120.0  # this long without keyboard/mouse input counts as a natural break (eye-break timer resets)
 )
@@ -119,6 +124,11 @@ class AppContext:
     def invalidate(self) -> None:
         """Re-render now (and re-bake the clip if the app is a clip app)."""
         self._engine.invalidate(self.key)
+
+    @property
+    def page_theme(self) -> PageTheme:
+        """The page theme the panel is drawing with (apps read it through `App.theme` / `App.themed`)."""
+        return self._engine.panel_theme
 
     def notify(self, **kw: Any) -> None:
         self._engine.notify(Notice(**kw))
@@ -207,6 +217,12 @@ class Engine:
         self._custom_checked = 0.0
         self._custom_items: tuple[float, list[PlaylistItem]] = (-1.0, [])
         self._integ_cache: dict[str, tuple[Any, dict[str, Any]]] = {}
+        # page theme (docs/STUDIO_UI.md § Page themes): the pick (shown on every screen at once) and the one the
+        # panel draws with (applied after THEME_SETTLE_S, so clicking through the swatches re-bakes clips once)
+        self.page_theme: PageTheme = page_theme(store.get("page_theme"))
+        self.panel_theme: PageTheme = self.page_theme
+        self._theme_task: asyncio.Task[None] | None = None
+        self._theme_applied_at = -1e9
         hub.listeners.append(self._on_event)
 
     # ================================================================ lifecycle
@@ -257,10 +273,62 @@ class Engine:
         cls = REGISTRY[app_id]
         merged = {**self.base_settings(app_id), **(overrides or {})}
         try:
-            return cls.Settings.model_validate(merged)
+            settings = cls.Settings.model_validate(merged)
         except ValidationError as e:
             log.warning("invalid stored settings for %s (%s); using defaults", app_id, e.error_count())
-            return cls.Settings()
+            settings = cls.Settings()
+        return themed_settings(cls, settings, self.panel_theme)
+
+    # ============================================================ page theme
+    def theme_info(self) -> dict[str, Any]:
+        """GET /api/theme: the pick, the one on the panel now, and every theme (screen seeds + LED palette)."""
+        return {
+            "id": self.page_theme.id,
+            "panel": self.panel_theme.id,
+            "themes": [t.public() for t in PAGE_THEMES.values()],
+        }
+
+    def set_page_theme(self, tid: str) -> dict[str, Any]:
+        """Pick the page theme. Every screen follows at once (state push); the panel follows after a short settle."""
+        if tid not in PAGE_THEMES:
+            raise KeyError(tid)
+        self.page_theme = PAGE_THEMES[tid]
+        self.store.set("page_theme", tid)
+        self.changed()
+        if self._theme_task and not self._theme_task.done():
+            self._theme_task.cancel()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:  # no loop (scripts, sync tests): apply now
+            self.apply_page_theme()
+            return self.theme_info()
+
+        async def settle() -> None:
+            wait = max(THEME_SETTLE_S, THEME_MIN_GAP_S - (time.monotonic() - self._theme_applied_at))
+            await asyncio.sleep(wait)
+            self.apply_page_theme()
+
+        self._theme_task = loop.create_task(settle())
+        return self.theme_info()
+
+    def apply_page_theme(self) -> None:
+        """Re-theme the live app instances (their settings and, through `clip_key`, their baked clips)."""
+        if self.panel_theme.id == self.page_theme.id:
+            return
+        self.panel_theme = self.page_theme
+        self._theme_applied_at = time.monotonic()
+        items = {i.id: i for i in self.playlist.items}
+        for s in self.slots.values():
+            if not type(s.app).theme_aware():
+                continue
+            ov = items[s.item_id].settings if s.item_id in items else None
+            s.app.settings = self._make_settings(s.app.id, ov)
+            try:
+                s.app.on_settings()
+            except Exception:
+                log.exception("%s.on_settings failed", s.key)
+        self._wake.set()
+        self.changed()
 
     def _slot(self, app_id: str, item: PlaylistItem | None = None) -> Slot:
         key = f"{app_id}#{item.id}" if item and item.settings else app_id
@@ -1399,6 +1467,7 @@ class Engine:
                 "night_active": self._night_active,
                 "calibration": self.calibration.model_dump(),
                 "integrations": self.integrations(),
+                "page_theme": self.page_theme.id,
             },
             "apps": {
                 aid: redact_secrets(

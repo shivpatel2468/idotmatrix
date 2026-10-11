@@ -12,7 +12,7 @@ import itertools
 import json
 import math
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -206,6 +206,9 @@ class Quakes(App):
     icon = "activity"
     category = "data"
     Settings = QuakesSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "home_color": "accent"
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
     uses = ("quakes",)
     clip_fps = CLIP_FPS

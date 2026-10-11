@@ -128,6 +128,10 @@ class Headlines(App):
     icon = "newspaper"
     category = "data"
     Settings = HeadlinesSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "accent": "accent",
+        "text_color": "text",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
     uses = ("headlines",)
     clip_colors = 32

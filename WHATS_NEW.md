@@ -11,6 +11,22 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.7.0 — 12 Oct 2026 · Page themes for the whole studio
+
+### New
+
+- **Page themes for the whole studio**
+  - Before: the studio only had its one look (ember in the dark, rose in the light); only the casino tables had themes.
+  - Now: pick one of 21 page themes — like Royal blue, Galaxy, Sakura night, Glacier or Citrus — in Settings → Display
+    & colour, the Display menu or the phone's Quick controls. Every page, the phone app and the launcher change colour
+    together, in light and dark mode, with a smooth fade. It's saved on your computer, so every device you use shows
+    the same theme. The casino keeps its own table themes.
+- **Apps match the page theme**
+  - Before: clocks, dashboards and text apps on the panel always used their own fixed colours.
+  - Now: they take the page theme's colours too, just like casino games take their table's colours — tuned so they
+    stay bright and readable on the LEDs. Any colour you chose yourself stays, photos, flags, weather icons and games
+    keep theirs, and each app has a "Follow page theme" switch if you'd rather it didn't.
+
 ## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 
 ### New

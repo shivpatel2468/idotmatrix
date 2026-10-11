@@ -95,13 +95,19 @@ def _preview(a: argparse.Namespace) -> None:
 
     from . import apps  # noqa: F401 — registers built-ins
     from .engine import REGISTRY
+    from .engine.app import themed_settings
     from .gfx import Frame
+    from .gfx.themes import PAGE_THEMES
 
     cls = REGISTRY[a.app]
+    if a.theme not in PAGE_THEMES:
+        raise SystemExit(f"unknown theme {a.theme!r}; one of: {', '.join(PAGE_THEMES)}")
+    theme = PAGE_THEMES[a.theme]
 
     class _Ctx:
         data: ClassVar[dict] = {}  # type: ignore[type-arg]
         library = None
+        page_theme = theme
 
         def provider(self, _n: str):  # type: ignore[no-untyped-def]
             class _P:
@@ -120,7 +126,8 @@ def _preview(a: argparse.Namespace) -> None:
         def invalidate(self) -> None: ...
         def notify(self, **_: object) -> None: ...
 
-    app = cls(_Ctx(), cls.Settings.model_validate(json.loads(a.settings)))  # type: ignore[arg-type]
+    settings = themed_settings(cls, cls.Settings.model_validate(json.loads(a.settings)), theme)
+    app = cls(_Ctx(), settings)  # type: ignore[arg-type]
     f = Frame()
     app.render(f, a.t)
     Path(a.out).write_bytes(f.to_png(a.scale))
@@ -164,6 +171,7 @@ def main(argv: list[str] | None = None) -> None:
     pv.add_argument("--t", type=float, default=0.0)
     pv.add_argument("--scale", type=int, default=10)
     pv.add_argument("--out", default="preview.png")
+    pv.add_argument("--theme", default="ember", help="page theme id (docs/STUDIO_UI.md § Page themes)")
     pv.set_defaults(fn=_preview)
     ln = sub.add_parser(
         "launcher", help="system-wide command bar with a global hotkey (needs --extra launcher)"
