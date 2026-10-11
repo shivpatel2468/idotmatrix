@@ -11,7 +11,7 @@ from __future__ import annotations
 import itertools
 import json
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -131,6 +131,10 @@ class RainRadar(App):
     icon = "cloud-rain"
     category = "data"
     Settings = RainRadarSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "mono_color": "accent",
+        "home_color": "text",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
     uses = ("rainradar",)
     clip_colors = 64

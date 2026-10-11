@@ -21,7 +21,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from functools import lru_cache
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -297,6 +297,7 @@ class Space(App):
     icon = "rocket"
     category = "data"
     Settings = SpaceSettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     uses = ("space", "iss")
     actions = (Action("next", "Next screen", "skip-forward"),)
 

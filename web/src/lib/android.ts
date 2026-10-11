@@ -6,6 +6,8 @@
  *   icons() / getIcon() / setIcon(id)       the launcher icon (one <activity-alias> per icon)
  *   display()                               {"hz": now, "max": best, "modes": [...]} — the screen's refresh rate
  */
+import { pageBars } from "./pageTheme";
+
 type Bridge = {
   version(): number;
   setBars(status: string, nav: string, page: string, lightIcons: boolean): void;
@@ -23,17 +25,13 @@ const bridge = (): Bridge | null => {
 /** True inside the DeskDot Android app. */
 export const inAndroidApp = () => bridge() !== null;
 
-/** The studio's bar colours per theme (index.css: header chassis-1, tab bar --m-glass, page chassis-0). */
-const BARS = {
-  dark: ["#0f0f13", "#0e0e12", "#08080a", true],
-  light: ["#fbf9f5", "#fbf9f5", "#f4f0e8", false],
-} as const;
-
-/** Paint Android's status and navigation bars (and the window behind the page) for a studio theme. */
+/** Paint Android's status and navigation bars (and the window behind the page) for a studio theme: the header
+ *  (chassis-1), the tab bar (--m-glass) and the page (chassis-0), as tinted by the page theme (lib/pageTheme.ts). */
 export function syncSystemBars(theme: "light" | "dark") {
   const b = bridge();
   if (!b) return;
-  const [status, nav, page, lightIcons] = BARS[theme];
+  const { status, nav, page } = pageBars(theme);
+  const lightIcons = theme === "dark";
   try {
     b.setBars(status, nav, page, lightIcons);
   } catch {

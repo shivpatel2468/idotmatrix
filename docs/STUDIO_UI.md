@@ -48,6 +48,50 @@ sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LE
   and `.roam-tip` get it automatically). Seat colours, LED palette swatches and canvases are data, not chrome.
 - Theme changes cross-fade (`html.theme-fade`, 0.35 s; never on first paint, off with reduced motion).
 
+## Page themes (`lib/pageTheme.ts`, `gfx/themes.py`)
+
+Light / dark is *how bright* the studio is; the **page theme** is *its colours*. 21 curated themes — `ember` (DeskDot,
+the default and exactly the original look), studio originals `graphite` (Graphite & ice), `sunset` (Sunset coral),
+`citrus`, and 17 adapted from the casino's table concepts: `royal`, `crimson`, `midnight`, `strip`, `emerald`, `noir`,
+`jade`, `deco`, `marigold`, `cyber`, `arcade`, `sakura`, `glacier`, `oasis`, `abyss`, `volcano`, `galaxy`. Each has a
+light and a dark variant; the Light · Dark · Auto switch keeps working on top.
+
+- **One table, two halves** (`src/deskdot/gfx/themes.py` `PAGE_THEMES`): *screen seeds* — `accent` (on graphite),
+  `accent_light` (on ivory; empty = derived), `metal` (the second accent: gold, silver, brass, neon…), `tint` (the hue
+  the chassis and washes lean to) and `pattern` / `pattern_size` (the page's texture motif: gradients only, ≤ 12 %
+  alpha, one size per layer) — and a *panel palette* for the LED apps (see APP_SDK.md § Page theme). The studio mirrors
+  the seeds in `lib/pageTheme.ts` `PAGE_THEMES`; `tests/test_page_themes.py` keeps them equal.
+- **Derived, not hand-tuned:** `derive()` turns the seeds into every token per mode — `ember` / `ember-2` /
+  `ember-deep` / `ember-line` / `on-ember` (the accent nudged until it reads AA as text on graphite, and on porcelain
+  for light), `gold` / `gold-2` / `gold-text` (the metal; antique in light), the chassis and hairlines tinted 6–14 %
+  toward `tint`, `--m-page-glow` / `--m-wash-a` / `--m-wash-b`, `--m-texture` (the motif; re-inked in the ivory
+  accent for light), `--m-gold-leaf` / `--m-brass` / `--m-champagne` / `--m-rule-gold`, plus the plain pages' short
+  names (`--ember`, `--c0`, `--line`, `--gold`, the launcher's `--rose` / `--tangerine` / `--tan-*`, the web app's
+  `--landing-bg`). Every MATERIALS v2 accent mix (`--m-accent-wash`, halos, focus rings) follows because it is
+  computed from `--color-ember` where it is declared. The few literal accent colours that were left in `index.css`
+  are `color-mix()`es of the tokens now (identical under `ember`).
+- **Scoped and separate from the casino:** the CSS is one stylesheet scoped to
+  `:root[data-page-theme="<id>"]:not([data-cz])` (+ `[data-theme="light"]`, + the `.theme-dark` / `.bezel` subtrees,
+  which keep the dark accent in light). While the casino view is open (`html[data-cz]`) the table theme owns the page,
+  as before; casino.html and the TV never load a page theme. `ember` emits nothing.
+- **Stored on the engine** (`POST /api/theme`, `state.settings.page_theme`), so every device, phone and the Android app
+  show the same theme; `main.tsx` follows the state push (`syncPageTheme`; a push older than this tab's own pick is
+  ignored for 4 s). This browser keeps a fallback copy: `localStorage deskdot.pageTheme` + the generated CSS in
+  `deskdot.pageThemeCss`. An engine that doesn't know themes keeps the pick local (the picker says so).
+- **No flash, no jump:** `index.html` and `launcher.html` paint the cached CSS before the first frame (a `<style
+  id="dd-page-theme">`); `webapp/host.js` and `controller.html` do the same with a constructed stylesheet (CSP-proof).
+  At run time the CSS lives in one `document.adoptedStyleSheets` sheet (a `<style>` where unsupported). A change
+  cross-fades the whole page with a View Transition (`html.page-theme-vt`, 0.42 s; washes and textures included),
+  else the `html.theme-fade` transitions; instant with reduced motion. Colours only — no size or layout changes.
+- **Bars:** `meta[name=theme-color]` and the Android status / navigation bars use the theme's tinted page, header and
+  tab-bar colours (`pageBars()`), on every theme or mode change.
+- **Where:** Settings → Display & colour → **Page theme** (`components/PageThemePicker.tsx` `PageThemeGrid`: a scrolling
+  grid of picture tiles — the page with its motif, a card, the accent bar and key, the metal gem — in the mode on
+  screen, three LED dots with the panel colours from `/api/theme`, a check on the current one, and the hovered /
+  focused theme's description below), the Display menu and the phone **Quick controls** (`PageThemeDots`: a wrapping
+  row of round accent / metal swatches; 32 px on touch screens). The Studio theme tiles draw in the page theme too.
+- **Phone controller / join:** `controller.html` follows the cached theme (its `--ember`), same origin as the studio.
+
 ## Tokens (`web/src/index.css` → `@theme` + `:root[data-theme="light"]`)
 
 | Token | Dark | Light | Use |
@@ -112,6 +156,7 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | `.bezel`, `.screw` | the panel housing (always dark; satin rim + long shadow in light) |
 | `.led-plate` | the LED logo's sign: invisible in dark, a near-black plate with a gold rim in light |
 | `.theme-tile`, `.theme-swatch` | the Studio theme picker (`components/ThemePicker.tsx`) |
+| `.pt-grid`, `.pt-tile`, `.pt-art`, `.pt-leds`, `.pt-dots`, `.pt-dot` | the Page theme picker (`components/PageThemePicker.tsx`) |
 | `.theme-dark` | keep a subtree dark in both themes |
 | `.studio-head`, `.lib-card` | header hairline (gold-tinted in light); library cards that lift on hover |
 | `.icon-tile`, `[data-tone]` | tinted duotone icon tile and its tint families (see Icons) |

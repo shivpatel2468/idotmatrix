@@ -145,6 +145,7 @@ class CI(App):
     icon = "git-branch"
     category = "productivity"
     Settings = CISettings
+    follows_theme = True  # its accent is chrome: the page theme's accent (docs/APP_SDK.md § Page theme)
     fps = 8.0  # marquees move 1 px per frame; static screens are deduped, so rest costs nothing
     uses = ("ci",)
 
@@ -202,13 +203,13 @@ class CI(App):
         p, repos = self._data()
         self._check_events(p)
         if not self.repos:
-            setup_screen(f, t, "ci", "CI", "ADD REPO", ACCENT)
+            setup_screen(f, t, "ci", "CI", "ADD REPO", self.themed("accent", ACCENT))
             return
         if not repos:
             if p is not None and p.error:
                 offline_screen(f, "ci", "GITHUB", "LIMIT" if "rate limit" in p.error else "OFFLINE")
             else:
-                loading(f, t, "CI", ACCENT)
+                loading(f, t, "CI", self.themed("accent", ACCENT))
             return
         {"tiles": self._tiles, "big": self._big, "verdict": self._verdict, "list": self._list}[
             self.settings.layout
@@ -226,7 +227,7 @@ class CI(App):
         n = len(entries)
         green = sum(1 for e in entries if e.get("state") == "pass")
         red = sum(1 for e in entries if e.get("state") == "fail")
-        f.text(1, 1, "CI", ACCENT)
+        f.text(1, 1, "CI", self.themed("accent", ACCENT))
         head = f"{green}/{n}"
         f.text_right(
             30, 1, head, PALETTE["bad"] if red else PALETTE["ok"] if green == n else PALETTE["amber"]

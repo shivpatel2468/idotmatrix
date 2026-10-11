@@ -14,7 +14,7 @@ import json
 import math
 import re
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field, field_validator
@@ -309,6 +309,10 @@ class Holidays(App):
     icon = "party-popper"
     category = "time"
     Settings = HolidaysSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "accent": "accent",
+        "text_color": "text",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
     uses = ("holidays",)
     clip_fps = 10.0

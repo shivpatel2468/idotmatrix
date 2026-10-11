@@ -8,6 +8,7 @@ import { useFly } from "../lib/fly";
 import { Sheet } from "./Sheet";
 import { FlyToggle, RoamSign } from "./FlyToggle";
 import { NeonMark } from "./NeonMark";
+import { PageThemeDots } from "./PageThemePicker";
 import { ThemeSeg } from "./ThemePicker";
 import { DisplayMenu } from "./DisplayMenu";
 import { SafetySwitch } from "./SafetySwitch";
@@ -176,6 +177,8 @@ function QuickSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
         <section className="qs-card">
           <div className="engrave mb-2.5 !text-[9px] !text-ink-3">Studio theme</div>
           <ThemeSeg />
+          <div className="engrave mb-2.5 mt-3.5 !text-[9px] !text-ink-3">Page theme</div>
+          <PageThemeDots />
         </section>
         <section className="qs-card">
           <div className="engrave mb-2.5 !text-[9px] !text-ink-3">Fruit fly</div>

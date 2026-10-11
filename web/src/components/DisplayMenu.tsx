@@ -8,6 +8,7 @@ import { openSettings, type SettingsTab } from "../lib/store";
 import { usePhone } from "../lib/useMedia";
 import { LedPanel } from "./LedPanel";
 import { Sheet } from "./Sheet";
+import { PageThemeDots } from "./PageThemePicker";
 import { ThemeSeg } from "./ThemePicker";
 
 /** The panel's own settings, one tap further: they live in Settings → Display & colour. */
@@ -162,6 +163,12 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
       <section className="flex flex-col gap-1.5">
         <span className="text-[12.5px] font-[560] text-ink-1">Studio theme</span>
         <ThemeSeg className="!p-1 [&>button]:!h-8" />
+      </section>
+
+      {/* the page theme: every device, and the panel's apps that follow it (lib/pageTheme.ts) */}
+      <section className="flex flex-col gap-1.5">
+        <span className="text-[12.5px] font-[560] text-ink-1">Page theme</span>
+        <PageThemeDots />
       </section>
 
       {/* 3 · everything else, behind one disclosure */}

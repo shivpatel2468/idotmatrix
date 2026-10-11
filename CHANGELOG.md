@@ -3,6 +3,30 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme
+
+- **Page themes** (studio-wide, separate from the casino's table themes): 21 themes in `gfx/themes.py` `PAGE_THEMES`
+  (`ember` = the original look and the default; studio originals `graphite`, `sunset`, `citrus`; 17 adapted table
+  concepts). Each has screen seeds (accent, accent_light, metal, tint, gradient-only pattern) and an LED
+  `PanelPalette` (accent, accent2, accent3, text, mute, soft ≥ 100, track ≥ 45). `GET/POST /api/theme` (422 on
+  unknown ids), `state.settings.page_theme`, MCP tool `page_theme`. Engine: `set_page_theme()` stores the pick at
+  once; the panel follows after 1.2 s of quiet and at most every 6 s (`THEME_SETTLE_S`, `THEME_MIN_GAP_S`) so clip
+  re-bakes stay within the GIF upload budget. Studio: `lib/pageTheme.ts` (mirror of the seeds, `derive()` with AA
+  checks, `themeCss()` scoped to `:root[data-page-theme]:not([data-cz])`, one adopted stylesheet, View Transition
+  cross-fade, engine sync with a local fallback in `deskdot.pageTheme` / `deskdot.pageThemeCss`), first paint from the
+  cache in `index.html`, `launcher.html`, `webapp/host.js` and `controller.html`; `components/PageThemePicker.tsx`
+  (Settings grid with LED dots, Display menu + Quick controls dot rows); `meta theme-color` and the Android bars use
+  the tinted colours (`pageBars()`); remaining literal accent colours in `index.css` became token mixes; the dark
+  body uses `--m-texture`. docs/STUDIO_UI.md § Page themes.
+- **Apps follow the page theme** (docs/APP_SDK.md § Page theme): `App.theme_colors` ({colour setting: role}, applied by
+  `themed_settings()` to fields still at their default — stored settings untouched), `App.follows_theme`,
+  `App.theme` / `App.themed(role, own)`, an auto-added `follow_theme` switch per theme-aware app (opt-out),
+  `clip_key()` includes the theme, previews and `deskdot preview --theme` render in it. Wired: clock, countdown,
+  fiveoclock, holidays, timer, calendar, habits, sysmon, currency, uptime, ci, hassentity, airquality, weather,
+  space, quakes, rainradar, headlines, daily, trivia, text, fontlab, visualizer (new "Page theme" palette), loops,
+  nowplaying, native. Not following: casino, games (genre themes), pets, photos / gallery, flags, agent.
+  `tests/test_page_themes.py`.
+
 ## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
 
 - **Themes:** a light theme ("Gallery") beside dark, one switch Light · Dark · Auto (`web/src/lib/theme.ts`, key

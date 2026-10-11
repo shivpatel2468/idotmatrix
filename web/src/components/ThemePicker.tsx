@@ -1,4 +1,5 @@
 import { Monitor, Moon, Sun } from "lucide-react";
+import { derive, pageThemeSeed, usePageTheme } from "../lib/pageTheme";
 import { THEME_CHOICES, type ThemePref, setThemePref, useThemePref } from "../lib/theme";
 
 const ICON: Record<ThemePref, React.ReactNode> = {
@@ -7,8 +8,9 @@ const ICON: Record<ThemePref, React.ReactNode> = {
   system: <Monitor size={13} />,
 };
 
-/** A tiny picture of the studio in each theme (fixed colours on purpose: it shows the other theme too). */
+/** A tiny picture of the studio in each theme (it shows the other theme too), in the current page theme. */
 function Swatch({ id }: { id: ThemePref }) {
+  const pt = derive(pageThemeSeed(usePageTheme()));
   const room = (bg: string, panel: string, line: string, accent: string, ink: string) => (
     <>
       <i style={{ inset: 0, borderRadius: 0, background: bg }} />
@@ -21,8 +23,8 @@ function Swatch({ id }: { id: ThemePref }) {
       <i style={{ left: "11%", top: "39%", width: "10%", height: 2, background: ink, opacity: 0.25 }} />
     </>
   );
-  const light = room("#f4f0e8", "#ffffff", "#e7e1d6", "#b81f4b", "#1c1a22");
-  const dark = room("#08080a", "#16161b", "#25252d", "#ff4818", "#efece4");
+  const light = room(pt.light.c0, "#ffffff", pt.light.lineA, pt.light.accent, "#1c1a22");
+  const dark = room(pt.dark.c0, pt.dark.c2, pt.dark.lineA, pt.dark.accent, "#efece4");
   return (
     <span className="theme-swatch" aria-hidden>
       {id === "system" ? (

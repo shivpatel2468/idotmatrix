@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -97,6 +97,7 @@ class Countdown(App):
     icon = "hourglass"
     category = "time"
     Settings = CountdownSettings
+    theme_colors: ClassVar[dict[str, str]] = {"color": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
 
     def render(self, f: Frame, t: float) -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from ..device import protocol as P
@@ -40,6 +42,7 @@ class Native(App):
     icon = "microchip"
     category = "device"
     Settings = NativeSettings
+    theme_colors: ClassVar[dict[str, str]] = {"color": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
 
     def kind(self) -> Kind:
         return "native"

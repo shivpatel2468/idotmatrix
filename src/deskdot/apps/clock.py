@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import random
 from datetime import datetime
+from typing import ClassVar
 
 from pydantic import Field
 
@@ -46,6 +47,7 @@ class Clock(App):
     icon = "clock"
     category = "time"
     Settings = ClockSettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
 
     def _hm(self, now: datetime) -> tuple[str, str]:

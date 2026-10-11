@@ -3,11 +3,17 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { installDeepLinks } from "./lib/deeplink";
 import { installStudioSounds } from "./lib/studioSound";
+import { installPageTheme, syncPageTheme } from "./lib/pageTheme";
+import { useStore } from "./lib/store";
 import { installTheme } from "./lib/theme";
 import "./index.css";
 
-// light / dark / auto (index.html already set it before first paint; this keeps it live)
+// the page theme (index.html painted the cached copy before first paint; this re-derives it and keeps it live),
+// then light / dark / auto (likewise)
+installPageTheme();
 installTheme();
+// the engine owns the page theme: every device follows its pick (docs/STUDIO_UI.md § Page themes)
+useStore.subscribe((s) => syncPageTheme(s.state?.settings?.page_theme));
 
 // The studio was rebuilt while this page was open: its lazy chunks (e.g. the 3D code) have new names, so the old
 // ones 404. Reload once to pick up the new build instead of failing (guarded so it can never loop).

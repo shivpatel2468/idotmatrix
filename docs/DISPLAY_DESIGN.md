@@ -53,6 +53,13 @@ Rules:
 - **Photos only**: `calibrate(img, "vibrant"|"natural")` (gamma 2.2, WB 1.0/0.88/0.82, black crush < 10).
   Pixel art is detected automatically and left raw.
 
+### Page themes on the panel
+
+Apps that follow the page theme (APP_SDK.md § Page theme) take their chrome colours from the theme's `PanelPalette`
+instead of fixed tokens. The palettes obey this section: accents saturated and never near-white, `text` near white,
+`soft` ≥ 100 and `track` ≥ 45 at the brightest channel (`tests/test_page_themes.py`). Semantic colours (`ok`, `bad`,
+up / down, teams, suits) never follow a theme.
+
 ### Dark tones and the panel calibration
 
 The user's panel calibration uses gamma 1.5, which crushes dark colours: (44, 44, 54) comes out around

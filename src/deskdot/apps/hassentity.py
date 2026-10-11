@@ -10,7 +10,7 @@ on/off.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -114,6 +114,7 @@ class HassEntity(App):
     icon = "house"
     category = "data"
     Settings = HassSettings
+    theme_colors: ClassVar[dict[str, str]] = {"color": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
     uses = ("homeassistant",)
 

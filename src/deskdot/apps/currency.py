@@ -270,6 +270,7 @@ class Currency(App):
     icon = "banknote"
     category = "data"
     Settings = CurrencySettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
     uses = ("currency",)
     GRID: ClassVar[dict[int, tuple[int, int]]] = {1: (1, 1), 2: (1, 2), 3: (1, 3), 4: (2, 2)}

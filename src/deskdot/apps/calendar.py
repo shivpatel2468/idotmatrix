@@ -89,6 +89,7 @@ class Calendar(App):
     icon = "calendar-clock"
     category = "productivity"
     Settings = CalendarSettings
+    follows_theme = True  # its accent is chrome: the page theme's accent (docs/APP_SDK.md § Page theme)
     fps = FPS
     uses = ("calendar",)
 
@@ -207,8 +208,8 @@ class Calendar(App):
         if cur is not None:
             total = cur["end"] - cur["start"]
             left = cur["end"] - now
-            self._ring(f, left / total if total else 0, NOW_C)
-            f.text_center(3, "NOW", NOW_C)
+            self._ring(f, left / total if total else 0, self.themed("accent", NOW_C))
+            f.text_center(3, "NOW", self.themed("accent", NOW_C))
             f.text_center(10, countdown(left), WHITE, font="small")
             label_col = mix(col, WHITE, 0.2)
         else:
@@ -235,7 +236,7 @@ class Calendar(App):
             col = CAL_COLORS[e.get("cal", 0) % len(CAL_COLORS)]
             on = e["start"] <= now
             head = "NOW" if on else self._hm(e["start"])
-            f.text(1, y, head, NOW_C if on else col)
+            f.text(1, y, head, self.themed("accent", NOW_C) if on else col)
             cd = countdown((e["end"] if on else e["start"]) - now)
             if measure(head) + measure(cd) + 3 <= 30:
                 f.text_right(30, y, cd, MUTE)

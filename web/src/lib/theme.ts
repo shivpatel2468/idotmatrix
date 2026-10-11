@@ -10,6 +10,7 @@
  */
 import { useSyncExternalStore } from "react";
 import { syncSystemBars } from "./android";
+import { onPageTheme, pageBars } from "./pageTheme";
 
 export type ThemePref = "light" | "dark" | "system";
 export type Theme = "light" | "dark";
@@ -21,8 +22,8 @@ export const THEME_CHOICES: { id: ThemePref; name: string; hint: string }[] = [
   { id: "system", name: "Auto", hint: "Follow this device" },
 ];
 
-/** The browser-bar colour per theme (meta theme-color): the page colour, chassis-0. */
-const BAR: Record<Theme, string> = { dark: "#0c0c0f", light: "#f4f0e8" };
+/** The browser-bar colour (meta theme-color): the page colour, chassis-0 — tinted by the page theme (lib/pageTheme.ts). */
+const bar = (theme: Theme) => pageBars(theme).page;
 
 const media = typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: light)") : null;
 
@@ -50,7 +51,7 @@ function apply(theme: Theme, animate: boolean) {
   }
   root.dataset.theme = theme;
   root.style.colorScheme = theme;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", BAR[theme]);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", bar(theme));
   syncSystemBars(theme);
   current = theme;
   listeners.forEach((l) => l());
@@ -72,6 +73,11 @@ export function installTheme() {
   syncSystemBars(current); // index.html already applied the theme (apply() skipped): still tell the Android app
   media?.addEventListener?.("change", () => getThemePref() === "system" && apply(resolveTheme("system"), true));
   window.addEventListener("storage", (e) => e.key === THEME_KEY && apply(resolveTheme(getThemePref()), true));
+  // a page theme tints the page: the browser bar and the Android system bars follow it too
+  onPageTheme(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", bar(current));
+    syncSystemBars(current);
+  });
 }
 
 const subscribe = (l: () => void) => (listeners.add(l), () => void listeners.delete(l));

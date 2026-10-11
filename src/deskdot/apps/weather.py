@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import math
 import random
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -157,6 +157,7 @@ class Weather(App):
     icon = "cloud-sun"
     category = "data"
     Settings = WeatherSettings
+    theme_colors: ClassVar[dict[str, str]] = {"accent": "accent"}  # page theme (docs/APP_SDK.md § Page theme)
     fps = 5.0
     uses = ("weather",)
     clip_fps = FPS

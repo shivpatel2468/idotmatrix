@@ -39,6 +39,7 @@ Claude ──MCP (stdio)──▶ deskdot-mcp ──HTTP──▶ DeskDot engine
 | `notify(message, title, color, icon, duration, style)` | overlay banner / full-screen card |
 | `agent_state(state, hold_seconds?)` | Claude mascot: idle, thinking, working, waiting, done, error, sleeping |
 | `set_display(brightness, power, flip, transition)` | panel-level settings |
+| `page_theme(theme?)` | list the page themes / switch one: the studio's colours on every device, and the panel's apps that follow it (clocks, dashboards, text apps; photos, flags, games and the casino keep their own) |
 | `playlist(op)` / `set_playlist(items, enabled)` | inspect, control or replace the rotation |
 | `presets(action, preset?, shuffle?, name?)` | list / play / save / delete one-tap playlists ("play every game", "all pets", "chill") |
 | `show_image(path)` | upload a local image/GIF and show it |

@@ -224,6 +224,19 @@ def set_display(
 
 
 @mcp.tool()
+def page_theme(theme: str | None = None) -> dict[str, Any]:
+    """Get or set the page theme: the colours of the studio, the phone app, the launcher — and of the panel's apps
+    that follow it (clocks, dashboards, data and text apps recolour; photos, flags, games and the casino keep their
+    own). Omit `theme` to list the themes ({id, name, description}) and see the current one; pass an id to switch."""
+    r = _call("POST", "/api/theme", json={"id": theme}) if theme else _call("GET", "/api/theme")
+    return {
+        "current": r["id"],
+        "on_panel": r["panel"],
+        "themes": [{k: t[k] for k in ("id", "name", "description")} for t in r["themes"]],
+    }
+
+
+@mcp.tool()
 def playlist(op: Literal["get", "play", "stop", "next", "prev"] = "get") -> dict[str, Any]:
     """Inspect or control the rotating playlist of apps."""
     if op == "get":
