@@ -178,6 +178,10 @@ class ActivateBody(BaseModel):
     revert_after: float | None = Field(default=None, ge=1, le=3600)
 
 
+class ThemeBody(BaseModel):
+    id: str = Field(min_length=1, max_length=40, pattern=r"^[a-z0-9_-]+$", description="a page theme id")
+
+
 class DisplayPatch(BaseModel):
     max_fps: float | None = Field(default=None, ge=0.5, le=30)
     packet_gap_ms: float | None = Field(default=None, ge=0, le=200)
@@ -1276,6 +1280,19 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
             phub.get("audio").restart()  # type: ignore[attr-defined]
         engine.changed()
         return engine.snapshot()["settings"]
+
+    # -------------------------------------------------------------- page theme
+    @app.get("/api/theme")
+    async def get_theme() -> dict[str, Any]:
+        """The page theme (docs/STUDIO_UI.md § Page themes): the pick, the one on the panel, and every theme."""
+        return engine.theme_info()
+
+    @app.post("/api/theme")
+    async def set_theme(body: ThemeBody) -> dict[str, Any]:
+        try:
+            return engine.set_page_theme(body.id)
+        except KeyError:
+            raise HTTPException(422, f"unknown page theme {body.id!r}") from None
 
     # ----------------------------------------------------------------- display
     @app.patch("/api/display")

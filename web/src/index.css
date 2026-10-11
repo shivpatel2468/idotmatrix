@@ -260,6 +260,14 @@
   --m-emboss: 0 1px 0 rgba(0, 0, 0, 0.55); --m-champagne: #2a2418;
 }
 
+/* page themes (lib/pageTheme.ts, docs/STUDIO_UI.md § Page themes) swap with a View Transition: the old page fades
+   into the new one in one piece (washes and textures included), nothing moves, nothing flashes */
+html.page-theme-vt::view-transition-old(root),
+html.page-theme-vt::view-transition-new(root) { animation-duration: 0.42s; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  html.page-theme-vt::view-transition-old(root), html.page-theme-vt::view-transition-new(root) { animation: none; }
+}
+
 /* theme changes cross-fade (lib/theme.ts adds this class for ~400 ms; never on first paint) */
 html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
   transition: background-color 0.35s ease, border-color 0.35s ease, color 0.25s ease, box-shadow 0.35s ease, fill 0.25s ease !important;
@@ -284,8 +292,8 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     overflow: hidden;
     background-image:
       radial-gradient(1200px 700px at 50% 38%, var(--m-page-glow), transparent 60%),
-      radial-gradient(circle at 1px 1px, var(--m-page-dots) 1px, transparent 0);
-    background-size: auto, 22px 22px;
+      var(--m-texture);
+    background-size: auto, var(--m-texture-size);
   }
   /* light: a gallery wall — warm daylight from the top, a rose bloom behind the panel, gold light pooling in two
      corners, a soft umber vignette, a fine dot grid over linen. All static gradients: painted once. */
@@ -577,6 +585,49 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
 .theme-swatch { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0, 0, 0, 0.08); }
 .theme-swatch i { position: absolute; display: block; border-radius: 3px; }
 
+/* the page theme picker (components/PageThemePicker.tsx): picture tiles of the studio in each theme, and a dot row */
+.pt-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px;
+  max-height: 404px; overflow-y: auto; padding: 2px; margin: -2px; overscroll-behavior: contain;
+}
+.pt-tile {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 5px 5px 7px; border-radius: 12px; text-align: left;
+  border: 1px solid var(--color-line); background: var(--color-chassis-1);
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.2s var(--ease-snap);
+}
+.pt-tile:hover { border-color: var(--color-line-2); transform: translateY(-1px); }
+.pt-tile:focus-visible { outline: none; box-shadow: var(--m-focus-ring); }
+.pt-tile[data-on] { border-color: var(--color-ember); box-shadow: var(--m-accent-halo), 0 0 0 1px var(--color-ember); background: var(--m-accent-wash); }
+.pt-name { display: flex; align-items: center; gap: 4px; padding: 0 3px; font-size: 11.5px; font-weight: 600; line-height: 1.2; color: var(--color-ink-1); }
+.pt-check { margin-left: auto; flex-shrink: 0; color: var(--color-ember); }
+.pt-leds { position: absolute; top: 9px; right: 9px; display: flex; gap: 3px; padding: 3px 4px; border-radius: 99px; background: #050507; }
+.pt-leds i { width: 5px; height: 5px; border-radius: 50%; }
+.pt-art {
+  position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden;
+  background: var(--pt-pat), radial-gradient(90% 80% at 50% 30%, color-mix(in srgb, var(--pt-acc) 14%, transparent), transparent 70%), var(--pt-bg);
+  background-size: var(--pt-pat-size), 100% 100%, 100% 100%;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pt-line) 80%, transparent);
+}
+.pt-art i { position: absolute; display: block; border-radius: 3px; }
+.pt-art .pt-card { left: 9%; top: 16%; width: 46%; bottom: 16%; background: var(--pt-card); box-shadow: 0 0 0 1px var(--pt-line), 0 4px 8px -4px rgba(0, 0, 0, 0.35); }
+.pt-art .pt-bar { left: 15%; top: 26%; width: 22%; height: 3px; background: var(--pt-acc); }
+.pt-art .pt-line1 { left: 15%; top: 40%; width: 30%; height: 2px; background: var(--pt-line); }
+.pt-art .pt-line2 { left: 15%; top: 50%; width: 24%; height: 2px; background: var(--pt-line); }
+.pt-art .pt-key { left: 15%; bottom: 24%; width: 18%; height: 11%; border-radius: 3px; background: var(--pt-acc); box-shadow: 0 0 10px -2px var(--pt-acc); }
+.pt-art .pt-gem { right: 13%; top: 30%; width: 22%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--pt-metal) 40%, #fff), var(--pt-metal) 55%, color-mix(in srgb, var(--pt-metal) 60%, #000)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pt-metal) 35%, transparent); }
+:root[data-theme="light"] .pt-tile { background: var(--m-card-bg); box-shadow: var(--m-bevel), var(--m-card-shadow); }
+:root[data-theme="light"] .pt-tile[data-on] { background: var(--m-accent-wash); box-shadow: inset 0 1px 0 #fff, var(--m-focus-ring), 0 14px 26px -14px color-mix(in oklab, var(--color-ember) 55%, transparent); }
+.pt-dots { display: flex; flex-wrap: wrap; gap: 7px; }
+.pt-dot {
+  position: relative; width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--pt-acc) 0 52%, var(--pt-metal) 52% 100%);
+  box-shadow: inset 0 0 0 2px var(--pt-bg), 0 0 0 1px var(--color-line-2);
+  transition: transform 0.2s var(--ease-snap), box-shadow 0.2s;
+}
+.pt-dot:hover { transform: scale(1.1); }
+.pt-dot[data-on] { box-shadow: inset 0 0 0 2px var(--pt-bg), 0 0 0 2px var(--color-ember), 0 0 12px -2px var(--color-ember); }
+@media (pointer: coarse) { .pt-dots { gap: 9px; } .pt-dot { width: 32px; height: 32px; } }
+
 /* ------------------------------------------------------------- resizable splitters */
 .splitter { position: relative; width: 10px; margin: 0 -2px; cursor: col-resize; flex-shrink: 0; touch-action: none; }
 .splitter::after {
@@ -602,14 +653,14 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     radial-gradient(45% 45% at 75% 60%, rgba(0, 200, 255, 0.08), transparent 70%),
     linear-gradient(180deg, #0d0d12, #07070a);
 }
-.nowplaying .np-panel { filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(249, 74, 24, 0.18)); }
+.nowplaying .np-panel { filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px color-mix(in srgb, var(--color-ember) 18%, transparent)); }
 :root[data-theme="light"] .nowplaying .np-wash {
   background:
-    radial-gradient(60% 55% at 30% 45%, rgba(214, 56, 106, 0.13), transparent 70%),
-    radial-gradient(45% 45% at 75% 60%, rgba(184, 137, 42, 0.12), transparent 70%),
+    radial-gradient(60% 55% at 30% 45%, color-mix(in srgb, var(--color-ember-2) 13%, transparent), transparent 70%),
+    radial-gradient(45% 45% at 75% 60%, color-mix(in srgb, var(--color-gold) 12%, transparent), transparent 70%),
     linear-gradient(180deg, #fbf9f5, #efe9df);
 }
-:root[data-theme="light"] .nowplaying .np-panel { filter: drop-shadow(0 30px 50px rgba(40, 30, 16, 0.35)) drop-shadow(0 0 50px rgba(214, 56, 106, 0.16)); }
+:root[data-theme="light"] .nowplaying .np-panel { filter: drop-shadow(0 30px 50px rgba(40, 30, 16, 0.35)) drop-shadow(0 0 50px color-mix(in srgb, var(--color-ember-2) 16%, transparent)); }
 .nowplaying .np-play:hover:not(:disabled) { transform: scale(1.06); }
 .nowplaying .np-play:disabled { opacity: 0.4; }
 
@@ -634,7 +685,7 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
 .opening-scan { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .opening-scan::before {
   content: ""; position: absolute; left: 0; right: 0; height: 40%;
-  background: linear-gradient(180deg, transparent, rgba(255, 72, 24, 0.22), transparent);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-ember) 22%, transparent), transparent);
   animation: scan-y 1.1s linear infinite;
 }
 
@@ -672,7 +723,7 @@ summary::-webkit-details-marker { display: none; }
 /* ------------------------------------------------------------- Play mode (focused game view) */
 .playmode {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(255, 72, 24, 0.07), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 45%, color-mix(in srgb, var(--color-ember) 7%, transparent), transparent 70%),
     radial-gradient(ellipse at 50% 50%, #0d0d11 0%, #050506 75%);
   overscroll-behavior: contain;
 }
@@ -680,7 +731,7 @@ summary::-webkit-details-marker { display: none; }
 :root[data-theme="light"] .playmode {
   background:
     radial-gradient(ellipse 60% 55% at 50% 42%, rgba(255, 255, 255, 0.95), transparent 70%),
-    radial-gradient(ellipse 80% 70% at 50% 45%, rgba(214, 56, 106, 0.06), transparent 75%),
+    radial-gradient(ellipse 80% 70% at 50% 45%, color-mix(in srgb, var(--color-ember-2) 6%, transparent), transparent 75%),
     radial-gradient(ellipse at 50% 50%, #f7f3ec 0%, #e9e2d6 85%);
 }
 .bezel-play { padding: var(--bz, 22px); }
@@ -858,7 +909,7 @@ summary::-webkit-details-marker { display: none; }
   background: var(--color-line-2); transition: background 0.15s, top 0.2s, bottom 0.2s, box-shadow 0.2s;
 }
 .fly-split:hover > span, .fly-split:focus-visible > span, .fly-split[data-drag="true"] > span {
-  top: 10%; bottom: 10%; background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember), 0 0 22px rgba(255, 72, 24, 0.5);
+  top: 10%; bottom: 10%; background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember), 0 0 22px color-mix(in srgb, var(--color-ember) 50%, transparent);
 }
 /* quick controls in a scene's header */
 .fly-mini {
@@ -983,7 +1034,7 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
 .roam-tip {
   pointer-events: none; display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 10px;
   font-size: 12px; white-space: nowrap; color: var(--color-ink-1);
-  background: rgba(14, 14, 20, 0.88); border: 1px solid rgba(255, 72, 24, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: rgba(14, 14, 20, 0.88); border: 1px solid color-mix(in srgb, var(--color-ember) 45%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 0 18px -6px var(--color-ember); transition: opacity 0.2s ease;
 }
 .roam-tip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-ember-2); }
@@ -1415,7 +1466,7 @@ body { overscroll-behavior: none; }
 :root[data-theme="light"] .m-medallion {
   width: 3.25rem; height: 3.25rem; color: var(--color-gold-text); border-color: color-mix(in oklab, var(--color-gold) 45%, #fff);
   background: radial-gradient(circle at 50% 28%, #fff 0 30%, var(--m-champagne) 72%, color-mix(in oklab, var(--color-gold-2) 60%, var(--m-champagne)));
-  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(184, 137, 42, 0.18), 0 0 0 4px rgba(255, 255, 255, 0.7),
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 4px color-mix(in srgb, var(--color-gold) 18%, transparent), 0 0 0 4px rgba(255, 255, 255, 0.7),
     0 0 0 5px color-mix(in oklab, var(--color-gold) 25%, transparent), 0 12px 24px -12px rgba(64, 48, 24, 0.4);
 }
 

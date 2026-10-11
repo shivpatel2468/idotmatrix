@@ -721,6 +721,25 @@ canvas.av{display:block;image-rendering:pixelated}
   try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
   try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.theme") apply(); }); } catch (_) {}
 })();
+// The page theme (docs/STUDIO_UI.md § Page themes): the studio caches its stylesheet (deskdot.pageThemeCss, same
+// origin); it re-points --ember (and the chassis) under html[data-page-theme]. No studio visit yet: the default look.
+(() => {
+  let sheet = null;
+  const paint = () => {
+    let id = "", css = "";
+    try { id = localStorage.getItem("deskdot.pageTheme") || ""; css = localStorage.getItem("deskdot.pageThemeCss") || ""; } catch (_) {}
+    const root = document.documentElement;
+    if (!id || id === "ember" || !css) { delete root.dataset.pageTheme; css = ""; } else root.dataset.pageTheme = id;
+    try {
+      if (document.adoptedStyleSheets && window.CSSStyleSheet && "replaceSync" in CSSStyleSheet.prototype) {
+        if (!sheet) { sheet = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]; }
+        sheet.replaceSync(css);
+      }
+    } catch (_) {}
+  };
+  paint();
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.pageThemeCss") paint(); }); } catch (_) {}
+})();
 
 // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
 // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops

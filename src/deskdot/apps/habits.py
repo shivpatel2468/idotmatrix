@@ -15,7 +15,7 @@ import json
 import math
 import time
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -77,6 +77,11 @@ class Habits(App):
     icon = "flame"
     category = "productivity"
     Settings = HabitsSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "color1": "accent",
+        "color2": "accent2",
+        "color3": "accent3",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 12.0
     clip_seconds = 2.0
     clip_fps = 6.0

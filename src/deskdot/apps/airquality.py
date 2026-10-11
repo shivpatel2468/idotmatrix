@@ -8,7 +8,7 @@ pollutant page when the model provides it and is simply absent elsewhere.
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -164,6 +164,9 @@ class AirQuality(App):
     icon = "wind"
     category = "data"
     Settings = AirQualitySettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "label_color": "mute"
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
     uses = ("airquality",)
 

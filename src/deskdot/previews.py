@@ -14,6 +14,7 @@ import time
 from typing import Any
 
 from .engine import REGISTRY
+from .engine.app import themed_settings
 from .gfx import Frame
 from .gfx.image import encode_gif
 
@@ -31,6 +32,10 @@ class PreviewContext:
 
     def provider(self, name: str) -> Any:
         return self._engine.hub.get(name)
+
+    @property
+    def page_theme(self) -> Any:
+        return self._engine.panel_theme  # previews show the apps in the page theme, like the panel
 
     def save(self) -> None: ...
     def invalidate(self) -> None: ...
@@ -60,6 +65,7 @@ class Previews:
             settings = cls.Settings.model_validate({**self.engine.base_settings(app_id), **cls.preview_patch})
         except Exception:
             settings = cls.Settings()
+        settings = themed_settings(cls, settings, self.engine.panel_theme)
         app = cls(ctx, settings)  # type: ignore[arg-type]
         frames_out: list[Frame] = []
         if self._is_clip(app):
@@ -90,7 +96,7 @@ class Previews:
             return False
 
     async def get(self, app_id: str) -> bytes:
-        key = json.dumps(self.engine.base_settings(app_id), sort_keys=True)
+        key = json.dumps(self.engine.base_settings(app_id), sort_keys=True) + "|" + self.engine.panel_theme.id
         hit = self._cache.get(app_id)
         if hit and hit[1] == key and time.monotonic() - hit[0] < self.TTL:
             return hit[2]

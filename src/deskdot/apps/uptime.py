@@ -104,6 +104,7 @@ class Uptime(App):
     icon = "activity"
     category = "productivity"
     Settings = UptimeSettings
+    follows_theme = True  # its accent is chrome: the page theme's accent (docs/APP_SDK.md § Page theme)
     fps = 8.0  # smooth marquees; static screens are deduped, so this costs nothing at rest
     uses = ("uptime",)
 
@@ -222,13 +223,13 @@ class Uptime(App):
         if self._flash_pending:
             self._flash_pending, self._flash_at = False, t
         if not self.targets:
-            setup_screen(f, t, "uptime", "UPTIME", "ADD URL", ACCENT)
+            setup_screen(f, t, "uptime", "UPTIME", "ADD URL", self.themed("accent", ACCENT))
             return
         if not any(st for _t, st in rows):
             if p is not None and p.error:
                 offline_screen(f, "uptime", "UPTIME", "ERROR")
             else:
-                loading(f, t, "UPTIME", ACCENT)
+                loading(f, t, "UPTIME", self.themed("accent", ACCENT))
             return
         {"list": self._list, "grid": self._grid, "focus": self._focus}[self.settings.layout](f, t, rows)
         self._outage_edge(f, t, rows)
@@ -277,7 +278,7 @@ class Uptime(App):
         n = len(rows)
         up = sum(1 for _t, st in rows if st and st.get("up"))
         down = sum(1 for _t, st in rows if st and st.get("up") is False)
-        f.text(1, 1, "UP", ACCENT)
+        f.text(1, 1, "UP", self.themed("accent", ACCENT))
         f.text_right(30, 1, f"{up}/{n}", DOWN if down else UP if up == n else SLOW)
         cols = 1 if n == 1 else 2 if n <= 4 else 3 if n <= 9 else 4
         nrows = -(-n // cols)

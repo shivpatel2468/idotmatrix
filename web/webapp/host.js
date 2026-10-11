@@ -22,6 +22,17 @@
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.style.colorScheme = t;
   } catch { /* never block the host */ }
+  // The page theme (web/src/lib/pageTheme.ts) the studio cached on the last visit, before first paint. A constructed
+  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads.
+  try {
+    const id = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
+    if (id && id !== "ember" && css && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+      document.documentElement.setAttribute("data-page-theme", id);
+    }
+  } catch { /* the default look */ }
 
   // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
   // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops

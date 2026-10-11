@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import Field
 
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, mix, scale
 from ..platforms import FEATURES
-from ._kit import loading, offline, unsupported
+from ._kit import INFO, loading, offline, unsupported
 
 #: bar tracks and the graph baseline: dim but still lit through the panel's gamma (see DISPLAY_DESIGN §3)
 TRACK_K = 0.3
@@ -38,6 +40,11 @@ class Sysmon(App):
     icon = "cpu"
     category = "data"
     Settings = SysmonSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "cpu_color": "accent",
+        "ram_color": "accent2",
+        "disk_color": "accent3",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
     uses = ("system",)
     platforms = FEATURES["system"]  # psutil: every native host, not the browser app
@@ -50,7 +57,7 @@ class Sysmon(App):
         p = self.ctx.provider("system")
         d = p.value
         if not d:
-            (offline(f, "SYSTEM", "N/A") if p.error else loading(f, t, "SYSTEM"))
+            (offline(f, "SYSTEM", "N/A") if p.error else loading(f, t, "SYSTEM", self.themed("accent", INFO)))
             return
         (self._graph if self.settings.layout == "graph" else self._bars)(f, d)
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -80,6 +80,10 @@ class Timer(App):
     icon = "timer"
     category = "productivity"
     Settings = TimerSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "focus_color": "accent",
+        "break_color": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 2.0
     actions = (
         Action("toggle", "Start/Pause", "play"),

@@ -249,6 +249,11 @@ class Daily(App):
     icon = "quote"
     category = "productivity"
     Settings = DailySettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "accent": "accent",
+        "text_color": "text",
+        "punch_color": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 4.0
     uses = ("daily",)
     clip_colors = 32

@@ -38,9 +38,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, create_model, model_validator
 
-from ..gfx import Frame
+from ..gfx import Frame, to_rgb
+from ..gfx.color import RGB, ColorLike
+from ..gfx.themes import DEFAULT_THEME, ROLES, PageTheme
 
 if TYPE_CHECKING:
     from .runtime import AppContext
@@ -155,6 +157,12 @@ class App:
     preview_patch: ClassVar[dict[str, Any]] = {}
     #: library / website previews: (first render time s, seconds to show, frames per second); None = the default
     preview_span: ClassVar[tuple[float, float, float] | None] = None
+    #: page theme (docs/APP_SDK.md § Page theme): {colour setting: role}. While a setting is at its default, it takes
+    #: the page theme's LED colour for that role (roles: gfx.themes.ROLES). A changed colour is the person's: kept.
+    theme_colors: ClassVar[dict[str, str]] = {}
+    #: True: the app's own code also asks for themed colours (`self.themed(role, own)`). Apps with `theme_colors` follow
+    #: automatically. Leave both empty where the app's colours carry meaning (photos, flags, weather icons, game genres).
+    follows_theme: ClassVar[bool] = False
 
     def __init__(self, ctx: AppContext, settings: AppSettings) -> None:
         self.ctx = ctx
@@ -189,7 +197,31 @@ class App:
 
     def clip_key(self) -> str:
         """Identity of the baked clip; when it changes the clip is re-baked and re-uploaded."""
-        return json.dumps(self.settings.model_dump(mode="json"), sort_keys=True)
+        key = json.dumps(self.settings.model_dump(mode="json"), sort_keys=True)
+        th = self.theme
+        return f"{key}|theme={th.id}" if th else key  # a new page theme re-bakes clips that follow it
+
+    # ------------------------------------------------------------- page theme
+    @classmethod
+    def theme_aware(cls) -> bool:
+        """Whether this app follows the page theme at all (it declares `theme_colors` or `follows_theme`)."""
+        return bool(cls.theme_colors) or cls.follows_theme
+
+    @property
+    def theme(self) -> PageTheme | None:
+        """The page theme this app is drawing with, or None: the app doesn't follow themes, the person turned
+        "Follow page theme" off for it, or the theme is the default (DeskDot = every app's own colours)."""
+        if not type(self).theme_aware() or not getattr(self.settings, "follow_theme", True):
+            return None
+        th: PageTheme | None = getattr(self.ctx, "page_theme", None)
+        return th if th is not None and th.id != DEFAULT_THEME else None
+
+    def themed(self, role: str, own: ColorLike) -> RGB:
+        """The page theme's LED colour for `role` (gfx.themes.ROLES) — or `own`, the app's own colour, when the app
+        isn't following a theme right now. Use it for colours that are chrome (accents, rings, labels), never for
+        colours that mean something (up / down, a team, a flag, a photo)."""
+        th = self.theme
+        return th.panel.role(role) if th else to_rgb(own)
 
     #: minimum seconds between re-bakes that only advance `clip_chunk()` (identity unchanged)
     clip_refresh: ClassVar[float] = 0.0
@@ -261,12 +293,76 @@ class App:
         )
 
 
+def themed_settings(cls: type[App], settings: AppSettings, theme: PageTheme | None) -> AppSettings:
+    """`settings` with every `theme_colors` field that is still at its default replaced by the page theme's LED
+    colour for its role. The stored settings never change (the studio shows and edits the person's values); only the
+    instance the app draws with does. The default theme, an app that isn't theme-aware, or "Follow page theme" off:
+    `settings` unchanged."""
+    if theme is None or theme.id == DEFAULT_THEME or not cls.theme_colors:
+        return settings
+    if not getattr(settings, "follow_theme", True):
+        return settings
+    fields = type(settings).model_fields
+    patch: dict[str, str] = {}
+    for name, role in cls.theme_colors.items():
+        info = fields.get(name)
+        cur = getattr(settings, name, None)
+        if info is None or not isinstance(cur, str) or not isinstance(info.default, str):
+            continue
+        if cur.lower() == info.default.lower():
+            r, g, b = theme.panel.role(role)
+            patch[name] = f"#{r:02x}{g:02x}{b:02x}"
+    return settings.model_copy(update=patch) if patch else settings
+
+
 REGISTRY: dict[str, type[App]] = {}
+
+
+def _with_follow_theme(cls: type[App]) -> None:
+    """Give a theme-aware app the "Follow page theme" switch (its per-app opt-out), next to its colours."""
+    fields = cls.Settings.model_fields
+    if "follow_theme" in fields:
+        return
+    for name, role in cls.theme_colors.items():
+        if name not in fields or role not in ROLES:
+            raise TypeError(
+                f"{cls.__name__}.theme_colors: {name!r} → {role!r} (a colour setting → one of {ROLES})"
+            )
+    groups = [
+        e.get("group")
+        for f in fields.values()
+        if isinstance(e := f.json_schema_extra, dict) and e.get("group")
+    ]
+    colour_groups = [
+        e.get("group")
+        for n in cls.theme_colors
+        if isinstance(e := fields[n].json_schema_extra, dict) and e.get("group")
+    ]
+    group = (
+        colour_groups[0] if colour_groups else ("Look" if "Look" in groups else "Colours" if groups else None)
+    )
+    extra: dict[str, Any] = {"group": group} if group else {}
+    cls.Settings = create_model(  # type: ignore[call-overload]
+        cls.Settings.__name__,
+        __base__=cls.Settings,
+        follow_theme=(
+            bool,
+            Field(
+                True,
+                title="Follow page theme",
+                description="Use the page theme's colours (Settings → Display & colour) for the colours you "
+                "haven't changed. Off = this app's own colours.",
+                json_schema_extra=extra or None,
+            ),
+        ),
+    )
 
 
 def register(cls: type[App]) -> type[App]:
     if not getattr(cls, "id", None) or not getattr(cls, "name", None):
         raise TypeError(f"{cls.__name__} needs `id` and `name`")
+    if cls.theme_aware():
+        _with_follow_theme(cls)
     if cls.id in REGISTRY and REGISTRY[cls.id] is not cls:
         log.warning("app id %r registered twice; %s replaces %s", cls.id, cls, REGISTRY[cls.id])
     REGISTRY[cls.id] = cls

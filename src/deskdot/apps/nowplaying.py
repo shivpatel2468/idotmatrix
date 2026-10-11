@@ -28,7 +28,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from PIL import Image, ImageFilter
@@ -411,6 +411,11 @@ class NowPlaying(App):
     icon = "music"
     category = "media"
     Settings = NowPlayingSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "color": "accent2",
+        "accent": "accent",
+        "karaoke_color": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     uses = ("media", "lyrics")  # "audio" is acquired on demand (spectrum / beat-synced layouts only)
     # the host's media session: Windows GSMTC, macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl)
     platforms = DESKTOP

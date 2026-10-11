@@ -17,6 +17,7 @@ from __future__ import annotations
 import math
 import random
 from functools import lru_cache
+from typing import ClassVar
 
 import numpy as np
 from pydantic import Field
@@ -212,6 +213,10 @@ class Loops(App):
     icon = "infinity"
     category = "ambient"
     Settings = LoopsSettings
+    theme_colors: ClassVar[dict[str, str]] = {
+        "tint": "accent",
+        "warp_color": "accent2",
+    }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 12.0
     clip_colors = 64
 

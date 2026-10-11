@@ -50,6 +50,54 @@ A complete example lives in `plugins/_example_countdown.py`.
 | `clip_colors` | palette cap for the baked GIF (gradients look fine at 48; the engine also enforces a 40 KB budget) |
 | `hidden` | hide from the library (internal apps) |
 
+## Page theme — follow the studio's colours
+
+The person picks a **page theme** for the whole studio (Settings → Display & colour; `POST /api/theme`). Apps can follow
+it on the panel the way casino games follow their table theme. Each theme carries an LED-tuned `PanelPalette`
+(`deskdot.gfx.themes`) with seven roles:
+
+| Role | Use |
+| --- | --- |
+| `accent` | the hero colour: rings, highlights, the accent of the main value |
+| `accent2`, `accent3` | second / third accents (second series, small details) |
+| `text` | primary text — white, faintly tinted |
+| `mute` | labels, secondary text |
+| `soft` | the accent dimmed: captions, inactive marks, lit tracks (brightest channel ≥ 100) |
+| `track` | dark structure: bar tracks, dividers (brightest channel ≥ 45, so it stays lit) |
+
+Two ways to follow, both optional:
+
+```python
+class Clock(App):
+    theme_colors = {"accent": "accent"}       # a Color setting → a role, while it's still at its default
+    follows_theme = True                      # only needed when there are no theme_colors
+
+    def render(self, f, t):
+        ring(f, p, self.settings.accent)                      # already themed by the engine
+        f.text(1, 1, "UP", self.themed("accent", ACCENT))     # own code: the theme's role, or ACCENT
+```
+
+- **`theme_colors`**: the engine hands the app a copy of its settings where every mapped colour that is **still at its
+  default** is the theme's LED colour for that role. A colour the person picked stays theirs, and the stored settings
+  (what the studio shows) never change.
+- **`self.themed(role, own)`**: the theme's colour for `role`, or `own` when the app isn't following a theme right now.
+  `self.theme` is the `PageTheme` or `None`.
+- **The default theme (`ember`, DeskDot) is every app's own look** — nothing changes until someone picks another theme.
+- Theme-aware apps get a **Follow page theme** switch automatically (`follow_theme`, in the colour group): the per-app
+  opt-out. Off = own colours.
+- Clips re-bake on a theme change (`clip_key()` includes the theme); the engine applies a new theme to the panel after
+  1.2 s of quiet and at most every 6 s, so browsing swatches costs one GIF upload. Previews and
+  `deskdot preview APP --theme galaxy` show the theme too.
+- **Don't follow** where colour means something: up / down and win / loss, teams and flags, photos and album art,
+  weather icons, characters and pets, games with genre themes, the casino (table themes). Use roles for chrome only.
+
+Following today (3.7.0): clock, countdown, five o'clock, holidays, timer, calendar, habits, system monitor, currency,
+uptime, CI, Home Assistant entity, air quality (labels), weather (accent; the icons keep their colours), space,
+quakes, rain radar, headlines, daily dose, trivia, text, font lab, visualizer (+ a "Page theme" palette), loops (rain /
+warp), now playing (lyrics / progress; art-derived colours still win) and the native firmware faces.
+`tests/test_page_themes.py` checks the palette contract (LED floors, no near-white accents), that every theme-aware
+app renders every option in a theme, and that the opt-out exists.
+
 ## Settings → UI mapping
 
 | Python | Studio control |
