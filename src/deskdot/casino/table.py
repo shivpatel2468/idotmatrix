@@ -468,11 +468,31 @@ class CasinoGame:
                 **r.summary,
                 "winners": sorted(
                     (
-                        {"seat": self.session.seat_of(p), "name": self.session.name_of(p), "net": v["net"]}
+                        {
+                            "seat": self.session.seat_of(p),
+                            "name": self.session.name_of(p),
+                            "net": v["net"],
+                            "stake": v.get("stake", 0),
+                        }
                         for p, v in r.payouts.items()
                         if v["net"] > 0
                     ),
                     key=lambda w: -w["net"],
+                ),
+                # who lost chips this round (net < 0) — public like spot_bets; the TV's and phones' win / lose
+                # moment sweeps them (docs/TV_VIEW.md §7)
+                "losers": sorted(
+                    (
+                        {
+                            "seat": self.session.seat_of(p),
+                            "name": self.session.name_of(p),
+                            "net": v["net"],
+                            "stake": v.get("stake", 0),
+                        }
+                        for p, v in r.payouts.items()
+                        if v["net"] < 0
+                    ),
+                    key=lambda w: w["net"],
                 ),
             }
         return out

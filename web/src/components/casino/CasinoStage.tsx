@@ -341,6 +341,7 @@ export function CasinoStage() {
   const hot = useCasino((s) => s.status?.phase === "result" && !!s.status.result?.winners?.length);
   const me = useCasino((s) => s.me);
   const theme = useCasino((s) => s.status?.table_theme);
+  const chipSet = useCasino((s) => s.status?.chip_set);
   // the engine's note for the host seat (session.notify → private.notice): an error the op reply didn't already show
   const notice = me.notice;
   const noticeSeen = useRef<number | null>(null);
@@ -389,7 +390,7 @@ export function CasinoStage() {
     </div>
   );
   return (
-    <div ref={root} className="cz" data-wide={wide || undefined} data-table={theme?.id ?? "classic"} style={themeVars(theme)}>
+    <div ref={root} className="cz" data-wide={wide || undefined} data-table={theme?.id ?? "classic"} data-chips={chipSet ?? "clay"} style={themeVars(theme)}>
       <ChipCascade run={entered} />
       <CasinoAlert />
       {wide ? (

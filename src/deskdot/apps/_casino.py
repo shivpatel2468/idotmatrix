@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from ..casino import HOST, CasinoGame, CasinoSession, fair
+from ..casino.chips import chip_set_for
 from ..casino.rulebook import guide
 from ..casino.table import LOCK_SECONDS
 from ..engine import App, AppSettings, Choice
@@ -1030,6 +1031,7 @@ class CasinoApp(App):
                 "game": self.Game.id,
                 "view": self.settings.view,
                 "table_theme": self.th.public(),
+                "chip_set": chip_set_for(self.session.house.chip_set, self.th.id),
             }
         self._live()
         now = self.clock()
@@ -1042,6 +1044,8 @@ class CasinoApp(App):
             "lobby": self.lobby_waiting(),
             "max_players": self.max_players,
             "table_theme": self.th.public(),
+            # the chips' design: the host's pick, or the table theme's own set (casino/chips.py THEME_CHIP_SET)
+            "chip_set": chip_set_for(self.session.house.chip_set, self.th.id),
         }
         st["history"] = [h for h in st["history"] if h.get("game") == self.Game.id][-10:]
         # the session's change counter: the studio gets this status from two feeds (the engine stream and the

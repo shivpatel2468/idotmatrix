@@ -35,7 +35,7 @@ This spec is the contract every part follows: engine, panel apps, phone page, st
 | `bank.py` | Wallets per player id: credits, escrow, ledger, stats (won, lost, biggest win). The host can set base credits and adjust a wallet (each adjustment is logged). Persisted in the store under `casino`; bad stored data is dropped (rule 15). |
 | `cards.py` | Cards, decks, shoes (n decks, cut card), poker 5/7-card hand evaluator, Teen Patti 3-card ranking, baccarat values. |
 | `table.py` | `CasinoGame` base: a pydantic `Rules` model, phase machine, `place_bet()`, `action()`, `tick(now)`, `public_state()`, `private_state(seat)`, `settle()`. |
-| `chips.py` | The chip ladder (1 … 1M: value, K/M label, colour, edge colour) and `chip_rack(min_bet, max_bet)`: the chips a table offers, published as `status.chips`. |
+| `chips.py` | The chip ladder (1 … 1M: value, K/M label, colour, edge colour) and `chip_rack(min_bet, max_bet)`: the chips a table offers, published as `status.chips`; the chip sets (`CHIP_SETS`, `THEME_CHIP_SET`, `chip_set_for`, §13). |
 | `session.py` | `CasinoSession`: players (bound to lobby seats and the studio host seat), bank, the current game, house settings (base credits, min/max bet, timers), round history (with fairness proofs) and the leaderboard. Drives phase timers from the app's render clock (no sleeps). |
 | `games/*.py` | One file per game. These are pure rules, fully unit-tested, with no drawing. |
 
@@ -533,3 +533,35 @@ each other's ticket money, the house keeps only the rake (default 0, `edges = {"
   tickets as 3×9 paper grids with a stamp animation per daub (fits 360–430 px), the prize table and the winners.
 - **Studio.** Host bar: "Start calling", the pace − / +, "Calling · n / 90". Odds tab: the prize table (shares,
   credits, winners) above the rake row.
+
+## 13. The dolly, chip sets, credit counters and the win moment (3.7.0)
+
+- **Roulette dolly** — House setting `dolly` (`casino/session.py` `House.dolly`, a select: `enum` + `enumLabels`,
+  validated against `DOLLIES`; default `classic_gold`): `classic_gold` (Classic Gold: a brass turned stem, ball
+  finial and round collar on a heavy domed gold base), `crystal` (the original crystal pawn on a gold base), `chrome`,
+  `onyx_gold` (Black Onyx & Gold), `rose_gold`, `diamond` (Diamond-cut: a brilliant-cut stone on a gold stem),
+  `marble_brass` (Marble & Brass), `neon` (Neon Arcade). It is published in the public status as
+  `status.house.dolly`, so the TV (docs/TV_VIEW.md §7) and the phones (a small CSS dolly on the winning number,
+  `.rt .dolly[data-dolly=…]`) draw the host's pick. The studio's House tab has a visual picker (LeftWing
+  `DollyPicker`). A stored value that no longer exists falls back to the default (rule 15, `_load_house`).
+- **Chip sets** — like a cue that matches its pool table, every table theme has its own chip *design*
+  (`casino/chips.py` `THEME_CHIP_SET`): `clay` (Clay classic: edge inserts, dashed inlay), `ceramic` (printed, glossy,
+  dotted inlay ring), `gold_rim` (a gold-leaf rim and studs), `neon` (dark body, glowing rim in the value's colour),
+  `jade` (marbled with a gold rim), `pixel` (stepped 8-bit outline), `ivory` (an ivory body with the value's colour as
+  a ring). A set never changes a denomination's colour or label — 25 stays green, 1K stays yellow — only the
+  material, edge and inlay. House setting `chip_set` = `auto` (match the table theme, the default) or a set id;
+  `status.chip_set` is the set in use (`chip_set_for(house.chip_set, theme)`). Drawn by the TV (`chipSprite`), the
+  phones (`html[data-chips]`) and the studio (`.cz[data-chips]`); the studio's House tab has a picker with sample
+  chips. All static gradients (no per-frame cost).
+- **Credit counters** — a balance is a slot-machine / odometer counter on every screen (the TV's seat plaques,
+  the phone's bank plaque, the studio's players list, leaderboard and your seat): each digit is a reel that spins to
+  the new digit with a little overshoot, the units a lap or two further, the reels stopping left to right, a smeared
+  copy fading in at speed. Transforms only; instant with reduced motion; separators and K / M stay put.
+- **Result data** — `status.result.winners` rows carry `stake` (what the player had on the table) beside `net`, and
+  `status.result.losers` lists who lost chips (`net < 0`, biggest loss first). Both are public (like `spot_bets`).
+  The win moment's tier comes from `net ÷ stake`: ≥ 30 JACKPOT, ≥ 10 MEGA WIN, ≥ 3 BIG WIN, else WINNER (the TV's
+  `winTier` and casino.html's "shared win moment" block are the same function; `tests/js/tv_casino.test.mjs`).
+- **Phone win moment** — the result card is timed from `status.clock.phase_at` on the shared clock: the tier word
+  slams in over turning rays, "+875" counts up with the TV's easing (`tickerAt`), gold coins leap out of the card,
+  the card shakes on big wins, the phone buzzes in a pattern per tier; a loss shows "−500" fading down. A phone that
+  sees the result more than 2.6 s late shows it settled (no replay).

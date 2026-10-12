@@ -77,3 +77,33 @@ def break_into(amount: int, rack: list[dict[str, Any]] | None = None) -> list[in
     if left > 0:
         out.append(left)
     return out
+
+
+# ------------------------------------------------------------------ chip sets (docs/CASINO.md §5)
+#: The chip designs — material, edge inserts and inlay motif. A set never changes a denomination's colour or label
+#: (the ladder above), only how the chip is made; the TV (tv-casino.js chipSprite), the phones (casino.html
+#: ``html[data-chips]``) and the studio (``.cz[data-chips]``) draw each one.
+CHIP_SETS: dict[str, str] = {
+    "clay": "Clay classic",
+    "ceramic": "Ceramic print",
+    "gold_rim": "Gold-rimmed",
+    "neon": "Neon",
+    "jade": "Jade & gold",
+    "pixel": "Pixel arcade",
+    "ivory": "Ivory inlay",
+}
+#: Each table theme's own chip set (apps/_casino.py TABLE_THEMES), like a cue that matches its table.
+THEME_CHIP_SET: dict[str, str] = {
+    "classic": "clay", "royal": "ceramic", "crimson": "gold_rim", "midnight": "neon", "strip": "neon",
+    "emerald": "clay", "burgundy": "ivory", "noir": "gold_rim", "jade": "jade", "deco": "gold_rim",
+    "marigold": "gold_rim", "diwali": "gold_rim", "cyber": "neon", "arcade": "pixel", "sakura": "ceramic",
+    "arctic": "ceramic", "oasis": "ceramic", "abyss": "neon", "volcano": "neon", "galaxy": "neon",
+    "riverboat": "ivory",
+}  # fmt: skip
+
+
+def chip_set_for(choice: str | None, theme_id: str | None) -> str:
+    """The chip set a table uses: the host's pick (House ``chip_set``), or — ``"auto"`` — the table theme's own."""
+    if choice in CHIP_SETS:
+        return str(choice)
+    return THEME_CHIP_SET.get(str(theme_id or ""), "clay")

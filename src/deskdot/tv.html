@@ -189,6 +189,14 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 #stage[data-table="1"] #bar-dot[data-on="warn"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--warn); }
 #stage[data-table="1"] #bar-dot[data-on="bad"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--bad); }
 #stage[data-table="1"] #veil { background: radial-gradient(1200px 800px at 50% 45%, var(--wing), var(--wing3) 70%); }
+/* the casino's premium header: the table's name engraved in gold leaf (a serif), a gilded double rule under the bar */
+#stage[data-table="1"] #bar-name { font: 600 36px/1.05 "Didot", "Bodoni 72", "Playfair Display", Georgia, "Noto Serif", "Droid Serif", serif;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--accent-hi);
+  background: linear-gradient(180deg, #fff4c8 0%, var(--accent-hi) 38%, var(--accent) 60%, #fff0b8 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+#stage[data-table="1"] #bar::after { height: 3px; opacity: 1;
+  background: linear-gradient(90deg, transparent 2%, var(--accent) 22%, var(--accent-hi) 50%, var(--accent) 78%, transparent 98%);
+  -webkit-mask: linear-gradient(180deg, #000 0 1px, transparent 1px 2px, #000 2px); mask: linear-gradient(180deg, #000 0 1px, transparent 1px 2px, #000 2px); }
 #scene { z-index: 1; }
 
 /* ------------------------------------------------------------------ veil (waiting / closed) */

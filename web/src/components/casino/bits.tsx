@@ -5,32 +5,88 @@ import { type Avatar, fmt, useCasino } from "./state";
 
 const reduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Credits that count up / down to their new value (instant with reduced motion), flashing green or red. */
-export function Credits({ value, className }: { value: number; className?: string }) {
-  const [shown, setShown] = useState(value);
+const ODO = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0";
+const backOut = (u: number) => { const c = 1.9; const x = Math.min(1, Math.max(0, u)) - 1; return 1 + (c + 1) * x * x * x + c * x * x; };
+const mod10 = (v: number) => ((v % 10) + 10) % 10;
+
+/**
+ * Credits as a slot-machine / odometer counter (docs/CASINO.md "credits"): every digit is a reel that spins to the new
+ * value with a little overshoot — the units turning a lap or two further, the reels stopping left to right — while a
+ * smeared copy fades in at speed (motion blur without a filter). Transforms only, written straight to the DOM from
+ * one rAF (no React render per frame); instant with reduced motion. The text is `fmt` (separators stay put);
+ * flashes green / red on a change. The same counter runs on the TV (tv-casino.js Odo) and the phones (casino.html).
+ */
+export function Credits({ value, className, format }: { value: number; className?: string; format?: (n: number) => string }) {
+  const text = (format ?? fmt)(value);
   const [dir, setDir] = useState<"up" | "down" | null>(null);
-  const from = useRef(value);
+  const box = useRef<HTMLSpanElement>(null);
+  const prev = useRef<{ value: number; pos: Map<number, number> }>({ value, pos: new Map() });
   const raf = useRef(0);
   useEffect(() => {
-    const start = from.current;
-    if (start === value) return;
-    setDir(value > start ? "up" : "down");
-    const dur = reduced() ? 0 : Math.min(1100, Math.max(350, Math.abs(value - start) * 2));
-    const t0 = performance.now();
+    const el = box.current;
+    if (!el) return;
+    const reels = [...el.querySelectorAll<HTMLElement>(".cz-odo-reel")];
+    const p = prev.current;
+    const up = value >= p.value;
+    if (value !== p.value) setDir(up ? "up" : "down");
+    const n = reels.length;
+    const show = (r: HTMLElement, pos: number, speed: number) => {
+      const [a, b] = r.children as unknown as HTMLElement[];
+      const tf = `translateY(${(-pos * 1.15).toFixed(3)}em)`;
+      a.style.transform = tf;
+      b.style.transform = tf;
+      const bo = Math.min(0.85, Math.max(0, (speed - 6) / 14));
+      b.style.opacity = bo.toFixed(2);
+      a.style.opacity = (1 - 0.5 * bo).toFixed(2);
+    };
+    const plan = reels.map((r, i) => {
+      const ri = n - 1 - i; // right-aligned: the units reel keeps its place when the number grows
+      const to = Number(r.dataset.d);
+      const from = p.pos.get(ri) ?? to;
+      const turns = ri === 0 ? 2 : ri === 1 ? 1 : 0;
+      const d = from === to && value === p.value ? 0 : up ? mod10(to - from) + 10 * turns : -(mod10(from - to) + 10 * turns);
+      return { r, ri, from, to, d, dur: 550 + 90 * i };
+    });
+    p.value = value;
     cancelAnimationFrame(raf.current);
+    if (reduced() || plan.every((x) => x.d === 0)) {
+      plan.forEach((x) => { show(x.r, x.to, 0); p.pos.set(x.ri, x.to); });
+      return;
+    }
+    const t0 = performance.now();
     const step = () => {
-      const k = dur ? Math.min(1, (performance.now() - t0) / dur) : 1;
-      const e = 1 - (1 - k) ** 3;
-      const v = Math.round(start + (value - start) * e);
-      from.current = v;
-      setShown(v);
-      if (k < 1) raf.current = requestAnimationFrame(step);
+      const t = performance.now() - t0;
+      let moving = false;
+      for (const x of plan) {
+        const u = Math.min(1, t / x.dur);
+        const pos = mod10(x.from + x.d * backOut(u));
+        const pos2 = mod10(x.from + x.d * backOut(Math.min(1, (t + 16) / x.dur)));
+        const sp = u >= 1 ? 0 : Math.abs(((pos2 - pos + 15) % 10) - 5) * 60;
+        show(x.r, u >= 1 ? x.to : pos, sp);
+        p.pos.set(x.ri, u >= 1 ? x.to : pos);
+        if (u < 1) moving = true;
+      }
+      if (moving) raf.current = requestAnimationFrame(step);
       else setTimeout(() => setDir(null), 600);
     };
     step();
     return () => cancelAnimationFrame(raf.current);
-  }, [value]);
-  return <span className={clsx("cz-credits tabular-nums", className)} data-dir={dir ?? undefined}>{fmt(shown)}</span>;
+  }, [value, text]);
+  const chars = [...text];
+  return (
+    <span ref={box} className={clsx("cz-credits cz-odo tabular-nums", className)} data-dir={dir ?? undefined} aria-label={text}>
+      {chars.map((c, i) =>
+        /\d/.test(c) ? (
+          <span key={`d${chars.length - i}`} className="cz-odo-reel" data-d={c} aria-hidden>
+            <i>{ODO}</i>
+            <i>{ODO}</i>
+          </span>
+        ) : (
+          <span key={`s${chars.length - i}`} aria-hidden>{c}</span>
+        ),
+      )}
+    </span>
+  );
 }
 
 /** A phone player's 8×8 pixel avatar (gfx/avatars.py) in their colour; a monogram until the art is known. */
