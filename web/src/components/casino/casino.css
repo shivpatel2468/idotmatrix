@@ -28,6 +28,7 @@
 @property --cz-s2 { syntax: "<color>"; inherits: true; initial-value: #172722; }
 @property --cz-s3 { syntax: "<color>"; inherits: true; initial-value: #1c352b; }
 @property --cz-s4 { syntax: "<color>"; inherits: true; initial-value: #2a4139; }
+@property --cz-tint { syntax: "<color>"; inherits: true; initial-value: #0d5c3c; }
 .cz {
   /* chip-set and dolly materials (brass, gold leaf): physical metals, not the table's accent */
   --brass: #d9a63a; --brass-deep: #7a5410; --brass-hi: #e9c25a; --jade-gold: #d9b45a;
@@ -51,6 +52,9 @@
   --cz-s2: #172722;
   --cz-s3: #1c352b;
   --cz-s4: #2a4139;
+  /* light mode only (state.ts lightSwitches): the colour the porcelain room is washed with, and 1 for a pale accent */
+  --cz-tint: var(--felt);
+  --cz-pale: 0;
   /* the felt's motif (table theme `pattern` / `pattern_size`: pure CSS gradients, one size per layer) */
   --cz-pat: none;
   --cz-pat-size: auto;
@@ -85,7 +89,7 @@
   transition: --gold 0.7s ease, --gold-2 0.7s ease, --gold-lo 0.7s ease, --gold-deep 0.7s ease, --gold-ink 0.7s ease,
     --gold-text 0.7s ease, --felt 0.7s ease, --felt-2 0.7s ease, --felt-deep 0.7s ease, --felt-hi 0.7s ease,
     --felt-ink 0.7s ease, --cz-wing 0.7s ease, --cz-wing-2 0.7s ease, --cz-wing-3 0.7s ease, --cz-bg 0.7s ease,
-    --cz-s1 0.7s ease, --cz-s2 0.7s ease, --cz-s3 0.7s ease, --cz-s4 0.7s ease;
+    --cz-s1 0.7s ease, --cz-s2 0.7s ease, --cz-s3 0.7s ease, --cz-s4 0.7s ease, --cz-tint 0.7s ease;
   scrollbar-color: rgba(var(--gold-rgb), 0.35) transparent;
   accent-color: var(--gold);
   position: relative;
@@ -548,10 +552,11 @@ button.cz-chip:hover { transform: translateY(-2px); }
 @property --cz-page-deep { syntax: "<color>"; inherits: true; initial-value: #3a2c08; }
 @property --cz-page-ink { syntax: "<color>"; inherits: true; initial-value: #1a1200; }
 @property --cz-page-text { syntax: "<color>"; inherits: true; initial-value: #e7f0ec; }
+@property --cz-page-tint { syntax: "<color>"; inherits: true; initial-value: #0d6b45; }
 html[data-cz] {
   --cz-page-bg: #060c0a; --cz-page-s1: #0f1a17; --cz-page-s2: #172722; --cz-page-s3: #1c352b; --cz-page-s4: #2a4139;
   --cz-page-felt: #0d6b45; --cz-page-accent: #ffcc33; --cz-page-accent-2: #ffe08a; --cz-page-deep: #3a2c08;
-  --cz-page-ink: #1a1200; --cz-page-text: #e7f0ec;
+  --cz-page-ink: #1a1200; --cz-page-text: #e7f0ec; --cz-page-tint: var(--cz-page-felt);
   --color-chassis-0: var(--cz-page-bg);
   --color-chassis-1: var(--cz-page-s1);
   --color-chassis-2: var(--cz-page-s2);
@@ -568,7 +573,7 @@ html[data-cz] {
   --color-ember-deep: var(--cz-page-deep);
   transition: --cz-page-bg 0.7s ease, --cz-page-s1 0.7s ease, --cz-page-s2 0.7s ease, --cz-page-s3 0.7s ease, --cz-page-s4 0.7s ease,
     --cz-page-felt 0.7s ease, --cz-page-accent 0.7s ease, --cz-page-accent-2 0.7s ease, --cz-page-deep 0.7s ease,
-    --cz-page-ink 0.7s ease, --cz-page-text 0.7s ease;
+    --cz-page-ink 0.7s ease, --cz-page-text 0.7s ease, --cz-page-tint 0.7s ease;
 }
 html[data-cz] body {
   background-image:
@@ -659,74 +664,95 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 .cz-tvkey { height: 2rem; padding: 0 0.8rem; flex: none; }
 
 /* ------------------------------------------------------------- light mode (html[data-theme="light"], docs/CASINO.md §6)
- * "The salon": the felt, the chips, the cards, the LED panel and the result tiles never change; the room around the
- * table turns to porcelain and ivory leather (the studio's light tokens, washed with the felt), with the theme carried
- * by materials instead of glow: a felt-and-motif rail across the top of each wing (the tabs sit on it, like a card
- * table's rail), gold-leaf rules and keys, coloured soft halos (the felt's own colour) where dark mode glows, a fine
- * linen weave, and the accent deepened to bronze wherever it is text (AA on every light surface, all 21 themes) and to
- * an antique metal for rings and rules. The theme's inline wing / surface values are overridden here (!important).
- * The text on the felt (the play board, the wing rails) keeps the felt's ink. */
+ * "The salon", lit by the table: the felt, the chips, the cards, the LED panel and the result tiles never change; the
+ * room around the table turns to porcelain washed in the table's own colour (`--cz-tint`: the felt, or the accent when
+ * the felt is a graphite / black, so Cyber grid is pale steel lit teal, not grey; `--cz-room` mixes it with the felt),
+ * with the accent carried by materials instead of glow: a felt-and-motif rail across the top of each wing with an
+ * accent glow line under it, gold-leaf rules and lozenges, accent halos where dark glows, cards with a tinted foot, the
+ * chosen card gilded with an accent ring, a fine linen weave. The accent is deepened to bronze wherever it is text (AA
+ * on every light surface, all 21 themes) and to an antique metal for rings and rules (`--cz-metal`). Primary keys are
+ * gold leaf in the accent — or, for a pale accent (ivory, champagne, ice: `--cz-pale` 1), the table's felt with
+ * accent lettering. Both switches come from state.ts lightSwitches(). The theme's inline wing / surface values are
+ * overridden here (!important). The text on the felt (the play board, the wing rails) keeps the felt's ink. */
 :root[data-theme="light"] .cz {
-  --cz-wing: color-mix(in srgb, #fcfaf6 93%, var(--felt-hi)) !important;
-  --cz-wing-2: color-mix(in srgb, #f9f6f0 92%, var(--felt-hi)) !important;
-  --cz-wing-3: color-mix(in srgb, #f3eee5 90%, var(--felt-hi)) !important;
-  --cz-bg: color-mix(in srgb, #f2ede4 92%, var(--felt)) !important;
-  --cz-s1: color-mix(in srgb, #fbf9f5 95%, var(--felt-hi)) !important;
-  --cz-s2: color-mix(in srgb, #ffffff 97%, var(--felt-hi)) !important;
-  --cz-s3: color-mix(in srgb, #f0ebe2 94%, var(--felt-hi)) !important;
-  --cz-s4: color-mix(in srgb, #e6e0d5 94%, var(--felt-hi)) !important;
-  --gold-text: color-mix(in srgb, var(--gold) 33%, #1a1206) !important;
+  --cz-room: color-mix(in srgb, var(--felt) 70%, var(--cz-tint));
+  --cz-wing: color-mix(in srgb, #fcfbf8 87%, var(--cz-room)) !important;
+  --cz-wing-2: color-mix(in srgb, #f9f7f2 85%, var(--cz-room)) !important;
+  --cz-wing-3: color-mix(in srgb, #f4f1ea 85%, var(--cz-room)) !important;
+  --cz-bg: color-mix(in srgb, #f2ede4 86%, var(--cz-room)) !important;
+  --cz-s1: color-mix(in srgb, #fcfbf8 93%, var(--cz-room)) !important;
+  --cz-s2: color-mix(in srgb, #ffffff 97%, var(--cz-room)) !important;
+  --cz-s3: color-mix(in srgb, #f1ede5 89%, var(--cz-room)) !important;
+  --cz-s4: color-mix(in srgb, #e7e2d8 88%, var(--cz-room)) !important;
+  /* the accent as text: bronze — or, for a pale accent (ivory, champagne, ice), the felt deepened */
+  --gold-text: color-mix(in srgb, color-mix(in srgb, var(--felt) 72%, #000) calc(var(--cz-pale) * 100%), color-mix(in srgb, var(--gold) 30%, #1a1206)) !important;
   --cz-ink-1: #1c1a22;
-  --cz-ink-2: #2f2b36;
-  --cz-ink-3: #4a4652;
-  --cz-dim: #4a4652;
-  --cz-mute: #5d5866;
-  --cz-line: color-mix(in srgb, var(--gold) 22%, #e4ddd1);
-  --cz-line-2: color-mix(in srgb, var(--gold) 32%, #d6cdbf);
+  --cz-ink-2: #2d2934;
+  --cz-ink-3: #423e4a;
+  --cz-dim: #423e4a;
+  --cz-mute: #4a4552;
+  --cz-metal: color-mix(in srgb, var(--gold) 74%, #4a4438); /* the accent as antique metal: rings, rules, frames */
+  --cz-line: color-mix(in srgb, var(--cz-metal) 26%, color-mix(in srgb, var(--cz-room) 10%, #e4ddd1));
+  --cz-line-2: color-mix(in srgb, var(--cz-metal) 40%, color-mix(in srgb, var(--cz-room) 12%, #d6cdbf));
   --cz-edge: color-mix(in srgb, var(--gold-lo) 55%, #000);
   --cz-bad: #c8203e;
-  --cz-metal: color-mix(in srgb, var(--gold) 74%, #4a4438); /* the accent as antique metal: rings, rules, frames */
   /* materials */
-  --cz-leaf: linear-gradient(180deg, var(--gold-2), var(--gold) 52%, var(--gold-lo)); /* gold leaf: keys, active tabs */
-  --cz-rule: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cz-metal) 70%, transparent) 18%, var(--gold-2) 50%, color-mix(in srgb, var(--cz-metal) 70%, transparent) 82%, transparent);
-  --cz-halo: color-mix(in srgb, var(--felt) 42%, transparent); /* where dark glows, light casts the felt's colour */
+  --cz-leaf: linear-gradient(180deg, var(--gold-2), var(--gold) 52%, var(--gold-lo)); /* gold leaf: tabs, lozenges, numerals */
+  --cz-rule: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cz-metal) 80%, transparent) 18%, var(--gold) 50%, color-mix(in srgb, var(--cz-metal) 80%, transparent) 82%, transparent);
+  --cz-halo: color-mix(in srgb, var(--cz-tint) 46%, transparent); /* where dark glows, light casts the table's colour */
+  --cz-glow: rgba(var(--gold-rgb), 0.55); /* the accent's own light: glow lines, selected rings */
+  --cz-wash: color-mix(in srgb, var(--cz-tint) 9%, #fff); /* a porcelain card's tinted foot */
+  /* primary keys: gold leaf in the accent, or (pale accent) the table's felt with accent lettering */
+  --cz-key-1: color-mix(in srgb, var(--felt-hi) calc(var(--cz-pale) * 100%), var(--gold-2));
+  --cz-key-2: color-mix(in srgb, var(--felt) calc(var(--cz-pale) * 100%), var(--gold));
+  --cz-key-3: color-mix(in srgb, var(--felt-2) calc(var(--cz-pale) * 100%), var(--gold-lo));
+  --cz-key-ink: color-mix(in srgb, var(--gold-2) calc(var(--cz-pale) * 100%), var(--gold-ink));
+  --cz-key: linear-gradient(180deg, var(--cz-key-1), var(--cz-key-2) 52%, var(--cz-key-3));
   /* the studio's MATERIALS v2 (index.css), re-tinted by the table where it matters */
   --cz-sh: var(--m-bevel), var(--m-card-shadow);
   --cz-sh-up: var(--m-bevel), var(--m-card-shadow-hover), 0 18px 30px -16px var(--cz-halo);
+  --m-key-top: #ffffff;
+  --m-key-bottom: color-mix(in srgb, var(--cz-tint) 8%, #f7f4ee);
+  --m-key-floor: color-mix(in srgb, var(--cz-room) 26%, #ddd5c8);
+  --m-key-hover: color-mix(in srgb, var(--cz-metal) 60%, #c5bcad);
   --color-ember: var(--cz-metal);
   --color-ember-2: var(--gold);
   --color-ember-deep: color-mix(in srgb, var(--gold) 16%, #fff);
   --color-on-ember: var(--gold-ink);
   color-scheme: light;
-  scrollbar-color: color-mix(in srgb, var(--cz-metal) 45%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--cz-metal) 55%, transparent) transparent;
 }
 /* the play board is felt: its labels keep the felt's ink */
 :root[data-theme="light"] .cz .cz-board { --cz-ink-1: var(--felt-ink); --cz-ink-2: var(--felt-ink); color: var(--felt-ink); }
+/* accent as text set by utility classes (credits): bronze on porcelain */
+:root[data-theme="light"] .cz [class*="text-[var(--gold)]"] { color: var(--gold-text) !important; }
 
-/* wings: ivory leather on linen, washed with the felt from below and lit by the accent from the rail, in an engraved
-   double rule of gold leaf and lifted by a long shadow cast in the felt's colour */
+/* wings: porcelain washed in the table's colour (deeper towards the foot), lit by the accent from the rail, in an
+   engraved double rule of the accent's metal and lifted by a long shadow cast in the table's colour */
 :root[data-theme="light"] .cz-wing {
-  border-color: color-mix(in srgb, var(--cz-metal) 42%, #e4ddd1);
+  border-color: color-mix(in srgb, var(--cz-metal) 55%, #e4ddd1);
   background:
-    radial-gradient(110% 34% at 50% 0%, rgba(var(--gold-rgb), 0.16), transparent 75%),
-    radial-gradient(130% 55% at 50% 100%, color-mix(in srgb, var(--felt-hi) 12%, transparent), transparent 72%),
+    radial-gradient(110% 30% at 50% 0%, rgba(var(--gold-rgb), 0.24), transparent 75%),
+    radial-gradient(140% 60% at 50% 100%, color-mix(in srgb, var(--cz-tint) 12%, transparent), transparent 74%),
+    radial-gradient(60% 40% at 0% 50%, color-mix(in srgb, var(--cz-tint) 9%, transparent), transparent 80%),
     var(--m-linen),
     linear-gradient(180deg, var(--cz-wing), var(--cz-wing-2) 55%, var(--cz-wing-3));
   box-shadow:
     inset 0 1px 0 #fff, inset 0 0 0 4px color-mix(in srgb, var(--cz-wing) 70%, transparent),
-    inset 0 0 0 5px color-mix(in srgb, var(--cz-metal) 24%, transparent),
-    0 1px 2px rgba(64, 48, 24, 0.07), 0 10px 24px -14px rgba(64, 48, 24, 0.22), 0 40px 80px -44px var(--cz-halo);
+    inset 0 0 0 5px color-mix(in srgb, var(--cz-metal) 40%, transparent),
+    0 0 0 1px rgba(var(--gold-rgb), 0.16), 0 0 28px -12px var(--cz-glow),
+    0 1px 2px rgba(64, 48, 24, 0.07), 0 10px 24px -14px rgba(64, 48, 24, 0.22), 0 40px 80px -40px var(--cz-halo);
 }
-/* the rail: a strip of the table's own felt and motif across the top, edged in gold leaf (the tabs sit on it) */
+/* the rail: a strip of the table's own felt and motif across the top, edged in gold leaf, with the accent's glow line */
 :root[data-theme="light"] .cz-wing::before {
   inset: 0 0 auto; height: 54px; opacity: 1; border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0;
   background-image: var(--cz-pat), radial-gradient(90% 140% at 50% 0%, var(--felt-hi), var(--felt) 60%, var(--felt-2));
   background-size: var(--cz-pat-size), 100% 100%;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -6px 12px -8px rgba(0, 0, 0, 0.45),
-    0 1px 0 var(--cz-metal), 0 2px 0 rgba(var(--gold-rgb), 0.45), 0 3px 0 rgba(255, 255, 255, 0.85), 0 8px 14px -8px rgba(64, 48, 24, 0.35);
+    0 1px 0 var(--cz-metal), 0 2px 0 var(--gold), 0 3px 0 rgba(255, 255, 255, 0.85), 0 2px 12px var(--cz-glow), 0 10px 18px -8px var(--cz-halo);
 }
 :root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs {
-  background: rgba(0, 0, 0, 0.26); border-color: rgba(var(--gold-rgb), 0.32);
+  background: rgba(0, 0, 0, 0.26); border-color: rgba(var(--gold-rgb), 0.36);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 :root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs > button:not([data-on="true"]) { color: color-mix(in srgb, var(--felt-ink) 86%, var(--felt)); }
@@ -738,73 +764,101 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 :root[data-theme="light"] .cz-tabs > button:hover { color: var(--cz-ink-1); }
 :root[data-theme="light"] .cz-tabs > button[data-on="true"] {
   background: var(--cz-leaf);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 1px 0 var(--cz-edge), 0 6px 14px -6px rgba(var(--gold-rgb), 0.75);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 1px 0 var(--cz-edge), 0 0 16px -2px var(--cz-glow);
 }
 :root[data-theme="light"] .cz-tabs > button > i { color: var(--gold-text); background: rgba(var(--gold-rgb), 0.2); }
 
-/* section headers: an engraved serif title closing on a gold-leaf rule with a lozenge */
+/* section headers: an engraved serif title on a glowing gold-leaf lozenge, closing on a rule of the accent */
 :root[data-theme="light"] .cz-section h3 { display: flex; align-items: center; gap: 8px; color: var(--cz-ink-1); text-shadow: 0 1px 0 #fff; }
 :root[data-theme="light"] .cz-section h3::before {
-  content: ""; flex: none; width: 6px; height: 6px; transform: rotate(45deg); background: var(--cz-leaf);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cz-metal) 70%, transparent);
+  content: ""; flex: none; width: 7px; height: 7px; transform: rotate(45deg); background: var(--cz-leaf);
+  box-shadow: 0 0 0 1px var(--cz-metal), 0 0 8px var(--cz-glow);
 }
-:root[data-theme="light"] .cz-section h3::after { content: ""; flex: 1; min-width: 16px; height: 1px; background: var(--cz-rule); opacity: 0.8; }
+:root[data-theme="light"] .cz-section h3::after { content: ""; flex: 1; min-width: 16px; height: 1px; background: var(--cz-rule); box-shadow: 0 0 6px var(--cz-glow); }
 :root[data-theme="light"] .cz-section + .cz-section { border-top-color: transparent; background: var(--cz-rule) top / 100% 1px no-repeat; }
 :root[data-theme="light"] .cz-section header p { color: var(--cz-mute); }
 
 /* empty states: a felt-washed card with the four suits engraved in the metal */
 :root[data-theme="light"] .cz-empty {
   position: relative; text-align: center; padding: 16px 14px 14px; color: var(--cz-ink-3);
-  background: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--felt) 16%, transparent) 1px, transparent 0) 0 0 / 9px 9px,
-    linear-gradient(180deg, color-mix(in srgb, var(--felt-hi) 7%, #fff), color-mix(in srgb, var(--felt-hi) 4%, var(--cz-wing-2)));
-  border: 1px dashed color-mix(in srgb, var(--cz-metal) 50%, transparent);
+  background: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--cz-tint) 22%, transparent) 1px, transparent 0) 0 0 / 9px 9px,
+    linear-gradient(180deg, color-mix(in srgb, var(--cz-tint) 7%, #fff), color-mix(in srgb, var(--cz-tint) 12%, var(--cz-wing-2)));
+  border: 1px dashed color-mix(in srgb, var(--cz-metal) 60%, transparent);
   box-shadow: inset 0 1px 3px rgba(64, 48, 24, 0.07), 0 1px 0 #fff;
 }
 :root[data-theme="light"] .cz-empty::before {
   content: "\2660\2003\2665\2003\2666\2003\2663"; display: block; margin-bottom: 7px; font-size: 12px; line-height: 1; letter-spacing: 0.05em;
-  color: color-mix(in srgb, var(--cz-metal) 80%, #000); opacity: 0.75; text-shadow: 0 1px 0 #fff;
+  color: color-mix(in srgb, var(--cz-metal) 80%, #000); opacity: 0.8; text-shadow: 0 1px 0 #fff;
 }
-:root[data-theme="light"] .cz-row { border-bottom-color: rgba(64, 48, 24, 0.08); }
+:root[data-theme="light"] .cz-row { border-bottom-color: color-mix(in srgb, var(--cz-room) 14%, rgba(64, 48, 24, 0.08)); }
 :root[data-theme="light"] .cz .seg { background: var(--cz-s3); border-color: var(--cz-line); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.1); }
 :root[data-theme="light"] .cz .field,
 :root[data-theme="light"] .cz-num { background: #fff; border-color: var(--cz-line-2); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.1), 0 1px 0 #fff; }
-:root[data-theme="light"] .cz-num:focus { border-color: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.28); }
-:root[data-theme="light"] .cz-pill { background: linear-gradient(180deg, #fff, var(--cz-s1)); border-color: var(--cz-line-2); box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, 0.08); }
-:root[data-theme="light"] .cz-pill:hover { color: var(--cz-ink-1); background: color-mix(in srgb, var(--gold) 12%, #fff); border-color: var(--cz-metal); }
+:root[data-theme="light"] .cz-num:focus { border-color: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.3); }
+:root[data-theme="light"] .cz-pill { background: linear-gradient(180deg, #fff, var(--cz-wash)); border-color: var(--cz-line-2); box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, 0.08); }
+:root[data-theme="light"] .cz-pill:hover { color: var(--cz-ink-1); background: color-mix(in srgb, var(--gold) 14%, #fff); border-color: var(--cz-metal); }
+:root[data-theme="light"] .cz-tag { color: var(--gold-text); border-color: var(--cz-metal); background: color-mix(in srgb, var(--gold) 14%, #fff); }
+/* secondary keys (Lock, Pause, Undo…): porcelain with the table's tint at the foot, an edge of the accent's metal */
+:root[data-theme="light"] .cz .key { border-color: color-mix(in srgb, var(--cz-metal) 38%, var(--color-line-2)); }
+:root[data-theme="light"] .cz .key[data-on="true"] { color: var(--gold-text); border-color: var(--cz-metal); background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 22%, #fff), color-mix(in srgb, var(--gold) 10%, #fff)); box-shadow: var(--m-bevel), 0 0 0 3px rgba(var(--gold-rgb), 0.22); }
 
-/* cards (games, presets, themes, the lobby strip): raised porcelain with a top highlight; they lift on hover with a
-   halo in the felt's colour; the chosen one is gilded */
-:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme) {
-  background: linear-gradient(180deg, #fff, var(--cz-s1)); border-color: var(--cz-line); box-shadow: var(--cz-sh);
+/* cards (games, presets, themes, chip sets, dollies): raised porcelain with a foot washed in the table's colour and a
+   tinted edge; they lift on hover with a halo in the table's colour; the chosen one is gilded — an accent wash, the
+   metal edge, a ring and a glow of the accent and a top bar of leaf */
+:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme, .cz-chipset, .cz-dolly) {
+  background: linear-gradient(180deg, #fff 40%, var(--cz-wash)); border-color: color-mix(in srgb, var(--cz-tint) 20%, var(--cz-line));
+  box-shadow: var(--cz-sh), inset 0 -2px 0 color-mix(in srgb, var(--cz-tint) 12%, transparent);
 }
-:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme):hover { border-color: color-mix(in srgb, var(--cz-metal) 60%, transparent); transform: translateY(-2px); box-shadow: var(--cz-sh-up); }
-:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme)[data-on="true"] {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 18%, #fff), #fff 70%); border-color: var(--cz-metal);
-  box-shadow: inset 0 1px 0 #fff, 0 0 0 1px var(--cz-metal), 0 0 0 4px rgba(var(--gold-rgb), 0.16), 0 14px 28px -14px var(--cz-halo);
+:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme, .cz-chipset, .cz-dolly):hover {
+  border-color: color-mix(in srgb, var(--cz-metal) 70%, transparent); transform: translateY(-2px); box-shadow: var(--cz-sh-up), 0 0 0 3px rgba(var(--gold-rgb), 0.12);
 }
-:root[data-theme="light"] .cz-game .led-preview { box-shadow: 0 0 0 1px #0b0b0e, 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 0 4px color-mix(in srgb, var(--cz-metal) 30%, transparent), 0 8px 14px -8px rgba(40, 30, 16, 0.6); }
+:root[data-theme="light"] :is(.cz-preset, .cz-game, .cz-theme, .cz-chipset, .cz-dolly)[data-on="true"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 26%, #fff), #fff 58%, color-mix(in srgb, var(--cz-tint) 12%, #fff));
+  border-color: var(--cz-metal);
+  box-shadow: inset 0 3px 0 -1px var(--cz-metal), inset 0 1px 0 #fff, 0 0 0 1px var(--cz-metal), 0 0 0 4px rgba(var(--gold-rgb), 0.26),
+    0 0 22px -4px var(--cz-glow), 0 14px 28px -14px var(--cz-halo);
+}
+:root[data-theme="light"] .cz-game .led-preview { box-shadow: 0 0 0 1px #0b0b0e, 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 0 4px color-mix(in srgb, var(--cz-metal) 40%, transparent), 0 8px 14px -8px rgba(40, 30, 16, 0.6); }
 :root[data-theme="light"] .cz-game b { text-shadow: 0 1px 0 #fff; }
 :root[data-theme="light"] .cz-theme > i { box-shadow: inset 0 0 0 2px var(--sw-acc), inset 0 2px 6px rgba(0, 0, 0, 0.35), 0 2px 4px -1px rgba(40, 30, 16, 0.3); }
 :root[data-theme="light"] .cz-theme > i::after { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+:root[data-theme="light"] :is(.cz-theme, .cz-chipset, .cz-dolly) > b { color: var(--cz-ink-2); }
+:root[data-theme="light"] :is(.cz-theme, .cz-chipset, .cz-dolly)[data-on="true"] > b { color: var(--cz-ink-1); font-weight: 680; }
+/* chip sets and dollies: the chips / the dolly sit on a small well of the table's own felt */
+:root[data-theme="light"] .cz-chipset-row, :root[data-theme="light"] .cz-dolly > svg {
+  padding: 6px 9px; border-radius: 99px; box-sizing: content-box;
+  background: var(--cz-pat), radial-gradient(120% 140% at 50% 20%, var(--felt-hi), var(--felt) 60%, var(--felt-2));
+  background-size: var(--cz-pat-size), 100% 100%;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 0 1.5px color-mix(in srgb, var(--cz-metal) 55%, #fff), 0 1px 0 2px #fff;
+}
+:root[data-theme="light"] .cz-dolly > svg { padding: 5px 10px; border-radius: 12px; }
+:root[data-theme="light"] :is(.cz-chipset, .cz-dolly)[data-on="true"] :is(.cz-chipset-row, svg) {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45), 0 0 0 1.5px var(--cz-metal), 0 0 0 3px rgba(var(--gold-rgb), 0.35), 0 0 14px var(--cz-glow);
+}
+:root[data-theme="light"] .cz-chipset em { color: var(--cz-mute); }
 :root[data-theme="light"] .cz-preset-ic {
-  color: var(--gold-text); background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--gold) 22%, #fff));
-  border-color: color-mix(in srgb, var(--cz-metal) 50%, transparent); box-shadow: inset 0 1px 0 #fff, 0 2px 4px -2px rgba(64, 48, 24, 0.3);
+  color: var(--gold-text); background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--gold) 26%, #fff));
+  border-color: color-mix(in srgb, var(--cz-metal) 60%, transparent); box-shadow: inset 0 1px 0 #fff, 0 2px 6px -2px var(--cz-halo);
 }
 :root[data-theme="light"] :is(.cz-preset em, .cz-odds-row > span:nth-child(2), .cz-game em) { color: var(--gold-text); }
 :root[data-theme="light"] :is(.cz-odds-row, .cz-everyone, .cz-rank, .cz-round, .cz-steps li, .cz-myresult) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55)); border-color: color-mix(in srgb, var(--cz-line) 80%, transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--cz-wash) 80%, transparent));
+  border-color: color-mix(in srgb, var(--cz-tint) 16%, var(--cz-line));
   box-shadow: 0 1px 2px rgba(64, 48, 24, 0.06);
 }
 :root[data-theme="light"] :is(.cz-odds-row, .cz-rank, .cz-round, .cz-steps li) { border-width: 1px; border-style: solid; }
+:root[data-theme="light"] .cz-everyone { box-shadow: inset 3px 0 0 var(--cz-metal), 0 1px 2px rgba(64, 48, 24, 0.06); }
 :root[data-theme="light"] .cz-odds-head { color: var(--cz-mute); }
-:root[data-theme="light"] .cz-edge { background: rgba(64, 48, 24, 0.06); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.1); }
+:root[data-theme="light"] .cz-edge { background: color-mix(in srgb, var(--cz-tint) 8%, rgba(64, 48, 24, 0.05)); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.1); }
 :root[data-theme="light"] .cz-rtp {
-  background: radial-gradient(120% 140% at 0% 0%, rgba(255, 255, 255, 0.9), transparent 60%), linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, #fff), color-mix(in srgb, var(--felt-hi) 8%, #fff));
-  border-color: color-mix(in srgb, var(--cz-metal) 55%, transparent); box-shadow: inset 0 1px 0 #fff, 0 10px 22px -16px var(--cz-halo);
+  background: radial-gradient(120% 140% at 0% 0%, rgba(255, 255, 255, 0.9), transparent 60%), linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, #fff), color-mix(in srgb, var(--cz-tint) 14%, #fff));
+  border-color: color-mix(in srgb, var(--cz-metal) 65%, transparent); box-shadow: inset 0 1px 0 #fff, 0 0 18px -8px var(--cz-glow), 0 10px 22px -16px var(--cz-halo);
 }
 :root[data-theme="light"] .cz-rtp b { text-shadow: 0 1px 0 #fff; }
+/* player rows: their own colour on the left, fading into porcelain with the table's tint at the far end */
 :root[data-theme="light"] .cz-seat {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 14%, #fff), #fff 52%); border-color: color-mix(in srgb, var(--c) 42%, #e4ddd1);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 16%, #fff), #fff 46%, var(--cz-wash));
+  border-color: color-mix(in srgb, var(--c) 42%, color-mix(in srgb, var(--cz-tint) 18%, #e4ddd1));
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--c) 70%, #fff), var(--cz-sh);
 }
 :root[data-theme="light"] .cz-seat-tools { border-top-color: var(--cz-line); }
@@ -813,66 +867,83 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 24%, #2b241c), #17130f);
   box-shadow: 0 0 0 2px #fff, 0 3px 8px -3px color-mix(in srgb, var(--c) 70%, transparent);
 }
-:root[data-theme="light"] .cz-rank[data-top="true"] { background: linear-gradient(90deg, color-mix(in srgb, var(--m) 16%, #fff), #fff 60%); border-color: color-mix(in srgb, var(--m) 40%, #e4ddd1); }
+:root[data-theme="light"] .cz-rank[data-top="true"] { background: linear-gradient(90deg, color-mix(in srgb, var(--m) 16%, #fff), #fff 60%, var(--cz-wash)); border-color: color-mix(in srgb, var(--m) 40%, #e4ddd1); }
 :root[data-theme="light"] .cz-credits[data-dir="up"] { color: #18794e !important; text-shadow: none; }
 :root[data-theme="light"] .cz-credits[data-dir="down"] { color: #c8203e !important; text-shadow: none; }
 :root[data-theme="light"] .cz-pos { color: #18794e; }
 :root[data-theme="light"] .cz-neg { color: #c8203e !important; }
-:root[data-theme="light"] .cz-well { border-color: var(--cz-line); background: rgba(64, 48, 24, 0.04); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.08); }
+:root[data-theme="light"] .cz-well { border-color: var(--cz-line); background: color-mix(in srgb, var(--cz-tint) 7%, rgba(64, 48, 24, 0.03)); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.08); }
 :root[data-theme="light"] .cz-myresult.cz-win { background: linear-gradient(90deg, rgba(24, 121, 78, 0.14), #fff); color: #18794e; }
 :root[data-theme="light"] .cz-myresult.cz-lose { background: linear-gradient(90deg, rgba(200, 32, 62, 0.11), #fff); color: #c8203e; }
-:root[data-theme="light"] .cz-steps li::before { color: var(--gold-ink); background: var(--cz-leaf); border-color: var(--cz-metal); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+:root[data-theme="light"] .cz-steps li::before { color: var(--gold-ink); background: var(--cz-leaf); border-color: var(--cz-metal); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 8px -1px var(--cz-glow); }
 :root[data-theme="light"] :is(.cz-steps b, .cz-rules b) { color: var(--gold-text); }
 :root[data-theme="light"] .cz-rules h4 { color: var(--gold-text); }
 :root[data-theme="light"] .cz-rules li::marker { color: var(--cz-metal); }
 :root[data-theme="light"] .cz-group { background: color-mix(in srgb, var(--felt) 88%, #000); }
+/* the betting rack: the chips stand in a porcelain tray washed in the table's colour, rimmed in the accent's metal */
+:root[data-theme="light"] .cz-rack {
+  padding: 8px 10px; border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cz-tint) 13%, #fff), color-mix(in srgb, var(--cz-tint) 5%, #fff));
+  border: 1px solid color-mix(in srgb, var(--cz-metal) 45%, transparent);
+  box-shadow: inset 0 2px 4px rgba(64, 48, 24, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 1px 0 #fff;
+}
+:root[data-theme="light"] .cz-chip[data-active="true"] { box-shadow: 0 6px 0 color-mix(in srgb, var(--chip) 45%, #000), 0 0 0 2px #fff, 0 0 0 4px var(--cz-metal), 0 0 22px var(--cz-glow); }
+:root[data-theme="light"] .cz-board { border-color: var(--cz-metal); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.22), inset 0 2px 14px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--gold-2) 40%, #fff), 0 0 0 4px color-mix(in srgb, var(--cz-metal) 50%, transparent), 0 14px 26px -16px var(--cz-halo); }
 
-/* centre: the bronze title, a porcelain host bar under a gold rule, the felt table on a champagne plinth */
+/* centre: the bronze title, a porcelain host bar under an accent rule, the felt table on a champagne plinth */
 :root[data-theme="light"] .cz-title-name {
   background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 46%, #1a1206), color-mix(in srgb, var(--gold) 64%, #000) 55%, color-mix(in srgb, var(--gold) 38%, #1a1206));
   -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.95));
 }
-:root[data-theme="light"] .cz .cz-gold, :root[data-theme="light"] .cz .key-ember, :root[data-theme="light"] .cz-tabs > button[data-on="true"],
-:root[data-theme="light"] .cz-pill[data-on="true"], :root[data-theme="light"] .cz .seg > button[data-active="true"] {
+:root[data-theme="light"] .cz-tabs > button[data-on="true"], :root[data-theme="light"] .cz-pill[data-on="true"],
+:root[data-theme="light"] .cz .seg > button[data-active="true"] {
   border: 1px solid color-mix(in srgb, var(--gold) 55%, #4a4438); /* pale accents need a metal edge on ivory */
 }
-/* gold keys: gold leaf with a glossy sheen and a halo in the accent instead of a glow */
+/* primary keys (Start, Done, TV, Open the room, Leave casino): gold leaf in the accent with a sheen and the accent's
+   glow — or, for a pale accent, the table's felt with accent lettering — on a metal edge */
 :root[data-theme="light"] .cz .cz-gold, :root[data-theme="light"] .cz .key-ember {
-  background: var(--m-sheen), var(--cz-leaf);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 2px 0 var(--cz-edge), 0 10px 18px -8px rgba(var(--gold-rgb), 0.7);
+  color: var(--cz-key-ink); background: var(--m-sheen), var(--cz-key);
+  border: 1px solid color-mix(in srgb, var(--cz-key-2) 55%, #4a4438);
+  text-shadow: 0 1px 0 color-mix(in srgb, rgba(0, 0, 0, 0.35) calc(var(--cz-pale) * 100%), rgba(255, 255, 255, 0.35));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.14), 0 2px 0 color-mix(in srgb, var(--cz-key-3) 50%, #000),
+    0 0 0 3px rgba(var(--gold-rgb), 0.14), 0 10px 20px -8px var(--cz-glow), 0 12px 22px -12px var(--cz-halo);
 }
-:root[data-theme="light"] .cz .cz-gold:active, :root[data-theme="light"] .cz .key-ember:active { box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 var(--cz-edge); }
+:root[data-theme="light"] .cz .cz-gold:hover, :root[data-theme="light"] .cz .key-ember:hover { filter: brightness(1.06) saturate(1.08); }
+:root[data-theme="light"] .cz .cz-gold:active, :root[data-theme="light"] .cz .key-ember:active { box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 color-mix(in srgb, var(--cz-key-3) 50%, #000); }
+:root[data-theme="light"] .cz .cz-gold:disabled { opacity: 0.5; filter: saturate(0.6); }
 :root[data-theme="light"] .cz-hostbar {
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--felt-hi) 9%, transparent), transparent 45%, rgba(var(--gold-rgb), 0.08)),
+    linear-gradient(90deg, color-mix(in srgb, var(--cz-tint) 16%, transparent), transparent 46%, rgba(var(--gold-rgb), 0.14)),
     linear-gradient(180deg, #fff, var(--cz-s1));
-  border-color: color-mix(in srgb, var(--cz-metal) 38%, #e4ddd1);
-  box-shadow: inset 0 2px 0 -0.5px rgba(var(--gold-rgb), 0.5), inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, 0.06),
-    0 18px 36px -24px rgba(64, 48, 24, 0.45), 0 22px 40px -30px var(--cz-halo);
+  border-color: color-mix(in srgb, var(--cz-metal) 55%, #e4ddd1);
+  box-shadow: inset 0 2px 0 -0.5px var(--gold), inset 0 3px 8px -4px var(--cz-glow), 0 1px 2px rgba(64, 48, 24, 0.06),
+    0 0 0 3px rgba(var(--gold-rgb), 0.08), 0 18px 36px -24px rgba(64, 48, 24, 0.45), 0 22px 40px -26px var(--cz-halo);
 }
-:root[data-theme="light"] .cz-roundinfo { border-left-color: color-mix(in srgb, var(--cz-metal) 40%, transparent); }
+:root[data-theme="light"] .cz-roundinfo { border-left-color: color-mix(in srgb, var(--cz-metal) 50%, transparent); }
 :root[data-theme="light"] .cz-phase[data-tone="red"] b, :root[data-theme="light"] .cz-ring[data-hurry="true"] b { color: #c8203e; }
 :root[data-theme="light"] .cz-phase[data-tone="green"] .cz-phase-dot { box-shadow: 0 0 0 3px rgba(24, 121, 78, 0.18); }
-:root[data-theme="light"] .cz-phase[data-tone="gold"] .cz-phase-dot { background: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.3); }
+:root[data-theme="light"] .cz-phase[data-tone="gold"] .cz-phase-dot { background: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.3), 0 0 10px var(--cz-glow); }
 :root[data-theme="light"] .cz-phase[data-tone="red"] .cz-phase-dot { box-shadow: 0 0 0 3px rgba(200, 32, 62, 0.18); }
-:root[data-theme="light"] .cz-ring-track { fill: #fff; stroke: color-mix(in srgb, var(--cz-metal) 22%, #e4ddd1); }
-:root[data-theme="light"] .cz-ring svg { filter: drop-shadow(0 1px 1px rgba(64, 48, 24, 0.18)); }
+:root[data-theme="light"] .cz-ring-track { fill: color-mix(in srgb, var(--cz-tint) 8%, #fff); stroke: color-mix(in srgb, var(--cz-metal) 30%, #e4ddd1); }
+:root[data-theme="light"] .cz-ring svg { filter: drop-shadow(0 1px 1px rgba(64, 48, 24, 0.18)) drop-shadow(0 0 5px var(--cz-glow)); }
 :root[data-theme="light"] .cz-ring-fill { stroke: var(--cz-metal); }
 :root[data-theme="light"] .cz-ring b { color: var(--cz-ink-1); }
-:root[data-theme="light"] .cz-result { background: linear-gradient(90deg, rgba(var(--gold-rgb), 0.22), transparent); }
+:root[data-theme="light"] .cz-result { background: linear-gradient(90deg, rgba(var(--gold-rgb), 0.26), color-mix(in srgb, var(--cz-tint) 8%, transparent) 70%, transparent); }
 :root[data-theme="light"] .cz-result-tile { box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px #fff, 0 6px 14px -6px rgba(40, 30, 16, 0.55); }
-/* the table: brass rail and lacquer inside, then a champagne plinth ringed in metal, standing in the felt's halo */
+/* the table: brass rail and lacquer inside, then a champagne plinth ringed in metal and washed in the table's colour,
+   standing in the table's halo and the accent's glow */
 :root[data-theme="light"] .cz-table {
   box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.6), inset 0 0 0 7px color-mix(in srgb, var(--gold-deep) 70%, #000), inset 0 0 0 9px rgba(var(--gold-rgb), 0.3),
     inset 0 10px 40px rgba(0, 0, 0, 0.55),
     0 0 0 1px color-mix(in srgb, var(--cz-metal) 70%, #000), 0 0 0 5px color-mix(in srgb, var(--gold-2) 45%, #f6f1e6),
-    0 0 0 6px color-mix(in srgb, var(--cz-metal) 55%, transparent), 0 0 0 10px color-mix(in srgb, var(--felt-hi) 6%, #fbf8f2),
-    0 0 0 11px color-mix(in srgb, var(--cz-metal) 22%, transparent),
-    0 30px 60px -28px rgba(40, 30, 16, 0.55), 0 30px 90px -20px var(--cz-halo), 0 0 70px -20px rgba(var(--gold-rgb), 0.4);
+    0 0 0 6px color-mix(in srgb, var(--cz-metal) 65%, transparent), 0 0 0 10px color-mix(in srgb, var(--cz-tint) 16%, #fbf8f2),
+    0 0 0 11px color-mix(in srgb, var(--cz-metal) 34%, transparent),
+    0 30px 60px -28px rgba(40, 30, 16, 0.55), 0 30px 90px -18px var(--cz-halo), 0 0 70px -14px var(--cz-glow);
 }
 :root[data-theme="light"] .cz-lobby {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--felt-hi) 9%, #fff), #fff 55%); border-color: color-mix(in srgb, var(--cz-metal) 34%, #e4ddd1);
-  box-shadow: var(--cz-sh), 0 16px 30px -24px var(--cz-halo);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cz-tint) 14%, #fff), #fff 55%, color-mix(in srgb, var(--gold) 10%, #fff));
+  border-color: color-mix(in srgb, var(--cz-metal) 48%, #e4ddd1);
+  box-shadow: var(--cz-sh), 0 0 0 3px rgba(var(--gold-rgb), 0.08), 0 16px 30px -22px var(--cz-halo);
 }
 :root[data-theme="light"] .cz-notice { color: color-mix(in srgb, var(--cz-warn) 55%, #000); }
 :root[data-theme="light"] .cz-qrbig { background: rgba(42, 34, 24, 0.45); }
@@ -880,21 +951,22 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
   background: linear-gradient(180deg, #fff, var(--cz-s1)); border-color: var(--cz-metal);
   box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 5px color-mix(in srgb, var(--cz-metal) 35%, transparent), 0 30px 80px -24px rgba(64, 48, 24, 0.55), 0 0 90px -30px var(--cz-halo);
 }
-:root[data-theme="light"] .cz-split > span { background: color-mix(in srgb, var(--cz-metal) 35%, transparent); }
+:root[data-theme="light"] .cz-split > span { background: color-mix(in srgb, var(--cz-metal) 50%, transparent); box-shadow: 0 0 6px var(--cz-glow); }
 :root[data-theme="light"] .cz-split:hover > span, :root[data-theme="light"] .cz-split:focus-visible > span, :root[data-theme="light"] .cz-split[data-drag] > span {
-  background: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.22);
+  background: var(--cz-metal); box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.22), 0 0 12px var(--cz-glow);
 }
 
-/* the page around the casino view in light mode: porcelain washed with the felt, lit by the accent from the top
-   corners, a fine felt-tinted dot grid and a warm vignette; the accent bronze */
+/* the page around the casino view in light mode: porcelain washed in the table's colour, lit by the accent from the
+   top corners, a fine tinted dot grid and a warm vignette; the accent bronze */
 :root[data-theme="light"][data-cz] {
-  --color-chassis-0: color-mix(in srgb, #f2ede4 91%, var(--cz-page-felt));
-  --color-chassis-1: #fbf9f5;
+  --cz-page-room: color-mix(in srgb, var(--cz-page-felt) 70%, var(--cz-page-tint));
+  --color-chassis-0: color-mix(in srgb, #f2ede4 87%, var(--cz-page-room));
+  --color-chassis-1: color-mix(in srgb, #fcfbf8 95%, var(--cz-page-room));
   --color-chassis-2: #ffffff;
-  --color-chassis-3: #f0ebe2;
-  --color-chassis-4: #e6e0d5;
-  --color-line: color-mix(in srgb, var(--cz-page-accent) 16%, #e7e1d6);
-  --color-line-2: color-mix(in srgb, var(--cz-page-accent) 24%, #d8d0c2);
+  --color-chassis-3: color-mix(in srgb, #f1ede5 92%, var(--cz-page-room));
+  --color-chassis-4: color-mix(in srgb, #e7e2d8 92%, var(--cz-page-room));
+  --color-line: color-mix(in srgb, var(--cz-page-accent) 18%, color-mix(in srgb, var(--cz-page-room) 8%, #e7e1d6));
+  --color-line-2: color-mix(in srgb, var(--cz-page-accent) 26%, color-mix(in srgb, var(--cz-page-room) 10%, #d8d0c2));
   --color-ink-1: #1c1a22;
   --color-ink-2: #4a4652;
   --color-ink-3: #6b6673;
@@ -902,10 +974,10 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
   --color-ember: color-mix(in srgb, var(--cz-page-accent) 40%, #1a1206);
   --color-ember-2: color-mix(in srgb, var(--cz-page-accent) 62%, #1a1206);
   --color-ember-deep: color-mix(in srgb, var(--cz-page-accent) 14%, #fff);
-  /* MATERIALS v2 re-tinted by the table: the accent bloom and the dot grid take the theme */
-  --m-wash-a: color-mix(in srgb, var(--cz-page-accent) 13%, transparent);
-  --m-wash-b: color-mix(in srgb, var(--cz-page-felt) 20%, transparent);
-  --m-texture: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--cz-page-felt) 22%, transparent) 1px, transparent 0);
+  /* MATERIALS v2 re-tinted by the table: the accent bloom, the table's wash and the dot grid take the theme */
+  --m-wash-a: color-mix(in srgb, var(--cz-page-accent) 22%, transparent);
+  --m-wash-b: color-mix(in srgb, var(--cz-page-tint) 30%, transparent);
+  --m-texture: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--cz-page-room) 30%, transparent) 1px, transparent 0);
 }
 :root[data-theme="light"][data-cz] body {
   background-image:
