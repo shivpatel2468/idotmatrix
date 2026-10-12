@@ -55,6 +55,23 @@ The technical log for developers. For the same updates in plain words (before �
   moments on every table, dolly path and landing, odometer reels, chip sets); fixture regenerated. Benchmark (6×
   CPU, 960×540 @2, software): roulette p95 16.8 ms (before 16.8), baccarat p95 33.4 ms (before 50.0, lite), tetris
   unchanged; main-thread busy +14–23 pts.
+- **TV view polish** (`tv.js`, `tv.html`, `tv-casino.js`, `tvlink.py`): fixed the options menu — `choose(key, v)` was
+  shadowed by the hoisted scene matcher `choose()`, so Panel look / Quality picks never applied (now `chooseDisplay` /
+  `matchScene`); clicks are taken on `document` (also during the theme's View Transition, by geometry), press / pick
+  feedback, Space and D-pad centre (keyCode 23), 12 s idle. Menu text contrast in both themes (a table no longer
+  forces dark tokens). New TV menu rows *Dolly* (roulette) and *Chips* at a casino table, drawn with the real sprites
+  (`TV.casino.previewDolly` / `previewChips`, `dollyBody` factored out of `dollyPaint`), sent as
+  `{"type":"house","dolly"|"chip_set"}` on the TV socket — `TvHub._house` / `house_patch`: one key, known values only,
+  casino table only, valid code, ≤ 4/s per TV; replies `house_ok` / `house_err` (`tests/test_tv.py`). Light theme
+  restyles the whole casino (`ROOMS` palette: ivory walls, white-lacquer rail with gold inlay, ivory plaques and
+  gallery, champagne panel housing, room inks via `roomInk`; `scene.restyle` redraws the cached layers once, inside a
+  View Transitions cross-fade); light casino header in `tv.html`. Header: three columns, logo centred;
+  `DeskDotLogo.mount({once})` builds in once then holds lit (all five copies). Type: self-hosted Bricolage Grotesque
+  (`tv/tv-sans.woff2`, 41 KB, SIL OFL — `tv/OFL.txt`; served by `/tv/static/`, copied by `build_webapp.py`), `--serif`
+  display titles, tabular numerals. Studio: Casino → House shows Dolly (roulette) and Chip set first. Tests:
+  `tests/js/tv_menu.test.mjs` (headless Chrome: click / tap / keys / remote on every tile; skipped without
+  playwright-core + Chrome), `tv_casino.test.mjs` +2 (light room on every table, restyle; menu previews). Benchmark
+  (6×, 960×540 @2): roulette p95 33.3 ms, baccarat 33.3, tetris 16.8 (dark and light alike).
 
 ## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
 

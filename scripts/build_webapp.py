@@ -240,7 +240,7 @@ def build_join(dest: Path, build: str) -> None:
         tv_page_for_join(TV_PAGE.read_text(encoding="utf-8"), build), encoding="utf-8"
     )
     (dest / "tv").mkdir(exist_ok=True)
-    for src in sorted(TV_SCRIPTS.glob("*.js")):
+    for src in [*sorted(TV_SCRIPTS.glob("*.js")), *sorted(TV_SCRIPTS.glob("*.woff2"))]:  # + the TV's font
         shutil.copy2(src, dest / "tv" / src.name)
 
 

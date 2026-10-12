@@ -543,3 +543,40 @@ test("chip sets: status.chip_set wins, else the table theme's own set, else clay
     scene.unmount();
   }
 });
+
+test("light theme: every table draws its daylight salon without errors; a theme change redraws the cached layers once", () => {
+  const html = { dataset: { theme: "light" } };
+  sandbox.document.documentElement = html; // tv.js paints html[data-theme]; the scenes read it
+  try {
+    for (const app of Object.keys(FIX.statuses)) {
+      bad.length = 0;
+      play(app, null, { maxGap: 3 });
+      assert.deepEqual(bad.slice(0, 5), [], app);
+    }
+    // restyle: one redraw of the background, the table and the rail — and the room follows the page
+    const scene = registered.find((s) => s.match("casino_roulette"));
+    const ctx = ctxFor("casino_roulette");
+    ctx.status = FIX.statuses.casino_roulette[1];
+    scene.mount(element(), ctx);
+    scene._paint(1);
+    const S = scene._state();
+    const bg = S.bg;
+    assert.match(bg, /\|light\|/);
+    html.dataset.theme = "dark";
+    scene.restyle(ctx);
+    assert.notEqual(S.bg, bg, "the background was redrawn for the dark room");
+    assert.match(S.bg, /\|dark\|/);
+    assert.equal(S.err, null);
+    scene.unmount();
+  } finally {
+    delete sandbox.document.documentElement;
+  }
+});
+
+test("menu previews: every dolly style and chip set draws into a small canvas", () => {
+  bad.length = 0;
+  for (const id of Object.keys(C.DOLLY_STYLES)) C.previewDolly(element(), id, 2);
+  for (const set of C.CHIP_SETS) C.previewChips(element(), set, 2);
+  C.previewDolly(element(), "nope", 1);
+  assert.deepEqual(bad, []);
+});

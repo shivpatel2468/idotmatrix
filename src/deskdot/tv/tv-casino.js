@@ -34,10 +34,11 @@
   const PANEL_Y = 672;
   const LOCK = 1.0; // casino/table.py LOCK_SECONDS
   const TAU = Math.PI * 2;
-  const FONT = '"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif';
+  // the TV's own face (tv.js loads tv/tv-sans.woff2; the scene redraws once it has loaded), then the system's
+  const FONT = '"DeskDot TV Sans","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif';
   const MONO = '"Cascadia Mono","SF Mono",Consolas,"Roboto Mono",ui-monospace,Menlo,monospace';
   // engraved titles on the felt and the seat plaques (system serifs only: a TV stick has Noto Serif / Droid Serif)
-  const SERIF = '"Didot","Bodoni 72","Bodoni MT","Playfair Display",Georgia,"Noto Serif","Droid Serif","Times New Roman",serif';
+  const SERIF = '"Didot","Bodoni 72","Bodoni MT","Cormorant Garamond","Playfair Display",Georgia,"Noto Serif","Droid Serif","Times New Roman",serif';
   const fontOf = (o) => (o && o.font === "mono" ? MONO : o && o.font === "serif" ? SERIF : FONT);
   const CLASSIC = {
     felt: "#0d6b45", felt2: "#0a5236", felt3: "#063823", accent: "#ffcc33", accent_hi: "#ffe08a", accent_lo: "#e2a400",
@@ -54,6 +55,60 @@
   const INK1 = "#f3eee2";
   const INK2 = "#c4bfb2";
   const INK3 = "#8b877e";
+
+  /**
+   * The room around the table, by the TV's theme (tv.js TV.theme): dark is the night salon (damask walls, mahogany
+   * rail, leather gallery); light is a daylight salon — ivory and champagne walls, a white-lacquer rail with gold
+   * inlay, ivory seat plaques, deep ink and antique gold for the type (the studio's light casino, casino.css /
+   * MATERIALS v2). The felt is the table theme's in both. Everything here lands in the cached layers (background,
+   * rail): a theme change redraws them once (scene.restyle), nothing per frame.
+   */
+  const ROOMS = {
+    dark: {
+      light: false, ink1: INK1, ink2: INK2, ink3: INK3, shadow: "#000",
+      wall: null, damask: 0.05, sheen: "rgba(255,255,255,.05)", vignette: "rgba(0,0,0,.55)", lampFar: "rgba(0,0,0,.5)", lampMid: "rgba(0,0,0,.12)",
+      railShadow: ["#000", 0.9],
+      rail: ["#c9973a", "#6a4a12", "#e8c264", [[0.86, "#1d0c05"], [0.74, "#3c1a0b"], [0.6, "#5c2812"], [0.46, "#783619"], [0.32, "#8f4520"], [0.18, "#a65629"], [0.07, "#bf6c37"]], "rgba(255,226,186,.55)"],
+      gallery: ["#1f1612", "#0b0807"], galleryShadow: 0.7, frame: 0.6, frameIn: 0.22,
+      plaque: ["#271c16", "#110b09"], plaqueLine: 0.3, plaqueSheen: "rgba(255,255,255,.035)",
+      housing: ["#2b2b33", "#111115"], label: 0.6, histLine: "rgba(255,255,255,.18)",
+      odo: { ink: INK1, up: "#7dffc4", down: "#ff8a9a", shadow: "0 2px 0 rgba(0,0,0,.55)" },
+    },
+    light: {
+      light: true, ink1: "#1c1a22", ink2: "#4a4652", ink3: "#6b6673", shadow: "rgba(92,70,40,1)",
+      wall: ["#fbf8f1", "#f3ecdf", "#e9dfcc"], damask: 0.09, sheen: "rgba(255,255,255,.55)", vignette: "rgba(120,92,52,.22)", lampFar: "rgba(120,92,52,.16)", lampMid: "rgba(255,250,240,0)",
+      railShadow: ["#5c4628", 0.38],
+      rail: ["#b8892a", "#8a6412", "#e6c876", [[0.86, "#d8ccb6"], [0.74, "#e6dccb"], [0.6, "#efe8db"], [0.46, "#f6f1e7"], [0.32, "#faf7f0"], [0.18, "#fdfbf6"], [0.07, "#ffffff"]], "rgba(255,255,255,.95)"],
+      gallery: ["#fffdf8", "#f1e9da"], galleryShadow: 0.28, frame: 0.85, frameIn: 0.35,
+      plaque: ["#ffffff", "#f6f0e4"], plaqueLine: 0.45, plaqueSheen: "rgba(255,255,255,.7)",
+      housing: ["#f7f2e8", "#ddd2bd"], label: 0.95, histLine: "rgba(64,48,24,.18)",
+      odo: { ink: "#1c1a22", up: "#0f7a4a", down: "#b3263c", shadow: "0 1px 0 rgba(255,255,255,.85)" },
+    },
+  }; // fmt: skip
+  /** The room the page is painted in now (html[data-theme], set by tv.js inside its cross-fade). */
+  const roomOf = () => {
+    try {
+      return document.documentElement.dataset.theme === "light" ? ROOMS.light : ROOMS.dark;
+    } catch (e) {
+      return ROOMS.dark; // no DOM (tests)
+    }
+  };
+  let P = ROOMS.dark; // the room in use while a scene paints (one scene at a time, set in paint)
+  /** A player's colour as text on the room: as is in the dark, deepened on ivory (bright LED colours wash out). */
+  const inkOf = (c) => (P.light ? shade(c || P.ink1, 0.55) : c || P.ink1);
+  /** Antique-gold engraving for type on the light room (gold leaf's bright top vanishes on ivory). */
+  const goldOn = () => (P.light ? "deep" : true);
+  /** A colour meant for the dark room, made readable on the ivory one (text drawn on the room or a seat plaque). */
+  function roomInk(c, th) {
+    if (!P.light) return c;
+    if (c == null || c === INK1) return P.ink1;
+    if (c === INK2) return P.ink2;
+    if (c === INK3) return P.ink3;
+    if (c === OK) return "#18794e";
+    if (c === BAD) return "#b3263c";
+    if (th && (c === th.accent_hi || c === th.accent)) return "#8a6412";
+    return /^#[0-9a-f]{3,6}$/i.test(String(c)) ? shade(c, 0.55) : c;
+  }
 
   // ================================================================================================ small helpers
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -603,7 +658,16 @@
       else g.fillText(str, x, y + dy);
       g.globalAlpha = a;
     }
-    if (o.gold) {
+    if (o.gold === "deep") {
+      // antique gold engraved into ivory (the light room): dark enough to read, still a metal
+      const top = (o.base || "alphabetic") === "middle" ? y - size * 0.5 : y - size * 0.8;
+      const gr = g.createLinearGradient(0, top, 0, top + size);
+      gr.addColorStop(0, "#b8892a");
+      gr.addColorStop(0.45, "#7a5410");
+      gr.addColorStop(0.7, "#9c7020");
+      gr.addColorStop(1, "#5e400c");
+      g.fillStyle = gr;
+    } else if (o.gold) {
       // gold leaf: a vertical metal gradient over the text's own height
       const top = (o.base || "alphabetic") === "middle" ? y - size * 0.5 : y - size * 0.8;
       const gr = g.createLinearGradient(0, top, 0, top + size);
@@ -1411,27 +1475,40 @@
   /** The table's padded rail around the current path: lacquered wood with brass inlay (see luxTable). */
   function railStroke(g, th, width) {
     const W = width * 2;
-    softStroke(g, W, 40, "#000", 0.9, 0, 16, 7);
+    const [outer, groove, inlay, profile, gloss] = P.rail; // mahogany in the dark, white lacquer in daylight
+    softStroke(g, W, 40, P.railShadow[0], P.railShadow[1], 0, 16, 7);
     g.save();
     g.lineJoin = "round";
-    // brass on both edges, then the wood's rounded profile from the edges to the crown
+    // gold on both edges, then the rail's rounded profile from the edges to the crown
     g.lineWidth = W;
-    g.strokeStyle = "#c9973a";
+    g.strokeStyle = outer;
     g.stroke();
     g.lineWidth = W - 2;
-    g.strokeStyle = "#6a4a12";
+    g.strokeStyle = groove;
     g.stroke();
     g.lineWidth = W - 4;
-    g.strokeStyle = "#e8c264";
+    g.strokeStyle = inlay;
     g.stroke();
-    for (const [k, c] of [[0.86, "#1d0c05"], [0.74, "#3c1a0b"], [0.6, "#5c2812"], [0.46, "#783619"], [0.32, "#8f4520"], [0.18, "#a65629"], [0.07, "#bf6c37"]]) {
+    for (const [k, c] of profile) {
       g.lineWidth = W * k;
       g.strokeStyle = c;
       g.stroke();
     }
-    // the lacquer: a fine gloss along the crown and a hairline of the table's accent
+    if (P.light) {
+      // white lacquer carries a second, inner gold inlay line along its crown
+      g.lineWidth = W * 0.5;
+      g.strokeStyle = "rgba(184,137,42,.55)";
+      g.stroke();
+      g.lineWidth = W * 0.5 - 2;
+      g.strokeStyle = profile[3][1];
+      g.stroke();
+      g.lineWidth = W * 0.3;
+      g.strokeStyle = profile[5][1];
+      g.stroke();
+    }
+    // the lacquer: a fine gloss along the crown
     g.lineWidth = Math.max(1.5, W * 0.035);
-    g.strokeStyle = "rgba(255,226,186,.55)";
+    g.strokeStyle = gloss;
     g.stroke();
     g.restore();
   }
@@ -1442,7 +1519,8 @@
     g.beginPath();
     g.rect(x, y, w, h);
     g.clip();
-    g.strokeStyle = rgba(th.accent, 0.05);
+    const gold = P.light ? "#b8892a" : th.accent;
+    g.strokeStyle = rgba(gold, P.damask);
     g.lineWidth = 1.5;
     const s = 64;
     g.beginPath();
@@ -1453,7 +1531,7 @@
       g.lineTo(x + i, y + h);
     }
     g.stroke();
-    g.fillStyle = rgba(th.accent, 0.06);
+    g.fillStyle = rgba(gold, P.damask * 1.2);
     for (let j = 0; j <= h / s + 1; j++)
       for (let i = 0; i <= w / s + 1; i++) {
         const cx = x + i * s + (j % 2 ? s / 2 : 0);
@@ -1910,10 +1988,7 @@
     const id = DOLLY_STYLES[style] ? style : "classic_gold";
     if (L.painted === id) return;
     L.painted = id;
-    const st = DOLLY_STYLES[id];
     const W = DOLLY_W;
-    const cx = W / 2;
-    const by = DOLLY_BASE;
     // the shadow on the felt: a soft pool and a tight contact core
     const sg = L.sh.g;
     const SWd = W * 1.4;
@@ -1949,11 +2024,16 @@
     const g = L.d.g;
     g.setTransform(L.d.k, 0, 0, L.d.k, 0, 0);
     g.clearRect(0, 0, W, DOLLY_H);
-    if (st.crystal) {
-      crystalDolly(g, cx, by);
-      L.d.show();
-      return;
-    }
+    dollyBody(g, id);
+    L.d.show();
+  }
+  /** The dolly of style `id` itself, standing in a DOLLY_W × DOLLY_H box (its base's rest point at DOLLY_BASE). */
+  function dollyBody(g, id) {
+    const st = DOLLY_STYLES[id] || DOLLY_STYLES.classic_gold;
+    const W = DOLLY_W;
+    const cx = W / 2;
+    const by = DOLLY_BASE;
+    if (st.crystal) return crystalDolly(g, cx, by);
     const glow = (c, b) => {
       if (id === "neon") {
         g.shadowColor = c;
@@ -2114,7 +2194,6 @@
       g.fillStyle = "rgba(255,255,255,.18)";
       g.fill();
     }
-    L.d.show();
   }
   /** The crystal pawn on a gold base (the original dolly). */
   function crystalDolly(g, cx, baseY0) {
@@ -2287,6 +2366,21 @@
       update(ctx) {
         if (S) ingest(S, ctx);
       },
+      /** The TV's theme or its font changed: redraw the cached layers once, now (tv.js restyle, inside its fade). */
+      restyle(ctx) {
+        if (!S) return;
+        if (ctx) S.ctx = ctx;
+        P = roomOf();
+        glowCache.clear(); // text glows are keyed by the font string, which didn't change
+        bgWanted(S);
+        S.lastKey = S.railKey = "";
+        for (const o of S.odos.values()) o.restyle();
+        try {
+          paint(S, nowOf(S.ctx));
+        } catch (e) {
+          console.error("DeskDot TV casino scene:", def.id, e);
+        }
+      },
       frame(ctx) {
         if (!S) return;
         S.ctx = ctx;
@@ -2328,7 +2422,8 @@
   }
 
   function bgWanted(S) {
-    S.bgWant = `${JSON.stringify(S.th)}|${S.k}|${S.def.bgKey ? S.def.bgKey(S) : ""}`;
+    const room = roomOf() === ROOMS.light ? "light" : "dark";
+    S.bgWant = `${JSON.stringify(S.th)}|${S.k}|${room}|${TV && TV.fontReady ? 1 : 0}|${S.def.bgKey ? S.def.bgKey(S) : ""}`;
   }
   function background(S) {
     if (S.bg === S.bgWant) return; // the key is built on each state (ingest), never per frame
@@ -2338,16 +2433,27 @@
     g.clearRect(0, 0, SW, SH);
     const th = S.th;
     const gr = g.createLinearGradient(0, 0, 0, SH);
-    gr.addColorStop(0, th.wing);
-    gr.addColorStop(0.6, th.wing2);
-    gr.addColorStop(1, th.wing3);
+    const wall = P.wall || [th.wing, th.wing2, th.wing3]; // the night salon takes the table theme's wing tones
+    gr.addColorStop(0, wall[0]);
+    gr.addColorStop(0.6, wall[1]);
+    gr.addColorStop(1, wall[2]);
     g.fillStyle = gr;
     g.fillRect(0, 0, SW, SH);
+    if (P.light) {
+      // daylight: a soft rose and gold-leaf bloom in the corners (MATERIALS v2 --m-wash-a / -b)
+      for (const [x, y, c] of [[0, 0, "rgba(214,56,106,.07)"], [SW, SH, "rgba(184,137,42,.12)"]]) {
+        const w = g.createRadialGradient(x, y, 0, x, y, 900);
+        w.addColorStop(0, c);
+        w.addColorStop(1, "rgba(255,255,255,0)");
+        g.fillStyle = w;
+        g.fillRect(0, 0, SW, SH);
+      }
+    }
     // the salon: a damask wall behind the table, darker toward the corners
     damask(g, th, 0, 0, SW, SH);
     const vg = g.createRadialGradient(760, 470, 200, 760, 470, 1150);
-    vg.addColorStop(0, "rgba(255,255,255,.05)");
-    vg.addColorStop(1, "rgba(0,0,0,.55)");
+    vg.addColorStop(0, P.sheen);
+    vg.addColorStop(1, P.vignette);
     g.fillStyle = vg;
     g.fillRect(0, 0, SW, SH);
     S.def.bg(S, g);
@@ -2355,8 +2461,8 @@
     const sp = g.createRadialGradient(760, 400, 40, 760, 480, 1020);
     sp.addColorStop(0, "rgba(255,236,200,.075)");
     sp.addColorStop(0.42, "rgba(255,236,200,0)");
-    sp.addColorStop(0.78, "rgba(0,0,0,.12)");
-    sp.addColorStop(1, "rgba(0,0,0,.5)");
+    sp.addColorStop(0.78, P.lampMid);
+    sp.addColorStop(1, P.lampFar);
     g.fillStyle = sp;
     g.fillRect(0, 0, RAIL_X, SH);
     railBackground(S, g);
@@ -2376,6 +2482,7 @@
   function paint(S, t) {
     S.t = t;
     CHIPSET = S.chipSet || "clay";
+    P = roomOf();
     S.T = serverClock(S, t);
     background(S);
     if (S.def.move) S.def.move(S, t);
@@ -2405,7 +2512,7 @@
     flightsFrame(S);
     rootFx(S, shake);
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
-    const rk = `${S.ver}|${turn}|${S.k}|${S.hasPanel ? 1 : 0}`;
+    const rk = `${S.ver}|${turn}|${S.k}|${S.hasPanel ? 1 : 0}|${P.light ? 1 : 0}`;
     if (rk !== S.railKey) {
       S.railKey = rk;
       const g = S.rail.g;
@@ -2463,31 +2570,34 @@
     const y = 14;
     const w = RAIL_W - 18;
     const h = SH - 28;
-    // a leather-lined gallery in a gold frame
+    // a leather-lined gallery in a gold frame (night) / an ivory-lacquered one with gold hairlines (daylight)
+    const gold = P.light ? "#b8892a" : th.accent;
     g.save();
     rr(g, x, y, w, h, 24);
-    softStroke(g, 0, 30, "#000", 0.7, 0, 12, 5);
+    softStroke(g, 0, 30, P.railShadow[0], P.galleryShadow, 0, 12, 5);
     const lg = g.createLinearGradient(0, y, 0, y + h);
-    lg.addColorStop(0, "#1f1612");
-    lg.addColorStop(1, "#0b0807");
+    lg.addColorStop(0, P.gallery[0]);
+    lg.addColorStop(1, P.gallery[1]);
     g.fillStyle = lg;
     g.fill();
     g.restore();
     rr(g, x, y, w, h, 24);
-    g.fillStyle = grain(g);
-    g.fill();
+    if (!P.light) {
+      g.fillStyle = grain(g);
+      g.fill();
+    }
     g.lineWidth = 2;
-    g.strokeStyle = rgba(th.accent, 0.6);
+    g.strokeStyle = rgba(gold, P.frame);
     g.stroke();
     rr(g, x + 7, y + 7, w - 14, h - 14, 18);
     g.lineWidth = 1;
-    g.strokeStyle = rgba(th.accent, 0.22);
+    g.strokeStyle = rgba(gold, P.frameIn);
     g.stroke();
-    txt(g, "AT THE TABLE", x + 22, 58, 24, th.accent, { weight: 700, font: "serif", gold: true, spacing: 3 });
+    txt(g, "AT THE TABLE", x + 22, 58, 24, gold, { weight: 700, font: "serif", gold: goldOn(), spacing: 3, shadow: !P.light });
     const rl = g.createLinearGradient(x + 20, 0, x + w - 20, 0);
-    rl.addColorStop(0, rgba(th.accent, 0));
-    rl.addColorStop(0.5, rgba(th.accent, 0.6));
-    rl.addColorStop(1, rgba(th.accent, 0));
+    rl.addColorStop(0, rgba(gold, 0));
+    rl.addColorStop(0.5, rgba(gold, 0.6));
+    rl.addColorStop(1, rgba(gold, 0));
     g.fillStyle = rl;
     g.fillRect(x + 20, 68, w - 40, 1.5);
   }
@@ -2496,18 +2606,21 @@
     const th = S.th;
     const x = RAIL_X + 2;
     const L = railLayout(S);
-    txt(g, "CHIPS", x + 22, L.rackY - 30, 16, rgba(th.accent_hi || th.accent, 0.6), { weight: 800, shadow: false, spacing: 3 });
-    txt(g, "RECENT", x + 22, L.recentY - 8, 16, rgba(th.accent_hi || th.accent, 0.6), { weight: 800, shadow: false, spacing: 3 });
+    const lbl = P.light ? rgba("#8a6412", P.label) : rgba(th.accent_hi || th.accent, P.label);
+    txt(g, "CHIPS", x + 22, L.rackY - 30, 16, lbl, { weight: 800, shadow: false, spacing: 3 });
+    txt(g, "RECENT", x + 22, L.recentY - 8, 16, lbl, { weight: 800, shadow: false, spacing: 3 });
     if (!L.panel) return;
-    // the panel's housing (only while panel frames arrive)
+    // the panel's housing (only while panel frames arrive): gunmetal at night, champagne lacquer in daylight — the
+    // panel itself stays a dark device in its well
     rr(g, PANEL_X - 14, PANEL_Y - 14, PANEL_SIZE + 28, PANEL_SIZE + 28, 16);
+    if (P.light) softStroke(g, 0, 18, P.railShadow[0], 0.22, 0, 8, 4);
     const bz = g.createLinearGradient(0, PANEL_Y - 14, 0, PANEL_Y + PANEL_SIZE + 14);
-    bz.addColorStop(0, "#2b2b33");
-    bz.addColorStop(1, "#111115");
+    bz.addColorStop(0, P.housing[0]);
+    bz.addColorStop(1, P.housing[1]);
     g.fillStyle = bz;
     g.fill();
     g.lineWidth = 1.5;
-    g.strokeStyle = rgba(th.accent, 0.35);
+    g.strokeStyle = P.light ? "rgba(184,137,42,.7)" : rgba(th.accent, 0.35);
     g.stroke();
     rr(g, PANEL_X - 3, PANEL_Y - 3, PANEL_SIZE + 6, PANEL_SIZE + 6, 6);
     g.fillStyle = "#030304";
@@ -2519,15 +2632,15 @@
     const ph = st.phase;
     if (ph === "result") {
       const w = winners(S).find((x) => String(x.seat) === String(p.seat));
-      if (w) return { text: `WON ${signed(S, num(w.net))}`, color: OK };
+      if (w) return { text: `WON ${signed(S, num(w.net))}`, color: P.light ? "#18794e" : OK };
     }
     let on = 0;
     for (const list of Object.values(obj(st.spot_bets))) for (const e of arr(list)) if (String(e.seat) === String(p.seat)) on += num(e.amount);
     if (on > 0) {
       const done = arr(st.done).some((s) => String(s) === String(p.seat));
-      return { text: `${done ? "READY · " : ""}BET ${fmt(S, on)}`, color: done ? OK : S.th.accent_hi };
+      return { text: `${done ? "READY · " : ""}BET ${fmt(S, on)}`, color: done ? (P.light ? "#18794e" : OK) : P.light ? "#8a6412" : S.th.accent_hi };
     }
-    return { text: p.online ? "" : "AWAY", color: INK3 };
+    return { text: p.online ? "" : "AWAY", color: P.ink3 };
   }
 
   function drawRail(S, g, t) {
@@ -2536,10 +2649,10 @@
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
     const L = railLayout(S);
     railFixtures(S, g);
-    txt(g, `${list.length}`, RAIL_X + RAIL_W - 34, 58, 22, rgba(th.accent_hi || th.accent, 0.7), { align: "right", weight: 800, shadow: false });
+    txt(g, `${list.length}`, RAIL_X + RAIL_W - 34, 58, 22, P.light ? "#8a6412" : rgba(th.accent_hi || th.accent, 0.7), { align: "right", weight: 800, shadow: false });
     if (!list.length) {
-      txt(g, "Nobody yet — scan the code", RAIL_X + 24, 112, 24, INK3, { weight: 600 });
-      txt(g, "at the top to take a seat", RAIL_X + 24, 144, 24, INK3, { weight: 600 });
+      txt(g, "Nobody yet — scan the code", RAIL_X + 24, 112, 24, P.ink3, { weight: 600, shadow: !P.light });
+      txt(g, "at the top to take a seat", RAIL_X + 24, 144, 24, P.ink3, { weight: 600, shadow: !P.light });
     }
     const bets = onTable(S);
     const shown = new Set();
@@ -2549,7 +2662,7 @@
       const hot = turn != null && String(turn) === String(p.seat);
       const alpha = p.online ? 1 : 0.45;
       const info = Object.assign({}, (S.def.railInfo || railInfoDefault)(S, p) || {});
-      if (!info.text && num(p.net) !== 0) Object.assign(info, { text: `SESSION ${signed(S, num(p.net))}`, color: num(p.net) > 0 ? rgba(OK, 0.8) : INK3 });
+      if (!info.text && num(p.net) !== 0) Object.assign(info, { text: `SESSION ${signed(S, num(p.net))}`, color: num(p.net) > 0 ? (P.light ? "#18794e" : rgba(OK, 0.8)) : P.ink3 });
       plaque(S, g, r, p, { hot, alpha, info, bet: S.st.phase === "result" ? 0 : bets.get(String(p.seat)) || 0 });
       shown.add(String(p.seat));
       // the credits: an odometer (DOM reels over the plaque, moved by transforms)
@@ -2560,7 +2673,7 @@
         o.remove();
         S.odos.delete(seat);
       }
-    if (list.length > L.rows) txt(g, `+ ${list.length - L.rows} more`, RAIL_X + RAIL_W - 34, L.rackY - 30, 16, INK3, { align: "right", weight: 700, shadow: false });
+    if (list.length > L.rows) txt(g, `+ ${list.length - L.rows} more`, RAIL_X + RAIL_W - 34, L.rackY - 30, 16, P.ink3, { align: "right", weight: 700, shadow: false });
     // the table's chip rack (status.chips: only what the limits allow — 1K, 5K… at a high-roller table)
     const rack = arr(S.rack);
     const cr = rack.length > 6 ? 17 : 19;
@@ -2581,19 +2694,19 @@
       g.fillStyle = hg;
       g.fill();
       g.lineWidth = i === 0 ? 3 : 1;
-      g.strokeStyle = i === 0 ? th.accent : "rgba(255,255,255,.18)";
+      g.strokeStyle = i === 0 ? (P.light ? "#b8892a" : th.accent) : P.histLine;
       g.stroke();
       txt(g, lbl, x + w / 2, y + 34, 22, "#fff", { align: "center", font: "mono", weight: 800, alpha: i === 0 ? 1 : 0.8 });
       x += w + 8;
     });
-    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 24, y + 34, 20, INK3, { weight: 600 });
+    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 24, y + 34, 20, P.ink3, { weight: 600, shadow: !P.light });
   }
   /** The seat's credits odometer: created on first use, moved with its plaque. */
   function odoFor(S, p, x, y, alpha) {
     const key = String(p.seat);
     let o = S.odos.get(key);
     if (!o) {
-      o = new Odo(S.odoBox, { x, y, size: 30, color: INK1, align: "right" });
+      o = new Odo(S.odoBox, { x, y, size: 30, color: P.odo.ink, align: "right", room: true });
       S.odos.set(key, o);
     }
     o.place(x, y);
@@ -2610,7 +2723,7 @@
         if (text !== o.text) {
           const was = o.value;
           o.value = o.credits;
-          o.color(was == null || o.credits === was ? INK1 : o.credits > was ? "#7dffc4" : "#ff8a9a");
+          o.color(was == null || o.credits === was ? P.odo.ink : o.credits > was ? P.odo.up : P.odo.down);
           o.set(text, t, was == null || o.credits >= was, was == null);
           o.settleAt = t + 1.6;
         }
@@ -2618,7 +2731,7 @@
       o.frame(t);
       if (o.settleAt && t > o.settleAt) {
         o.settleAt = 0;
-        o.color(INK1);
+        o.color(P.odo.ink);
       }
     }
   }
@@ -2658,13 +2771,24 @@
       s.pointerEvents = "none";
       s.display = "flex";
       s.transform = o.align === "right" ? "translateX(-100%)" : o.align === "center" ? "translateX(-50%)" : "";
-      s.textShadow = "0 2px 0 rgba(0,0,0,.55)";
+      s.textShadow = o.room ? P.odo.shadow : "0 2px 0 rgba(0,0,0,.55)";
       if (o.letterSpacing) s.letterSpacing = o.letterSpacing;
       parent.appendChild(el);
       this.el = el;
       this.cells = [];
       this.text = null;
       this.anim = null;
+    }
+    /** The TV's theme changed: the room's ink (an odometer on a seat plaque). */
+    restyle() {
+      if (!this.o.room) return;
+      this.el.style.textShadow = P.odo.shadow;
+      this.color(P.odo.ink);
+      const text = this.text;
+      if (text != null) {
+        this.text = null; // rebuilt (the smeared copy's shade follows the room), shown at once
+        this.set(text, 0, true, true);
+      }
     }
     place(x, y) {
       if (x === this.o.x && y === this.o.y) return;
@@ -2741,7 +2865,8 @@
           c.textContent = ODO_DIGITS;
           if (smear) {
             cs.opacity = "0";
-            cs.textShadow = `0 ${-this.o.size * 0.22}px 0 rgba(255,255,255,.28), 0 ${this.o.size * 0.22}px 0 rgba(255,255,255,.28)`;
+            const sm = this.o.room && P.light ? "rgba(28,26,34,.22)" : "rgba(255,255,255,.28)";
+            cs.textShadow = `0 ${-this.o.size * 0.22}px 0 ${sm}, 0 ${this.o.size * 0.22}px 0 ${sm}`;
           }
           win.appendChild(c);
         }
@@ -2837,17 +2962,27 @@
     if (o.alpha != null) g.globalAlpha *= o.alpha;
     rr(g, x, y, w, h, 16);
     const lg = g.createLinearGradient(0, y, 0, y + h);
-    lg.addColorStop(0, o.hot ? shade(th.accent_deep || "#3a2c08", 1.25) : "#271c16");
-    lg.addColorStop(1, "#110b09");
+    const gold = P.light ? "#b8892a" : th.accent;
+    if (P.light) {
+      // an ivory plaque standing off the gallery: a soft warm contact shadow
+      g.save();
+      softStroke(g, 0, 10, P.railShadow[0], 0.16, 0, 4, 3);
+      g.restore();
+    }
+    lg.addColorStop(0, o.hot ? (P.light ? "#fbf1d6" : shade(th.accent_deep || "#3a2c08", 1.25)) : P.plaque[0]);
+    lg.addColorStop(1, o.hot && P.light ? "#f1e0b2" : P.plaque[1]);
+    rr(g, x, y, w, h, 16);
     g.fillStyle = lg;
     g.fill();
-    g.fillStyle = grain(g);
-    g.fill();
+    if (!P.light) {
+      g.fillStyle = grain(g);
+      g.fill();
+    }
     g.lineWidth = o.hot ? 2.5 : 1.5;
-    g.strokeStyle = o.hot ? th.accent : rgba(th.accent, 0.3);
+    g.strokeStyle = o.hot ? gold : rgba(gold, P.plaqueLine);
     g.stroke();
     rr(g, x + 2, y + 2, w - 4, h * 0.5, 14);
-    g.fillStyle = "rgba(255,255,255,.035)";
+    g.fillStyle = P.plaqueSheen;
     g.fill();
     // the player's colour: a jewel bar at the left edge
     rr(g, x + 5, y + 12, 4, h - 24, 2);
@@ -2864,8 +2999,8 @@
     g.restore();
     avatar(S, g, r.ax, r.ay, 24, p, { alpha: o.alpha });
     const a = o.alpha == null ? 1 : o.alpha;
-    txt(g, String(p.name || `P${p.seat}`), x + 76, y + 30, 24, p.color || INK1, { weight: 750, maxW: w - 190, alpha: a });
-    if (o.info && o.info.text) txt(g, o.info.text, x + 76, y + h - 14, 16, o.info.color || INK3, { weight: 800, maxW: w - 140, shadow: false, alpha: a, spacing: 0.5 });
+    txt(g, String(p.name || `P${p.seat}`), x + 76, y + 30, 24, inkOf(p.color), { weight: 750, maxW: w - 190, alpha: a, shadow: !P.light });
+    if (o.info && o.info.text) txt(g, o.info.text, x + 76, y + h - 14, 16, roomInk(o.info.color || INK3, th), { weight: 800, maxW: w - 140, shadow: false, alpha: a, spacing: 0.5 });
     if (o.bet > 0) stack(S, g, r.sx, r.sy, 15, o.bet, p.color, { alpha: a });
   }
 
@@ -3424,8 +3559,10 @@
     const align = o.align || "left";
     const rx = align === "center" ? x : x + w - (o.ringR || 50);
     const tx = align === "center" ? x : x;
-    txt(g, h.title, tx, y + size * 0.8, size, h.tone || INK1, { weight: 850, align, alpha, maxW: w - (h.ring && align !== "center" ? 130 : 0), glow: rgba(h.tone || INK1, 0.45) });
-    if (h.sub) txt(g, h.sub, tx, y + size * 0.8 + 40, 26, INK2, { weight: 600, align, maxW: w - (h.ring && align !== "center" ? 130 : 0) });
+    const onRoom = o.room && P.light; // a headline on the room, not the felt (the poker tables): the room's ink
+    const tone = onRoom ? roomInk(h.tone || INK1, S.th) : h.tone || INK1;
+    txt(g, h.title, tx, y + size * 0.8, size, tone, { weight: 850, align, alpha, maxW: w - (h.ring && align !== "center" ? 130 : 0), glow: onRoom ? null : rgba(tone, 0.45), shadow: !onRoom });
+    if (h.sub) txt(g, h.sub, tx, y + size * 0.8 + 40, 26, onRoom ? P.ink2 : INK2, { shadow: !onRoom, weight: 600, align, maxW: w - (h.ring && align !== "center" ? 130 : 0) });
     if (h.ring && align !== "center") {
       const R = o.ringR || 50;
       if (h.ring.left != null) {
@@ -5351,7 +5488,7 @@
       const seat = arr(obj(S.st.table).seats).find((s) => String(s.seat) === String(p.seat));
       if (S.st.phase === "result") {
         const w = winners(S).find((x) => String(x.seat) === String(p.seat));
-        if (w) return { text: `WON ${signed(S, num(w.net))}`, color: OK };
+        if (w) return { text: `WON ${signed(S, num(w.net))}`, color: P.light ? "#18794e" : OK };
       }
       if (seat && S.st.phase !== "betting") return { text: seat.folded ? "FOLDED" : seat.allin ? "ALL-IN" : `IN · ${fmt(S, seat.total)} IN THE POT`, color: seat.folded ? INK3 : INK2 };
       return { text: arr(S.st.sitting).some((s) => String(s) === String(p.seat)) ? "DEALT IN NEXT HAND" : "SITTING OUT", color: INK3 };
@@ -5411,9 +5548,9 @@
           return { title: w ? `${w.name} WINS ${fmt(S, w.won)}` : "HAND OVER", sub: w && w.hand ? String(w.hand).toUpperCase() : "Everyone else folded", tone: th.accent };
         }
         return null;
-      }), { size: 44 });
-      txt(g, `HAND #${num(tb.hand)} · BLINDS ${arr(tb.blinds).join("/")}`, 1500, 50, 22, INK2, { align: "right", weight: 800 });
-      arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, i === all.length - 1 ? INK1 : INK3, { weight: 650 }));
+      }), { size: 44, room: true });
+      txt(g, `HAND #${num(tb.hand)} · BLINDS ${arr(tb.blinds).join("/")}`, 1500, 50, 22, roomInk(INK2), { align: "right", weight: 800, shadow: !P.light });
+      arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, roomInk(i === all.length - 1 ? INK1 : INK3), { weight: 650, shadow: !P.light }));
     },
   });
 
@@ -5429,7 +5566,7 @@
       const seat = arr(obj(S.st.table).seats).find((s) => String(s.seat) === String(p.seat));
       if (S.st.phase === "result") {
         const w = winners(S).find((x) => String(x.seat) === String(p.seat));
-        if (w) return { text: `WON ${signed(S, num(w.net))}`, color: OK };
+        if (w) return { text: `WON ${signed(S, num(w.net))}`, color: P.light ? "#18794e" : OK };
       }
       if (seat && S.st.phase !== "betting") return { text: seat.folded ? "PACKED" : `${seat.seen ? "SEEN" : "BLIND"} · ${fmt(S, seat.total)} IN`, color: seat.folded ? INK3 : INK2 };
       return { text: arr(S.st.sitting).some((s) => String(s) === String(p.seat)) ? "DEALT IN NEXT HAND" : "SITTING OUT", color: INK3 };
@@ -5484,9 +5621,9 @@
           return { title: w ? `${w.name} WINS ${fmt(S, w.won)}` : "HAND OVER", sub: w && w.hand ? String(w.hand).toUpperCase() : "Everyone else packed", tone: th.accent };
         }
         return null;
-      }), { size: 44 });
-      txt(g, `HAND #${num(tb.hand)}`, 1500, 50, 22, INK2, { align: "right", weight: 800 });
-      arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, i === all.length - 1 ? INK1 : INK3, { weight: 650 }));
+      }), { size: 44, room: true });
+      txt(g, `HAND #${num(tb.hand)}`, 1500, 50, 22, roomInk(INK2), { align: "right", weight: 800, shadow: !P.light });
+      arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, roomInk(i === all.length - 1 ? INK1 : INK3), { weight: 650, shadow: !P.light }));
     },
   });
 
@@ -5946,6 +6083,52 @@
     },
   });
 
+  // ================================================================================================ menu previews
+  // The TV options menu's Dolly and Chips rows (tv.js) show the real thing: the dolly sprites and chip sets drawn
+  // here, once per menu, in small canvases sized to their CSS box.
+  function sizePreview(canvas, k) {
+    const w = canvas.clientWidth || num(Number.parseFloat(canvas.style.width), 0) || 60;
+    const h = canvas.clientHeight || num(Number.parseFloat(canvas.style.height), 0) || 60;
+    const kk = clamp(num(k, 1), 1, 3);
+    canvas.width = Math.max(1, Math.round(w * kk));
+    canvas.height = Math.max(1, Math.round(h * kk));
+    const g = canvas.getContext("2d");
+    g.setTransform(kk, 0, 0, kk, 0, 0);
+    g.clearRect(0, 0, w, h);
+    return { g, w, h, k: kk };
+  }
+  /** A dolly of style `id`, standing in the canvas (the menu's Dolly row). */
+  function previewDolly(canvas, id, k) {
+    const { g, w, h } = sizePreview(canvas, k);
+    const s = Math.min(h / (DOLLY_H - 12), w / DOLLY_W);
+    g.save();
+    g.translate(w / 2 - (DOLLY_W * s) / 2, h - (DOLLY_BASE + 16) * s);
+    g.scale(s, s);
+    // a little shadow pool under the base
+    const sr = g.createRadialGradient(DOLLY_W / 2, DOLLY_BASE + 8, 2, DOLLY_W / 2, DOLLY_BASE + 8, 44);
+    sr.addColorStop(0, "rgba(0,0,0,.35)");
+    sr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = sr;
+    g.beginPath();
+    g.ellipse(DOLLY_W / 2, DOLLY_BASE + 8, 44, 10, 0, 0, TAU);
+    g.fill();
+    dollyBody(g, DOLLY_STYLES[id] ? id : "classic_gold");
+    g.restore();
+  }
+  /** Three chips (25 · 500 · 5K) of chip set `set`, overlapping (the menu's Chips row). */
+  function previewChips(canvas, set, k) {
+    const { g, w, h } = sizePreview(canvas, k);
+    const was = CHIPSET;
+    CHIPSET = CHIP_SETS.includes(set) ? set : "clay";
+    try {
+      const r = Math.min(h * 0.4, w / 5.2);
+      const picks = [LADDER[2], LADDER[4], LADDER[7]];
+      picks.forEach((c, i) => chip(g, w / 2 + (i - 1) * r * 1.45, h / 2, r, c[2], c[1], { edge: c[3] }));
+    } finally {
+      CHIPSET = was;
+    }
+  }
+
   // ================================================================================================ register
   const SCENES = [roulette, blackjack, baccarat, slots, holdem, teenpatti, andarbahar, bigsix, sevens, housie];
   const API = {
@@ -5954,7 +6137,7 @@
     B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
     R_CX, R_CY, BX, BY, SEV, LADDER, RACK_MAX, chipRack, rackOf, breakInto, shortChip, chipStyle, pyRound,
     winTier, tickerAt, MOMENT, TIERS, dollyPath, DOLLY_STYLES, DOLLY_REST, DOLLY_AFTER, odoPos, Odo, chipSetOf, CHIP_SETS,
-    THEME_CHIP_SET, railSeat,
+    THEME_CHIP_SET, railSeat, previewDolly, previewChips, ROOMS,
   }; // fmt: skip
   if (TV) {
     TV.casino = API;
