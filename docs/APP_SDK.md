@@ -155,7 +155,7 @@ if d is None:
 
 Built-in providers: `system`, `weather`, `markets` (`.want(*symbols)`), `stocks` (`.want(symbols, range_)`, Yahoo),
 `sports` (`.want(*leagues)`, `.want_table(*leagues)`, 27 ESPN leagues), `media` (`.position`, `.art`, `.art_image`,
-`.palette`, `.source_label`, `await .control("next")`; Windows SMTC or macOS AppleScript/nowplaying-cli), `lyrics`
+`.palette`, `.source_label`, `.can_control`, `await .control("next")`; Windows SMTC, macOS AppleScript/nowplaying-cli, Linux playerctl; `value["controls"]`), `lyrics`
 (`.get(title, artist, album=, duration=)` → `Lyrics | None`, LRCLIB first, word timing via `words_at`), `window`
 (foreground app + icon), `screen`, `camera`, `audio` (bands, beat, bpm; system loopback or mic), `github`,
 `notifications` (OS toasts → `os_notification` events), `flights` (ADS-B around the location).
@@ -208,7 +208,7 @@ Also available: `window` (foreground app, `.icon(exe)` → 32×32 RGBA), `screen
 | `relevant() -> bool` | `False` = skip this item when rotating (no live games, no music) |
 | `watches_focus() -> bool` | keep providers alive while in the playlist so focus can be detected |
 | `wants_focus() -> bool` | `True` = take over the playlist now (music started, favourite team live) |
-| `status() -> dict` | small JSON shown next to the preview and to agents (`panel_status`) |
+| `status() -> dict` | small JSON shown next to the preview and to agents (`panel_status`). Optional `"actions": [ids]` = the actions that work right now; the studio hides the other action buttons (Now Playing: empty where the player can't be controlled) |
 
 ## Drawing toolbox (`deskdot.gfx`)
 

@@ -90,6 +90,8 @@ class Backend(Protocol):
     async def art(self) -> bytes | None: ...
     async def control(self, action: str) -> bool: ...
 
+    # optional: `can_control` (bool property) — False hides the transport buttons (default True)
+
 
 # ------------------------------------------------------------------------------------------- sources
 _SOURCES: tuple[tuple[str, str, str], ...] = (
@@ -351,6 +353,10 @@ class WinBackend:
             log.debug("album art read failed: %s", e)
             return None
 
+    @property
+    def can_control(self) -> bool:
+        return True  # every GSMTC session takes play / pause / next / previous
+
     async def control(self, action: str) -> bool:
         mgr = await self._manager()
         s = self._session or self._pick(mgr)
@@ -432,6 +438,12 @@ class MediaProvider(Provider[dict[str, Any]]):
         return self._backend
 
     @property
+    def can_control(self) -> bool:
+        """Whether play / pause / next / previous reach the player on this host (studio hides them if not)."""
+        be = self.backend
+        return be is not None and bool(getattr(be, "can_control", True))
+
+    @property
     def position(self) -> float:
         """Playback position in seconds, extrapolated to *now*."""
         if not self._playing:
@@ -495,6 +507,7 @@ class MediaProvider(Provider[dict[str, Any]]):
             "source_label": self.source_label,
             "art_id": self.art_id,
             "art_source": self.art_source,
+            "controls": self.can_control,
             "palette": [f"#{r:02x}{g:02x}{b:02x}" for r, g, b in self.palette],
             "track": track,
         }

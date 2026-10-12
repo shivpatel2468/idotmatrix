@@ -1453,6 +1453,16 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         )
         return Response(art, media_type=kind, headers={"Cache-Control": "max-age=30"})
 
+    @app.get("/api/nowplaying/layouts/{layout}.png")
+    async def nowplaying_layout(layout: str, scale: int = Query(4, ge=1, le=16)) -> Response:
+        """A Now Playing layout drawn for a built-in demo song (the studio's visual layout picker)."""
+        from .apps.nowplaying import LAYOUT_LABELS, demo_png
+
+        if layout not in LAYOUT_LABELS:
+            raise HTTPException(404, "unknown layout")
+        png = await asyncio.to_thread(demo_png, layout, scale)
+        return Response(png, media_type="image/png", headers={"Cache-Control": "max-age=3600"})
+
     @app.post("/api/nowplaying/{op}")
     async def nowplaying_control(op: Literal["toggle", "play", "pause", "next", "prev"]) -> dict[str, Any]:
         mp = phub.get("media")

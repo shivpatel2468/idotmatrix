@@ -59,6 +59,7 @@ class Line:
     words: list[Word] = field(default_factory=list)
     end: float = 0.0  # when singing of this line ends (≤ next line's start)
     timed: bool = False  # True when the words carry real (enhanced LRC) timing
+    translation: str = ""  # a second line with the same timestamp (translated / romanised LRC files)
 
 
 class WordsAt(NamedTuple):
@@ -126,11 +127,24 @@ def parse_lrc_lines(text: str) -> list[Line]:
         body = _LINE_STAMP.sub("", row)
         for m, s in stamps:
             raw.append((_stamp(m, s), body))
-    raw.sort(key=lambda e: e[0])
+    raw.sort(key=lambda e: e[0])  # stable: a translation stays after its original line
     lines: list[Line] = []
+    prev_raw = -1.0
     for t_raw, body in raw:
         t = max(0.0, t_raw - offset)
         txt, words = _parse_words(body, t_raw)
+        last = lines[-1] if lines else None
+        if (
+            last is not None
+            and t_raw == prev_raw
+            and txt
+            and last.text
+            and not last.translation
+            and txt.casefold() != last.text.casefold()
+        ):
+            last.translation = txt  # same stamp, different text: the translated / romanised line
+            continue
+        prev_raw = t_raw
         if offset and words:
             words = [Word(w.text, max(0.0, w.start - offset), max(0.0, w.end - offset)) for w in words]
         lines.append(Line(t, txt, words, timed=bool(words)))

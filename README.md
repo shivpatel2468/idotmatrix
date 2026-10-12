@@ -121,7 +121,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
 | --- | --- | --- |
 | 🕐 | **Time** | Clock (analog, digital, hero), Countdown, Day & Night world map, Five O'Clock Somewhere, Holidays, Progress, Sun & Moon |
 | 📡 | **Live data** | Weather, What to Wear, Air Quality, Rain Radar, Earthquakes, Flight Radar, Tides & Surf, Planets Tonight, Space, Crypto Ticker, Stocks, Currency, Live Scores, Headlines, GitHub Graph, System Monitor, Home Assistant |
-| 🎵 | **Media** | Now Playing (album art, vinyl, karaoke lyrics), Visualizer, Photo Frame, Gallery, Media Server, Screen & Camera Mirror |
+| 🎵 | **Media** | Now Playing (19 layouts: album art, karaoke and word-pop lyrics, vinyl, CD, cassette, VU meters, radio dial, mosaic…), Visualizer, Photo Frame, Gallery, Media Server, Screen & Camera Mirror |
 | 🐾 | **Pets & characters** | Pet World (rooms, park, football), Pet, Pokédex, Pixel Avatar |
 | 🎮 | **Games** | Pong, Breakout, Flappy, Dino, Racer, Snake, Tetris, 2048, Invaders, Maze Chase, Asteroids, Infinity, X and 0, Four Up, Mines, Starship, Light Cycles, Dig World, Neon Heat, Street Surge, Leaf Leap, Penguin Escape, Chess Puzzle, Trivia |
 | 🎨 | **Creative** | Fly Brain 🪰, Synthwave Horizon, 3D Wireframe, Flocking Boids, Falling Sand, Neuromorphic Cortex, Raycaster, Emotes, Pixabots, Text, Font Lab, Canvas, Player Card, Composer |

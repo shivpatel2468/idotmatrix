@@ -358,7 +358,8 @@ Connection sheet, the MCP server and scripts can say the same thing:
 | DELETE | `/api/media/{id}` | |
 | GET | `/api/nowplaying/art` | current album art (PNG or JPEG, content type sniffed) |
 | GET | `/api/apps/{id}/preview.gif` | animated 32×32 library thumbnail, rendered in a sandbox through the panel calibration (cached 20 s) |
-| POST | `/api/nowplaying/{toggle|play|pause|next|prev}` | Windows media controls |
+| POST | `/api/nowplaying/{toggle|play|pause|next|prev}` | media controls: Windows (GSMTC), macOS (Spotify / Music via AppleScript, others via `nowplaying-cli`), Linux (`playerctl`). The Now Playing app's `status.actions` is empty where the player can't be controlled (the studio hides its buttons) |
+| GET | `/api/nowplaying/layouts/{layout}.png?scale=4` | a Now Playing layout drawn for a built-in demo song (the studio's visual layout picker); 404 for an unknown layout |
 
 ## WebSocket `/ws`
 
