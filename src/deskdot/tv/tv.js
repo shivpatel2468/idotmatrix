@@ -189,12 +189,14 @@
     }
 
     /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
-     *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+     *  giving device px per CSS px (default devicePixelRatio, capped at 2); once = build in once, then hold it lit.
+     *  Returns { resize, restart }. */
     function mount(canvas, opts) {
       const o = opts || {};
       const ctx = canvas && canvas.getContext && canvas.getContext("2d");
       if (!ctx) return { resize() {}, restart() {} };
       const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+      const once = !!o.once; // play the intro once, then stay lit: steady, no hum, no power-down
       const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
       let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
       const size = () => {
@@ -219,11 +221,13 @@
         if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
         if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
         drawn = true;
-        const lt = ((performance.now() - t0) / 1000) % cycle;
+        const age = (performance.now() - t0) / 1000;
+        const done = once && age >= litAt;
+        const lt = done ? 0 : age % cycle;
         ctx.setTransform(k, 0, 0, k, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
-        if (still) return;
+        draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still || done);
+        if (still || done) return;
         const s = wake(lt);
         if (s > 0) later(s);
         else raf = requestAnimationFrame(tick);
@@ -427,7 +431,7 @@
   // =========================================================================================== light / dark
   // A TV sits in a dark room: dark unless the address says ?theme=light or someone picked Light in the options menu
   // on this TV (deskdot.tv.theme). The address wins over the stored pick. html[data-theme] = light | dark; the
-  // stylesheet (tv.html) holds both palettes. A casino table keeps its own dark room in both (stage[data-table]).
+  // stylesheet (tv.html) holds both palettes; a casino scene draws its room in the same theme (tv-casino.js ROOMS).
   const THEMES = ["dark", "light"];
   /** The theme in the address (?theme=light|dark), or null. Pure (tests). */
   function themeFromQuery(search) {
@@ -488,8 +492,8 @@
     qualities: QUALITIES,
     every,
     setQuality,
-    setLook: (v) => choose("look", v),
-    setQualityMode: (v) => choose("quality", v),
+    setLook: (v) => chooseDisplay("look", v),
+    setQualityMode: (v) => chooseDisplay("quality", v),
     openMenu: () => openMenu(),
     tierFromQuery,
     qualityFromQuery,
@@ -615,7 +619,7 @@
   }
 
   /** Someone picked on this TV (the menu, or TV.setLook): it wins until the studio changes its choice again. */
-  function choose(key, v) {
+  function chooseDisplay(key, v) {
     if (!ALLOWED[key] || !ALLOWED[key].includes(v)) return;
     disp.url[key] = null;
     disp.local[key] = { v, rev: disp.studio.rev };
@@ -633,10 +637,76 @@
     }
     TV.themeFrom = "tv";
     if (v !== TV.theme) {
-      TV.theme = v;
-      paintTheme(v); // the scenes restyle through CSS; the panels are the same device in both themes
+      TV.theme = v; // the menu marks the pick at once; the page cross-fades to it
+      crossFade(() => {
+        paintTheme(v); // the DOM restyles through CSS; canvas scenes redraw their static layers once (restyle)
+        restyle();
+      });
     }
     renderMenu();
+  }
+
+  /**
+   * Swap the look with a cross-fade: the View Transitions API snapshots the old page and fades it into the new one
+   * (one compositor animation, nothing redrawn per frame). Without it (older TV browsers) a quick fade of the stage.
+   */
+  function crossFade(apply) {
+    let reduce = false;
+    try {
+      reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch {
+      reduce = false;
+    }
+    if (!reduce && document.startViewTransition) {
+      try {
+        const vt = document.startViewTransition(apply);
+        // a second switch skips the running fade (the update still applies): nothing to report
+        for (const pr of [vt.ready, vt.finished, vt.updateCallbackDone]) if (pr && pr.catch) pr.catch(() => {});
+        return;
+      } catch {
+        /* fall through */
+      }
+    }
+    apply();
+    const stage = $("stage");
+    if (!reduce && stage && stage.animate) stage.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 420, easing: "ease-out" });
+  }
+
+  /** The theme or the fonts changed: a scene with canvases redraws its static layers once (scene.restyle). */
+  function restyle() {
+    if (current && current.scene.restyle) safe(() => current.scene.restyle(ctx));
+  }
+
+  // =========================================================================================== type
+  // One self-hosted face for the UI and the numbers: Bricolage Grotesque (the studio's own, SIL OFL 1.1 — tv/OFL.txt),
+  // the Latin subset with its weight axis (≈ 41 KB, tv/tv-sans.woff2), served beside the scripts. Titles use the
+  // system's display serifs (tv.html --serif). Canvases redraw once it has loaded (restyle). Nothing from elsewhere.
+  const SCRIPT_BASE = (() => {
+    try {
+      const src = document.currentScript && document.currentScript.src;
+      return src ? src.slice(0, src.lastIndexOf("/") + 1) : "/tv/static/";
+    } catch {
+      return "/tv/static/";
+    }
+  })();
+  function loadFonts() {
+    try {
+      if (typeof FontFace !== "function" || !document.fonts) return;
+      const face = new FontFace("DeskDot TV Sans", `url(${SCRIPT_BASE}tv-sans.woff2) format("woff2")`, { weight: "200 800", display: "swap" });
+      document.fonts.add(face);
+      face.load().then(
+        () => {
+          TV.fontReady = true;
+          restyle();
+          logos.forEach((l) => l.resize());
+        },
+        () => {
+          /* the system font stands in */
+        },
+      );
+    } catch {
+      /* no FontFace: system fonts */
+    }
   }
 
   /** The studio's choices (hello / state `display`): applied whenever its revision changes. */
@@ -1547,7 +1617,7 @@
     if (started) pickScene();
   }
 
-  function choose() {
+  function matchScene() {
     for (const s of TV.scenes) {
       if (broken.has(`${s.id}|${ctx.app}`)) continue;
       let ok = false;
@@ -1562,7 +1632,7 @@
   }
 
   function pickScene() {
-    const next = choose();
+    const next = matchScene();
     if (current && current.scene === next) return false;
     const host = $("scene");
     if (current) {
@@ -1791,6 +1861,9 @@
       applyTheme(ctx.status.table_theme);
       renderBar();
       if (!pickScene() && current) safe(() => current.scene.update && current.scene.update(ctx));
+      if (menu.open) renderMenu(); // the house's dolly / chips may have changed (or the table did)
+    } else if (m.type === "house_ok" || m.type === "house_err") {
+      onHouseReply(m);
     } else if (m.type === "pong") {
       if (typeof m.t === "number") setOffset(m.server_time, Math.max(0, now() - m.t));
     } else if (m.type === "closed" || m.type === "full") {
@@ -1964,12 +2037,15 @@
   };
 
   // =========================================================================================== the options menu
-  // A small overlay for a TV remote (Fire TV / Android TV: the D-pad, OK / select, Back, the menu key) and for a
-  // mouse or a keyboard: "Panel look: Pixel · LED · Glow" and "Quality: Auto · HQ · Lite". OK / select / menu (Enter
-  // or M on a keyboard, a click or a tap) opens it; the arrows move the highlight, OK picks — applied at once,
-  // remembered on this TV — and Back / Escape (or the menu key again) closes it; it closes itself after 8 s without
-  // a key. Back on a TV browser goes back in history, so an open menu holds one history entry and Back pops it.
-  const MENU_IDLE_MS = 8000;
+  // A small overlay for a TV remote (Fire TV / Android TV: the D-pad, OK / select, Back, the menu key), a mouse, a
+  // touch screen or a keyboard. Rows: "Panel look: Pixel · LED · Glow", "Quality: Auto · HQ · Lite", "Theme: Dark ·
+  // Light" — this TV's own choices, applied at once and remembered here — and, while a casino table shows, the
+  // house's "Dolly" (roulette) and "Chips": those go to the engine over this TV's socket ({type: "house"}, the only
+  // thing a TV may send besides pings — tvlink.py checks the code, the table and the value) and change every screen.
+  // OK / select / menu (Enter or M on a keyboard, a click or a tap) opens it; the arrows move the highlight, OK /
+  // Enter / Space or a click / tap picks; Back / Escape (or the menu key again) closes it; it closes itself after 12 s
+  // without input. Back on a TV browser goes back in history, so an open menu holds one history entry and Back pops it.
+  const MENU_IDLE_MS = 12000;
   const SWATCH = ["#ff3f78", "#ffcc33", "#36c5f0", "#3ddc84", "#ff4818", "#ffcc33", "#36c5f0", "#ff3f78", "#3ddc84"];
   const swatch = (kind) => {
     const cells = SWATCH.map((c, i) => {
@@ -1983,20 +2059,6 @@
     const glow = kind === "glow" ? `<g filter="url(#tvm-soft)" opacity=".9">${cells}</g>` : "";
     return `<svg viewBox="0 0 60 60" aria-hidden="true">${bg}${glow}${cells}</svg>`;
   };
-  const MENU_ROWS = [
-    {
-      key: "look", label: "Panel look", opts: LOOKS, names: LOOK_NAMES,
-      hints: { pixel: "Sharp square pixels", led: "Like the real LED panel", glow: "Sharp pixels, soft glow" },
-    },
-    {
-      key: "quality", label: "Quality", opts: QUALITIES, names: QUALITY_NAMES,
-      hints: { auto: "Picks for this screen", hq: "Full quality, always", lite: "Same picture, less work" },
-    },
-    {
-      key: "theme", label: "Theme", opts: THEMES, names: { dark: "Dark", light: "Light" },
-      hints: { dark: "For a dark room", light: "Porcelain and ivory" },
-    },
-  ]; // fmt: skip
   // the Theme row's little rooms: a dark one and an ivory one, each with a lit panel on the wall
   const roomSwatch = (v) => {
     const wall = v === "light" ? "#f4f0e8" : "#0c0c10";
@@ -2008,48 +2070,140 @@
       `<rect x="14" y="33" width="7" height="7" rx="1.6" fill="#36c5f0"/><rect x="23" y="33" width="7" height="7" rx="1.6" fill="#3ddc84"/>` +
       `<rect x="40" y="21" width="13" height="4" rx="2" fill="${line}"/><rect x="40" y="29" width="10" height="4" rx="2" fill="${line}"/></svg>`;
   };
-  const menu = { el: null, open: false, row: 0, col: 0, timer: 0, hideTimer: 0, pushed: false, skipPop: false };
+  const DISPLAY_ROWS = [
+    {
+      key: "look", label: "Panel look", opts: LOOKS, names: LOOK_NAMES, art: swatch,
+      hints: { pixel: "Sharp square pixels", led: "Like the real LED panel", glow: "Sharp pixels, soft glow" },
+    },
+    {
+      key: "quality", label: "Quality", opts: QUALITIES, names: QUALITY_NAMES, art: null,
+      hints: { auto: "Picks for this screen", hq: "Full quality, always", lite: "Same picture, less work" },
+    },
+    {
+      key: "theme", label: "Theme", opts: THEMES, names: { dark: "Dark", light: "Light" }, art: roomSwatch,
+      hints: { dark: "A dark casino salon", light: "An ivory salon in daylight" },
+    },
+  ]; // fmt: skip
+  // the house's display settings (casino/session.py House.dolly / chip_set), offered while a casino table shows
+  const DOLLY_NAMES = {
+    classic_gold: "Classic Gold", crystal: "Crystal", chrome: "Chrome", onyx_gold: "Onyx & Gold", rose_gold: "Rose Gold",
+    diamond: "Diamond", marble_brass: "Marble & Brass", neon: "Neon Arcade",
+  }; // fmt: skip
+  const CHIP_SET_NAMES = {
+    auto: "Match table", clay: "Clay", ceramic: "Ceramic", gold_rim: "Gold rim", neon: "Neon", jade: "Jade & gold",
+    pixel: "Pixel", ivory: "Ivory",
+  }; // fmt: skip
+  /** The rows the menu shows now: this TV's three, plus the house's dolly (roulette) and chips at a casino table. */
+  function menuRows() {
+    const st = ctx.status || {};
+    const h = st.house && typeof st.house === "object" ? st.house : null;
+    const rows = DISPLAY_ROWS.slice();
+    if (!st.casino || !h) return rows;
+    if (ctx.app === "casino_roulette" && typeof h.dolly === "string")
+      rows.push({ key: "dolly", house: true, label: "Dolly", opts: Object.keys(DOLLY_NAMES), names: DOLLY_NAMES });
+    if (typeof h.chip_set === "string")
+      rows.push({ key: "chip_set", house: true, label: "Chips", opts: Object.keys(CHIP_SET_NAMES), names: CHIP_SET_NAMES });
+    return rows;
+  }
+  const menu = {
+    el: null, open: false, row: 0, col: 0, timer: 0, hideTimer: 0, pushed: false, skipPop: false,
+    rows: DISPLAY_ROWS, sig: "", pending: null,
+  }; // fmt: skip
 
   function buildMenu() {
     const stage = $("stage");
     if (!stage) return null;
-    const m = el("div");
-    m.id = "tv-menu";
-    m.hidden = true;
-    m.setAttribute("role", "dialog");
-    m.setAttribute("aria-label", "Display options");
-    const rows = MENU_ROWS.map((r, ri) => {
-      const opts = r.opts.map((v, ci) =>
-        `<button type="button" class="tvm-opt" role="radio" data-row="${ri}" data-col="${ci}" aria-checked="false">` +
-        `${r.key === "look" ? swatch(v) : r.key === "theme" ? roomSwatch(v) : ""}<div><b>${esc(r.names[v])}</b><span>${esc(r.hints[v])}</span></div></button>`,
-      ).join("");
-      return `<div class="tvm-row" role="radiogroup" aria-label="${esc(r.label)}"><div class="tvm-label">${esc(r.label)}<small></small></div><div class="tvm-opts" style="--n:${r.opts.length}">${opts}</div></div>`;
-    }).join("");
+    let m = menu.el;
+    if (!m) {
+      m = el("div");
+      m.id = "tv-menu";
+      m.hidden = true;
+      m.setAttribute("role", "dialog");
+      m.setAttribute("aria-label", "Display options");
+      // pointer: hover moves the highlight; a click / tap is handled on the stage (onStageClick)
+      m.addEventListener("pointerover", (e) => {
+        const opt = e.target.closest && e.target.closest(".tvm-opt");
+        if (!opt || e.pointerType === "touch") return;
+        focusOpt(Number(opt.dataset.row), Number(opt.dataset.col));
+      });
+      // immediate feedback for a press (mouse, pen or finger), before the click lands
+      m.addEventListener("pointerdown", (e) => {
+        const opt = e.target.closest && e.target.closest(".tvm-opt");
+        if (opt) opt.classList.add("press");
+      });
+      const unpress = () => m.querySelectorAll(".tvm-opt.press").forEach((b) => b.classList.remove("press"));
+      ["pointerup", "pointercancel", "pointerleave"].forEach((t) => m.addEventListener(t, unpress));
+      stage.appendChild(m);
+      menu.el = m;
+    }
+    const rows = menuRows();
+    menu.rows = rows;
+    menu.sig = rows.map((r) => r.key).join(",");
+    const house = rows.some((r) => r.house);
+    const html = rows.map((r, ri) => {
+      const opts = r.opts.map((v, ci) => {
+        const art = r.house ? `<canvas class="tvm-art" data-art="${r.key}" data-v="${esc(v)}"></canvas>` : r.art ? r.art(v) : "";
+        const text = r.house ? `<b>${esc(r.names[v])}</b>` : `<div><b>${esc(r.names[v])}</b><span>${esc(r.hints[v])}</span></div>`;
+        return `<button type="button" tabindex="-1" class="tvm-opt${r.house ? " tvm-tile" : ""}" role="radio" data-key="${r.key}" data-v="${esc(v)}" data-row="${ri}" data-col="${ci}" aria-checked="false">${art}${text}</button>`;
+      }).join("");
+      return `<div class="tvm-row${r.house ? " tvm-house" : ""}" role="radiogroup" aria-label="${esc(r.label)}"><div class="tvm-label">${esc(r.label)}<small></small></div><div class="tvm-opts" style="--n:${r.opts.length}">${opts}</div></div>`;
+    }).join(""); // fmt: skip
     m.innerHTML =
       '<svg width="0" height="0" style="position:absolute"><filter id="tvm-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2"/></filter></svg>' +
-      `<div class="tvm-card"><div class="tvm-head"><div class="tvm-title">Display</div><div class="tvm-sub">This TV</div></div>${rows}` +
+      `<div class="tvm-card${house ? " tvm-wide" : ""}"><div class="tvm-head"><div class="tvm-title">Display</div><div class="tvm-sub">${house ? "This TV · the table" : "This TV"}</div></div>${html}` +
       '<div class="tvm-hint"><span><kbd>◀ ▶</kbd><kbd>▲ ▼</kbd>Move</span><span><kbd>OK</kbd>Choose</span><span><kbd>Back</kbd>Close</span></div></div>';
-    m.addEventListener("pointerover", (e) => {
-      const opt = e.target.closest && e.target.closest(".tvm-opt");
-      if (!opt) return;
-      menu.row = Number(opt.dataset.row);
-      menu.col = Number(opt.dataset.col);
-      bumpMenu();
-      renderMenu();
-    });
-    stage.appendChild(m);
-    menu.el = m;
+    if (house) drawMenuArt(m);
     return m;
+  }
+
+  /** The house rows' pictures: the real dolly sprites and chip sets of tv-casino.js (TV.casino.preview*). */
+  function drawMenuArt(m) {
+    const cas = TV.casino;
+    m.querySelectorAll("canvas.tvm-art").forEach((c) => {
+      const v = c.dataset.v;
+      try {
+        if (c.dataset.art === "dolly" && cas && cas.previewDolly) cas.previewDolly(c, v, TV.pixelRatio);
+        else if (c.dataset.art === "chip_set" && cas && cas.previewChips) {
+          const set = v === "auto" ? (ctx.status && ctx.status.chip_set) || "clay" : v;
+          cas.previewChips(c, set, TV.pixelRatio);
+        }
+      } catch (e) {
+        console.error("DeskDot TV: menu art", e);
+      }
+    });
+  }
+
+  /** The value a row shows as chosen: this TV's own, or the house's (a pick waits for the engine for up to 4 s). */
+  function menuValue(r) {
+    if (r.key === "look") return TV.look;
+    if (r.key === "quality") return TV.qualityMode;
+    if (r.key === "theme") return TV.theme;
+    const h = (ctx.status && ctx.status.house) || {};
+    const p = menu.pending;
+    if (p && p.key === r.key) {
+      if (h[r.key] === p.v || now() - p.at > 4) menu.pending = null;
+      else return p.v;
+    }
+    return h[r.key];
   }
 
   function renderMenu() {
     const m = menu.el;
     if (!m) return;
-    const cur = { look: TV.look, quality: TV.qualityMode, theme: TV.theme };
+    if (menu.open && menuRows().map((r) => r.key).join(",") !== menu.sig) {
+      // the table changed under the open menu (a casino table came or went): rebuild, keep the highlight's row
+      const key = menu.rows[menu.row] && menu.rows[menu.row].key;
+      buildMenu();
+      const ri = menu.rows.findIndex((r) => r.key === key);
+      menu.row = ri >= 0 ? ri : 0;
+      menu.col = Math.min(menu.col, menu.rows[menu.row].opts.length - 1);
+    }
     m.querySelectorAll(".tvm-opt").forEach((b) => {
-      const r = MENU_ROWS[Number(b.dataset.row)];
+      const r = menu.rows[Number(b.dataset.row)];
+      if (!r) return;
       const v = r.opts[Number(b.dataset.col)];
-      b.setAttribute("aria-checked", String(cur[r.key] === v));
+      const on = String(menuValue(r) === v);
+      if (b.getAttribute("aria-checked") !== on) b.setAttribute("aria-checked", on);
       b.classList.toggle("focus", menu.open && Number(b.dataset.row) === menu.row && Number(b.dataset.col) === menu.col);
       if (r.key === "quality" && v === "auto") {
         const hint = b.querySelector("span");
@@ -2058,12 +2212,28 @@
       }
     });
     m.querySelectorAll(".tvm-row").forEach((row, ri) => {
-      const key = MENU_ROWS[ri].key;
-      const from = key === "theme" ? TV.themeFrom : disp.from[key];
-      const note = from === "studio" ? "Set from the studio" : from === "url" ? "Set in the address" : "";
+      const r = menu.rows[ri];
+      if (!r) return;
+      let note = "";
+      if (r.house) {
+        const p = menu.pending;
+        const live = ctx.status && ctx.status.chip_set;
+        note = p && p.key === r.key ? "Saving…" : r.key === "chip_set" && menuValue(r) === "auto" && live ? `Now ${CHIP_SET_NAMES[live] || live} · every screen` : "Every screen";
+      } else {
+        const from = r.key === "theme" ? TV.themeFrom : disp.from[r.key];
+        note = from === "studio" ? "Set from the studio" : from === "url" ? "Set in the address" : "";
+      }
       const small = row.querySelector("small");
       if (small.textContent !== note) small.textContent = note;
     });
+  }
+
+  function focusOpt(row, col) {
+    if (!Number.isFinite(row) || !Number.isFinite(col)) return;
+    menu.row = row;
+    menu.col = col;
+    bumpMenu();
+    renderMenu();
   }
 
   function bumpMenu() {
@@ -2072,8 +2242,9 @@
   }
 
   function openMenu() {
-    const m = menu.el || buildMenu();
-    if (!m || menu.open) return;
+    if (menu.open) return;
+    const m = buildMenu(); // rebuilt on each open: the rows follow the table on screen
+    if (!m) return;
     menu.open = true;
     menu.row = 0;
     menu.col = Math.max(0, LOOKS.indexOf(TV.look));
@@ -2127,11 +2298,41 @@
     }
   }
 
+  /** Pick the highlighted option: applied at once (the house's rows go to the engine), with a short flash. */
   function pickFocused() {
-    const r = MENU_ROWS[menu.row];
+    const r = menu.rows[menu.row];
     const v = r && r.opts[menu.col];
-    if (v && r.key === "theme") setTheme(v);
-    else if (v) choose(r.key, v);
+    if (!v) return;
+    if (r.key === "theme") setTheme(v);
+    else if (r.house) sendHouse(r.key, v);
+    else chooseDisplay(r.key, v);
+    renderMenu();
+    const b = menu.el && menu.el.querySelector(`.tvm-opt[data-row="${menu.row}"][data-col="${menu.col}"]`);
+    if (b) {
+      b.classList.remove("picked");
+      void b.offsetWidth; // restart the flash
+      b.classList.add("picked");
+    }
+  }
+
+  /** The house's dolly / chip set from this TV: one validated message on the TV socket (tvlink.py `house`). */
+  function sendHouse(key, v) {
+    const ws = link.ws;
+    if (!ws || ws.readyState !== 1) return toast("Not connected — try again in a moment");
+    if (menuValue({ key }) === v && !menu.pending) return;
+    try {
+      ws.send(JSON.stringify({ type: "house", [key]: v }));
+      menu.pending = { key, v, at: now() };
+    } catch {
+      toast("Not connected — try again in a moment");
+    }
+  }
+  function onHouseReply(m) {
+    if (m.type === "house_err") {
+      menu.pending = null;
+      toast(m.error ? String(m.error).slice(0, 80) : "The table didn't take that");
+    }
+    renderMenu();
   }
 
   /** A key as the menu understands it: TV remotes send the arrows and Enter; Back varies by browser. */
@@ -2142,7 +2343,7 @@
     if (k === "ArrowRight" || k === "Right" || c === 39) return "right";
     if (k === "ArrowUp" || k === "Up" || c === 38) return "up";
     if (k === "ArrowDown" || k === "Down" || c === 40) return "down";
-    if (k === "Enter" || k === " " || k === "Select" || k === "Accept" || c === 13) return "ok";
+    if (k === "Enter" || k === " " || k === "Spacebar" || k === "Select" || k === "Accept" || c === 13 || c === 23 || c === 32) return "ok";
     if (k === "Escape" || k === "GoBack" || k === "BrowserBack" || k === "Backspace" || c === 27 || c === 4 || c === 8 || c === 461 || c === 10009) return "back";
     if (k === "ContextMenu" || k === "Menu" || k === "MediaPlayPause" || k === "m" || k === "M" || c === 93 || c === 179 || (c === 82 && k !== "r" && k !== "R")) return "menu";
     return null;
@@ -2155,26 +2356,38 @@
     if (!menu.open) {
       if (k === "ok" || k === "menu") {
         e.preventDefault();
-        openMenu();
+        if (!e.repeat) openMenu();
       }
       return; // Back with the menu closed: the browser's own (leave the page)
     }
-    e.preventDefault();
+    e.preventDefault(); // also keeps a focused button from clicking itself on Enter / Space
     bumpMenu();
     if (k === "back" || k === "menu") return closeMenu();
-    if (k === "ok") return pickFocused();
-    const n = MENU_ROWS[menu.row].opts.length;
+    if (k === "ok") return e.repeat ? undefined : pickFocused();
+    const n = menu.rows[menu.row].opts.length;
     if (k === "left") menu.col = (menu.col + n - 1) % n;
     else if (k === "right") menu.col = (menu.col + 1) % n;
     else {
-      menu.row = (menu.row + (k === "up" ? MENU_ROWS.length - 1 : 1)) % MENU_ROWS.length;
-      menu.col = Math.min(menu.col, MENU_ROWS[menu.row].opts.length - 1);
+      const was = menu.rows[menu.row].opts.length;
+      menu.row = (menu.row + (k === "up" ? menu.rows.length - 1 : 1)) % menu.rows.length;
+      const m = menu.rows[menu.row].opts.length;
+      // keep the highlight above the same place in a row of another length
+      menu.col = was === m ? menu.col : Math.round((menu.col / Math.max(1, was - 1)) * (m - 1));
     }
     renderMenu();
   }
 
+  /** A click or a tap: opens the menu, picks an option, or (outside the card) closes it. */
   function onStageClick(e) {
-    const t = e.target;
+    let t = e.target;
+    if (menu.open && menu.el && (t === document.documentElement || t === document.body)) {
+      // during the theme's cross-fade the browser hit-tests its snapshot (the root): find the tile by geometry
+      const hit = (sel) => [...menu.el.querySelectorAll(sel)].find((b) => {
+        const r = b.getBoundingClientRect();
+        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      });
+      t = hit(".tvm-opt") || hit(".tvm-card") || t;
+    }
     const opt = t && t.closest && t.closest(".tvm-opt");
     if (!menu.open) return openMenu();
     bumpMenu();
@@ -2209,6 +2422,7 @@
   function start() {
     if (started) return;
     started = true;
+    loadFonts();
     fit();
     window.addEventListener("resize", fit);
     if (window.matchMedia) {
@@ -2224,7 +2438,8 @@
       watch();
     }
     const ratio = () => TV.pixelRatio;
-    if ($("bar-logo")) logos.push(DeskDotLogo.mount($("bar-logo"), { pitch: 6, grid: true, dpr: ratio }));
+    // the bar's logo builds in once and then stays lit (a steady sign, never caught mid-animation)
+    if ($("bar-logo")) logos.push(DeskDotLogo.mount($("bar-logo"), { pitch: 6.5, grid: true, dpr: ratio, once: true }));
     if ($("veil-logo")) logos.push(DeskDotLogo.mount($("veil-logo"), { pitch: 22, grid: true, dpr: ratio }));
     tickClock();
     setInterval(tickClock, 1000);
@@ -2235,7 +2450,7 @@
     // the options menu: OK / select / menu on a TV remote, Enter / M on a keyboard, a click or a tap
     window.addEventListener("keydown", onMenuKey);
     window.addEventListener("popstate", onMenuPop);
-    if ($("stage")) $("stage").addEventListener("click", onStageClick);
+    document.addEventListener("click", onStageClick); // the stage, its letterbox, or the root during a cross-fade
     wakeCursor();
     document.addEventListener("visibilitychange", () => {
       keepAwake();

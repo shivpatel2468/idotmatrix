@@ -543,7 +543,8 @@ each other's ticket money, the house keeps only the rake (default 0, `edges = {"
   `marble_brass` (Marble & Brass), `neon` (Neon Arcade). It is published in the public status as
   `status.house.dolly`, so the TV (docs/TV_VIEW.md §7) and the phones (a small CSS dolly on the winning number,
   `.rt .dolly[data-dolly=…]`) draw the host's pick. The studio's House tab has a visual picker (LeftWing
-  `DollyPicker`). A stored value that no longer exists falls back to the default (rule 15, `_load_house`).
+  `DollyPicker`, at the top of the tab at the roulette table), and the TV's options menu has a Dolly row (and a Chips
+  row at any table) that sets it over the TV socket (docs/TV_VIEW.md §1 — only these two settings). A stored value that no longer exists falls back to the default (rule 15, `_load_house`).
 - **Chip sets** — like a cue that matches its pool table, every table theme has its own chip *design*
   (`casino/chips.py` `THEME_CHIP_SET`): `clay` (Clay classic: edge inserts, dashed inlay), `ceramic` (printed, glossy,
   dotted inlay ring), `gold_rim` (a gold-leaf rim and studs), `neon` (dark body, glowing rim in the value's colour),

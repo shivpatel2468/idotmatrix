@@ -4,7 +4,8 @@ Any screen with a browser — a smart TV, Fire TV / Android TV, a Chromecast (ca
 a projector — shows a full-screen, read-only **TV view** of whatever DeskDot is playing: the panel as a huge,
 realistic LED matrix, and for games and casino tables a bespoke scene (the whole roulette layout with everyone's
 chips, the housie board, scores per seat…). Nothing on the panel is controlled from the TV; it only watches — its
-remote only picks how this screen draws it (the options menu, §2).
+remote only picks how this screen draws it (the options menu, §2) — and, at a casino table, the house's dolly and
+chip design (two cosmetic settings, §1).
 
 ```
 studio "Show on TV" ── POST /api/tv ──► {code, url}  ──► QR on the studio sheet
@@ -28,8 +29,16 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   web app (§8). The TV needs the same Wi-Fi as the computer (desktop) — exactly like a phone joining a game.
 - **Security:** `LanGate` lets LAN clients reach only `/p/`, `/ws/p/`, `/tv/` and `/ws/tv/` (and never a path with
   `..`). `/tv/{code}` and `/ws/tv/{code}` check the code; `/tv/static/{name}` serves only the TV scripts (public code,
-  no data). The TV socket is read-only: it accepts pings and nothing else. Everything it receives is what a phone in
-  the room — or anyone looking at the panel — can already see (§3).
+  no data, and the TV's font `tv-sans.woff2`). The TV socket is read-only but for one narrow message: while a casino
+  table shows, the options menu may set the house's two *display* settings, the roulette dolly and the chip set
+  (`{"type": "house", "dolly": id}` or `{"type": "house", "chip_set": id}`, §3). `tvlink.py` `house_patch` /
+  `TvHub._house` take exactly one of those keys with a known value (`casino/session.py` `DOLLIES`; `auto` or a
+  `casino/chips.py` `CHIP_SETS` id), only from a socket opened with the valid code (checked again per message), only
+  while the app on the panel is a casino table, at most one change per TV per 0.25 s, and apply it as the studio's
+  `settings` op with nothing else in it — credits, limits, timers, rules and every other app stay studio-only, and
+  LanGate is unchanged (no new HTTP route). Why it's safe: both are cosmetic (no money, odds or fairness proof touches
+  them) and anyone with the code is already in the room watching. Everything a TV receives is what a phone in the
+  room — or anyone looking at the panel — can already see (§3).
 
 ## 2. The page
 
@@ -39,10 +48,21 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
 - `#stage` is exactly **1920×1080 CSS px**, scaled uniformly to fit the window (letterboxed on black), so every TV
   shows the same layout. `TV.scale` is the current scale; `TV.pixelRatio = TV.scale × devicePixelRatio` is how many
   device pixels one stage pixel covers (canvases size their backing store with it, so they are crisp on a 4K TV).
-- **Top bar** (`#bar`, 96 px): the animated DeskDot LED logo (`DeskDotLogo` in tv.js, a copy of the studio's
-  `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) with a small "TV" label, the app's name and
-  category (a pill), the join QR + room code while a multiplayer lobby is open, the clock with the date under it and
-  the connection dot; a static rose → gold hairline (the logo's two colours) runs under the bar.
+- **Top bar** (`#bar`, 96 px): three columns — the app's name and category (a pill) on the left; the DeskDot LED
+  logo (`DeskDotLogo` in tv.js, a copy of the studio's `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) on a small
+  dark LED sign **in the centre** of the stage (the side columns are equal), a small "TV" beside it; the join QR +
+  room code while a multiplayer lobby is open, the clock with the date under it and the connection dot on the right.
+  The bar's logo is mounted with `once: true`: it builds in and strikes once on load, then holds fully lit and steady
+  (no hum, no power-down loop), so it is never caught half-lit. A static rose → gold hairline (the logo's two colours)
+  runs under the bar; at a casino table the bar takes the table's look (the name engraved in a serif, a gilded rule).
+- **Type** (`tv.html` `--font`, `--serif`, `--mono`): one self-hosted sans for the UI and the numbers — Bricolage
+  Grotesque, the studio's own face (SIL OFL 1.1, `tv/OFL.txt`), its Latin subset with the weight axis
+  (`tv/tv-sans.woff2`, 41 KB), loaded by tv.js with `FontFace` from beside the scripts (`/tv/static/`, in the web app
+  `/app/join/tv/`), tabular numerals everywhere; a display serif for titles (the app's name, the casino header, the
+  veil, the menu title — the system's Didot / Bodoni, Georgia on Windows, Noto Serif on a TV stick); the mono only for
+  codes. Labels are the sans in tracked capitals (≥ 15 px in the bar, ≥ 19 px elsewhere), body ≥ 26 px. Canvas scenes
+  use the same sans (`tv-casino.js` `FONT`) and redraw once when it has loaded (`scene.restyle`). Nothing loads from
+  another site.
 - **Scene area** `#scene`: **1920×984**, below the bar. Exactly one scene is mounted in it.
 - **Panel look** (`TV.look`): the studio's three looks (`web/src/lib/look.ts`, drawn as `LedPanel.tsx` draws them):
   `pixel` (sharp square pixels), `led` (the default here — a physical LED matrix: rounded LEDs, 13 % inset, 24 %
@@ -65,25 +85,35 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
   `?lite=1` / `?hq=1`) — win over the studio's choice that was already set when the page loaded, not a later one.
   Choices apply at once, without a reload (panels redraw; a quality change re-mounts the scene). A change from the
   studio shows a short notice on the TV.
-- **Options menu** (for a TV remote, a mouse or a keyboard): OK / select / Enter, the menu key (also M, play-pause),
-  or a click / tap anywhere opens a card at the bottom of the screen: *Panel look: Pixel · LED · Glow*, *Quality:
-  Auto · HQ · Lite* and *Theme: Dark · Light* (with "now HQ / Lite" under Auto, and "Set from the studio" when that's where the value came
-  from). The D-pad arrows move a white focus ring (scaled up, readable from 3 m), OK picks (the chosen option is
-  filled ember with a ✓), Back / Escape or the menu key closes it, and it closes itself after 8 s without a key. Back
-  on a TV browser goes back in history, so an open menu holds one history entry and Back just pops it; Back with the
-  menu closed is the browser's own. Mouse: hover moves the focus, a click picks, a click outside the card closes.
+- **Options menu** (for a TV remote, a mouse, a touch screen or a keyboard): OK / select / Enter, the menu key (also
+  M, play-pause), or a click / tap anywhere opens a card at the bottom of the screen: *Panel look: Pixel · LED · Glow*,
+  *Quality: Auto · HQ · Lite* and *Theme: Dark · Light* — this TV's own (with "now HQ / Lite" under Auto, and "Set from
+  the studio" / "Set in the address" when that's where the value came from) — and, while a casino table shows, the
+  house's **Dolly** (roulette only: the 8 styles, drawn with the real sprites) and **Chips** (*Match table* + the 7
+  sets, three real chips each), which go to the engine (§1, §3) and change every screen; the row says "Saving…" until
+  the table's status shows the pick (or 4 s), and an error toasts. The D-pad arrows move a white focus ring (scaled up,
+  readable from 3 m; ↑ ↓ keep it above the same place in a longer or shorter row), OK / Enter / Space / the D-pad
+  centre (keyCode 23) picks (the chosen option is filled ember with a ✓; a press dips the tile, a pick flashes it),
+  Back / Escape or the menu key closes it, and it closes itself after 12 s without input. Back on a TV browser goes
+  back in history, so an open menu holds one history entry and Back just pops it; Back with the menu closed is the
+  browser's own. Mouse: hover moves the focus, a click picks, a click outside the card closes; touch: a tap picks.
+  Clicks are taken on `document` (the stage, the letterbox, and the root while the theme cross-fades — the tile is then
+  found by its box). Text is `--ink-1` / `--ink-2` on the card in both themes (AA). `tests/js/tv_menu.test.mjs`
+  clicks, taps and keys every tile in a headless Chrome (needs playwright-core and Chrome: `PLAYWRIGHT_DIR`, `CHROME`;
+  skipped otherwise).
 - **Theme** (`TV.theme` = `dark` | `light`, on `html[data-theme]`): a TV sits in a dark room, so it is dark unless
   the address says `?theme=light|dark` (wins) or someone picked *Light* in the options menu on this TV
   (`localStorage` `deskdot.tv.theme`, raw `light` / `dark`); it ignores the studio's own `deskdot.theme`. Light uses
   the studio's "Gallery" tokens (docs/STUDIO_UI.md: porcelain `#f4f0e8`, ivory `#fbf9f5`, ink `#1c1a22`, rose
   `#b81f4b`, antique gold `#b8892a` / gold text `#8a6412`) under the same token names (`--chassis-*`, `--ink-*`,
   `--ember`, `--gold`, `--gold-text`, …); the panel stays a dark device in its bezel, the LED logo sits on a small
-  dark LED sign with a gold rim, and **a casino table keeps its own dark room** (`#stage[data-table="1"]` re-declares
-  the dark tokens: its scene and themed bar are drawn for the dark). Light mirrors the studio's MATERIALS v2 by name
+  dark LED sign with a gold rim, and **a casino table becomes a daylight salon** (§7): the whole TV follows the theme. Light mirrors the studio's MATERIALS v2 by name
   (`--m-daylight`, `--m-wash-a/b`, `--m-vignette`, `--m-bevel`, `--m-rule-gold`, `--m-gold-leaf`): daylight, a rose and
   a gold bloom and a vignette on the stage and the veil, a gilded rule under the bar, an engraved gold double rule
   inside cards / stats / the options card, players' rows with a halo in their colour. Same cost as dark: static gradients and shadows
-  only (tests: `tests/js/tv_core.test.mjs`). `TV.setTheme(v)` switches at once.
+  only (tests: `tests/js/tv_core.test.mjs`). `TV.setTheme(v)` switches with a cross-fade: the View Transitions API
+  snapshots the page and fades it into the new theme (0.5 s, one compositor animation; a short stage fade where the
+  API is missing; none with reduced motion). Inside it a canvas scene redraws its static layers once (`scene.restyle`).
 - States: *Waiting for DeskDot…* (connecting / reconnecting with backoff 0.5 s → 8 s), *This TV link has closed*
   (the studio stopped it or the code is wrong; the page keeps checking every 20 s in case the same code comes back).
 - The waiting / closed card stands on a static wall of unlit LEDs (a masked dot-grid gradient) and shows the TV code
@@ -93,7 +123,11 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
 
 ## 3. The socket — `WS /ws/tv/{code}`
 
-Server → TV only (the TV sends `{"type":"ping","t":…}`; the server answers `{"type":"pong","t","server_time"}`).
+Server → TV, but for two messages from the TV: `{"type":"ping","t":…}` (the server answers
+`{"type":"pong","t","server_time"}`) and, at a casino table, `{"type":"house","dolly":id}` or
+`{"type":"house","chip_set":id}` from the options menu (§1 for the rules; the answer is `{"type":"house_ok",…}` or
+`{"type":"house_err","error"}`, and every TV gets the new `status.house` / `status.chip_set` in its next `state`).
+Anything else a TV sends is ignored.
 
 | Message | When | Shape |
 | --- | --- | --- |
@@ -204,10 +238,11 @@ each show. Without OffscreenCanvas / bitmaprenderer, `g` is the canvas's own con
 Scene timing helpers: `TV.every(fn)` runs `fn(seconds)` on the page's **one** `requestAnimationFrame` loop (return
 `false` to stop; it returns an unsubscribe function) — scenes never start their own rAF loops or `setInterval`s for
 animation. Panel frames are drawn from the same loop (latest wins). A scene may implement `resize(ctx)` (the stage
-scale changed); a tier change re-mounts it.
+scale changed) and `restyle(ctx)` (the theme or the font changed: redraw cached canvases once, now — read the theme
+from `html[data-theme]`); a tier change re-mounts it.
 
 Shared CSS (in `tv.html`, use freely): tokens `--chassis-0…4`, `--line`, `--ink-1…4`, `--ember`, `--gold`, `--ok`,
-`--warn`, `--bad`, `--info`, `--font` (system UI), `--mono`; the table theme as `--felt`, `--felt2`, `--felt3`,
+`--warn`, `--bad`, `--info`, `--font` (the TV's sans), `--serif` (display titles), `--mono` (codes); the table theme as `--felt`, `--felt2`, `--felt3`,
 `--accent`, `--accent-hi`, `--accent-lo`, `--accent-rgb`, `--ink` on `#stage` (classic green + gold when no casino);
 classes `.tv-bezel` (the panel housing: machined frame, screws via `.tv-screw`), `.tv-card` (a raised surface),
 `.tv-chip` (a status pill; `data-tone="ok|warn|bad|ember|gold"`), `.tv-label` (engraved uppercase label),
@@ -277,6 +312,15 @@ polished brass ring round lacquered walnut with the lamp's reflection, the wheel
 poker tables have a padded leather racetrack. The header turns into the casino's own in table mode (tv.html: the
 table's name in gold-leaf serif capitals over a gilded double rule).
 
+**In light mode** the room is a daylight salon (`tv-casino.js` `ROOMS.light`, after the studio's light casino and
+MATERIALS v2): ivory and champagne walls with a gold damask and a rose / gold-leaf bloom, a white-lacquer rail with a
+double gold inlay, an ivory gallery with gold hairlines and ivory seat plaques (players' names in their colour,
+deepened — `inkOf`), antique-gold engraving instead of bright gold leaf (`txt(…, {gold: "deep"})`), the LED panel's
+inset in a champagne-lacquer housing (the panel stays a dark device), deep ink for type on the room (`roomInk`: the
+seat lines, the poker tables' headline, log and hand line). The felt keeps the table theme's colour. The header is
+ivory with the table's name in antique gold. Both rooms are drawn into the cached layers: the theme is part of the
+background key, and a switch redraws background, table and rail once (`scene.restyle`), never per frame.
+
 **The seat gallery** (right, the rail layer): one leather plaque per player — avatar in a gold bezel, a jewel bar in
 their colour, name, status line, a live chip stack of what they have on the table, and their credits on an
 **odometer** (`Odo`: a DOM reel per digit moved by transform, rolling with a little overshoot, units a lap or two
@@ -293,7 +337,8 @@ pixel, ivory — docs/CASINO.md §13), the denomination colours and labels uncha
   layout, sets it down on the number `DOLLY_AFTER` (0.95 s) after the settle with a soft click ring and a felt
   shadow that firms up as it lands (`dollyPath`, tested), and takes it home when the next round opens. Its style is
   the house's (`status.house.dolly`, 8 styles drawn as sprites: Classic Gold, Crystal, Chrome, Black Onyx & Gold,
-  Rose Gold, Diamond-cut, Marble & Brass, Neon Arcade). Losing stacks are swept to the croupier and each winning
+  Rose Gold, Diamond-cut, Marble & Brass, Neon Arcade) — picked in the studio (Casino → House) or from the TV's
+  options menu (§2). Losing stacks are swept to the croupier and each winning
   spot gets its payout stack pushed from the dealer (stake × the spot's odds).
 - Cards turn in 3D (narrow on the axis, lift toward the camera, the turning edge leans and darkens); dice tumble as
   they roll (a cosmetic turn that unwinds to square as they settle on the panel's faces); slot reels smear along the

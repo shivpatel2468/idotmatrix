@@ -284,10 +284,10 @@ A read-only, full-screen view of the panel (and bespoke game / casino scenes) fo
 | DELETE | `/api/tv` | close it; every TV is sent `{"type":"closed"}` |
 | POST | `/api/tv/settings` | `{"look": "pixel"\|"led"\|"glow"\|null, "quality": "auto"\|"hq"\|"lite"\|null}` — the panel look and quality for every TV of the link, applied live (each TV gets a `state` at once). A key left out keeps its value; `null` hands that choice back to each TV; anything else → 422. Every call gets a new `rev`, so a TV whose viewer picked something with the remote takes the studio's choice again. → `{ok, display: {look, quality, rev}}` |
 | GET | `/tv/{code}` | the TV page (`tv.html`; 404 with the same page for an unknown code) |
-| GET | `/tv/static/{name}` | the TV scripts (`tv.js`, `tv-games.js`, `tv-casino.js`) from `src/deskdot/tv/` |
-| WS | `/ws/tv/{code}` | server → TV: `hello` `{app, meta, avatars, display, server_time}`, `state` `{app, status, lobby, tv, display, server_time}` (`display` = `{look, quality, rev}` from `/api/tv/settings`) (~5 Hz on change, 2 s heartbeat; `status` = the app's public `status()`, never `private_status()`; `tv` = the app's TV-only `tv_extra()`, e.g. a casino round's outcome + clock from the lock on — docs/TV_VIEW.md §3), binary 3072-byte frames (≤ 12 fps, latest wins), `closed`. TV → server: `{"type":"ping","t"}` → `pong` |
+| GET | `/tv/static/{name}` | the TV scripts (`tv.js`, `tv-games.js`, `tv-casino.js`) and its font (`tv-sans.woff2`) from `src/deskdot/tv/` |
+| WS | `/ws/tv/{code}` | server → TV: `hello` `{app, meta, avatars, display, server_time}`, `state` `{app, status, lobby, tv, display, server_time}` (`display` = `{look, quality, rev}` from `/api/tv/settings`) (~5 Hz on change, 2 s heartbeat; `status` = the app's public `status()`, never `private_status()`; `tv` = the app's TV-only `tv_extra()`, e.g. a casino round's outcome + clock from the lock on — docs/TV_VIEW.md §3), binary 3072-byte frames (≤ 12 fps, latest wins), `closed`. TV → server: `{"type":"ping","t"}` → `pong`; at a casino table `{"type":"house","dolly"|"chip_set": id}` (one key, known values only) → `house_ok` / `house_err` (docs/TV_VIEW.md §1) |
 
-LAN clients may reach `/tv/` and `/ws/tv/` (code-checked, read-only) like `/p/` and `/ws/p/`; everything else stays
+LAN clients may reach `/tv/` and `/ws/tv/` (code-checked, read-only but for the house's dolly / chip set from a TV) like `/p/` and `/ws/p/`; everything else stays
 local. The TV code is never the same as the lobby code.
 
 ## Presets (one-tap playlists)

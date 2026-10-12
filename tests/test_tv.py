@@ -52,6 +52,10 @@ def test_tv_link_routes_and_page(tmp_path: Path) -> None:
             js = c.get(f"/tv/static/{name}")
             assert js.status_code == 200 and "javascript" in js.headers["content-type"]
         assert "registerScene" in c.get("/tv/static/tv.js").text
+        font = c.get("/tv/static/tv-sans.woff2")  # the TV's own font (self-hosted, SIL OFL: tv/OFL.txt)
+        assert font.status_code == 200 and font.headers["content-type"] == "font/woff2"
+        assert font.content[:4] == b"wOF2" and len(font.content) < 60_000
+        assert c.get("/tv/static/OFL.txt").status_code == 404
         assert c.get("/tv/static/nope.js").status_code == 404
         assert c.get("/tv/static/..%2Fserver.py").status_code == 404
         assert c.get("/tv/ZZZZ").status_code == 404  # still the page: it says the link has closed
@@ -178,6 +182,91 @@ def test_tv_display_settings_validate_and_reach_every_tv(tmp_path: Path) -> None
             assert hello["display"]["quality"] == "lite" and hello["display"]["look"] is None
             st = _until(tv3, lambda m: isinstance(m, dict) and m["type"] == "state")
             assert st["display"]["quality"] == "lite"
+
+
+def test_tv_house_display_settings_only(tmp_path: Path) -> None:
+    """A TV's options menu may set the house's dolly and chip set — nothing else, only known values, only at a casino
+    table, only over a socket opened with the valid TV code (docs/TV_VIEW.md §2, tvlink.py)."""
+    from deskdot.tvlink import house_patch
+
+    assert house_patch({"type": "house", "dolly": "crystal"}) == {"dolly": "crystal"}
+    assert house_patch({"type": "house", "chip_set": "auto"}) == {"chip_set": "auto"}
+    for bad in (
+        {"type": "house", "dolly": "gold"},
+        {"type": "house", "chip_set": "plastic"},
+        {"type": "house", "dolly": 3},
+        {"type": "house", "dolly": "crystal", "chip_set": "neon"},  # one at a time
+        {"type": "house", "base_credits": 1_000_000},
+        {"type": "house", "dolly": "crystal", "max_bet": 9},
+        {"type": "house"},
+    ):
+        with pytest.raises(ValueError):
+            house_patch(bad)
+
+    with _client(tmp_path) as c:
+        code = c.post("/api/tv").json()["code"]
+        c.post("/api/apps/clock/activate", json={})
+        with c.websocket_connect(f"/ws/tv/{code}") as tv:
+            _until(tv, lambda m: isinstance(m, dict) and m["type"] == "state")
+            tv.send_text(json.dumps({"type": "house", "dolly": "crystal"}))
+            err = _until(tv, lambda m: isinstance(m, dict) and m["type"].startswith("house"))
+            assert err["type"] == "house_err", "no casino table: nothing to set"
+
+        c.post("/api/apps/casino_roulette/activate", json={})
+        app = c.app.state.engine._slot("casino_roulette").app
+        before = app.session.house.model_dump()
+        with c.websocket_connect(f"/ws/tv/{code}") as tv:
+            _until(
+                tv, lambda m: isinstance(m, dict) and m["type"] == "state" and m["app"] == "casino_roulette"
+            )
+            tv.send_text(json.dumps({"type": "house", "dolly": "onyx_gold"}))
+            ok = _until(tv, lambda m: isinstance(m, dict) and m["type"].startswith("house"))
+            assert ok == {"type": "house_ok", "dolly": "onyx_gold"}
+            st = _until(
+                tv,
+                lambda m: (
+                    isinstance(m, dict)
+                    and m["type"] == "state"
+                    and m["status"].get("house", {}).get("dolly") == "onyx_gold"
+                ),
+            )
+            assert st["status"]["house"]["dolly"] == "onyx_gold"
+            time.sleep(0.3)
+            tv.send_text(json.dumps({"type": "house", "chip_set": "jade"}))
+            assert (
+                _until(tv, lambda m: isinstance(m, dict) and m["type"].startswith("house"))["type"]
+                == "house_ok"
+            )
+            _until(
+                tv,
+                lambda m: (
+                    isinstance(m, dict) and m["type"] == "state" and m["status"].get("chip_set") == "jade"
+                ),
+            )
+            # anything else is refused and changes nothing
+            for bad in ({"type": "house", "base_credits": 999999}, {"type": "house", "dolly": "x"}):
+                time.sleep(0.3)
+                tv.send_text(json.dumps(bad))
+                assert (
+                    _until(tv, lambda m: isinstance(m, dict) and m["type"].startswith("house"))["type"]
+                    == "house_err"
+                )
+            # too fast: one change per TV per HOUSE_MIN_S
+            tv.send_text(json.dumps({"type": "house", "dolly": "chrome"}))
+            tv.send_text(json.dumps({"type": "house", "dolly": "neon"}))
+            replies = [
+                _until(tv, lambda m: isinstance(m, dict) and m["type"].startswith("house"))["type"]
+                for _ in range(2)
+            ]
+            assert "house_err" in replies
+        after = app.session.house.model_dump()
+        changed = {k for k in after if after[k] != before[k]}
+        assert changed <= {"dolly", "chip_set"}, changed
+
+        # a renewed code: the old socket is closed, the old code can't change anything
+        c.post("/api/tv", json={"renew": True})
+        with c.websocket_connect(f"/ws/tv/{code}") as tv:
+            assert tv.receive_json()["type"] == "closed"
 
 
 @pytest.mark.parametrize(
