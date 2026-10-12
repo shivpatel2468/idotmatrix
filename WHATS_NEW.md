@@ -59,6 +59,9 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Better
 
+- **Goal alerts off by default**
+  - Before: every time a team scored, a celebration took over the panel, even when you were showing something else.
+  - Now: goal and score alerts start switched off. Turn them on in Live Scores → Alerts if you want them.
 - **More movement at the TV table**
   - Before: the roulette ball and the cards moved simply.
   - Now: the ball streaks as it races round and hops over the frets, the camera zooms in on the winning pocket and
