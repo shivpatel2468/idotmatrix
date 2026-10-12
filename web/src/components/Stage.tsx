@@ -415,7 +415,8 @@ function StageBody({ fly = false }: { fly?: boolean }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 max-sm:w-full max-sm:[&>*:last-child]:ml-auto">
-          {meta && !painting && meta.actions.map((a) => (
+          {/* an app may list the actions that work right now in `status.actions` (e.g. no media controls here) */}
+          {meta && !painting && meta.actions.filter((a) => !Array.isArray(cur?.status?.actions) || (cur.status.actions as string[]).includes(a.id)).map((a) => (
             <button key={a.id} className="key" title={a.label} aria-label={a.label} onClick={() => api.action(meta.id, a.id)}>
               <Icon name={a.icon} size={13} />
               <span className="hidden 2xl:inline">{a.label}</span>

@@ -327,8 +327,10 @@ async def test_media_clock_seek_jitter_pause() -> None:
         "art_id",
         "track",
         "palette",
+        "controls",
     ):
         assert key in v
+    assert v["controls"] is True  # a backend without `can_control` is assumed controllable
     assert mp.position == pytest.approx(10.0, abs=0.05)
     # a routine refresh that disagrees by < jitter keeps our smooth clock
     ours = mp.position
@@ -632,7 +634,7 @@ def test_karaoke_fill_moves_and_lights_panel() -> None:
     assert f.px[:29].any(axis=2).sum() > 60  # big type fills the panel
 
 
-@pytest.mark.parametrize("idle", ["no_music", "clock", "last_art", "nothing"])
+@pytest.mark.parametrize("idle", ["no_music", "clock", "last_art", "covers", "waves", "silence", "nothing"])
 def test_idle_screens(idle: str) -> None:
     media = _FakeMedia(_value(), art=ART)
     app = NowPlaying(_Ctx(media, LYR), NowPlayingSettings(layout="cover", idle_screen=idle))
@@ -658,3 +660,158 @@ def test_audio_acquired_only_for_audio_layouts() -> None:
     app.on_stop()
     assert audio.refs == 0
     assert NowPlaying.uses == ("media", "lyrics")
+
+
+# ------------------------------------------------------------------------------------------ Now Playing 3.7 options
+def test_lrc_same_stamp_line_is_a_translation() -> None:
+    lines = parse_lrc_lines("[00:01.00]Bonjour\n[00:01.00]Hello\n[00:03.00]Encore\n[00:03.00]encore\n")
+    assert [ln.text for ln in lines] == [
+        "Bonjour",
+        "Encore",
+        "encore",
+    ]  # same text twice is not a translation
+    assert lines[0].translation == "Hello" and lines[1].translation == ""
+
+
+def _np(
+    layout: str = "cover_text", value: dict[str, Any] | None = None, **kw: Any
+) -> tuple[NowPlaying, _FakeMedia]:
+    media = _FakeMedia(value or _value(), art=ART)
+    return NowPlaying(_Ctx(media, LYR), NowPlayingSettings(layout=layout, **kw)), media
+
+
+def _frame(app: NowPlaying, t: float) -> np.ndarray:
+    f = Frame()
+    app.render(f, t)
+    return f.px.copy()
+
+
+@pytest.mark.parametrize("kind", ["slide", "dissolve", "zoom"])
+def test_song_change_transitions_blend_then_settle(kind: str) -> None:
+    app, media = _np(transition=kind)
+    old = _frame(app, 1.0)
+    media.value = {**_value(), "title": "Other Song", "track": "y"}
+    assert (_frame(app, 1.3) == old).all()  # the change frame starts from the old picture
+    mid = _frame(app, 1.6)
+    end = _frame(app, 3.0)
+    assert not (mid == old).all() and not (mid == end).all()  # part old, part new
+    cut, media2 = _np(transition="cut")
+    _frame(cut, 1.0)
+    media2.value = {**_value(), "title": "Other Song", "track": "y"}
+    a = _frame(cut, 1.3)
+    fresh, _ = _np(value={**_value(), "title": "Other Song", "track": "y"}, transition="cut")
+    assert (a == _frame(fresh, 1.3)).all()  # cut: the new song at once
+
+
+def test_rotation_per_song_and_on_a_timer() -> None:
+    app, media = _np(layout="cover", rotate="song", rotate_set="art")
+    _frame(app, 0.0)
+    assert app.status()["layout"] == "cover"
+    media.value = {**_value(), "title": "Next", "track": "n"}
+    _frame(app, 1.0)
+    assert app.status()["layout"] == "live_art"
+    timer, _ = _np(layout="cassette", rotate="timer", rotate_set="retro", rotate_every=10)
+    seen = set()
+    for t in (0.0, 11.0, 21.0, 31.0, 41.0):
+        _frame(timer, t)
+        seen.add(timer.status()["layout"])
+    assert seen == {"cassette", "vinyl", "vu", "radio"}
+
+
+def test_pause_styles() -> None:
+    playing = _value()
+    app, media = _np(layout="cover", pause_style="freeze", transition="cut")
+    shown = _frame(app, 1.0)
+    media.value = {**playing, "playing": False}
+    frozen = _frame(app, 2.0)
+    assert (frozen[8:] == shown[8:]).all() and (frozen[1:6, 27] > 200).all()  # same picture + a pause sign
+    idle, media = _np(layout="cover", pause_style="idle", idle_screen="nothing", transition="cut")
+    media.value = {**playing, "playing": False}
+    assert _frame(idle, 1.0).any()
+    assert not _frame(idle, 25.0).any()  # paused 20 s -> the idle screen
+    dim, media = _np(layout="vinyl", pause_style="dim", transition="cut")
+    lit = _frame(dim, 1.0).astype(int).sum()
+    media.value = {**playing, "playing": False}
+    assert _frame(dim, 2.0).astype(int).sum() < lit * 0.7
+
+
+def test_transport_buttons_hidden_without_control() -> None:
+    app, media = _np()
+    _frame(app, 0.0)
+    assert app.status()["actions"] == ["prev", "toggle", "next"]
+    media.value = {**_value(), "controls": False}
+    assert app.status()["actions"] == []
+    media.value = {"active": False}
+    assert app.status()["actions"] == []
+
+
+@pytest.mark.parametrize("style", ["marquee", "bounce", "page"])
+def test_long_text_styles_stay_in_their_box(style: str) -> None:
+    long_title = "An Extraordinarily Long Song Title For Testing"
+    app, _ = _np(
+        layout="minimal", value={**_value(), "title": long_title}, scroll_style=style, show_source=False
+    )
+    for t in np.arange(0, 12, 0.7):
+        px = _frame(app, float(t))
+        assert not px[8:15, 0].any() and not px[8:15, 31].any()  # 1 px margins kept
+    app2, _ = _np(layout="big_title", value={**_value(), "title": long_title}, scroll_style=style)
+    assert _frame(app2, 5.0)[8:22].any()
+
+
+@pytest.mark.parametrize("style", ["smooth", "pixelated", "posterised", "dithered"])
+def test_art_styles(style: str) -> None:
+    app, _ = _np(layout="cover", art_style=style, art_colors=3, show_progress=False)
+    px = _frame(app, 0.0)
+    assert px.any()
+    if style == "posterised":
+        assert len(np.unique(px.reshape(-1, 3), axis=0)) <= 3
+    if style == "pixelated":
+        assert (px[0::2] == px[1::2]).all()  # 2 px blocks
+
+
+def test_audio_held_for_meter_layouts_and_rotation_sets() -> None:
+    for layout, want in (("vu", 1), ("waveform", 1), ("cassette", 0)):
+        audio = _FakeAudio()
+        app = NowPlaying(_Ctx(_FakeMedia(_value()), LYR, audio), NowPlayingSettings(layout=layout))
+        app.on_start()
+        assert audio.refs == want, layout
+    audio = _FakeAudio()
+    app = NowPlaying(
+        _Ctx(_FakeMedia(_value()), LYR, audio), NowPlayingSettings(rotate="song", rotate_set="retro")
+    )
+    app.on_start()
+    assert audio.refs == 1  # the retro set has the VU meters
+
+
+def test_vu_needles_rise_quickly_and_fall_slowly() -> None:
+    audio = _FakeAudio({"bands": [0.6] * 32})
+    media = _FakeMedia(_value())
+    app = NowPlaying(_Ctx(media, LYR, audio), NowPlayingSettings(layout="vu"))
+    app.on_start()
+    _frame(app, 0.0)
+    audio.value = {"bands": [0.0] * 32}
+    _frame(app, 0.1)
+    assert app._vu_lv.min() > 0.3  # VU ballistics: no instant drop
+
+
+def test_translation_line_and_underline_highlight() -> None:
+    lrc = "[00:01.00]Bonjour tout le monde\n[00:01.00]Hello world\n[00:09.00]fin\n"
+    lyr = Lyrics(clean_lines(parse_lrc_lines(lrc)))
+    media = _FakeMedia(_value(), art=None)
+    on = NowPlaying(_Ctx(media, lyr), NowPlayingSettings(layout="karaoke", highlight="underline"))
+    media.position = 2.0
+    px = _frame(on, 2.0)
+    assert px[23:28].any() and not px[21:23].any()  # the translation sits in its own band
+    off = NowPlaying(_Ctx(media, lyr), NowPlayingSettings(layout="karaoke", translation=False))
+    assert not (_frame(off, 2.0)[21:29] == px[21:29]).all()
+    # underline: the current row's sung part is underlined in the sung colour, the letters stay unsung-bright
+    sung = np.array(on._sung())
+    assert (px[:21] == sung).all(axis=2).any()
+
+
+def test_demo_thumbnails_for_every_layout() -> None:
+    from deskdot.apps.nowplaying import LAYOUT_LABELS, demo_frame, demo_png
+
+    for layout in LAYOUT_LABELS:
+        assert demo_frame(layout).px.any(), layout
+    assert demo_png("cassette", 2)[:4] == b"\x89PNG"

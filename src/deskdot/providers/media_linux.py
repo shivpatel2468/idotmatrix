@@ -140,6 +140,10 @@ class LinuxBackend:
         except OSError:
             return None
 
+    @property
+    def can_control(self) -> bool:
+        return bool(self._cli)  # MPRIS through playerctl
+
     async def control(self, action: str) -> bool:
         if action not in _CONTROL:
             raise KeyError(action)
