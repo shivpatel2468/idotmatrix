@@ -5,6 +5,20 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme; luxury TV casino, win moment, dollies, chip sets, odometer credits
 
+- **Now Playing** (`apps/nowplaying.py`, drawing kit `apps/_npdraw.py`): 8 new layouts — `wordpop`, `big_title`
+  (2× bitmap type), `cassette`, `vu` (needles with VU ballistics / LED ladders), `cd`, `radio` (FM/AM dial, needle
+  sweep per track), `mosaic` (posterised tiles, reveal + glint), `waveform` (audio history or synthetic); 24 new
+  settings in groups Track info / Lyrics / Song change / Paused & idle / Art / Layout options: `show_album`,
+  `show_source` (generic glyphs only), `scroll_style` (marquee/bounce/page), `highlight` (sweep/word/underline),
+  `line_spacing`, `translation` (LRC lines sharing a timestamp → `Line.translation` in `providers/lyrics.py`),
+  `transition` (cut/slide/dissolve/zoom; a late cover dissolves in), `rotate`/`rotate_set`/`rotate_every`,
+  `pause_style` (auto/dim/badge/freeze/idle after 20 s), idle screens `covers`/`waves`/`silence` + `wall_size`,
+  `art_style` (smooth/pixelated/posterised/dithered, calibrated before styling), `dither`, `art_colors`,
+  `art_contrast`, `art_saturation`, and per-layout options. `status()` adds `layout`, `album` and `actions`;
+  `demo_frame()` / `demo_png()` render any layout for a procedural demo song → `GET /api/nowplaying/layouts/{id}.png`.
+  Media backends expose `can_control` (Windows always; macOS Spotify/Music or nowplaying-cli; Linux playerctl) →
+  provider value `controls`. Studio: Stage filters action buttons by `status.actions`; `components/MusicDeck.tsx`
+  in the full-screen view (track, transport, visual layout picker). Tests in `tests/test_music.py`, `tests/test_api.py`.
 - Live Scores: goal / score alerts (the celebration overlay that interrupts other apps) default to Off.
 - **Page themes** (studio-wide, separate from the casino's table themes): 21 themes in `gfx/themes.py` `PAGE_THEMES`
   (`ember` = the original look and the default; studio originals `graphite`, `sunset`, `citrus`; 17 adapted table
@@ -73,6 +87,34 @@ The technical log for developers. For the same updates in plain words (before �
   `tests/js/tv_menu.test.mjs` (headless Chrome: click / tap / keys / remote on every tile; skipped without
   playwright-core + Chrome), `tv_casino.test.mjs` +2 (light room on every table, restyle; menu previews). Benchmark
   (6×, 960×540 @2): roulette p95 33.3 ms, baccarat 33.3, tetris 16.8 (dark and light alike).
+- **Casino light mode lit by the table theme** (studio `casino.css` light block, phone `casino.html` light block):
+  `state.ts` `lightSwitches()` derives `--cz-tint` (the felt, or the accent when the felt is near-grey: cyber, noir,
+  deco, arcade, volcano) and `--cz-pale` (1 for ivory / champagne / ice accents: emerald, burgundy, noir, arctic),
+  set by `themeVars()` (+ `--cz-page-tint` in `pageVars()`); `casino.html` `applyTheme()` mirrors them as `--tint` /
+  `--pale`. Light surfaces mix `--cz-room` (felt 70 % + tint) into porcelain (wings 13–15 %); wings, rails, section
+  rules, host bar, lobby strip, empty states, rows, rack, board and the table plinth carry tint washes and accent
+  glow lines (`--cz-glow`); cards (game / preset / theme / chip set / dolly) get a tinted foot and a gilded selected
+  state (accent wash, metal ring, accent halo); chip sets and dollies sit on a felt well; primary keys use
+  `--cz-key` (accent leaf, or the felt with accent lettering when pale); accent-as-text deepens the felt when pale;
+  `text-[var(--gold)]` utilities read `--gold-text` in light. Mute / dim inks darkened (AA ≥ 4.5 on every light
+  surface for all 21 themes, incl. the wing foot). Dark mode unchanged (pixel-diffed).
+- **Paper panel** (light mode's LED preview; studio only — the panel and the engine's frames are unchanged):
+  `lib/paper.ts` maps every frame colour perceptually (OKLab/OKLCH: lit amount = brightest channel; neutrals → ink
+  `#1c1a22`, chromatic colours keep hue + relative chroma at a per-hue lightness darkened to ≥ 4.5:1 on the unlit LED
+  `#ebe6dc`, yellows lean ≤ 14° toward gold; dim colours blend ground → ink with chroma arriving first), cached per
+  exact colour. `LedPanel` draws paper versions of Glow (multiply halo), Pixel and LED (cached porcelain housing) and
+  cross-fades on theme change (`crossFade()`); `raw` (calibration) and the new `device` prop (fly view) keep the dark
+  device. `lib/paperImg.ts` lays a mapped canvas over every `.led-preview > img` / `.lx-led > img` (library, AppRail,
+  casino tiles, launcher) — own GIF decoder, frames mapped once per URL (LRU 48), one timer for visible canvases.
+  `html[data-panel="paper|device"]`; Display menu → *Panel preview in light mode* (Paper · Dark device,
+  `localStorage deskdot.panelLight`, part of Reset). Light `.bezel` becomes porcelain enamel (not `.cz-bezel`,
+  `.fly-full-bezel`); `--led-gap` (registered, fades) colours thumbnail masks; `.led-well`; preset covers tint via
+  `--led-paper`. Logo: `lib/logo.ts` `NEON_STYLE` / `PAPER_STYLE` (ink tubes `#c2154d` / `#996300`, multiply halo,
+  sheen core), `NeonLogo.setLook()`; `NeonMark` follows `<html data-theme>` with a cross-fade on a porcelain gilded
+  `.led-plate`; the `// <deskdot-logo>` copies take `look` and follow their page's theme (`mount(…, { light })`, live),
+  swapping a page's dark logo sign for `PAPER_PLATE`; tv.html, controller.html, join.css and host.css plates are
+  porcelain in light. `tests/test_logo_copies.py` compares both styles and checks the paper tubes' contrast.
+  docs/STUDIO_UI.md § Paper panel.
 
 ## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
 

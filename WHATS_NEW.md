@@ -57,6 +57,18 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: when your credits change, the digits spin like slot-machine reels and land on the new amount — on the TV,
     your phone and the studio.
 
+- **Eight new Now Playing looks**
+  - Before: Now Playing had 11 layouts.
+  - Now: 19. New ones: a cassette whose reels turn and whose tape moves from one reel to the other as the song
+    plays, twin VU meters with needles that swing to the music (or LED ladders), a CD with the cover printed on it
+    and a rainbow shine, an old radio dial whose needle sweeps to a new station for every song, the cover as a
+    tile mosaic that builds itself tile by tile, a scrolling waveform, the song name huge, and Word pop — the
+    lyrics one big word at a time, right on the beat.
+- **Pick a layout by its picture**
+  - Before: you chose the Now Playing layout from a list of names.
+  - Now: while Now Playing is on the panel, the full-screen view shows a small picture of every layout. Tap one to
+    switch. The song, the artist and the cover are shown there too, with previous, play/pause and next buttons.
+
 ### Better
 
 - **Goal alerts off by default**
@@ -84,6 +96,29 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Before: you could only change the dolly and the chip design deep in the studio, and many people never found them.
   - Now: at a casino table, the TV's menu has Dolly and Chips rows showing the real styles. A pick changes every
     screen. In the studio they now sit at the top of Casino → House.
+- **Casino table colours in light mode**
+  - Before: in light mode the casino looked pale grey whatever table you picked — the side panels, the chip set
+    and dolly cards and the buttons barely showed the table's colours.
+  - Now: the whole casino screen takes the table's colours in light mode too, on the computer and on phones. The
+    side panels, cards, buttons, player rows and chip tray are washed in the felt's colour with the accent glowing
+    along the edges, the picked card has a clear coloured ring, and the chip sets and dollies sit on a little piece
+    of the table's felt. Dark tables like Cyber grid or Riviera noir get a light steel room lit by their accent,
+    and tables with ivory or champagne trim get buttons in the felt's colour. Text stays easy to read, and dark mode
+    looks the same as before.
+- **The panel preview turns light in light mode**
+  - Before: in light mode the picture of the panel in the middle of the studio — and every app picture in the
+    library — stayed a black screen with glowing colours, which looked out of place on the white page.
+  - Now: in light mode the preview becomes a light "paper" panel, like ink on porcelain: white turns into near-black,
+    black into the light background, and every colour is re-tuned so it stays easy to read — yellow becomes a deep
+    gold, cyan a teal, red and blue stay rich. Dim parts stay lighter than bright ones, so text never melts into the
+    background. Every app, the library pictures, the casino games and the launcher follow, and switching fades
+    smoothly. Only the screen changes — the real panel looks exactly the same. Prefer the black panel? Pick "Dark
+    device" under *Panel preview in light mode* in the Display menu (the gear).
+- **A light DeskDot logo in light mode**
+  - Before: in light mode the logo in the header sat on a small black sign so its glowing letters would show.
+  - Now: the logo has its own light version — the same letters, built and lit the same way, in deep rose and gold
+    dots on a white porcelain plate with a thin gold rim. The phone pages, the web app and the TV show it too when
+    they are in light mode.
 
 ### Fixed
 
@@ -93,6 +128,20 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 - **Unreadable TV menu in light mode**
   - Before: at a casino table in light mode, the menu's titles were pale on a pale card.
   - Now: the text is dark on the light card (and light on the dark one) and easy to read.
+
+- **Now Playing has many more options**
+  - Before: you could only change the layout, the colours and a few lyric settings.
+  - Now: the songs can slide, dissolve or zoom into each other; the layouts can change on every song or every few
+    seconds; you choose what happens when you pause (dim, a pause sign, freeze the picture or switch to the idle
+    screen) and what shows when nothing plays (now also recent covers, calm waves or a sleepy "silence" screen).
+    Covers can be pixelated, posterised or dithered, with your own contrast and colour. Long titles can loop,
+    bounce or show a few words at a time; the album and a small sign for where the music plays (music app,
+    browser or player — never a brand logo) can be shown. Lyrics get a translation line when the lyrics have one,
+    a choice of line spacing and three highlight styles.
+- **Music buttons only when they work**
+  - Before: previous, play/pause and next always showed, even when the computer couldn't control the player.
+  - Now: they work on Windows, on macOS (Spotify and Music, other players with nowplaying-cli) and on Linux
+    (playerctl), and they hide where the player can't be controlled.
 
 ## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 

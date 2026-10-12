@@ -91,7 +91,7 @@ export function Inspector({ fill = false, flat = false }: {
       <aside className="inspector-box flex flex-col" aria-label={`${meta.name} settings`}>
         <div className="flex items-center gap-3 pb-3 pt-1">
           {live ? (
-            <span className="overflow-hidden rounded-[7px] bg-black"><LedPanel size={56} glow={false} /></span>
+            <span className="led-well overflow-hidden rounded-[7px] bg-black"><LedPanel size={56} glow={false} /></span>
           ) : (
             <IconTile name={meta.icon} tone={meta.category} size={56} glyph={26} />
           )}

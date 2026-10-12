@@ -135,7 +135,7 @@ function MiniPreview() {
   const meta = appMeta(cur);
   return (
     <button onClick={() => set({ mobileTab: "panel" })} className="mini-now" aria-label={`Now showing ${meta?.name ?? "nothing"} — back to the panel`}>
-      <span className={`overflow-hidden rounded-[5px] bg-black transition-opacity ${power ? "" : "opacity-20"}`}><LedPanel size={40} glow={false} /></span>
+      <span className={`led-well overflow-hidden rounded-[5px] bg-black transition-opacity ${power ? "" : "opacity-20"}`}><LedPanel size={40} glow={false} /></span>
       <span className="min-w-0 flex-1">
         <span className="engrave block !text-[7.5px] !text-ink-3">Now showing</span>
         <span className="block truncate text-[14px] font-[620]">{meta?.name ?? "—"}</span>
