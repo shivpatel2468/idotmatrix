@@ -11,7 +11,13 @@ the scripts in `tv/`), whose socket `/ws/tv/<code>` receives
 
 Both text messages carry `display` — the studio's choice of panel look and quality for every TV of the link
 (`POST /api/tv/settings`), `{"look", "quality", "rev"}`: a TV applies it whenever `rev` changes (until someone picks
-on that TV again). One TV code at a time, never equal to the lobby code. The socket is read-only: a TV can only ping.
+on that TV again). One TV code at a time, never equal to the lobby code.
+
+The socket is read-only but for one narrow message: while a casino table shows, a TV's options menu may set the
+house's two *display* settings — the roulette dolly and the chip set — with `{"type": "house", "dolly": id}` /
+`{"type": "house", "chip_set": id}`. Only those two keys, only known values, only from a socket opened with the valid
+TV code, at most a few times a second; everything else (credits, limits, timers, rules, any other app) stays
+studio-only. The reply is `house_ok` / `house_err`. Anything else a TV sends is ignored (pings get a pong).
 """
 
 from __future__ import annotations
@@ -40,13 +46,34 @@ log = logging.getLogger("deskdot.tv")
 
 TV_DIR = Path(__file__).with_name("tv")
 TV_PAGE = Path(__file__).with_name("tv.html")
-STATIC_NAME = re.compile(r"^[a-z0-9-]{1,40}\.js$")
+STATIC_NAME = re.compile(r"^[a-z0-9-]{1,40}\.(?:js|woff2)$")  # the TV scripts and its font
 MAX_FPS = 12.0
 STATE_S = 0.2  # ~5 Hz
 HEARTBEAT_S = 2.0
 MAX_TVS = 8
 LOOKS = ("pixel", "led", "glow")  # the studio's panel looks (web/src/lib/look.ts)
 QUALITIES = ("auto", "hq", "lite")
+# the only house settings a TV may change (display only: no credits, limits or rules)
+HOUSE_KEYS = ("dolly", "chip_set")
+HOUSE_MIN_S = 0.25  # one house change per TV per this many seconds
+
+
+def house_patch(msg: dict[str, Any]) -> dict[str, str]:
+    """The house display settings in a TV's `house` message, validated; raises ValueError for anything else."""
+    from .casino.chips import CHIP_SETS
+    from .casino.session import DOLLIES
+
+    allowed = {"dolly": set(DOLLIES), "chip_set": {"auto", *CHIP_SETS}}
+    extra = set(msg) - {"type", *HOUSE_KEYS}
+    if extra:
+        raise ValueError(f"a TV can't set {', '.join(sorted(extra))}")
+    patch = {k: msg[k] for k in HOUSE_KEYS if k in msg}
+    if len(patch) != 1:
+        raise ValueError("one of dolly / chip_set")
+    for k, v in patch.items():
+        if not isinstance(v, str) or v not in allowed[k]:
+            raise ValueError(f"unknown {k}")
+    return patch
 
 
 def tv_page() -> str:
@@ -55,7 +82,8 @@ def tv_page() -> str:
 
 
 def tv_script(name: str) -> bytes | None:
-    """A TV script by file name (`tv.js`, `tv-games.js`, …), or None. Only plain names inside `tv/`."""
+    """A TV script (`tv.js`, `tv-games.js`, …) or its font (`tv-sans.woff2`) by file name, or None. Only plain
+    names inside `tv/`."""
     if not STATIC_NAME.match(name):
         return None
     p = TV_DIR / name
@@ -128,6 +156,7 @@ class _Tv:
         self.closed = False
         self.wake = asyncio.Event()
         self.last_frame = 0.0
+        self.last_house = 0.0
 
     async def pump(self) -> None:
         while not self.closed:
@@ -289,6 +318,34 @@ class TvHub:
             self.engine.frame_listeners.discard(self._on_frame)
             self.engine.state_listeners.discard(self._on_change)
 
+    async def _house(self, tv: _Tv, code: str, msg: dict[str, Any]) -> dict[str, Any]:
+        """A TV's options menu sets the house's dolly or chip set (see the module docstring). Never raises."""
+
+        def err(text: str) -> dict[str, Any]:
+            return {"type": "house_err", "error": text}
+
+        if not self.link.valid(code):
+            return err("This TV link has closed")
+        now = time.monotonic()
+        if now - tv.last_house < HOUSE_MIN_S:
+            return err("One moment")
+        tv.last_house = now
+        try:
+            patch = house_patch(msg)
+        except ValueError as e:
+            return err(str(e))
+        app_id, app = self._current()
+        if app is None or getattr(type(app), "category", "") != "casino" or not hasattr(app, "casino"):
+            return err("No casino table is showing")
+        try:
+            res = await self.engine.action(app_id, "casino", {"op": "settings", "player": "host", **patch})
+        except (KeyError, ValueError, TypeError) as e:
+            log.debug("TV house change refused: %s", e)
+            return err("The table didn't take that")
+        house = res.get("house", {}) if isinstance(res, dict) else {}
+        self.tick(force=True)  # every screen gets the new look now
+        return {"type": "house_ok", **{k: house.get(k) for k in patch}}
+
     async def serve(self, sock: WebSocket, code: str) -> None:
         await sock.accept()
         if not self.link.valid(code) or len(self.tvs) >= MAX_TVS:
@@ -313,7 +370,9 @@ class TvHub:
                     msg = json.loads(raw)
                 except ValueError:
                     continue
-                if isinstance(msg, dict) and msg.get("type") == "ping":
+                if isinstance(msg, dict) and msg.get("type") == "house":
+                    await sock.send_text(json.dumps(await self._house(tv, code, msg)))
+                elif isinstance(msg, dict) and msg.get("type") == "ping":
                     t = msg.get("t")
                     await sock.send_text(
                         json.dumps(

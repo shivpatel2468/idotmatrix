@@ -9,7 +9,8 @@ import { Chip, NumberInput, Section, Tabs } from "./bits";
 import { type Guide, type House, type HousieStatus, TABLE_THEMES, type TableTheme, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
-const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true };
+// before the table's first status arrives: the engine's defaults (dolly and chip set included, so the pickers show)
+const HOUSE_DEFAULT: House = { base_credits: 1000, min_bet: 1, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true, dolly: "classic_gold", chip_set: "auto" };
 
 /** Plain-language hints for game rules (by field name). The schema's own description wins when it has one. */
 const RULE_HINTS: Record<string, string> = {
@@ -547,6 +548,8 @@ export function LeftWing() {
   const house = useCasino((s) => s.status?.house) ?? HOUSE_DEFAULT;
   const guide = useCasino((s) => s.guide);
   const name = appMeta(app)?.name ?? "this game";
+  const dolly = <Section title="Roulette dolly" hint="The marker the dealer sets on the winning number — on the TV and every phone. Also on the TV: OK → Dolly."><DollyPicker house={house} /></Section>;
+  const chips = <Section title="Chip set" hint="The chips' material and inlay — on the TV, every phone and this studio. Values keep their colours. Also on the TV: OK → Chips."><ChipSetPicker house={house} /></Section>;
   return (
     <div className="cz-wing-body">
       <Tabs label="Casino settings" value={tab} onChange={(t) => set({ leftTab: t })}
@@ -555,11 +558,13 @@ export function LeftWing() {
         {tab === "tables" && <Section title="Casino games" hint="Pick the table on the panel."><GamePicker app={app} /></Section>}
         {tab === "house" && (
           <>
+            {/* the table's look first — the dolly leads at the roulette table, where it shows — then the money */}
+            {app === "casino_roulette" && dolly}
+            <Section title="Table theme" hint="The felt and accent on the panel, every phone and this studio."><ThemePicker app={app} /></Section>
+            {chips}
+            {app !== "casino_roulette" && dolly}
             <Section title="Presets" hint="Set the house and the table rules in one tap."><Presets app={app} house={house} /></Section>
             <Section title="House" hint="Shared by every casino game."><HouseForm house={house} /></Section>
-            <Section title="Table theme" hint="The felt and accent on the panel, every phone and this studio."><ThemePicker app={app} /></Section>
-            <Section title="Chip set" hint="The chips' material and inlay — on the TV, every phone and this studio. Values keep their colours."><ChipSetPicker house={house} /></Section>
-            <Section title="Roulette dolly" hint="The marker the dealer sets on the winning number (TV, phones)."><DollyPicker house={house} /></Section>
           </>
         )}
         {tab === "guide" && <Section title={guide?.title ?? name} hint="How to play and the rulebook, as the phones show it."><GuideView key={app ?? ""} guide={guide} /></Section>}

@@ -678,6 +678,8 @@ def create_app(cfg: Config) -> FastAPI:
         data = tv_script(name)
         if data is None:
             raise HTTPException(404, "no such TV script")
+        if name.endswith(".woff2"):  # the TV's font (tv/tv-sans.woff2)
+            return Response(data, media_type="font/woff2", headers={"Cache-Control": "max-age=86400"})
         return Response(
             data, media_type="text/javascript; charset=utf-8", headers={"Cache-Control": "no-cache"}
         )

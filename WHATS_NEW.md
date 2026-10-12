@@ -65,6 +65,32 @@ is in [CHANGELOG.md](CHANGELOG.md).)
     then on the number, cards turn over in 3D, dice tumble and slot reels blur — all still in step with the panel
     and every phone.
 
+- **A daylight casino on the TV**
+  - Before: Light mode on the TV left a casino table dark, and only a few small parts changed.
+  - Now: Light turns the whole TV into an ivory and champagne salon — a white-lacquer rail with gold inlay, ivory
+    seat plaques, a light header and panel frame. The felt keeps the table's colour, and switching fades smoothly.
+- **The DeskDot logo in the middle of the TV header**
+  - Before: the logo sat in the corner and kept flickering, so it often looked half-lit.
+  - Now: the logo sits in the centre, lights up once and stays lit. The game is on the left and the clock on the
+    right.
+- **Nicer, easier-to-read type on the TV**
+  - Before: the TV used plain system fonts in mixed styles.
+  - Now: names and titles use an elegant serif, and everything else uses the studio's own font with even-width
+    numbers. All of it is easy to read from across the room.
+- **Pick the roulette dolly and chips from the TV**
+  - Before: you could only change the dolly and the chip design deep in the studio, and many people never found them.
+  - Now: at a casino table, the TV's menu has Dolly and Chips rows showing the real styles. A pick changes every
+    screen. In the studio they now sit at the top of Casino → House.
+
+### Fixed
+
+- **TV menu buttons did nothing**
+  - Before: clicking or tapping Pixel, LED, Glow or Auto, HQ, Lite in the TV menu did nothing.
+  - Now: every option works with a mouse, a tap, the keyboard or a TV remote, and it lights up when you pick it.
+- **Unreadable TV menu in light mode**
+  - Before: at a casino table in light mode, the menu's titles were pale on a pale card.
+  - Now: the text is dark on the light card (and light on the dark one) and easy to read.
+
 ## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 
 ### New

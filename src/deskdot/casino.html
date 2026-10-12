@@ -1184,12 +1184,14 @@ const DeskDotLogo = (() => {
   }
 
   /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
-   *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+   *  giving device px per CSS px (default devicePixelRatio, capped at 2); once = build in once, then hold it lit.
+   *  Returns { resize, restart }. */
   function mount(canvas, opts) {
     const o = opts || {};
     const ctx = canvas && canvas.getContext && canvas.getContext("2d");
     if (!ctx) return { resize() {}, restart() {} };
     const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const once = !!o.once; // play the intro once, then stay lit: steady, no hum, no power-down
     const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
     let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
     const size = () => {
@@ -1214,11 +1216,13 @@ const DeskDotLogo = (() => {
       if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
       if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
       drawn = true;
-      const lt = ((performance.now() - t0) / 1000) % cycle;
+      const age = (performance.now() - t0) / 1000;
+      const done = once && age >= litAt;
+      const lt = done ? 0 : age % cycle;
       ctx.setTransform(k, 0, 0, k, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
-      if (still) return;
+      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still || done);
+      if (still || done) return;
       const s = wake(lt);
       if (s > 0) later(s);
       else raf = requestAnimationFrame(tick);
