@@ -236,8 +236,10 @@
   --m-focus-ring: 0 0 0 3px color-mix(in oklab, var(--color-ember) 18%, transparent);
 }
 
-/* A subtree that stays dark in both themes (hardware, 3D scenes). Mirrors the DARK values above. */
-:root[data-theme="light"] :is(.theme-dark, .bezel, .fly-wing, .fly-full, .roam-tip) {
+/* A subtree that stays dark in both themes (hardware, 3D scenes). Mirrors the DARK values above. The panel's bezel is
+   dark hardware unless light mode draws the paper panel (html[data-panel="paper"], lib/paper.ts). */
+:root[data-theme="light"] :is(.theme-dark, .fly-wing, .fly-full, .roam-tip),
+:root[data-theme="light"]:not([data-panel="paper"]) .bezel, :root[data-theme="light"] :is(.cz-bezel, .fly-full-bezel) {
   color-scheme: dark;
   color: #efece4;
   --color-chassis-0: #08080a; --color-chassis-1: #0f0f13; --color-chassis-2: #16161b;
@@ -272,6 +274,9 @@ html.page-theme-vt::view-transition-new(root) { animation-duration: 0.42s; anima
 html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
   transition: background-color 0.35s ease, border-color 0.35s ease, color 0.25s ease, box-shadow 0.35s ease, fill 0.25s ease !important;
 }
+/* …except the paper panel's thumbnails: their canvas cross-fades over the image, the LED mask's colour follows */
+html.theme-fade .paper-img { transition: opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }
@@ -546,9 +551,12 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
 .safety-on { color: var(--color-ok) !important; border-color: #1f5c43 !important; }
 
 /* ------------------------------------------------------------- library previews */
+/* the colour between the LED dots: graphite on the dark device, porcelain on the paper panel (it fades with the theme) */
+@property --led-gap { syntax: "<color>"; inherits: true; initial-value: rgba(6, 6, 8, 0.78); }
 .led-mask {
-  background-image: radial-gradient(circle at 50% 50%, transparent 52%, rgba(6, 6, 8, 0.78) 64%);
+  background-image: radial-gradient(circle at 50% 50%, transparent 52%, var(--led-gap) 64%);
   background-size: calc(100% / 32) calc(100% / 32);
+  transition: --led-gap 0.42s ease;
 }
 .led-preview img { filter: saturate(1.1) brightness(1.08); }
 .led-preview::after { /* a soft bloom so previews read like lit LEDs */
@@ -558,20 +566,20 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
 }
 .text-gold { color: var(--color-gold-text); }
 
-/* The LED logo's plate. Dark: invisible (the tubes glow on the chassis). Light: a small near-black LED sign with a
-   bezel, so the same glowing logo still reads on ivory (the renderer is unchanged — tests/test_logo_copies.py). */
+/* The LED logo's plate. Dark: invisible (the tubes glow on the chassis). Light: the logo is drawn in its paper style
+   (ink tubes, lib/logo.ts PAPER_STYLE) on a small porcelain plate with a gilded rim — the same plate the pages' copies
+   of the logo put up (PAPER_PLATE in the `// <deskdot-logo>` blocks). */
 .led-plate { display: inline-grid; place-items: center; border-radius: 12px; }
 :root[data-theme="light"] .led-plate {
   padding: 2px 6px;
-  background: radial-gradient(120% 140% at 50% 0%, #1b1a20 0%, #0c0c0f 60%, #070709 100%);
+  background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 -6px 14px rgba(0, 0, 0, 0.6),
-    0 0 0 1px #0a0a0c,
-    0 0 0 3px color-mix(in oklab, var(--color-gold-2) 55%, white),
-    0 0 0 3.5px color-mix(in oklab, var(--color-gold) 45%, transparent),
-    0 10px 24px -12px rgba(40, 30, 16, 0.55);
+    inset 0 1px 0 #fff,
+    inset 0 -5px 12px rgba(64, 48, 24, 0.07),
+    0 0 0 1px rgba(150, 112, 40, 0.4),
+    0 0 0 3px #fbf7ee,
+    0 0 0 4px color-mix(in oklab, var(--color-gold) 50%, transparent),
+    0 10px 22px -12px rgba(64, 48, 24, 0.4);
 }
 
 /* the studio theme picker (Settings → Display & colour): three little rooms */
@@ -1632,3 +1640,45 @@ body { overscroll-behavior: none; }
   background: radial-gradient(circle at 50% 25%, #fff 0 30%, var(--m-champagne) 85%); border-color: color-mix(in oklab, var(--color-gold) 45%, #fff);
   box-shadow: var(--m-bevel), 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 0 4px color-mix(in oklab, var(--color-gold) 25%, transparent), 0 10px 22px -10px rgba(64, 48, 24, 0.45);
 }
+
+/* ---- the paper panel (lib/paper.ts, docs/STUDIO_UI.md § Paper panel): light mode draws the panel as ink on porcelain.
+   html[data-panel="paper"] while it is on. Image thumbnails get a mapped canvas laid over them (lib/paperImg.ts). */
+.paper-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none;
+  image-rendering: pixelated; opacity: 0; transition: opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+:root[data-panel="paper"] .paper-img[data-ready] { opacity: 1; }
+/* the image under a ready canvas hides once the fade is done (and is back at once when paper is switched off) */
+:is(.led-preview, .lx-led) > img[data-paper] { transition: visibility 0s; }
+:root[data-panel="paper"] :is(.led-preview, .lx-led) > img[data-paper] { visibility: hidden; transition: visibility 0s linear 0.45s; }
+:root[data-panel="paper"] { --led-gap: rgba(248, 245, 239, 0.9); }
+:root[data-panel="paper"] .led-preview { background-color: #ebe6dc; }
+:root[data-panel="paper"] .led-preview::after { box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.1), inset 0 1px 6px rgba(64, 48, 24, 0.14); }
+:root[data-panel="paper"] .led-preview,
+:root[data-panel="paper"] .rail-card:not([data-live="true"]) .led-preview { box-shadow: 0 0 0 1px rgba(64, 48, 24, 0.2), 0 0 0 3px #fff, 0 0 0 4px color-mix(in oklab, var(--color-gold) 26%, transparent), 0 6px 12px -8px rgba(40, 30, 16, 0.45); }
+/* small live panels set in a well (the header's mini panel, the inspector, the Display menu's tiles) */
+:root[data-panel="paper"] .led-well { background-color: #ebe6dc; box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.14); }
+/* the device itself: white enamel instead of graphite, a porcelain well, brass-and-ivory screws */
+:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) {
+  background: linear-gradient(145deg, #ffffff 0%, #f7f3ec 46%, #ebe4d7 100%);
+  box-shadow:
+    inset 0 1px 0 #fff, inset 0 -1px 0 rgba(64, 48, 24, 0.16), inset 0 0 0 1px rgba(64, 48, 24, 0.07),
+    0 0 0 1px rgba(64, 48, 24, 0.14), 0 0 0 5px rgba(255, 255, 255, 0.8), 0 0 0 6px color-mix(in oklab, var(--color-gold) 40%, transparent),
+    0 2px 4px rgba(40, 30, 16, 0.1), 0 26px 50px -24px rgba(40, 30, 16, 0.42),
+    0 60px 90px -50px color-mix(in oklab, var(--color-ember) 30%, rgba(40, 30, 16, 0.3));
+}
+:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel)::before { box-shadow: inset 0 2px 6px rgba(64, 48, 24, 0.22), 0 1px 0 #fff; background: #ebe6dc; }
+:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel)::after { background: linear-gradient(160deg, rgba(255, 255, 255, 0.22), transparent 35%, transparent 70%, rgba(255, 255, 255, 0.1)); }
+:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) .screw { background: radial-gradient(circle at 35% 30%, #fffdf8, #d9cdb4 55%, #a8936a 100%); box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.25), 0 1px 0 #fff; }
+:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) .screw::after { background: rgba(64, 48, 24, 0.5); }
+/* preset covers: an LED equaliser — deep-tinted dots on porcelain, a wash of the preset's colour (--led-paper: its
+   tint taken toward the ink, as the paper mapping does with a full-bright LED colour) */
+:root[data-panel="paper"] [data-tone] { --led-paper: color-mix(in oklab, var(--led) 60%, #1c1a22); }
+:root[data-panel="paper"] .preset-art { background: radial-gradient(130% 120% at 18% 0%, color-mix(in oklab, var(--led-paper, var(--led)) 16%, #fbf8f2), #ebe6dc 78%); }
+:root[data-panel="paper"] .preset-dots .pa-off { fill: rgba(64, 48, 24, 0.09); }
+:root[data-panel="paper"] .preset-dots .pa-lit { fill: var(--led-paper, var(--led)); opacity: 0.55; }
+:root[data-panel="paper"] .preset-dots .pa-top { fill: var(--led-paper, var(--led)); }
+/* marks drawn over the live panel: ink on the paper panel instead of light (the radar green = paperHex("#39ff7a")) */
+:root[data-panel="paper"] .led-hotspot:hover { border-color: rgba(28, 26, 34, 0.55); }
+:root[data-panel="paper"] .radar-blip:hover { border-color: rgba(0, 119, 48, 0.7); }
+:root[data-panel="paper"] .radar-blip[data-sel] { border-color: #007730; box-shadow: 0 0 12px rgba(0, 119, 48, 0.45); }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calibrator, toCalib } from "../lib/calib";
 import { LOOK_HINT, LOOK_LABEL, LOOKS, matchesPanel, type PanelLook, useLook } from "../lib/look";
+import { PAPER, crossFade, paperOf, usePaper } from "../lib/paper";
 import { lastFrame, onFrame, pushFrame, useStore } from "../lib/store";
 import { paint } from "../lib/ws";
 
@@ -24,6 +25,8 @@ type Props = {
    * viewer's colour-match choice (lib/look.ts) decides whether the preview shows what the LEDs are sent.
    */
   raw?: boolean;
+  /** Always draw the black LED device, even when light mode would draw the paper panel (a dark 3D scene). */
+  device?: boolean;
 };
 
 const N = 32;
@@ -35,6 +38,8 @@ function hex(r: number, g: number, b: number) {
 /**
  * Draws the live frame as a physical LED matrix: recessed off-LEDs, lit LEDs
  * with a hot core, and bloom (the 32x32 frame upscaled + blurred, added on top).
+ * In light mode it draws the paper panel instead (lib/paper.ts): a porcelain panel, every colour re-mapped to read on
+ * it, and a halo that darkens (multiply) where the dark panel's bloom brightens. `raw` / `device` keep the dark device.
  */
 export function LedPanel({
   size,
@@ -45,7 +50,9 @@ export function LedPanel({
   look: forced,
   lookSwitch = true,
   raw = false,
+  device = false,
 }: Props) {
+  const paper = usePaper() && !raw && !device;
   const saved = useLook((s) => s.look);
   const setLook = useLook((s) => s.setLook);
   const bloomAmt = useLook((s) => s.bloom); // "Sharpness": 0 = crisp, 0.5 = classic glow, 1 = soft
@@ -60,6 +67,8 @@ export function LedPanel({
   );
   const wrap = useRef<HTMLDivElement>(null);
   const cv = useRef<HTMLCanvasElement>(null);
+  const fade = useRef<HTMLCanvasElement>(null); // the old picture, fading out over the new one (theme switch)
+  const paperWas = useRef<boolean | null>(null);
   const tiny = useRef<HTMLCanvasElement | null>(null);
   const [cssPx, setCssPx] = useState(0);
   const [px, setPx] = useState(size ?? 0);
@@ -88,6 +97,9 @@ export function LedPanel({
   useEffect(() => {
     const canvas = cv.current;
     if (!canvas || !px) return;
+    // light <-> dark: the old picture cross-fades into the new one (drawn at once below), not a cut
+    if (paperWas.current !== null && paperWas.current !== paper) crossFade(canvas, fade.current);
+    paperWas.current = paper;
     const sharp = crisp || look !== "led"; // square-pixel looks: every cell is a whole number of device pixels
     const dpr = sharp ? Math.min(3, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1);
     canvas.width = canvas.height = sharp ? Math.max(N, Math.floor((px * dpr) / N) * N) : Math.round(px * dpr);
@@ -115,21 +127,56 @@ export function LedPanel({
       bloom = b.getContext("2d")!;
     }
 
-    const drawPixels = (rgb: Uint8Array) => {
-      // square pixels: the 32×32 frame scaled up with nearest-neighbour — crisp on any screen
+    // the 32×32 frame into the tiny canvas. Paper: the paper colours, unlit pixels transparent (the porcelain shows)
+    const fillTiny = (rgb: Uint8Array) => {
       for (let i = 0; i < N * N; i++) {
-        img.data[i * 4] = rgb[i * 3];
-        img.data[i * 4 + 1] = rgb[i * 3 + 1];
-        img.data[i * 4 + 2] = rgb[i * 3 + 2];
-        img.data[i * 4 + 3] = 255;
+        const r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2];
+        if (paper) {
+          const p = paperOf((r << 16) | (g << 8) | b);
+          img.data[i * 4] = p >> 16;
+          img.data[i * 4 + 1] = (p >> 8) & 255;
+          img.data[i * 4 + 2] = p & 255;
+          img.data[i * 4 + 3] = Math.max(r, g, b) < 3 ? 0 : 255;
+        } else {
+          img.data[i * 4] = r;
+          img.data[i * 4 + 1] = g;
+          img.data[i * 4 + 2] = b;
+          img.data[i * 4 + 3] = 255;
+        }
       }
       tctx.putImageData(img, 0, 0);
+    };
+    // paper glow: the coloured frame, blurred small and multiplied in — a soft halo that darkens instead of blooming
+    const halo = (passes: readonly (readonly [number, number])[], k: number) => {
+      if (!bloom || k <= 0) return;
+      ctx.imageSmoothingEnabled = true;
+      ctx.globalCompositeOperation = "multiply";
+      for (const [r, a] of passes) {
+        bloom.globalCompositeOperation = "copy";
+        bloom.filter = `blur(${4 * r}px)`;
+        bloom.imageSmoothingEnabled = true;
+        bloom.drawImage(tiny.current!, 0, 0, BS, BS);
+        ctx.globalAlpha = Math.min(1, a * k);
+        ctx.drawImage(bloom.canvas, 0, 0, W, W);
+      }
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+    };
+
+    const drawPixels = (rgb: Uint8Array) => {
+      // square pixels: the 32×32 frame scaled up with nearest-neighbour — crisp on any screen
+      fillTiny(rgb);
       ctx.globalCompositeOperation = "source-over";
       ctx.filter = "none";
       ctx.globalAlpha = 1;
+      if (paper) {
+        ctx.fillStyle = PAPER.ground;
+        ctx.fillRect(0, 0, W, W);
+        if (look === "glow" && glow) halo([[0.7, 0.22], [2.2, 0.16]], glowK);
+      }
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(tiny.current!, 0, 0, W, W);
-      if (look === "glow" && glow && bloom && glowK > 0) {
+      if (!paper && look === "glow" && glow && bloom && glowK > 0) {
         ctx.imageSmoothingEnabled = true;
         ctx.globalCompositeOperation = "lighter";
         for (const [r, a] of [[0.8, 0.28], [2.4, 0.2]] as const) {
@@ -149,11 +196,23 @@ export function LedPanel({
       base = document.createElement("canvas");
       base.width = base.height = W;
       const b = base.getContext("2d")!;
-      b.fillStyle = "#060608";
+      b.fillStyle = paper ? PAPER.housing : "#060608";
       b.fillRect(0, 0, W, W);
-      b.fillStyle = "#15151b";
-      b.beginPath();
-      for (let i = 0; i < N * N; i++) b.roundRect((i % N) * cell + inset, Math.floor(i / N) * cell + inset, led, led, rad);
+      const dots = () => {
+        b.beginPath();
+        for (let i = 0; i < N * N; i++) b.roundRect((i % N) * cell + inset, Math.floor(i / N) * cell + inset, led, led, rad);
+      };
+      if (paper) {
+        // porcelain: each unlit LED a shallow dimple — a hairline of shade above, the ground colour inside
+        b.save();
+        b.translate(0, -Math.max(0.5, cell * 0.04));
+        b.fillStyle = "rgba(64, 48, 24, 0.10)";
+        dots();
+        b.fill();
+        b.restore();
+        b.fillStyle = PAPER.ground;
+      } else b.fillStyle = "#15151b";
+      dots();
       b.fill();
     }
 
@@ -178,6 +237,22 @@ export function LedPanel({
       ctx.filter = "none";
       ctx.globalAlpha = 1;
       ctx.drawImage(base!, 0, 0);
+      if (paper) {
+        // ink dots in a light housing: the halo first (under the dots, so they stay crisp), then each lit LED
+        fillTiny(rgb);
+        if (glow) halo([[0.9, 0.2], [2.6, 0.1]], 1);
+        for (let i = 0; i < N * N; i++) {
+          if (!img.data[i * 4 + 3]) continue; // unlit: the cached housing
+          const x = (i % N) * cell + inset;
+          const y = Math.floor(i / N) * cell + inset;
+          ctx.fillStyle = `rgb(${img.data[i * 4]},${img.data[i * 4 + 1]},${img.data[i * 4 + 2]})`;
+          ctx.beginPath();
+          ctx.roundRect(x, y, led, led, rad);
+          ctx.fill();
+        }
+        drawHover();
+        return;
+      }
       for (let i = 0; i < N * N; i++) {
         const r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2];
         img.data[i * 4] = r;
@@ -235,7 +310,7 @@ export function LedPanel({
         ctx.globalCompositeOperation = "source-over";
         ctx.filter = "none";
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = "rgba(255,255,255,.85)";
+        ctx.strokeStyle = paper ? "rgba(28,26,34,.8)" : "rgba(255,255,255,.85)";
         ctx.lineWidth = Math.max(1, dpr);
         ctx.strokeRect(h[0] * cell + 0.5, h[1] * cell + 0.5, cell - 1, cell - 1);
       }
@@ -265,6 +340,7 @@ export function LedPanel({
     io.observe(canvas);
     document.addEventListener("visibilitychange", kick);
     drawRef.current = (f) => draw(f, true);
+    draw(lastFrame, true); // the picture at once (a new look or theme shouldn't wait for the next frame)
     const off = onFrame(schedule);
     return () => {
       off();
@@ -272,7 +348,7 @@ export function LedPanel({
       document.removeEventListener("visibilitychange", kick);
       cancelAnimationFrame(raf);
     };
-  }, [px, glow, paintable, crisp, look, bloomAmt, toPanel]);
+  }, [px, glow, paintable, crisp, look, bloomAmt, toPanel, paper]);
 
   // ------------------------------------------------------------- painting
   const drawing = useRef(false);
@@ -410,6 +486,8 @@ export function LedPanel({
         aria-label="Live LED panel preview"
         role="img"
       />
+      {/* the previous picture while light <-> dark cross-fades (lib/paper.ts crossFade places and fades it) */}
+      <canvas ref={fade} aria-hidden className="pointer-events-none absolute left-0 top-0 opacity-0" />
       {lookSwitch && !forced && (px || 0) >= 160 && (
         <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-0.5 rounded-full border border-white/10 bg-black/70 p-0.5 opacity-0 backdrop-blur transition group-hover/panel:opacity-100 focus-within:opacity-100"
           role="radiogroup" aria-label="Preview style">

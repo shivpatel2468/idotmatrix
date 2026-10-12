@@ -19,9 +19,11 @@ paper in daylight (dot grid, washes of rose and gold, a vignette); cards lift on
 white rim and a gilded hairline where dark has lit edges; the selected tab, chip, card and row carry the accent as a
 tinted wash, edge and halo; section heads carry a gold-leaf jewel and a fading gilded rule.
 
-In both themes the LED preview sits in a graphite bezel with screws, a recessed well, per-LED bloom and a diffuser
-sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LED logo sits on a small near-black
-"LED plate" with a gold-leaf rim (`.led-plate`) so the glowing tubes still read; the logo renderer is unchanged.
+In dark mode the LED preview sits in a graphite bezel with screws, a recessed well, per-LED bloom and a diffuser
+sheen. In light mode it becomes a **paper panel** (§ Paper panel below): white enamel, a porcelain LED grid and every
+colour re-mapped to read as ink on it — the same instrument, made for daylight (Display menu → *Panel preview in light
+mode* → *Dark device* keeps the black device). The DeskDot LED logo follows: in light it is drawn in its `paper` style
+(deep rose and gold dots) on a small porcelain plate with a gilded rim (`.led-plate`).
 
 ## Themes (`lib/theme.ts`, `web/index.html`)
 
@@ -44,9 +46,11 @@ sheen — **the panel is hardware and stays dark**. In light mode the DeskDot LE
   (same origin as the studio when served by the engine), else `prefers-color-scheme`; the TV defaults to dark.
 - **Components never hardcode colour.** Use the tokens below (Tailwind utilities resolve per theme), the `--m-*`
   materials in plain CSS, `light:` / `dark:` variants for the rare theme-only tweak, and `.theme-dark` on a subtree
-  that must stay dark in both themes (LED thumbnails' badges, the 3D fly wings — `.bezel`, `.fly-wing`, `.fly-full`
-  and `.roam-tip` get it automatically). Seat colours, LED palette swatches and canvases are data, not chrome.
-- Theme changes cross-fade (`html.theme-fade`, 0.35 s; never on first paint, off with reduced motion).
+  that must stay dark in both themes (LED thumbnails' badges, the 3D fly wings — `.fly-wing`, `.fly-full`, `.roam-tip`,
+  the casino's and fly view's bezels, and `.bezel` while light mode keeps the dark device get it automatically). Seat
+  colours, LED palette swatches and canvases are data, not chrome.
+- Theme changes cross-fade (`html.theme-fade`, 0.35 s; never on first paint, off with reduced motion). Live panels,
+  image thumbnails and the header logo cross-fade their pictures too (§ Paper panel).
 
 ## Page themes (`lib/pageTheme.ts`, `gfx/themes.py`)
 
@@ -91,6 +95,71 @@ light and a dark variant; the Light · Dark · Auto switch keeps working on top.
   focused theme's description below), the Display menu and the phone **Quick controls** (`PageThemeDots`: a wrapping
   row of round accent / metal swatches; 32 px on touch screens). The Studio theme tiles draw in the page theme too.
 - **Phone controller / join:** `controller.html` follows the cached theme (its `--ember`), same origin as the studio.
+
+## Paper panel (light mode's LED preview — `lib/paper.ts`, `lib/paperImg.ts`)
+
+The panel is emissive: colours glow on black. On an ivory page a black square with neon in it is the loudest thing on
+screen, and naive inversion breaks colours (yellow turns blue). So in light mode the studio draws a **paper panel** —
+how the frame would look printed in ink on porcelain. **Only the studio's drawing changes**: the panel, the engine's
+frames, `/api/frame.png` and the preview GIFs are untouched.
+
+**The mapping** (`paperColor(r, g, b)`, OKLab / OKLCH, cached per exact colour — `paperOf`, a `Map` capped at 65 536
+entries; a 32×32 frame uses a few dozen colours, so a frame costs 1 024 lookups):
+
+1. *How lit* — `v` = the brightest channel (0..1); below 3/255 the pixel is unlit → the ground `#ebe6dc`.
+2. *Its ink* — the full-drive colour (`rgb / v`): neutrals (HSV saturation 0) → the studio ink `#1c1a22`; chromatic
+   colours keep their OKLCH hue and their chroma relative to the sRGB gamut, at a lightness of 0.47 (blue) … 0.62
+   (yellow) by the colour's own lightness, then darkened step by step until it reads at **≥ 4.5:1 against the unlit
+   LED**. Yellows lean up to 14° toward gold (darkened yellow reads olive otherwise). Pastels blend between the two by
+   saturation (near-white pink → near-black wine).
+3. *Where between* — ground → ink by `a = 1 − (1 − v)²` in lightness and `a^0.55` in chroma (easing to `a` for
+   near-black, ≲ 3 % lit, so a backdrop that looks black on the panel stays the plain ground): brighter on the panel =
+   darker on paper, so every app's contrast order holds (content stays darker than any dim backdrop behind it); dim
+   pixels (glow, trails, anti-aliasing) stay smooth gradients and clearly coloured tints.
+
+| LED colour | Paper | Contrast on the unlit LED |
+| --- | --- | --- |
+| white `#ffffff` | `#1c1a22` | 13.8 |
+| black `#000000` | `#ebe6dc` (the ground) | — |
+| red `#ff0000` | `#c10000` | 5.2 |
+| yellow `#ffff00` | `#786500` | 4.6 |
+| cyan `#00ffff` | `#007373` | 4.6 |
+| blue `#0000ff` | `#0033f2` | 6.1 |
+| dark red `#400000` | `#f58976` | 1.9 (a dim red stays a lighter red tint) |
+| grey `#808080` | `#48464c` | 7.5 |
+| magenta `#ff00ff` | `#b400b4` | 4.7 |
+
+**The looks** (`components/LedPanel.tsx`): *Glow* — crisp mapped pixels over the ground, with the frame blurred small
+and **multiplied** in (a soft coloured halo that darkens instead of blooming white); *Pixel* — crisp, no halo; *LED*
+— ink dots in a light housing (`#f8f5ef`; unlit LEDs are shallow porcelain dimples, a cached layer like the dark one)
+with a faint multiply halo under them. Calibration ("Show my colour calibration") is applied first, then the mapping.
+The light `.bezel` turns white enamel with a porcelain well and brass-and-ivory screws. Exceptions that keep the dark
+device: `raw` panels (the calibration wizard's screen reference) and the fly view (`device`, a dark 3D scene). The
+casino's table bezel (`.cz-bezel`) stays the casino's; its panel is paper.
+
+**Image previews** — library tiles, AppRail cards and the casino's game tiles (`.led-preview > img`) and the launcher
+(`.lx-led > img`) are `<img>` GIFs/PNGs. `installPaperImages()` lays a `canvas.paper-img` over each one (no component
+changes): it fetches the image once, decodes GIFs itself (all disposals, transparency, interlace), maps every frame
+once (cached per URL, the 48 most recent kept) and plays them on one shared timer that wakes only when a visible
+canvas's next frame is due (IntersectionObserver; nothing while hidden or while paper is off). The `.led-mask` dot
+grid takes its gap colour from `--led-gap` (a registered `<color>`, porcelain in paper) so it fades with the theme.
+Preset covers tint with `--led-paper` (the tone taken toward ink).
+
+**Switching** — `<html data-panel="paper|device">` (set by `installPaper()`, which follows `<html data-theme>`; paper =
+light theme + the Paper choice). Every live panel cross-fades: the old picture is copied onto an overlay canvas that
+fades out over 0.42 s while the new one is drawn at once (`crossFade()`); image tiles fade their canvas over the
+image (the image hides only after the fade); the header logo cross-fades the same way. Instant with reduced motion.
+
+**The choice** — Display menu → *Panel preview in light mode*: **Paper** (default) · **Dark device**, per browser
+(`localStorage["deskdot.panelLight"]`, `usePanelLight()` / `setPanelLight()`), included in the menu's Reset.
+
+**The logo** (`lib/logo.ts`): two styles as data — `NEON_STYLE` (additive halos, white-hot core; tubes `LOGO`) and
+`PAPER_STYLE` (tubes `#c2154d` rose / `#996300` gold, ≥ 4.5:1 on the plate; unlit dots a faint warm grey; a multiply
+halo; a soft sheen for the core). `NeonLogo.setLook("neon" | "paper")`; `NeonMark` follows `<html data-theme>`. The
+plain-JS copies (`// <deskdot-logo>`) carry both styles and a `PAPER_PLATE`; `mount()` follows its page's own light /
+dark live (`opts.light`, else a shadow host's or `<html>`'s `data-theme`, else the system) and, in light, replaces a
+dark logo sign the page puts behind the canvas with the porcelain plate. `tests/test_logo_copies.py` keeps both styles
+identical everywhere.
 
 ## Tokens (`web/src/index.css` → `@theme` + `:root[data-theme="light"]`)
 
@@ -153,8 +222,10 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | `.toggle` | switch; ember glow when on |
 | `.field` | inset text/select/textarea |
 | `.led[data-on=ok|warn|bad|ember]` | status dot |
-| `.bezel`, `.screw` | the panel housing (always dark; satin rim + long shadow in light) |
-| `.led-plate` | the LED logo's sign: invisible in dark, a near-black plate with a gold rim in light |
+| `.bezel`, `.screw` | the panel housing (graphite; white enamel + porcelain well with the paper panel in light; satin rim + long shadow) |
+| `.led-plate` | the LED logo's plate: invisible in dark, a porcelain plate with a gilded rim in light (logo in its paper style) |
+| `.led-preview`, `.led-mask`, `--led-gap`, `.paper-img` | image thumbnails of the panel, their LED dot mask (gap colour fades with the theme), the paper canvas laid over them |
+| `.led-well` | the well behind a small live `LedPanel` (header mini panel, inspector, Display menu tiles): porcelain with the paper panel |
 | `.theme-tile`, `.theme-swatch` | the Studio theme picker (`components/ThemePicker.tsx`) |
 | `.pt-grid`, `.pt-tile`, `.pt-art`, `.pt-leds`, `.pt-dots`, `.pt-dot` | the Page theme picker (`components/PageThemePicker.tsx`) |
 | `.theme-dark` | keep a subtree dark in both themes |
@@ -282,15 +353,16 @@ on phones. The common case is one glance; nothing else is on the first screen.
    squares) · **LED** (like the real panel). Each tile is a tiny live `LedPanel` forced to that look, so you choose
    by seeing. The chosen one is ember; one line under them says what it is for.
 2. **Glow** slider (Crisp … Soft, `bloom` 0..1, 0.5 = normal) — shown only while Glow is chosen, the only look it
-   changes.
+   changes. Then *Studio theme*, *Panel preview in light mode* (**Paper** · **Dark device**, § Paper panel) and *Page
+   theme*.
 3. **More** (one disclosure, closed each time): *Show my colour calibration* (LED look only · Every look · Off —
    also in Settings → Colour calibration → Advanced) and links into Settings → Display & colour: *Brightness, night
    mode, rotate* (+ sounds, intro), *Colour calibration*, *Smooth motion*.
-4. Footer: **Reset to default** (Glow, normal glow, calibration in the LED look; confirms inline, disabled when
-   already default) and **All settings** (Settings → Display & colour — what the gear used to open directly).
+4. Footer: **Reset to default** (Glow, normal glow, calibration in the LED look, the paper panel; confirms inline,
+   disabled when already default) and **All settings** (Settings → Display & colour — what the gear used to open directly).
 
-Everything here is per browser (`deskdot.panelLook`, `deskdot.panelBloom`, `deskdot.panelMatch`); `useLook().reset()`
-restores the defaults. The stage panel's hover pill (Glow / Pixel / LED) stays as a shortcut.
+Everything here is per browser (`deskdot.panelLook`, `deskdot.panelBloom`, `deskdot.panelMatch`,
+`deskdot.panelLight`); `useLook().reset()` restores the defaults. The stage panel's hover pill (Glow / Pixel / LED) stays as a shortcut.
 Keyboard: the key has `aria-haspopup="dialog"`/`aria-expanded`; opening focuses the chosen tile, Tab walks tiles →
 slider → More → footer, tiles are `aria-pressed` toggle buttons (no arrow-key roving, so Play mode's arrows still
 reach the game), `Esc` or a click outside closes and focus returns to the key.
@@ -599,6 +671,9 @@ mode). Nothing animates layout or paint per frame; the main thread only draws th
   the canvas is off screen (IntersectionObserver) or the page hidden — the newest frame is drawn on return. The LED
   look's housing and unlit LEDs are a cached layer per size; a frame draws only the lit ones. The canvas is opaque
   (`alpha: false`). Exception: the crisp Play-mode view draws straight from the socket callback (lowest latency).
+- The paper panel costs nothing per frame beyond 1 024 cached `Map` lookups (`paperOf`); its LED housing is cached
+  like the dark one. Image thumbnails are decoded and mapped once per URL and animated by one timer that sleeps until
+  the next due frame of a visible canvas; nothing of it runs while the paper panel is off.
 - Progress bars run on a CSS `transform: scaleX` transition re-aimed on each state update — no per-frame JS.
 - Sheets follow the finger by writing `transform` directly (no React render per pointer move).
 - Touch screens switch off the costly desktop effects (index.css "phone app polish"): the full-screen film-grain

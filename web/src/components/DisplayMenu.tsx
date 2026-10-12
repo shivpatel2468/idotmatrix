@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import {
   LOOK_HINT, LOOK_LABEL, LOOK_SHORT, LOOKS, MATCHES, MATCH_HINT, MATCH_LABEL, isDefaultLook, useLook,
 } from "../lib/look";
+import { PANEL_LIGHT_HINT, PANEL_LIGHT_LABEL, type PanelLight, setPanelLight, usePanelLight } from "../lib/paper";
 import { openSettings, type SettingsTab } from "../lib/store";
 import { usePhone } from "../lib/useMedia";
 import { LedPanel } from "./LedPanel";
@@ -111,7 +112,8 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
   const setBloom = useLook((s) => s.setBloom);
   const setMatch = useLook((s) => s.setMatch);
   const reset = useLook((s) => s.reset);
-  const atDefault = isDefaultLook({ look, bloom, match });
+  const light = usePanelLight();
+  const atDefault = isDefaultLook({ look, bloom, match, light });
   const [more, setMore] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const ids = useId();
@@ -129,7 +131,7 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
               onMouseDown={(e) => e.preventDefault()}
               className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-[10px] border p-1.5 pb-2 text-center transition",
                 look === l ? "border-ember bg-ember-deep/40" : "border-line hover:border-line-2 hover:bg-chassis-2/60")}>
-              <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black theme-dark" aria-hidden>
+              <span className="led-well grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black theme-dark" aria-hidden>
                 <LedPanel size={72} look={l} lookSwitch={false} className="grid place-items-center" />
               </span>
               <span className="mt-0.5 text-[13px] font-[600] text-ink-1">{LOOK_LABEL[l]}</span>
@@ -163,6 +165,18 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
       <section className="flex flex-col gap-1.5">
         <span className="text-[12.5px] font-[560] text-ink-1">Studio theme</span>
         <ThemeSeg className="!p-1 [&>button]:!h-8" />
+      </section>
+
+      {/* light mode draws the panel as ink on porcelain (lib/paper.ts) — or keeps the black device */}
+      <section className="flex flex-col gap-1.5">
+        <span id={`${ids}-light`} className="text-[12.5px] font-[560] text-ink-1">Panel preview in light mode</span>
+        <div className="seg !p-1" role="group" aria-labelledby={`${ids}-light`}>
+          {(["paper", "device"] as PanelLight[]).map((m) => (
+            <button key={m} type="button" aria-pressed={light === m} data-active={light === m} className="!h-8"
+              onMouseDown={(e) => e.preventDefault()} onClick={() => setPanelLight(m)}>{PANEL_LIGHT_LABEL[m]}</button>
+          ))}
+        </div>
+        <p className="text-[11px] leading-snug text-ink-3">{PANEL_LIGHT_HINT[light]}. The panel itself never changes.</p>
       </section>
 
       {/* the page theme: every device, and the panel's apps that follow it (lib/pageTheme.ts) */}
@@ -218,7 +232,7 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
           </span>
         ) : (
           <button type="button" className="key key-ghost !h-8" disabled={atDefault} onClick={() => setConfirm(true)}
-            title={atDefault ? "Already at the default" : "Glow look, normal glow, calibration in the LED look only"}>
+            title={atDefault ? "Already at the default" : "Glow look, normal glow, calibration in the LED look only, the paper panel in light mode"}>
             <RotateCcw size={13} /> Reset to default
           </button>
         )}

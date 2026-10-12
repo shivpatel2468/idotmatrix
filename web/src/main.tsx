@@ -6,12 +6,16 @@ import { installStudioSounds } from "./lib/studioSound";
 import { installPageTheme, syncPageTheme } from "./lib/pageTheme";
 import { useStore } from "./lib/store";
 import { installTheme } from "./lib/theme";
+import { installPaper } from "./lib/paper";
+import { installPaperImages } from "./lib/paperImg";
 import "./index.css";
 
 // the page theme (index.html painted the cached copy before first paint; this re-derives it and keeps it live),
 // then light / dark / auto (likewise)
 installPageTheme();
 installTheme();
+// light mode's paper panel (html[data-panel]; lib/paper.ts) — follows the theme from here on
+installPaper();
 // the engine owns the page theme: every device follows its pick (docs/STUDIO_UI.md § Page themes)
 useStore.subscribe((s) => syncPageTheme(s.state?.settings?.page_theme));
 
@@ -37,3 +41,4 @@ createRoot(document.getElementById("root")!).render(
 );
 installDeepLinks();
 installStudioSounds();
+installPaperImages(); // preview <img>s drawn through the paper mapping while it is on

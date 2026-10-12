@@ -29,7 +29,7 @@ export function IndicatorHotspots() {
         const pad = 1.2; // cells of slack around the square
         return (
           <button key={slot} title={`Indicator ${slot} · ${describe(ind)} — click to edit`} onClick={openIntegrations}
-            className="pointer-events-auto absolute rounded-[3px] border border-transparent transition hover:border-white/70"
+            className="led-hotspot pointer-events-auto absolute rounded-[3px] border border-transparent transition hover:border-white/70"
             style={{
               left: `${((x - pad) / 32) * 100}%`, top: `${((y - pad) / 32) * 100}%`,
               width: `${((ind.size + pad * 2) / 32) * 100}%`, height: `${((ind.size + pad * 2) / 32) * 100}%`,

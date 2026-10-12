@@ -160,9 +160,9 @@ function RadarOverlay() {
   return (
     <div className="absolute inset-0 z-[5]">
       {blips.map((b) => (
-        <button key={b.id} title={`${b.callsign ?? b.id}${b.alt_ft ? ` · ${b.alt_ft} ft` : ""}`}
+        <button key={b.id} title={`${b.callsign ?? b.id}${b.alt_ft ? ` · ${b.alt_ft} ft` : ""}`} data-sel={sel === b.id || undefined}
           onClick={() => api.action("radar", sel === b.id ? "clear" : "select", { id: b.id })}
-          className={clsx("absolute h-[9%] w-[9%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition",
+          className={clsx("radar-blip absolute h-[9%] w-[9%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition",
             sel === b.id ? "border-[#39ff7a] shadow-[0_0_14px_#39ff7a]" : "border-transparent hover:border-[#39ff7a]/70")}
           style={{ left: `${((b.x + 0.5) / 32) * 100}%`, top: `${((b.y + 0.5) / 32) * 100}%` }} />
       ))}
