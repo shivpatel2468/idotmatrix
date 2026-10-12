@@ -207,7 +207,13 @@ games) → result → idle`.
   colour and the chosen one is gilded; the table's plinth and the wings cast the felt's colour (where dark glows,
   light casts a coloured shadow); the page is washed with the felt and the accent, with the dot grid tinted by the
   felt, linen and a vignette (`html[data-cz]` re-tints `--m-wash-a/b` and `--m-texture`), and the top bar's gold
-  keys are gold leaf in the table's accent.
+  keys are gold leaf in the table's accent. Round 3 (3.7.0, "lit by the table"): the room is washed in `--cz-tint` (the felt, or the accent when the
+  felt is a graphite / black) mixed with the felt (`--cz-room`), so every one of the 21 themes reads in light — Cyber
+  grid is pale steel with teal glow lines, not grey; accent glow lines (`--cz-glow`) under the rails, on section
+  rules, the host bar and the table plinth; cards have a tinted foot and a gilded selected state with an accent ring;
+  chip sets and dollies sit on a felt well; primary keys are accent leaf, or — for a pale accent (`--cz-pale`: ivory,
+  champagne, ice) — the felt with accent lettering. Both switches come from `state.ts` `lightSwitches()`;
+  `casino.html` `applyTheme()` mirrors them (`--tint`, `--pale`) for the phone page's light block.
 
 ## 7. Games, rules and payouts
 

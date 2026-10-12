@@ -401,6 +401,19 @@ export const PHASE: Record<string, { label: string; hint: string; tone: "gold" |
 export const seatLabel = (s: PlayerRow["seat"]) => (s === "host" ? "Host" : s ? `Seat ${s}` : "Away");
 
 // ------------------------------------------------------------------ table theme
+/** Light mode's two per-theme switches (casino.css light block; casino.html applyTheme mirrors them):
+ *  `tint` — the colour the porcelain room is washed with: the felt, or the accent when the felt is a near-grey
+ *  graphite / black (Cyber grid, Riviera noir, Gilded deco, Pixel arcade, Volcano), so those rooms are pale steel lit
+ *  by the accent instead of plain grey; `pale` — 1 when the accent is too pale to be a key on ivory (ivory,
+ *  champagne, ice): the primary keys turn into the table's felt with accent lettering instead. */
+export function lightSwitches(c: { felt?: string; accent?: string }): { tint?: string; pale: string } {
+  const rgb = (h?: string) => (h && /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) : null);
+  const f = rgb(c.felt), a = rgb(c.accent);
+  const tint = f && Math.max(...f) - Math.min(...f) < 40 ? c.accent : c.felt;
+  const pale = a && (Math.max(...a) - Math.min(...a)) / Math.max(...a) < 0.36 ? "1" : "0";
+  return { tint, pale };
+}
+
 /** CSS variables for `.cz` from the status's table theme (classic: only the felt pattern — the stylesheet is the classic look). */
 export function themeVars(t: TableTheme | null | undefined): CSSProperties | undefined {
   if (!t || !t.css) return undefined;
@@ -415,6 +428,7 @@ export function themeVars(t: TableTheme | null | undefined): CSSProperties | und
     "--gold-rgb": c.accent_rgb, "--gold-ink": c.ink, "--gold-text": c.accent_text, "--felt-ink": c.felt_ink,
     "--cz-wing": c.wing, "--cz-wing-2": c.wing2, "--cz-wing-3": c.wing3,
     "--cz-bg": c.bg, "--cz-s1": c.surface, "--cz-s2": c.surface2, "--cz-s3": c.surface3, "--cz-s4": c.surface4,
+    "--cz-tint": lightSwitches(c).tint, "--cz-pale": lightSwitches(c).pale,
   };
   return Object.fromEntries(Object.entries(v).filter(([, x]) => !!x)) as CSSProperties;
 }
@@ -428,13 +442,14 @@ export function pageVars(t: TableTheme | null | undefined): Record<string, strin
     "--cz-page-bg": c.bg, "--cz-page-s1": c.surface, "--cz-page-s2": c.surface2, "--cz-page-s3": c.surface3,
     "--cz-page-s4": c.surface4, "--cz-page-felt": c.felt, "--cz-page-accent": c.accent, "--cz-page-accent-2": c.accent_hi,
     "--cz-page-deep": c.accent_deep, "--cz-page-ink": c.ink, "--cz-page-text": c.felt_ink,
+    "--cz-page-tint": lightSwitches(c).tint,
   };
   return Object.fromEntries(Object.entries(v).filter(([, x]) => !!x)) as Record<string, string>;
 }
 
 /** Stamp the theme on <html> while the casino view is mounted (and take it off again when it closes). */
 export const PAGE_VAR_NAMES = ["--cz-page-bg", "--cz-page-s1", "--cz-page-s2", "--cz-page-s3", "--cz-page-s4", "--cz-page-felt",
-  "--cz-page-accent", "--cz-page-accent-2", "--cz-page-deep", "--cz-page-ink", "--cz-page-text"];
+  "--cz-page-accent", "--cz-page-accent-2", "--cz-page-deep", "--cz-page-ink", "--cz-page-text", "--cz-page-tint"];
 export function stampPage(t: TableTheme | null | undefined): () => void {
   const root = document.documentElement;
   root.dataset.cz = t?.id ?? "classic";
