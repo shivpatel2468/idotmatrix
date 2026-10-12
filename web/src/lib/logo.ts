@@ -5,8 +5,12 @@
  *
  *  Plain-JS copies of this renderer live in the pages that can't import it (src/deskdot/tv/tv.js, casino.html,
  *  controller.html, web/webapp/join/join.js, web/webapp/host.js — between `// <deskdot-logo>` markers).
- *  tests/test_logo_copies.py fails if their glyphs, tubes, colours or timings drift from this file: change them
- *  everywhere at once. */
+ *  tests/test_logo_copies.py fails if their glyphs, tubes, colours, styles or timings drift from this file: change
+ *  them everywhere at once.
+ *
+ *  Two styles: `neon` (dark pages — the tubes glow on black) and `paper` (light pages — the same tubes as deep ink on a
+ *  porcelain plate, animating the same way). The studio header picks by theme (components/NeonMark.tsx); the copies'
+ *  mount() follows their page's own light / dark. */
 
 // 7-row pixel font (rows 0–1 ascenders / cap height, 2–6 x-height)
 const GLYPHS: Record<string, string[]> = {
@@ -66,6 +70,16 @@ export const NEON: [string, string, string] = ["#ff3f78", "#ff7419", "#ffcc33"];
 /** The DeskDot wordmark's colours: two shades, "Desk" rose and "Dot" gold (the logo still builds in three parts). */
 export const LOGO: [string, string, string] = ["#ff3f78", "#ff3f78", "#ffcc33"];
 
+/** How lit tubes are drawn. `grid`: the unlit matrix dots; `glass`: alpha of a tube before it is struck; `halo`: the
+ *  strongest halo alpha, composited with `blend`; the tube is filled with `fill`; `core`/`coreAlpha`: the dot's centre. */
+export type LogoStyle = { grid: string; glass: number; halo: number; blend: GlobalCompositeOperation; fill: GlobalCompositeOperation; core: string; coreAlpha: number };
+/** Dark: neon on black — additive halos and a white-hot core. The tubes are LOGO. */
+export const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
+/** Light: ink on porcelain — rose and gold deepened to ≥ 4.5:1 on the plate, unlit dots a faint warm grey, a halo that
+ *  darkens (multiply) instead of glowing, and a soft sheen where neon has its hot core. */
+export const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
+export type LogoLook = "neon" | "paper";
+
 function strike(part: Part, t: number): number {
   if (t < 0) return 0;
   let acc = 0;
@@ -115,14 +129,24 @@ export class NeonLogo {
   private glows: HTMLCanvasElement[];
   private glitchLetter = 5; // the "o" of Dot: the tube that's a little loose
   colors: string[];
+  private tubes: string[];
+  private style: LogoStyle = NEON_STYLE as LogoStyle;
 
-  constructor(colors: string[] = LOGO, gap = 1) {
+  constructor(colors: string[] = LOGO, gap = 1, look: LogoLook = "neon") {
     const l = layout(TUBES, gap);
     this.dots = l.dots;
     this.cols = l.cols;
     this.parts = l.parts;
-    this.colors = colors;
-    this.glows = colors.map((c) => glowSprite(c, 64));
+    this.tubes = this.colors = colors;
+    this.glows = [];
+    this.setLook(look);
+  }
+
+  /** Switch between the dark (`neon`) and light (`paper`) rendition; `paper` uses its own deepened tubes. */
+  setLook(look: LogoLook) {
+    this.style = (look === "paper" ? PAPER_STYLE : NEON_STYLE) as LogoStyle;
+    this.colors = look === "paper" ? PAPER_STYLE.tubes : this.tubes;
+    this.glows = this.colors.map((c) => glowSprite(c, 64));
   }
 
   cycle(tl: LogoTimeline) {
@@ -156,10 +180,11 @@ export class NeonLogo {
     const igniteAt = tl.build + 0.15;
     const offAt = tl.build + 1.4 + tl.hold;
     const r = p * 0.36;
+    const st = this.style;
 
     if (opts.grid) {
-      // the matrix the logo is lit on: every LED, dark
-      ctx.fillStyle = "rgba(255,255,255,0.045)";
+      // the matrix the logo is lit on: every LED, unlit
+      ctx.fillStyle = st.grid;
       for (let y = 0; y < ROWS; y++)
         for (let x = 0; x < this.cols; x++) {
           ctx.beginPath();
@@ -227,27 +252,28 @@ export class NeonLogo {
         const cx = ox + (x + 0.5) * p;
         const cy = oy + (y + 0.5) * p;
         // unlit glass: the tube is visible before it's struck
-        ctx.globalAlpha = 0.22 * fade * Math.min(1, k * 2);
+        ctx.globalAlpha = st.glass * fade * Math.min(1, k * 2);
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
         ctx.fill();
         const light = Math.max(lv, pop * 0.9) * fade;
         if (light > 0.02) {
-          ctx.globalCompositeOperation = "lighter";
-          // the halo the gas throws on the wall
-          ctx.globalAlpha = Math.min(0.5, light * 0.5);
+          ctx.globalCompositeOperation = st.blend;
+          // the halo the gas throws on the wall (paper: a soft shadow of the tube's colour)
+          ctx.globalAlpha = Math.min(st.halo, light * st.halo);
           const gs = p * 3.4;
           ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
-          // the tube itself, then its white-hot core
+          // the tube itself, then its white-hot core (paper: a soft sheen)
+          ctx.globalCompositeOperation = st.fill;
           ctx.globalAlpha = Math.min(1, light);
           ctx.fillStyle = color;
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
           // a small hot core keeps each tube's colour readable
-          ctx.globalAlpha = Math.min(1, light * 0.5 + flare * 0.35);
-          ctx.fillStyle = "#fff4e0";
+          ctx.globalAlpha = Math.min(1, light * st.coreAlpha + flare * 0.35);
+          ctx.fillStyle = st.core;
           ctx.beginPath();
           ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
           ctx.fill();

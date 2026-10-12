@@ -209,3 +209,18 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
   .lx-hints .lx-hint:nth-child(n + 3) { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .lx-spin, .lx-toast { animation: none; } }
+
+/* ------------------------------------------------------------ the paper panel (light mode; lib/paper.ts, lib/paperImg.ts)
+   html[data-panel="paper"]: each preview image gets a canvas with its frames mapped to ink on porcelain, laid over it */
+.lx-led > .paper-img {
+  position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); display: block; pointer-events: none;
+  image-rendering: pixelated; opacity: 0; transition: opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lx-led:is(.sm, .xs) > .paper-img { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); }
+:root[data-panel="paper"] .lx-led > .paper-img[data-ready] { opacity: 1; }
+.lx-led > img[data-paper] { transition: visibility 0s; }
+:root[data-panel="paper"] .lx-led > img[data-paper] { visibility: hidden; transition: visibility 0s linear 0.45s; }
+:root[data-panel="paper"] .lx-led { background: #f8f5ef; border-color: #d8d0c2; }
+:root[data-panel="paper"] .lx-led::after { background-image: radial-gradient(circle at center, transparent 58%, rgba(248, 245, 239, 0.92) 72%); }
+:root[data-panel="paper"] .lx-led { box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.12), 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 0 5px #b8892a55, 0 18px 34px -16px rgba(40, 30, 16, 0.45); }
+:root[data-panel="paper"] .lx-led:is(.sm, .xs) { box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.12); }

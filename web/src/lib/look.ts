@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { DEFAULT_PANEL_LIGHT, type PanelLight, setPanelLight } from "./paper";
 
 /**
  * How the live 32×32 preview is drawn on this screen (per browser, remembered):
@@ -76,7 +77,8 @@ export const matchesPanel = (look: PanelLook, match: ColorMatch) => match === "a
 export const useLook = create<{
   look: PanelLook; bloom: number; match: ColorMatch;
   setLook: (l: PanelLook) => void; setBloom: (b: number) => void; setMatch: (m: ColorMatch) => void;
-  /** Back to the defaults: Glow look, classic glow amount, calibration shown in the LED look only. */
+  /** Back to the defaults: Glow look, classic glow amount, calibration shown in the LED look only, the paper panel in
+   *  light mode (lib/paper.ts). */
   reset: () => void;
 }>((set) => ({
   look: load(),
@@ -100,12 +102,13 @@ export const useLook = create<{
     persist(KEY, DEFAULT_LOOK);
     persist(BLOOM_KEY, String(DEFAULT_BLOOM));
     persist(MATCH_KEY, DEFAULT_MATCH);
+    setPanelLight(DEFAULT_PANEL_LIGHT);
   },
 }));
 
 /** Is every display choice at its default? (The Display menu's Reset is disabled then.) */
-export const isDefaultLook = (s: { look: PanelLook; bloom: number; match: ColorMatch }) =>
-  s.look === DEFAULT_LOOK && Math.abs(s.bloom - DEFAULT_BLOOM) < 0.001 && s.match === DEFAULT_MATCH;
+export const isDefaultLook = (s: { look: PanelLook; bloom: number; match: ColorMatch; light?: PanelLight }) =>
+  s.look === DEFAULT_LOOK && Math.abs(s.bloom - DEFAULT_BLOOM) < 0.001 && s.match === DEFAULT_MATCH && (s.light ?? DEFAULT_PANEL_LIGHT) === DEFAULT_PANEL_LIGHT;
 
 export const LOOK_LABEL: Record<PanelLook, string> = { glow: "Glow", pixel: "Pixel", led: "LED" };
 export const LOOK_HINT: Record<PanelLook, string> = {

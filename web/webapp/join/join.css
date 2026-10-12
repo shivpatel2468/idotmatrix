@@ -259,13 +259,13 @@ button:active {
   box-shadow: inset 0 1px 0 #fff, inset 0 0 0 5px #fff, inset 0 0 0 6px rgba(184, 137, 42, 0.22),
     0 2px 6px rgba(64, 48, 24, 0.06), 0 30px 70px -26px rgba(64, 48, 24, 0.4), 0 40px 90px -40px rgba(214, 56, 106, 0.35);
 }
-/* the LED logo needs the dark: a small LED sign with a gold-leaf rim */
+/* light: the LED logo in its paper style (ink tubes, join.js DeskDotLogo) on a porcelain plate with a gilded rim */
 .veil.light .logo {
   margin: 0 auto 10px;
   border-radius: 16px;
-  background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 -6px 14px rgba(0, 0, 0, 0.6), 0 0 0 3px #e6cd8a,
-    0 12px 26px -12px rgba(64, 48, 24, 0.55);
+  background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, 0.07), 0 0 0 1px rgba(150, 112, 40, 0.4),
+    0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, 0.5), 0 12px 26px -12px rgba(64, 48, 24, 0.4);
 }
 .veil.light .dots i {
   background: #e6e0d5;

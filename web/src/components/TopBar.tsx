@@ -23,7 +23,7 @@ function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
     <div className="flex shrink-0 justify-center" title="DeskDot studio">
-      {/* light theme: the logo sits on a small dark LED sign (index.css .led-plate) so the tubes still glow */}
+      {/* light theme: the logo is drawn in its paper style (ink tubes) on a porcelain plate with a gilded rim (index.css .led-plate) */}
       <span className="led-plate"><NeonMark pitch={phone ? 2.6 : 3.8} /></span>
     </div>
   );

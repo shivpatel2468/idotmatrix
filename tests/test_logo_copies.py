@@ -1,6 +1,7 @@
 """The DeskDot LED logo exists once in TypeScript (web/src/lib/logo.ts: the studio header and the boot intros) and as
 plain-JS copies in the pages that can't import it (TV view, phone pages, web-app join/host). These tests keep every
-copy identical — glyphs, tube split, colours, timings — so the logo can't drift between screens."""
+copy identical — glyphs, tube split, colours, the dark (neon) and light (paper) styles, timings — so the logo can't drift
+between screens."""
 
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ COPIES = [
     ROOT / "web" / "webapp" / "join" / "join.js",
     ROOT / "web" / "webapp" / "host.js",
 ]
-CONSTANTS = ["GLYPHS", "TUBES", "LOGO", "STRIKE", "DELAY"]
+CONSTANTS = ["GLYPHS", "TUBES", "LOGO", "NEON_STYLE", "PAPER_STYLE", "STRIKE", "DELAY"]
 REGION = re.compile(r"// <deskdot-logo>.*?// </deskdot-logo>", re.S)
 
 
@@ -98,6 +99,27 @@ def test_reference_is_the_deskdot_logo(reference: dict) -> None:
     # the loose letter is the "o" of Dot
     letters = "".join(reference["TUBES"])
     assert letters[reference["glitchLetter"]] == "o"
+
+
+def _contrast(fg: str, bg: str) -> float:
+    def lum(h: str) -> float:
+        c = [int(h[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+        c = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+    a, b = lum(fg), lum(bg)
+    return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+
+
+def test_paper_style_reads_on_porcelain(reference: dict) -> None:
+    """Light mode's logo: the same two shades (rose "Desk", gold "Dot"), deepened to read on the porcelain plate."""
+    paper, neon = reference["PAPER_STYLE"], reference["NEON_STYLE"]
+    tubes = paper["tubes"]
+    assert len(tubes) == 3 and tubes[0] == tubes[1] != tubes[2]  # two shades, like LOGO
+    for c in tubes:
+        assert _contrast(c, "#f8f4ec") >= 4.5, c  # the plate's face
+    assert neon["blend"] == "lighter" and paper["blend"] == "multiply"  # glow on black, a darkening halo on white
+    assert set(paper) - {"tubes"} == set(neon)
 
 
 @pytest.mark.parametrize("path", COPIES, ids=lambda p: p.name)

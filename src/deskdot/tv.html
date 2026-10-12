@@ -323,9 +323,9 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .8), 0 14px 34px -18px rgba(64, 48, 24, .35);
 }
 :root[data-theme="light"] #bar::after { background: linear-gradient(90deg, transparent 2%, #d6386a 26%, #c9a24a 74%, transparent 98%); opacity: .45; }
-/* the LED logo needs the dark: a small LED sign with a gold-leaf rim */
-:root[data-theme="light"] .wordmark canvas { border-radius: 14px; background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -6px 14px rgba(0, 0, 0, .6), 0 0 0 3px #e6cd8a, 0 10px 24px -12px rgba(64, 48, 24, .55); }
+/* light: the LED logo is drawn in its paper style (ink tubes, tv.js DeskDotLogo) on a porcelain plate with a gilded rim */
+:root[data-theme="light"] .wordmark canvas { border-radius: 14px; background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, .07), 0 0 0 1px rgba(150, 112, 40, .4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, .5), 0 10px 24px -12px rgba(64, 48, 24, .4); }
 :root[data-theme="light"] #bar-cat { background: var(--chassis-1); }
 :root[data-theme="light"] #bar-cat::before { box-shadow: 0 0 0 3px rgba(184, 31, 75, .16); }
 :root[data-theme="light"] #bar-join { background: #ffffff; box-shadow: 0 10px 24px -16px rgba(64, 48, 24, .45); }
@@ -356,8 +356,8 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 /* waiting / closed */
 :root[data-theme="light"] #veil { background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe5da 75%); }
 :root[data-theme="light"] #veil::before { background: radial-gradient(circle, rgba(64, 48, 24, .1) 3px, transparent 3.6px) 0 0 / 30px 30px; }
-:root[data-theme="light"] #veil-logo { border-radius: 40px; background: radial-gradient(130% 150% at 50% 0, #1d1c22, #09090b 72%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -10px 30px rgba(0, 0, 0, .6), 0 0 0 5px #e6cd8a, 0 40px 70px -34px rgba(64, 48, 24, .6);
+:root[data-theme="light"] #veil-logo { border-radius: 40px; background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, .07), 0 0 0 1px rgba(150, 112, 40, .4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, .5), 0 40px 70px -34px rgba(64, 48, 24, .5);
   margin: 0 0 6px; }
 :root[data-theme="light"] .veil-dots i { box-shadow: 0 0 0 8px rgba(184, 31, 75, .1); }
 :root[data-theme="light"] .veil-dots i:nth-child(2) { background: #d6386a; box-shadow: 0 0 0 8px rgba(214, 56, 106, .1); }
