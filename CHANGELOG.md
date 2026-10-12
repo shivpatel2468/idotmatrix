@@ -5,6 +5,7 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme; luxury TV casino, win moment, dollies, chip sets, odometer credits
 
+- Live Scores: goal / score alerts (the celebration overlay that interrupts other apps) default to Off.
 - **Page themes** (studio-wide, separate from the casino's table themes): 21 themes in `gfx/themes.py` `PAGE_THEMES`
   (`ember` = the original look and the default; studio originals `graphite`, `sunset`, `citrus`; 17 adapted table
   concepts). Each has screen seeds (accent, accent_light, metal, tint, gradient-only pattern) and an LED
