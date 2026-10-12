@@ -170,3 +170,12 @@ def test_studio_page_revalidates_and_assets_cache(tmp_path: Path) -> None:
         asset = next((srv.WEB_DIST / "assets").glob("*.js"), None)
         if asset is not None:
             assert "immutable" in c.get(f"/assets/{asset.name}").headers.get("cache-control", "")
+
+
+def test_nowplaying_layout_thumbnails(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        r = c.get("/api/nowplaying/layouts/cassette.png?scale=2")
+        assert (
+            r.status_code == 200 and r.content[:4] == b"\x89PNG" and r.headers["content-type"] == "image/png"
+        )
+        assert c.get("/api/nowplaying/layouts/nope.png").status_code == 404

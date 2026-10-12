@@ -6,12 +6,13 @@ import { exitFullscreen, fullscreenElement, onFullscreenChange, requestFullscree
 import { appMeta, useStore } from "../lib/store";
 import { Icon } from "./Icon";
 import { LedPanel } from "./LedPanel";
+import { MusicDeck } from "./MusicDeck";
 import { Countdown, Progress, usePlayback } from "./PlaylistDock";
 
 /**
  * Full-screen "now playing", like Spotify's full-screen player: the live panel huge in the middle, what's on
  * and what's next, the transport, and the up-next strip. Opens the browser's real fullscreen too.
- * Keys: Esc closes · Space play/stop · ← / → previous / next.
+ * Keys: Esc closes · Space play/stop · ← / → previous / next. With Now Playing on the panel it adds the music deck.
  */
 export function NowPlaying({ onClose }: { onClose: () => void }) {
   const { running, focus, active, cur, next, items, pl } = usePlayback();
@@ -126,6 +127,9 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
               <Shuffle size={14} /> Shuffle
             </button>
           </div>
+
+          {/* Now Playing on the panel: the track, the player's transport and a visual layout picker */}
+          <MusicDeck />
         </div>
       </main>
 

@@ -293,6 +293,11 @@ class MacBackend:
                     return None
         return None
 
+    @property
+    def can_control(self) -> bool:
+        """Spotify / Music take AppleScript; anything else only through nowplaying-cli."""
+        return self._current in _APP_NAME or bool(self._npcli)
+
     async def control(self, action: str) -> bool:
         if action not in _CONTROL:
             raise KeyError(action)
