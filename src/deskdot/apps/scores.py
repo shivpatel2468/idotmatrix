@@ -138,7 +138,7 @@ class ScoresSettings(AppSettings):
         False, title="Take over when favourite is live", json_schema_extra={"group": "Alerts"}
     )
     alerts: str = Choice(
-        "favorite",
+        "off",
         {"off": "Off", "favorite": "Favourite team", "all": "All games"},
         title="Goal / score alerts",
         description="Celebration overlay, even when not on screen",
