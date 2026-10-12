@@ -36,6 +36,9 @@
   const TAU = Math.PI * 2;
   const FONT = '"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif';
   const MONO = '"Cascadia Mono","SF Mono",Consolas,"Roboto Mono",ui-monospace,Menlo,monospace';
+  // engraved titles on the felt and the seat plaques (system serifs only: a TV stick has Noto Serif / Droid Serif)
+  const SERIF = '"Didot","Bodoni 72","Bodoni MT","Playfair Display",Georgia,"Noto Serif","Droid Serif","Times New Roman",serif';
+  const fontOf = (o) => (o && o.font === "mono" ? MONO : o && o.font === "serif" ? SERIF : FONT);
   const CLASSIC = {
     felt: "#0d6b45", felt2: "#0a5236", felt3: "#063823", accent: "#ffcc33", accent_hi: "#ffe08a", accent_lo: "#e2a400",
     accent_deep: "#3a2c08", accent_rgb: "255, 204, 51", ink: "#1a1200", wing: "#102a20", wing2: "#0b1c16", wing3: "#0a1512",
@@ -552,7 +555,8 @@
   function txt(g, s, x, y, size, color, o) {
     o = o || {};
     g.save();
-    g.font = `${o.weight || 700} ${size}px ${o.font === "mono" ? MONO : FONT}`;
+    g.font = `${o.weight || 700} ${size}px ${fontOf(o)}`;
+    if (o.spacing && "letterSpacing" in g) g.letterSpacing = `${o.spacing}px`;
     g.textAlign = o.align || "left";
     g.textBaseline = o.base || "alphabetic";
     if (o.alpha != null) g.globalAlpha *= o.alpha;
@@ -577,7 +581,18 @@
         else m.fillText(str, x, y);
       });
     }
-    if (!glowing && o.shadow !== false) {
+    if (o.emboss) {
+      // pressed into the felt: a dark lower edge and a light upper one, drawn once (the cached background)
+      const a = g.globalAlpha;
+      const d = Math.max(1, size * 0.035);
+      g.globalAlpha = a * 0.55;
+      g.fillStyle = "#000";
+      g.fillText(str, x, y + d * 1.4);
+      g.globalAlpha = a * 0.22;
+      g.fillStyle = "#fff";
+      g.fillText(str, x, y - d);
+      g.globalAlpha = a;
+    } else if (!glowing && o.shadow !== false) {
       // a hard drop shadow: the text once more, offset and dark — no blur (a blurred shadow per text is the
       // costliest thing on a TV stick, and at 3 m it reads the same)
       const dy = Math.max(1, size * 0.05);
@@ -588,14 +603,24 @@
       else g.fillText(str, x, y + dy);
       g.globalAlpha = a;
     }
-    g.fillStyle = color;
+    if (o.gold) {
+      // gold leaf: a vertical metal gradient over the text's own height
+      const top = (o.base || "alphabetic") === "middle" ? y - size * 0.5 : y - size * 0.8;
+      const gr = g.createLinearGradient(0, top, 0, top + size);
+      gr.addColorStop(0, "#fff4c8");
+      gr.addColorStop(0.32, o.gold === true ? "#f0cf6a" : o.gold);
+      gr.addColorStop(0.55, "#a8761c");
+      gr.addColorStop(0.78, "#e9c25a");
+      gr.addColorStop(1, "#7a5410");
+      g.fillStyle = gr;
+    } else g.fillStyle = color;
     if (o.maxW) g.fillText(str, x, y, o.maxW);
     else g.fillText(str, x, y);
     g.restore();
   }
   function measure(g, s, size, o) {
     g.save();
-    g.font = `${(o && o.weight) || 700} ${size}px ${o && o.font === "mono" ? MONO : FONT}`;
+    g.font = `${(o && o.weight) || 700} ${size}px ${fontOf(o)}`;
     const w = g.measureText(String(s)).width;
     g.restore();
     return num(w, String(s).length * size * 0.55);
@@ -835,9 +860,17 @@
     const back = o.back || shade(S.th.accent_deep === CLASSIC.accent_deep ? "#8f1c2c" : S.th.felt3, 1.25);
     let face = !o.down && parseCard(code) != null;
     let sx = 1;
+    let sy = 1;
+    let shadeK = 0;
+    let skew = 0;
     if (o.flip != null && face) {
+      // a turn in 3D: the card narrows on its axis, lifts toward the camera (taller), its turning edge leans and
+      // darkens, then the face comes round
       const f = clamp(o.flip, 0, 1);
       sx = Math.abs(Math.cos(f * Math.PI));
+      sy = 1 + 0.09 * Math.sin(f * Math.PI);
+      shadeK = 0.45 * (1 - sx);
+      skew = 0.12 * Math.sin(f * TAU);
       if (f < 0.5) face = false;
     }
     const im = face ? cardImage(code, w, h, S.k, null) : cardImage("back", w, h, S.k, back);
@@ -845,7 +878,8 @@
     g.translate(x, y);
     if (o.rot) g.rotate(o.rot);
     if (o.alpha != null) g.globalAlpha *= o.alpha;
-    g.scale(Math.max(0.02, sx), 1);
+    if (skew) g.transform(1, skew, 0, 1, 0, 0);
+    g.scale(Math.max(0.02, sx), sy);
     if (o.glow) {
       glowFx(g, `card|${w}|${h}`, -w / 2, -h / 2, w, h, o.glow, 28, (m) => {
         rr(m, -w / 2, -h / 2, w, h, w * 0.09);
@@ -854,6 +888,11 @@
       });
     }
     g.drawImage(im, -w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
+    if (shadeK > 0.01) {
+      rr(g, -w / 2, -h / 2, w, h, w * 0.09);
+      g.fillStyle = `rgba(0,0,0,${shadeK.toFixed(3)})`;
+      g.fill();
+    }
     if (o.dim) {
       rr(g, -w / 2, -h / 2, w, h, w * 0.09);
       g.fillStyle = `rgba(0,0,0,${o.dim})`;
@@ -893,9 +932,26 @@
 
   // chips: a casino chip — body and edge inserts in the ladder's colours (casino/chips.py), an inlay that can carry a
   // player's colour and the amount. Pre-rendered once per look as a sprite (drop shadow baked in), then stamped.
+  // The chip SET (status.chip_set, docs/CASINO.md §5) changes the material and the motifs to match the table — clay,
+  // ceramic, gold-rimmed, neon, jade, pixel, ivory — while the denomination's colour and label stay what they are.
+  const CHIP_SETS = ["clay", "ceramic", "gold_rim", "neon", "jade", "pixel", "ivory"];
+  // casino/chips.py THEME_CHIP_SET: an engine that doesn't send status.chip_set gets the theme's own set
+  const THEME_CHIP_SET = {
+    classic: "clay", royal: "ceramic", crimson: "gold_rim", midnight: "neon", strip: "neon", emerald: "clay", burgundy: "ivory",
+    noir: "gold_rim", jade: "jade", deco: "gold_rim", marigold: "gold_rim", diwali: "gold_rim", cyber: "neon", arcade: "pixel",
+    sakura: "ceramic", arctic: "ceramic", oasis: "ceramic", abyss: "neon", volcano: "neon", galaxy: "neon", riverboat: "ivory",
+  }; // fmt: skip
+  /** The table's chip set: status.chip_set, else the theme's own, else clay. */
+  function chipSetOf(st) {
+    const s = String(obj(st).chip_set || "");
+    if (CHIP_SETS.includes(s)) return s;
+    return THEME_CHIP_SET[String(obj(obj(st).table_theme).id || "")] || "clay";
+  }
+  let CHIPSET = "clay"; // the set in use while a scene paints (one scene at a time)
   const chipCache = new Map();
   function chipSprite(r, color, edge, inlay, label, k, glow) {
-    const key = `${r}|${color}|${edge}|${inlay || ""}|${label == null ? "" : label}|${k}|${glow || ""}`;
+    const set = CHIPSET;
+    const key = `${set}|${r}|${color}|${edge}|${inlay || ""}|${label == null ? "" : label}|${k}|${glow || ""}`;
     let c = chipCache.get(key);
     if (c) return c;
     if (chipCache.size > 500) chipCache.clear();
@@ -914,50 +970,200 @@
       g.stroke();
       g.restore();
     }
-    // drop shadow (soft once, here), body with a little light from the top left
+    const neon = set === "neon";
+    const ivory = set === "ivory";
+    const body = neon ? shade(color, 0.16) : ivory ? "#efe6cf" : color;
+    // drop shadow (soft once, here), the body
     g.save();
     glowOn(g, "rgba(0,0,0,.55)", r * 0.35, r * 0.12);
-    circle(g, x, y, r);
-    g.fillStyle = color;
+    if (set === "pixel") {
+      const u = r / 6;
+      g.beginPath();
+      for (let j = -6; j < 6; j++) {
+        const yy = (j + 0.5) * u;
+        const half = Math.round(Math.sqrt(Math.max(0, r * r - yy * yy)) / u) * u;
+        g.rect(x - half, y + j * u, 2 * half, u + 0.4);
+      }
+    } else circle(g, x, y, r);
+    g.fillStyle = body;
     g.fill();
     g.restore();
-    const lg = g.createRadialGradient(x - r * 0.4, y - r * 0.45, r * 0.1, x, y, r);
-    lg.addColorStop(0, "rgba(255,255,255,.22)");
-    lg.addColorStop(0.6, "rgba(255,255,255,0)");
-    lg.addColorStop(1, "rgba(0,0,0,.22)");
-    circle(g, x, y, r);
-    g.fillStyle = lg;
-    g.fill();
-    // the edge inserts
-    g.lineWidth = r * 0.22;
-    g.strokeStyle = edge;
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * TAU + 0.26;
-      g.beginPath();
-      g.arc(x, y, r * 0.86, a, a + 0.42);
+    if (set !== "pixel") {
+      const lg = g.createRadialGradient(x - r * 0.4, y - r * 0.45, r * 0.1, x, y, r);
+      lg.addColorStop(0, set === "ceramic" ? "rgba(255,255,255,.4)" : "rgba(255,255,255,.22)");
+      lg.addColorStop(0.6, "rgba(255,255,255,0)");
+      lg.addColorStop(1, "rgba(0,0,0,.25)");
+      circle(g, x, y, r);
+      g.fillStyle = lg;
+      g.fill();
+    }
+    // the edge: the set's inserts, always in the denomination's own stripe colour
+    if (set === "clay") {
+      g.lineWidth = r * 0.22;
+      g.strokeStyle = edge;
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * TAU + 0.26;
+        g.beginPath();
+        g.arc(x, y, r * 0.86, a, a + 0.42);
+        g.stroke();
+      }
+    } else if (set === "ceramic") {
+      g.lineWidth = r * 0.16;
+      g.strokeStyle = edge;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * TAU;
+        g.beginPath();
+        g.arc(x, y, r * 0.88, a, a + 0.12);
+        g.stroke();
+      }
+      g.lineWidth = Math.max(1, r * 0.05);
+      circle(g, x, y, r * 0.74);
+      g.strokeStyle = rgba(edge, 0.8);
       g.stroke();
+    } else if (set === "gold_rim") {
+      const gm = g.createLinearGradient(x - r, y - r, x + r, y + r);
+      gm.addColorStop(0, "#fff2c0");
+      gm.addColorStop(0.45, "#c9973a");
+      gm.addColorStop(0.7, "#7a5410");
+      gm.addColorStop(1, "#f0d488");
+      g.lineWidth = r * 0.16;
+      circle(g, x, y, r * 0.92);
+      g.strokeStyle = gm;
+      g.stroke();
+      g.lineWidth = r * 0.14;
+      g.strokeStyle = edge;
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * TAU + 0.4;
+        g.beginPath();
+        g.arc(x, y, r * 0.74, a, a + 0.6);
+        g.stroke();
+      }
+      g.fillStyle = "#fff2c0";
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU + 0.2;
+        circle(g, x + Math.cos(a) * r * 0.92, y + Math.sin(a) * r * 0.92, r * 0.05);
+        g.fill();
+      }
+    } else if (neon) {
+      g.save();
+      glowOn(g, color, r * 0.5);
+      g.lineWidth = r * 0.11;
+      circle(g, x, y, r * 0.86);
+      g.strokeStyle = shade(color, 1.35);
+      g.stroke();
+      g.restore();
+      g.lineWidth = r * 0.07;
+      g.strokeStyle = edge;
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU;
+        g.beginPath();
+        g.arc(x, y, r * 0.86, a, a + 0.18);
+        g.stroke();
+      }
+    } else if (set === "jade") {
+      g.save();
+      circle(g, x, y, r);
+      g.clip();
+      g.lineWidth = r * 0.07;
+      for (let i = 0; i < 4; i++) {
+        g.beginPath();
+        g.moveTo(x - r, y - r * 0.6 + i * r * 0.45);
+        g.bezierCurveTo(x - r * 0.3, y - r * 0.9 + i * r * 0.5, x + r * 0.2, y + i * r * 0.2, x + r, y - r * 0.4 + i * r * 0.5);
+        g.strokeStyle = i % 2 ? "rgba(255,255,255,.16)" : "rgba(160,255,200,.14)";
+        g.stroke();
+      }
+      g.restore();
+      g.lineWidth = r * 0.08;
+      circle(g, x, y, r * 0.9);
+      g.strokeStyle = "#d9b45a";
+      g.stroke();
+      g.lineWidth = r * 0.14;
+      g.strokeStyle = edge;
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * TAU + 0.1;
+        g.beginPath();
+        g.arc(x, y, r * 0.78, a, a + 0.24);
+        g.stroke();
+      }
+    } else if (set === "pixel") {
+      const u = r / 6;
+      g.fillStyle = edge;
+      for (const [i, j] of [[-1, -6], [0, -6], [-1, 5], [0, 5], [-6, -1], [-6, 0], [5, -1], [5, 0], [-4, -4], [3, -4], [-4, 3], [3, 3]]) g.fillRect(x + i * u, y + j * u, u, u);
+    } else if (ivory) {
+      g.lineWidth = r * 0.16;
+      circle(g, x, y, r * 0.8);
+      g.strokeStyle = color;
+      g.stroke();
+      g.lineWidth = r * 0.2;
+      g.strokeStyle = shade(color, 0.7);
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * TAU + 0.26;
+        g.beginPath();
+        g.arc(x, y, r * 0.94, a, a + 0.22);
+        g.stroke();
+      }
     }
     // the inlay
-    const ink = inlay || shade(color, 0.86);
-    circle(g, x, y, r * 0.62);
-    g.fillStyle = ink;
-    g.fill();
-    g.lineWidth = Math.max(1, r * 0.06);
-    g.setLineDash([r * 0.16, r * 0.12]);
-    g.strokeStyle = rgba(edge, 0.75);
-    circle(g, x, y, r * 0.55);
-    g.stroke();
-    g.setLineDash([]);
-    circle(g, x, y, r - 0.5);
-    g.lineWidth = 1;
-    g.strokeStyle = "rgba(0,0,0,.35)";
-    g.stroke();
+    const ink = inlay || (neon ? "#0b0b12" : ivory ? "#f6efdc" : shade(color, 0.86));
+    if (set === "pixel") {
+      const u = r / 6;
+      g.fillStyle = ink;
+      g.fillRect(x - 3 * u, y - 3 * u, 6 * u, 6 * u);
+      g.fillStyle = rgba("#ffffff", 0.18);
+      g.fillRect(x - 3 * u, y - 3 * u, 6 * u, u);
+    } else {
+      circle(g, x, y, r * 0.62);
+      g.fillStyle = ink;
+      g.fill();
+      g.lineWidth = Math.max(1, r * 0.06);
+      if (set === "clay") {
+        g.setLineDash([r * 0.16, r * 0.12]);
+        g.strokeStyle = rgba(edge, 0.75);
+        circle(g, x, y, r * 0.55);
+        g.stroke();
+        g.setLineDash([]);
+      } else if (set === "ceramic") {
+        g.fillStyle = rgba(edge, 0.85);
+        for (let i = 0; i < 16; i++) {
+          const a = (i / 16) * TAU;
+          circle(g, x + Math.cos(a) * r * 0.54, y + Math.sin(a) * r * 0.54, r * 0.03);
+          g.fill();
+        }
+      } else if (set === "gold_rim" || set === "jade") {
+        circle(g, x, y, r * 0.6);
+        g.strokeStyle = "#e9c25a";
+        g.stroke();
+        g.setLineDash([r * 0.05, r * 0.07]);
+        circle(g, x, y, r * 0.53);
+        g.strokeStyle = rgba("#e9c25a", 0.7);
+        g.stroke();
+        g.setLineDash([]);
+      } else if (neon) {
+        g.save();
+        glowOn(g, color, r * 0.35);
+        circle(g, x, y, r * 0.6);
+        g.strokeStyle = shade(color, 1.3);
+        g.stroke();
+        g.restore();
+      } else if (ivory) {
+        circle(g, x, y, r * 0.6);
+        g.strokeStyle = color;
+        g.stroke();
+      }
+    }
+    if (set !== "pixel") {
+      circle(g, x, y, r - 0.5);
+      g.lineWidth = 1;
+      g.strokeStyle = "rgba(0,0,0,.35)";
+      g.stroke();
+    }
     if (label != null && label !== "") {
-      const [rr2, gg, bb] = hexRgb(inlay || color); // the inlay is the owner's colour, or the chip's own a shade darker
+      const [rr2, gg, bb] = hexRgb(inlay || (neon ? "#0b0b12" : ivory ? "#f6efdc" : color)); // the inlay is the owner's colour, or the set's own
       const light = rr2 * 0.3 + gg * 0.59 + bb * 0.11 > 150;
       const s = String(label);
       const size = r * (s.length >= 5 ? 0.42 : s.length === 4 ? 0.5 : s.length === 3 ? 0.6 : 0.72);
-      txt(g, s, x, y + size * 0.36, size, light ? "#141414" : "#ffffff", { align: "center", font: "mono", weight: 800, shadow: false });
+      const ink2 = neon && !inlay ? shade(color, 1.45) : ivory && !inlay ? shade(color, 0.6) : light ? "#141414" : "#ffffff";
+      txt(g, s, x, y + size * 0.36, size, ink2, { align: "center", font: "mono", weight: 800, shadow: false });
     }
     c = { c: m.c, D };
     chipCache.set(key, c);
@@ -1003,7 +1209,8 @@
 
   /**
    * Everyone's chips on one spot: a stack per player (their colour on the inlay), fanned, the amount on each, broken
-   * into the ladder's chips. New chips drop in. o: {r, sweep (0..1 → slides to `to`, fades), glow, to: [x, y]}.
+   * into the ladder's chips. New chips drop in. o: {r, glow, dim, sweepAt (s into the win / lose moment: the stack is
+   * swept to `to` and fades — as a flight, a sprite moved by transforms, never a table redraw), to: [x, y]}.
    */
   function spotChips(S, g, spot, entries, x, y, t, o) {
     o = o || {};
@@ -1019,16 +1226,65 @@
       const drop = u < 1 ? 1 - (1 + 2.2 * Math.pow(u - 1, 3) + 1.2 * Math.pow(u - 1, 2)) : 0;
       let cy = y + (i - (n - 1) / 2) * r * 0.25 - drop * 60;
       let alpha = (u < 1 ? 0.3 + 0.7 * Math.min(1, u * 2) : 1) * (o.dim ? 0.3 : 1);
-      if (o.sweep) {
-        const k = easeInOut(o.sweep);
-        cx = lerp(cx, (o.to || [x, y - 200])[0], k);
-        cy = lerp(cy, (o.to || [x, y - 200])[1], k);
-        alpha *= 1 - k;
+      if (o.sweepAt != null && momentAge(S) != null) {
+        flight(S, `sw|${key}`, { amount: num(e.amount), owner: e.color || "#f0f0f0", r, from: [cx, cy], to: o.to || [x, y - 200], at: o.sweepAt, dur: MOMENT.SWEEP, fade: true });
+        return;
       }
       if (alpha <= 0.01) return;
       stack(S, g, cx, cy, r, num(e.amount), e.color || "#f0f0f0", { alpha, glow: o.glow });
     });
   }
+
+  /**
+   * Chips on the move during the win / lose moment — losing stacks swept to the dealer, payouts pushed to winners —
+   * as sprites: each stack drawn once into a small canvas of a pool and moved by transform / opacity on the shared
+   * clock (the moment's age), so the big table layer never redraws for them. The table's draw() declares them
+   * (`flight`); every frame `flightsFrame` places them.
+   */
+  function flight(S, key, f) {
+    if (S.flights) S.flights.set(key, f);
+  }
+  const FLIGHT_POOL = 28;
+  function flightsFrame(S) {
+    const pool = S.flightPool || (S.flightPool = []);
+    const a = momentAge(S);
+    const used = new Set();
+    if (a != null && S.flights) {
+      let i = 0;
+      for (const [key, f] of S.flights) {
+        if (i >= FLIGHT_POOL) break;
+        let sp = pool.find((x) => x.key === key && !used.has(x));
+        if (!sp) sp = pool.find((x) => !used.has(x) && !S.flights.has(x.key));
+        if (!sp) {
+          if (pool.length >= FLIGHT_POOL) break;
+          const D = 96;
+          sp = { l: layer(S.fxBox, 0, 0, D, D + 30, chipLayerK(), true, true), key: null, D };
+          sp.l.c.style.display = "none";
+          sp.l.cache = { display: "none" };
+          pool.push(sp);
+        }
+        used.add(sp);
+        i++;
+        if (sp.key !== key || sp.paintKey !== `${f.amount}|${f.owner}|${f.r}|${S.chipSet}`) {
+          sp.key = key;
+          sp.paintKey = `${f.amount}|${f.owner}|${f.r}|${S.chipSet}`;
+          const g = sp.l.g;
+          g.setTransform(sp.l.k, 0, 0, sp.l.k, 0, 0);
+          g.clearRect(0, 0, sp.D, sp.D + 30);
+          stack(S, g, sp.D / 2, sp.D / 2 + 20, f.r, f.amount, f.owner, { glow: f.glow || null });
+        }
+        const u = clamp((a - f.at) / f.dur, 0, 1);
+        const k = easeInOut(u);
+        const x = lerp(f.from[0], f.to[0], k);
+        const y = lerp(f.from[1], f.to[1], k);
+        const op = f.fade ? 1 - u : clamp(u * 4, 0, 1);
+        if (op <= 0.01 || (!f.fade && u <= 0)) hideLayer(sp.l);
+        else moveLayer(sp.l, `translate(${(x - sp.D / 2).toFixed(1)}px,${(y - sp.D / 2 - 20).toFixed(1)}px) scale(${(f.fade ? 1 - 0.25 * k : 1).toFixed(3)})`, op.toFixed(3));
+      }
+    }
+    for (const sp of pool) if (!used.has(sp)) hideLayer(sp.l);
+  }
+  const chipLayerK = () => clamp(num(TV && TV.pixelRatio, 1), 1, 1.5);
 
   /** A player's avatar: the 8×8 art (hello.avatars) in their colour on a dark disc, ringed in their colour. */
   function avatar(S, g, x, y, r, p, o) {
@@ -1093,34 +1349,123 @@
     return p || "rgba(0,0,0,0)";
   }
 
-  /** Fill the current path with the theme's felt (radial light from (cx, cy)), grain on top. */
+  /** Fill the current path with the theme's felt: a deep pile under a soft overhead spot at (cx, cy), grain on top. */
   function feltFill(g, th, cx, cy, rad) {
-    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, rad);
-    gr.addColorStop(0, shade(th.felt, 1.12));
-    gr.addColorStop(0.55, th.felt);
-    gr.addColorStop(1, th.felt3);
+    const gr = g.createRadialGradient(cx, cy - rad * 0.12, 0, cx, cy, rad);
+    gr.addColorStop(0, shade(th.felt, 1.2));
+    gr.addColorStop(0.34, shade(th.felt, 1.04));
+    gr.addColorStop(0.7, th.felt2 || th.felt);
+    gr.addColorStop(1, shade(th.felt3 || th.felt, 0.72));
     g.fillStyle = gr;
     g.fill();
     g.fillStyle = grain(g);
     g.fill();
+    return gr;
   }
 
-  /** The table's padded rail around the current path. */
-  function railStroke(g, th, width) {
+  /**
+   * The ultra-luxury table around the current path — drawn once, in the cached background, so every effect here is
+   * free per frame: the felt (feltFill) sinks under the rail in a soft inner shadow with a gold pinstripe printed
+   * just inside it, then the padded rail: a lacquered mahogany profile built from layered strokes (dark edges, a
+   * warm crown), a brass inlay along both edges, a gloss line and a long contact shadow on the room.
+   */
+  function luxTable(g, th, cx, cy, rad, railW) {
+    const W = railW || 36;
+    const gr = feltFill(g, th, cx, cy, rad);
     g.save();
-    g.lineWidth = width;
-    g.strokeStyle = "#2a1a10";
-    g.shadowColor = "rgba(0,0,0,.6)";
-    g.shadowBlur = 24;
+    g.clip();
+    // the printed gold pinstripe, 12 px in from the rail (a gold band, then the felt again over all but 2 px of it)
+    g.lineJoin = "round";
+    g.lineWidth = W + 26;
+    g.strokeStyle = rgba(th.accent, 0.62);
+    g.stroke();
+    g.lineWidth = W + 22;
+    g.strokeStyle = gr;
+    g.stroke();
+    g.strokeStyle = grain(g);
+    g.stroke();
+    // the felt dips under the rail
+    softStroke(g, W, 46, "#000", 0.85, 0, 0, 6);
+    g.restore();
+    railStroke(g, th, W / 2);
+  }
+
+  /**
+   * A soft shadow along the current path without shadowBlur: the path stroked a few times, each wider and fainter,
+   * offset by (dx, dy) — what a blur would give at a fraction of its cost on a software canvas.
+   */
+  function softStroke(g, width, spread, color, alpha, dx, dy, steps) {
+    const n = steps || 6;
+    g.save();
+    g.translate(dx || 0, dy || 0);
+    g.lineJoin = "round";
+    g.strokeStyle = color;
+    for (let i = n; i >= 1; i--) {
+      g.globalAlpha = alpha / n;
+      g.lineWidth = width + (2 * spread * i) / n;
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  /** The table's padded rail around the current path: lacquered wood with brass inlay (see luxTable). */
+  function railStroke(g, th, width) {
+    const W = width * 2;
+    softStroke(g, W, 40, "#000", 0.9, 0, 16, 7);
+    g.save();
+    g.lineJoin = "round";
+    // brass on both edges, then the wood's rounded profile from the edges to the crown
+    g.lineWidth = W;
+    g.strokeStyle = "#c9973a";
+    g.stroke();
+    g.lineWidth = W - 2;
+    g.strokeStyle = "#6a4a12";
+    g.stroke();
+    g.lineWidth = W - 4;
+    g.strokeStyle = "#e8c264";
+    g.stroke();
+    for (const [k, c] of [[0.86, "#1d0c05"], [0.74, "#3c1a0b"], [0.6, "#5c2812"], [0.46, "#783619"], [0.32, "#8f4520"], [0.18, "#a65629"], [0.07, "#bf6c37"]]) {
+      g.lineWidth = W * k;
+      g.strokeStyle = c;
+      g.stroke();
+    }
+    // the lacquer: a fine gloss along the crown and a hairline of the table's accent
+    g.lineWidth = Math.max(1.5, W * 0.035);
+    g.strokeStyle = "rgba(255,226,186,.55)";
     g.stroke();
     g.restore();
+  }
+
+  /** A faint damask lattice on the salon's walls (cached background). */
+  function damask(g, th, x, y, w, h) {
     g.save();
-    g.lineWidth = width * 0.7;
-    g.strokeStyle = "#4a2d1a";
+    g.beginPath();
+    g.rect(x, y, w, h);
+    g.clip();
+    g.strokeStyle = rgba(th.accent, 0.05);
+    g.lineWidth = 1.5;
+    const s = 64;
+    g.beginPath();
+    for (let i = -h; i < w + h; i += s) {
+      g.moveTo(x + i, y);
+      g.lineTo(x + i + h, y + h);
+      g.moveTo(x + i + h, y);
+      g.lineTo(x + i, y + h);
+    }
     g.stroke();
-    g.lineWidth = 2;
-    g.strokeStyle = rgba(th.accent, 0.55);
-    g.stroke();
+    g.fillStyle = rgba(th.accent, 0.06);
+    for (let j = 0; j <= h / s + 1; j++)
+      for (let i = 0; i <= w / s + 1; i++) {
+        const cx = x + i * s + (j % 2 ? s / 2 : 0);
+        const cy = y + j * (s / 2);
+        g.beginPath();
+        g.moveTo(cx, cy - 5);
+        g.lineTo(cx + 3.5, cy);
+        g.lineTo(cx, cy + 5);
+        g.lineTo(cx - 3.5, cy);
+        g.closePath();
+        g.fill();
+      }
     g.restore();
   }
 
@@ -1212,6 +1557,8 @@
       S.round = st.round;
     }
     if (S.def.ingest) S.def.ingest(S, st, t);
+    S.chipSet = chipSetOf(st);
+    momentIngest(S, t);
     bgWanted(S);
     S.firstIngest = false;
   }
@@ -1249,11 +1596,11 @@
    * bitmap, so the compositor never re-reads it — and after show() its drawing buffer is blank, so every redraw is
    * a full one (each caller clears and draws everything). `size(w, h, k)` resizes it (blank until the next draw).
    */
-  function layer(parent, x, y, w, h, k, moving) {
+  function layer(parent, x, y, w, h, k, moving, plain) {
     const c = document.createElement("canvas");
     // big layers only (the table, rail, wheels): they redraw rarely, and copying them every frame is what costs; a
-    // small canvas is cheaper to copy than to hand over a fresh bitmap each time it changes
-    const big = w * h * k * k >= 200000;
+    // small canvas is cheaper to copy than to hand over a fresh bitmap each time it changes (`plain`: never a surface)
+    const big = !plain && w * h * k * k >= 200000;
     const sf = big && TV && typeof TV.surface === "function" ? TV.surface : null;
     let s = null;
     const size = (kk) => {
@@ -1503,52 +1850,276 @@
   }
 
   // ------------------------------------------------------------------------------------------------ the dolly
-  // Roulette's win marker, as on a real table: the dealer lowers a crystal dolly on a gold base onto the winning
-  // number, its shadow firming up as it comes down, and it stays there until the round clears. Two sprites drawn
-  // once (the dolly, its shadow), moved by transform / opacity only.
-  const DOLLY_W = 96;
-  const DOLLY_H = 132;
+  // Roulette's win marker, as on a real table. The host picks its style (House settings → status.house.dolly); an
+  // unseen dealer's hand lifts it from its rest beside the wheel, glides it over the layout, sets it down on the
+  // winning number with a soft click and a firm felt shadow, and takes it home when the next round opens. Sprites
+  // drawn once per style (the dolly, its shadow, the click ring), moved by transform / opacity only.
+  const DOLLY_W = 100;
+  const DOLLY_H = 168;
+  const DOLLY_BASE = DOLLY_H - 26; // y of the base's resting point in the sprite
+  const DOLLY_REST = [688, 262]; // where it waits between rounds: on the felt between the wheel and the layout
+  const DOLLY_AFTER = 0.95; // s after the ball settles that the dolly lands (the result shows 1 s after the settle)
+  /** The styles (casino/session.py DOLLIES): materials of the base, the collar and rings, the stem, the finial. */
+  const DOLLY_STYLES = {
+    classic_gold: { name: "Classic Gold", base: "gold", trim: "gold", stem: "gold", top: "ball:gold" },
+    crystal: { name: "Crystal", crystal: true },
+    chrome: { name: "Chrome", base: "chrome", trim: "chrome", stem: "chrome", top: "ball:chrome" },
+    onyx_gold: { name: "Black Onyx & Gold", base: "onyx", trim: "gold", stem: "onyx", top: "ball:onyx" },
+    rose_gold: { name: "Rose Gold", base: "rose", trim: "rose", stem: "rose", top: "ball:rose" },
+    diamond: { name: "Diamond-cut", base: "gold", trim: "gold", stem: "gold", top: "gem" },
+    marble_brass: { name: "Marble & Brass", base: "marble", trim: "brass", stem: "brass", top: "ball:brass" },
+    neon: { name: "Neon Arcade", base: "neon", trim: "neonpink", stem: "neoncyan", top: "ball:neon" },
+  }; // end DOLLY_STYLES
+  const METALS = {
+    gold: ["#5a3a08", "#c99232", "#fff3c4", "#e2b048", "#7a5210"],
+    brass: ["#4a3208", "#b58a2c", "#f6e2a0", "#c99a3a", "#5e420e"],
+    chrome: ["#3a3e48", "#a9afbd", "#ffffff", "#c6ccd8", "#4a4f5c"],
+    rose: ["#6a3528", "#d98e74", "#ffe6da", "#e7a58c", "#7e4232"],
+    onyx: ["#020203", "#1c1c22", "#6a6a78", "#25252c", "#050506"],
+    marble: ["#a8a49a", "#ece8de", "#ffffff", "#e2ddd0", "#9c978b"],
+    neon: ["#0a0614", "#1d1430", "#3a2a5a", "#1d1430", "#0a0614"],
+    neonpink: ["#ff2fa0", "#ff7ad0", "#ffe0f4", "#ff7ad0", "#ff2fa0"],
+    neoncyan: ["#18d8ff", "#7aefff", "#e6fdff", "#7aefff", "#18d8ff"],
+  };
+  /** A turned-metal gradient across [x0, x1]: dark edges, a bright highlight left of centre (the lamp). */
+  function metal(g, mat, x0, x1) {
+    const c = METALS[mat] || METALS.gold;
+    const l = g.createLinearGradient(x0, 0, x1, 0);
+    l.addColorStop(0, c[0]);
+    l.addColorStop(0.22, c[1]);
+    l.addColorStop(0.38, c[2]);
+    l.addColorStop(0.62, c[3]);
+    l.addColorStop(1, c[4]);
+    return l;
+  }
   function dollyLayers(S, root, name) {
     const k = wheelK();
-    const sh = layer(root, 0, 0, DOLLY_W, DOLLY_W / 2, k, true);
+    const sh = layer(root, 0, 0, DOLLY_W * 1.4, DOLLY_W * 0.5, k, true);
+    const ring = layer(root, 0, 0, 120, 60, k, true);
     const d = layer(root, 0, 0, DOLLY_W, DOLLY_H, k, true);
-    sh.c.style.opacity = "0";
-    d.c.style.opacity = "0";
-    d.c.style.transformOrigin = `50% ${DOLLY_H - 12}px`;
-    S.L[name] = { d, sh, painted: false };
+    for (const l of [sh, ring, d]) {
+      l.c.style.display = "none";
+      l.cache = { display: "none" };
+    }
+    d.c.style.transformOrigin = `50% ${DOLLY_BASE}px`;
+    S.L[name] = { d, sh, ring, painted: null };
   }
-  function dollyPaint(S, name) {
+  /** Draw the dolly of `style` (once per style), its felt shadow and the click ring. */
+  function dollyPaint(S, name, style) {
     const L = S.L[name];
-    if (L.painted) return;
-    L.painted = true;
+    const id = DOLLY_STYLES[style] ? style : "classic_gold";
+    if (L.painted === id) return;
+    L.painted = id;
+    const st = DOLLY_STYLES[id];
     const W = DOLLY_W;
-    const H = DOLLY_H;
     const cx = W / 2;
-    // the shadow: a soft ellipse on the felt
+    const by = DOLLY_BASE;
+    // the shadow on the felt: a soft pool and a tight contact core
     const sg = L.sh.g;
+    const SWd = W * 1.4;
+    const SHd = W * 0.5;
     sg.setTransform(L.sh.k, 0, 0, L.sh.k, 0, 0);
-    const sr = sg.createRadialGradient(cx, W / 4, 2, cx, W / 4, W / 2);
+    sg.clearRect(0, 0, SWd, SHd);
+    let sr = sg.createRadialGradient(SWd / 2, SHd / 2, 2, SWd / 2, SHd / 2, SWd / 2);
     sr.addColorStop(0, "rgba(0,0,0,0.55)");
-    sr.addColorStop(0.6, "rgba(0,0,0,0.22)");
+    sr.addColorStop(0.55, "rgba(0,0,0,0.2)");
     sr.addColorStop(1, "rgba(0,0,0,0)");
     sg.fillStyle = sr;
     sg.beginPath();
-    sg.ellipse(cx, W / 4, W / 2, W / 4, 0, 0, TAU);
+    sg.ellipse(SWd / 2, SHd / 2, SWd / 2, SHd / 2, 0, 0, TAU);
     sg.fill();
+    sr = sg.createRadialGradient(SWd / 2, SHd / 2, 1, SWd / 2, SHd / 2, 38);
+    sr.addColorStop(0, "rgba(0,0,0,0.7)");
+    sr.addColorStop(1, "rgba(0,0,0,0)");
+    sg.fillStyle = sr;
+    sg.beginPath();
+    sg.ellipse(SWd / 2, SHd / 2, 38, 12, 0, 0, TAU);
+    sg.fill();
+    L.sh.show();
+    // the click: a thin gold ring that opens on the felt
+    const rg = L.ring.g;
+    rg.setTransform(L.ring.k, 0, 0, L.ring.k, 0, 0);
+    rg.clearRect(0, 0, 120, 60);
+    rg.beginPath();
+    rg.ellipse(60, 30, 52, 18, 0, 0, TAU);
+    rg.lineWidth = 3;
+    rg.strokeStyle = id === "neon" ? "#ff7ad0" : "rgba(255,236,180,.9)";
+    rg.stroke();
+    L.ring.show();
     const g = L.d.g;
     g.setTransform(L.d.k, 0, 0, L.d.k, 0, 0);
-    g.clearRect(0, 0, W, H);
-    const baseY = H - 22; // centre of the base's top face
-    const gold = () => {
-      const l = g.createLinearGradient(cx - 28, 0, cx + 28, 0);
-      l.addColorStop(0, "#7a5410");
-      l.addColorStop(0.28, "#f6dc8a");
-      l.addColorStop(0.5, "#fff6d6");
-      l.addColorStop(0.72, "#d6a33a");
-      l.addColorStop(1, "#6a470c");
-      return l;
+    g.clearRect(0, 0, W, DOLLY_H);
+    if (st.crystal) {
+      crystalDolly(g, cx, by);
+      L.d.show();
+      return;
+    }
+    const glow = (c, b) => {
+      if (id === "neon") {
+        g.shadowColor = c;
+        g.shadowBlur = b;
+      }
     };
-    // the gold base: a short cylinder seen from slightly above
+    // the heavy round base, domed, seen from slightly above
+    g.save();
+    glow("#ff2fa0", 14);
+    g.beginPath();
+    g.ellipse(cx, by + 6, 36, 11, 0, 0, Math.PI);
+    g.lineTo(cx - 36, by - 2);
+    g.bezierCurveTo(cx - 34, by - 14, cx - 14, by - 20, cx, by - 20);
+    g.bezierCurveTo(cx + 14, by - 20, cx + 34, by - 14, cx + 36, by - 2);
+    g.closePath();
+    g.fillStyle = metal(g, st.base, cx - 36, cx + 36);
+    g.fill();
+    g.restore();
+    if (st.base === "marble") {
+      // grey veins in the marble
+      g.save();
+      g.clip();
+      g.strokeStyle = "rgba(90,86,80,.45)";
+      g.lineWidth = 0.8;
+      for (let i = 0; i < 4; i++) {
+        g.beginPath();
+        g.moveTo(cx - 36 + i * 9, by + 8);
+        g.bezierCurveTo(cx - 20 + i * 12, by - 4, cx - 4 + i * 6, by - 2, cx + 10 + i * 8, by - 18);
+        g.stroke();
+      }
+      g.restore();
+    }
+    // the base's lower bevel and a bead at the rim
+    g.beginPath();
+    g.ellipse(cx, by + 6, 36, 11, 0, 0, Math.PI);
+    g.lineWidth = 2;
+    g.strokeStyle = metal(g, st.trim, cx - 36, cx + 36);
+    g.stroke();
+    // the dome's light: a soft specular on the upper left
+    const sp = g.createRadialGradient(cx - 14, by - 12, 1, cx - 14, by - 12, 18);
+    sp.addColorStop(0, "rgba(255,255,255,.75)");
+    sp.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = sp;
+    g.beginPath();
+    g.ellipse(cx - 12, by - 10, 16, 6, -0.2, 0, TAU);
+    g.fill();
+    // the round collar above the base
+    const collar = (y, rx, ry, h) => {
+      g.save();
+      glow("#ff2fa0", 10);
+      g.fillStyle = metal(g, st.trim, cx - rx, cx + rx);
+      g.beginPath();
+      g.ellipse(cx, y + h, rx, ry, 0, 0, Math.PI);
+      g.lineTo(cx - rx, y);
+      g.ellipse(cx, y, rx, ry, 0, Math.PI, 0, true);
+      g.closePath();
+      g.fill();
+      g.restore();
+      g.beginPath();
+      g.ellipse(cx, y, rx, ry, 0, 0, TAU);
+      g.fillStyle = (METALS[st.trim] || METALS.gold)[2];
+      g.globalAlpha = 0.55;
+      g.fill();
+      g.globalAlpha = 1;
+    };
+    collar(by - 26, 15, 4.5, 6);
+    // the slim turned stem, with two rings
+    const top = st.top === "gem" ? by - 92 : by - 100;
+    g.save();
+    glow("#18d8ff", 12);
+    g.beginPath();
+    g.moveTo(cx - 5, by - 22);
+    g.bezierCurveTo(cx - 3.2, by - 50, cx - 3.2, top + 20, cx - 4.2, top);
+    g.lineTo(cx + 4.2, top);
+    g.bezierCurveTo(cx + 3.2, top + 20, cx + 3.2, by - 50, cx + 5, by - 22);
+    g.closePath();
+    g.fillStyle = metal(g, st.stem, cx - 6, cx + 6);
+    g.fill();
+    g.restore();
+    collar(by - 58, 8, 2.6, 4);
+    collar(top + 2, 7, 2.2, 3);
+    // a glint down the stem
+    g.strokeStyle = "rgba(255,255,255,.7)";
+    g.lineWidth = 1.2;
+    g.beginPath();
+    g.moveTo(cx - 2, by - 26);
+    g.lineTo(cx - 1.6, top + 4);
+    g.stroke();
+    if (st.top === "gem") {
+      // a brilliant-cut diamond: crown, table, pavilion, facets and a star of light
+      const gy = top - 4;
+      const gw = 22;
+      g.save();
+      g.beginPath();
+      g.moveTo(cx - gw, gy - 10);
+      g.lineTo(cx - gw * 0.55, gy - 22);
+      g.lineTo(cx + gw * 0.55, gy - 22);
+      g.lineTo(cx + gw, gy - 10);
+      g.lineTo(cx, gy + 18);
+      g.closePath();
+      const dg = g.createLinearGradient(cx - gw, gy - 22, cx + gw, gy + 18);
+      dg.addColorStop(0, "#ffffff");
+      dg.addColorStop(0.3, "#cfeaff");
+      dg.addColorStop(0.55, "#8fb8e8");
+      dg.addColorStop(0.8, "#eaf6ff");
+      dg.addColorStop(1, "#7aa0d8");
+      g.fillStyle = dg;
+      g.fill();
+      g.strokeStyle = "rgba(255,255,255,.9)";
+      g.lineWidth = 1;
+      g.stroke();
+      g.strokeStyle = "rgba(90,130,190,.55)";
+      g.beginPath();
+      g.moveTo(cx - gw, gy - 10);
+      g.lineTo(cx + gw, gy - 10);
+      for (const fx of [-0.55, -0.18, 0.18, 0.55]) {
+        g.moveTo(cx + gw * fx, gy - 22);
+        g.lineTo(cx + gw * fx * 0.6, gy - 10);
+        g.lineTo(cx, gy + 18);
+      }
+      g.stroke();
+      g.restore();
+      g.fillStyle = "#ffffff";
+      g.beginPath();
+      const sx = cx - 8;
+      const sy = gy - 16;
+      g.moveTo(sx, sy - 9);
+      g.lineTo(sx + 1.6, sy - 1.6);
+      g.lineTo(sx + 9, sy);
+      g.lineTo(sx + 1.6, sy + 1.6);
+      g.lineTo(sx, sy + 9);
+      g.lineTo(sx - 1.6, sy + 1.6);
+      g.lineTo(sx - 9, sy);
+      g.lineTo(sx - 1.6, sy - 1.6);
+      g.closePath();
+      g.fill();
+    } else {
+      // the ball finial, with a highlight and a little reflected light underneath
+      const mat = st.top.split(":")[1];
+      const by2 = top - 12;
+      g.save();
+      glow("#ff7ad0", 16);
+      circle(g, cx, by2, 13);
+      const c = METALS[mat] || METALS.gold;
+      const bg = g.createRadialGradient(cx - 5, by2 - 5, 1, cx, by2, 14);
+      bg.addColorStop(0, c[2]);
+      bg.addColorStop(0.35, c[1]);
+      bg.addColorStop(0.8, c[4]);
+      bg.addColorStop(1, c[0]);
+      g.fillStyle = bg;
+      g.fill();
+      g.restore();
+      circle(g, cx - 4.5, by2 - 5, 3.2);
+      g.fillStyle = "rgba(255,255,255,.9)";
+      g.fill();
+      g.beginPath();
+      g.ellipse(cx + 2, by2 + 8, 7, 2.4, 0, 0, TAU);
+      g.fillStyle = "rgba(255,255,255,.18)";
+      g.fill();
+    }
+    L.d.show();
+  }
+  /** The crystal pawn on a gold base (the original dolly). */
+  function crystalDolly(g, cx, baseY0) {
+    const baseY = baseY0 - 8;
+    const gold = () => metal(g, "gold", cx - 28, cx + 28);
     g.fillStyle = gold();
     g.beginPath();
     g.ellipse(cx, baseY + 10, 28, 9, 0, 0, Math.PI);
@@ -1563,17 +2134,6 @@
     g.strokeStyle = "rgba(90,60,10,0.6)";
     g.lineWidth = 1.2;
     g.stroke();
-    // the crystal body: a waisted pawn with a round head, see-through with bright edges
-    const body = () => {
-      g.beginPath();
-      g.moveTo(cx - 20, baseY + 1);
-      g.bezierCurveTo(cx - 20, baseY - 18, cx - 9, baseY - 30, cx - 8, baseY - 52);
-      g.bezierCurveTo(cx - 7, baseY - 64, cx - 15, baseY - 70, cx - 15, baseY - 78);
-      g.lineTo(cx + 15, baseY - 78);
-      g.bezierCurveTo(cx + 15, baseY - 70, cx + 7, baseY - 64, cx + 8, baseY - 52);
-      g.bezierCurveTo(cx + 9, baseY - 30, cx + 20, baseY - 18, cx + 20, baseY + 1);
-      g.closePath();
-    };
     const glass = g.createLinearGradient(cx - 20, 0, cx + 20, 0);
     glass.addColorStop(0, "rgba(255,255,255,0.55)");
     glass.addColorStop(0.22, "rgba(210,232,255,0.16)");
@@ -1581,12 +2141,18 @@
     glass.addColorStop(0.8, "rgba(255,255,255,0.32)");
     glass.addColorStop(1, "rgba(150,180,220,0.35)");
     g.fillStyle = glass;
-    body();
+    g.beginPath();
+    g.moveTo(cx - 20, baseY + 1);
+    g.bezierCurveTo(cx - 20, baseY - 18, cx - 9, baseY - 30, cx - 8, baseY - 52);
+    g.bezierCurveTo(cx - 7, baseY - 64, cx - 15, baseY - 70, cx - 15, baseY - 78);
+    g.lineTo(cx + 15, baseY - 78);
+    g.bezierCurveTo(cx + 15, baseY - 70, cx + 7, baseY - 64, cx + 8, baseY - 52);
+    g.bezierCurveTo(cx + 9, baseY - 30, cx + 20, baseY - 18, cx + 20, baseY + 1);
+    g.closePath();
     g.fill();
     g.strokeStyle = "rgba(255,255,255,0.75)";
     g.lineWidth = 1.6;
     g.stroke();
-    // the gold collar and the crystal head
     g.fillStyle = gold();
     g.beginPath();
     g.ellipse(cx, baseY - 78, 17, 5, 0, 0, TAU);
@@ -1601,7 +2167,6 @@
     g.fill();
     g.strokeStyle = "rgba(255,255,255,0.8)";
     g.stroke();
-    // a long glint down the left of the body
     g.strokeStyle = "rgba(255,255,255,0.85)";
     g.lineWidth = 2.4;
     g.lineCap = "round";
@@ -1609,39 +2174,43 @@
     g.moveTo(cx - 15, baseY - 8);
     g.quadraticCurveTo(cx - 6, baseY - 30, cx - 4, baseY - 58);
     g.stroke();
-    L.sh.show();
-    L.d.show();
   }
-  /** Place the dolly with its base on (x, y): `age` s since it touched down (< 0: being lowered; null: off). */
-  function dollyMove(S, name, x, y, age) {
+  /**
+   * The dealer's hand, as a pure function of `age` (s since the dolly touches down; < 0 before): it rests at `from`,
+   * is lifted (−1.0 … −0.8 s), glides in an arc to `to` (−0.8 … −0.2 s), is set down (−0.2 … 0 s) and settles with a
+   * tiny squash (0 … 0.18 s). Returns {x, y, lift (px above the felt), sy (squash)}; tested in tv_casino.test.mjs.
+   */
+  function dollyPath(from, to, age) {
+    if (age == null || age <= -1.0) return { x: from[0], y: from[1], lift: 0, sy: 1 };
+    if (age < -0.8) {
+      const u = (age + 1.0) / 0.2;
+      return { x: from[0], y: from[1], lift: 42 * easeOut(u), sy: 1 };
+    }
+    if (age < -0.2) {
+      const u = easeInOut((age + 0.8) / 0.6);
+      return { x: lerp(from[0], to[0], u), y: lerp(from[1], to[1], u), lift: 42 + 26 * Math.sin(u * Math.PI), sy: 1 };
+    }
+    if (age < 0) {
+      const u = (age + 0.2) / 0.2;
+      return { x: to[0], y: to[1], lift: 42 * (1 - u * u), sy: 1 };
+    }
+    return { x: to[0], y: to[1], lift: 0, sy: age < 0.18 ? 1 - 0.04 * Math.sin((age / 0.18) * Math.PI) : 1 };
+  }
+  /** Place the dolly (base on (x, y), `lift` px above the felt) and its shadow; the click ring `clickAge` s after it lands. */
+  function dollyMove(S, name, p, clickAge) {
     const L = S.L[name];
-    const ds = L.d.c.style;
-    const ss = L.sh.c.style;
-    const FALL = 0.45;
-    if (age == null || age < -FALL) {
-      if (L.op !== "0") ds.opacity = ss.opacity = L.op = "0";
-      L.tf = null;
+    if (!p) {
+      for (const l of [L.d, L.sh, L.ring]) hideLayer(l);
       return;
     }
-    let lift = 0;
-    let op = 1;
-    let sy = 1;
-    if (age < 0) {
-      const u = (age + FALL) / FALL; // lowered by the dealer's hand: eases down
-      lift = 70 * (1 - easeOut(u));
-      op = Math.min(1, u * 1.6);
-    } else if (age < 0.18) {
-      sy = 1 - 0.035 * Math.sin((age / 0.18) * Math.PI); // a soft settle on the felt
-    }
-    const tf = `translate(${(x - DOLLY_W / 2).toFixed(1)}px,${(y - (DOLLY_H - 22) - lift).toFixed(1)}px) scale(1,${sy.toFixed(3)})`;
-    if (L.tf !== tf) {
-      ds.transform = L.tf = tf; // resting: no style writes at all
-      const near = 1 - lift / 70;
-      ss.transform = `translate(${(x - DOLLY_W / 2).toFixed(1)}px,${(y - DOLLY_W / 4 + 10).toFixed(1)}px) scale(${(0.7 + 0.3 * near).toFixed(3)})`;
-      ss.opacity = (op * (0.35 + 0.65 * near)).toFixed(3);
-    }
-    const o = op.toFixed(3);
-    if (L.op !== o) ds.opacity = L.op = o;
+    const sc = 1 + p.lift / 420; // nearer the camera while it's up
+    moveLayer(L.d, `translate(${(p.x - DOLLY_W / 2).toFixed(1)}px,${(p.y - DOLLY_BASE - p.lift).toFixed(1)}px) scale(${sc.toFixed(3)},${(sc * p.sy).toFixed(3)})`, "1");
+    const near = 1 - clamp(p.lift / 70, 0, 1);
+    moveLayer(L.sh, `translate(${(p.x - DOLLY_W * 0.7 + p.lift * 0.35).toFixed(1)}px,${(p.y - DOLLY_W * 0.25 + 4 + p.lift * 0.2).toFixed(1)}px) scale(${(0.75 + 0.25 * near).toFixed(3)})`, (0.35 + 0.65 * near).toFixed(3));
+    if (clickAge != null && clickAge >= 0 && clickAge < 0.45) {
+      const u = clickAge / 0.45;
+      moveLayer(L.ring, `translate(${(p.x - 60).toFixed(1)}px,${(p.y - 30).toFixed(1)}px) scale(${(0.4 + 1.1 * easeOut(u)).toFixed(3)})`, (0.9 * (1 - u)).toFixed(3));
+    } else hideLayer(L.ring);
   }
 
   /** Device px per stage px for the table's canvases: the stage's own (≤ 1.5), in both tiers. */
@@ -1671,6 +2240,11 @@
         S.g = S.top.g;
         if (def.overlays) def.overlays(S, root); // stamps: above the chips, transforms only
         S.rail = layer(root, RAIL_X, 0, RAIL_W, SH, k, false);
+        // the seats' credit odometers (DOM reels over the rail)
+        S.odoBox = document.createElement("div");
+        Object.assign(S.odoBox.style, { position: "absolute", left: "0px", top: "0px", width: "0px", height: "0px", pointerEvents: "none" });
+        root.appendChild(S.odoBox);
+        S.odos = new Map();
         const pcv = document.createElement("canvas");
         pcv.style.position = "absolute";
         pcv.style.left = `${PANEL_X}px`;
@@ -1678,9 +2252,15 @@
         pcv.style.width = `${PANEL_SIZE}px`;
         pcv.style.height = `${PANEL_SIZE}px`;
         pcv.style.borderRadius = "6px";
+        pcv.style.display = "none"; // shown with the first panel frame (a DeskDot without a panel has none)
         root.appendChild(pcv);
         S.pcv = pcv;
+        S.fxBox = document.createElement("div"); // chips in flight during the moment
+        Object.assign(S.fxBox.style, { position: "absolute", left: "0px", top: "0px", width: "0px", height: "0px", pointerEvents: "none" });
+        root.appendChild(S.fxBox);
+        momentLayers(S, root); // the win / lose moment: above everything on the table and the rail
         if (def.init) def.init(S);
+        S.mountT = nowOf(ctx);
         ingest(S, ctx);
         const me = S;
         const step = () => {
@@ -1710,6 +2290,12 @@
       frame(ctx) {
         if (!S) return;
         S.ctx = ctx;
+        if (!S.hasPanel && ctx.panel) {
+          // a panel is connected: its live inset takes the bottom of the rail
+          S.hasPanel = true;
+          S.pcv.style.display = "";
+          S.railKey = "";
+        }
         if (typeof ctx.drawPanel === "function") ctx.drawPanel(S.pcv, { pitch: PANEL_PITCH, glow: 0.55, round: true });
       },
       resize(ctx) {
@@ -1729,6 +2315,7 @@
       unmount() {
         if (!S) return;
         S.alive = false;
+        if (S.root && S.root.style) S.root.style.transform = "";
         if (S.stop) S.stop();
         if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(S.raf);
         S = null;
@@ -1756,12 +2343,22 @@
     gr.addColorStop(1, th.wing3);
     g.fillStyle = gr;
     g.fillRect(0, 0, SW, SH);
-    const vg = g.createRadialGradient(760, 480, 200, 760, 480, 1100);
-    vg.addColorStop(0, "rgba(255,255,255,.04)");
-    vg.addColorStop(1, "rgba(0,0,0,.35)");
+    // the salon: a damask wall behind the table, darker toward the corners
+    damask(g, th, 0, 0, SW, SH);
+    const vg = g.createRadialGradient(760, 470, 200, 760, 470, 1150);
+    vg.addColorStop(0, "rgba(255,255,255,.05)");
+    vg.addColorStop(1, "rgba(0,0,0,.55)");
     g.fillStyle = vg;
-    g.fillRect(0, 0, RAIL_X, SH);
+    g.fillRect(0, 0, SW, SH);
     S.def.bg(S, g);
+    // the overhead lamp: a warm pool on the felt, the room falling off into shadow (a vignette), once
+    const sp = g.createRadialGradient(760, 400, 40, 760, 480, 1020);
+    sp.addColorStop(0, "rgba(255,236,200,.075)");
+    sp.addColorStop(0.42, "rgba(255,236,200,0)");
+    sp.addColorStop(0.78, "rgba(0,0,0,.12)");
+    sp.addColorStop(1, "rgba(0,0,0,.5)");
+    g.fillStyle = sp;
+    g.fillRect(0, 0, RAIL_X, SH);
     railBackground(S, g);
     S.bgl.show();
     const ps = S.pat.style;
@@ -1778,6 +2375,7 @@
    */
   function paint(S, t) {
     S.t = t;
+    CHIPSET = S.chipSet || "clay";
     S.T = serverClock(S, t);
     background(S);
     if (S.def.move) S.def.move(S, t);
@@ -1785,7 +2383,8 @@
     // (countdown rings sweep in their own small canvases — hudRing — so betting needs ~1 Hz), default 4
     const hz = t < S.animUntil ? 30 : S.def.slowHz ? S.def.slowHz(S, t) : 4;
     const tick = hz > 0 ? Math.floor(t * hz) : 0;
-    const key = `${S.ver}|${S.def.key ? S.def.key(S, t) : ""}|${hz}|${tick}|${S.k}`;
+    const ma = momentAge(S);
+    const key = `${S.ver}|${S.def.key ? S.def.key(S, t) : ""}|${hz}|${tick}|${S.k}|${ma == null ? "" : ma < 0 ? "-" : "m"}`;
     if (key !== S.lastKey) {
       S.lastKey = key;
       S.drawGen = (S.drawGen || 0) + 1;
@@ -1794,6 +2393,7 @@
       g.globalAlpha = 1;
       g.globalCompositeOperation = "source-over";
       g.clearRect(0, 0, SW, SH);
+      S.flights = new Map();
       S.def.draw(S, g, t);
       if (S.st.paused) paused(S, g, t);
       if (S.preview) previewNote(S, g);
@@ -1801,8 +2401,11 @@
     }
     hudFrame(S, t);
     if (S.def.fx) S.def.fx(S, t);
+    const shake = momentFrame(S, t);
+    flightsFrame(S);
+    rootFx(S, shake);
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
-    const rk = `${S.ver}|${turn}|${S.k}`;
+    const rk = `${S.ver}|${turn}|${S.k}|${S.hasPanel ? 1 : 0}`;
     if (rk !== S.railKey) {
       S.railKey = rk;
       const g = S.rail.g;
@@ -1810,6 +2413,27 @@
       g.clearRect(RAIL_X, 0, RAIL_W, SH);
       drawRail(S, g, t);
       S.rail.show();
+    }
+    odoFrame(S, t);
+  }
+
+  /**
+   * The scene root's transform: a scene's camera (S.cam = {s, x, y}: zoom `s` about stage point (x, y), e.g. the
+   * roulette push-in on the winning pocket) plus the moment's shake. One style write, only when it changes.
+   */
+  function rootFx(S, shake) {
+    const c = S.cam;
+    let tf = "";
+    if ((c && c.s !== 1) || shake) {
+      const s = c ? c.s : 1;
+      const tx = (c ? c.x * (1 - s) : 0) + (shake ? shake[0] : 0);
+      const ty = (c ? c.y * (1 - s) : 0) + (shake ? shake[1] : 0);
+      tf = `translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px) scale(${s.toFixed(4)})`;
+    }
+    if (tf !== S.rootTf && S.root && S.root.style) {
+      S.rootTf = tf;
+      S.root.style.transformOrigin = "0 0";
+      S.root.style.transform = tf;
     }
   }
 
@@ -1835,19 +2459,47 @@
   // ------------------------------------------------------------------------------------------------ the rail
   function railBackground(S, g) {
     const th = S.th;
-    rr(g, RAIL_X, 14, RAIL_W - 16, SH - 28, 22);
-    const gr = g.createLinearGradient(0, 0, 0, SH);
-    gr.addColorStop(0, "rgba(0,0,0,.45)");
-    gr.addColorStop(1, "rgba(0,0,0,.6)");
-    g.fillStyle = gr;
+    const x = RAIL_X + 2;
+    const y = 14;
+    const w = RAIL_W - 18;
+    const h = SH - 28;
+    // a leather-lined gallery in a gold frame
+    g.save();
+    rr(g, x, y, w, h, 24);
+    softStroke(g, 0, 30, "#000", 0.7, 0, 12, 5);
+    const lg = g.createLinearGradient(0, y, 0, y + h);
+    lg.addColorStop(0, "#1f1612");
+    lg.addColorStop(1, "#0b0807");
+    g.fillStyle = lg;
+    g.fill();
+    g.restore();
+    rr(g, x, y, w, h, 24);
+    g.fillStyle = grain(g);
     g.fill();
     g.lineWidth = 2;
+    g.strokeStyle = rgba(th.accent, 0.6);
+    g.stroke();
+    rr(g, x + 7, y + 7, w - 14, h - 14, 18);
+    g.lineWidth = 1;
     g.strokeStyle = rgba(th.accent, 0.22);
     g.stroke();
-    txt(g, "AT THE TABLE", RAIL_X + 22, 54, 22, th.accent, { weight: 800, shadow: false });
-    txt(g, "CHIPS", RAIL_X + 22, 528, 18, INK3, { weight: 800, shadow: false });
-    txt(g, "RECENT", RAIL_X + 22, 602, 18, INK3, { weight: 800, shadow: false });
-    // the panel's housing
+    txt(g, "AT THE TABLE", x + 22, 58, 24, th.accent, { weight: 700, font: "serif", gold: true, spacing: 3 });
+    const rl = g.createLinearGradient(x + 20, 0, x + w - 20, 0);
+    rl.addColorStop(0, rgba(th.accent, 0));
+    rl.addColorStop(0.5, rgba(th.accent, 0.6));
+    rl.addColorStop(1, rgba(th.accent, 0));
+    g.fillStyle = rl;
+    g.fillRect(x + 20, 68, w - 40, 1.5);
+  }
+  /** The gallery's labels and the panel's housing (the rail layer: they move when a panel appears). */
+  function railFixtures(S, g) {
+    const th = S.th;
+    const x = RAIL_X + 2;
+    const L = railLayout(S);
+    txt(g, "CHIPS", x + 22, L.rackY - 30, 16, rgba(th.accent_hi || th.accent, 0.6), { weight: 800, shadow: false, spacing: 3 });
+    txt(g, "RECENT", x + 22, L.recentY - 8, 16, rgba(th.accent_hi || th.accent, 0.6), { weight: 800, shadow: false, spacing: 3 });
+    if (!L.panel) return;
+    // the panel's housing (only while panel frames arrive)
     rr(g, PANEL_X - 14, PANEL_Y - 14, PANEL_SIZE + 28, PANEL_SIZE + 28, 16);
     const bz = g.createLinearGradient(0, PANEL_Y - 14, 0, PANEL_Y + PANEL_SIZE + 14);
     bz.addColorStop(0, "#2b2b33");
@@ -1855,7 +2507,7 @@
     g.fillStyle = bz;
     g.fill();
     g.lineWidth = 1.5;
-    g.strokeStyle = "rgba(255,255,255,.12)";
+    g.strokeStyle = rgba(th.accent, 0.35);
     g.stroke();
     rr(g, PANEL_X - 3, PANEL_Y - 3, PANEL_SIZE + 6, PANEL_SIZE + 6, 6);
     g.fillStyle = "#030304";
@@ -1882,59 +2534,844 @@
     const th = S.th;
     const list = S.players;
     const turn = S.def.turnSeat ? S.def.turnSeat(S) : null;
-    txt(g, `${list.length}`, RAIL_X + RAIL_W - 36, 54, 22, INK3, { align: "right", weight: 800, shadow: false });
-    const rows = Math.min(list.length, 7);
-    const rowH = 62;
+    const L = railLayout(S);
+    railFixtures(S, g);
+    txt(g, `${list.length}`, RAIL_X + RAIL_W - 34, 58, 22, rgba(th.accent_hi || th.accent, 0.7), { align: "right", weight: 800, shadow: false });
     if (!list.length) {
-      txt(g, "Nobody yet — scan the code", RAIL_X + 22, 104, 24, INK3, { weight: 600 });
-      txt(g, "at the top to take a seat", RAIL_X + 22, 136, 24, INK3, { weight: 600 });
+      txt(g, "Nobody yet — scan the code", RAIL_X + 24, 112, 24, INK3, { weight: 600 });
+      txt(g, "at the top to take a seat", RAIL_X + 24, 144, 24, INK3, { weight: 600 });
     }
-    for (let i = 0; i < rows; i++) {
+    const bets = onTable(S);
+    const shown = new Set();
+    for (let i = 0; i < L.rows; i++) {
       const p = list[i];
-      const y = 76 + i * rowH;
+      const r = railSeat(S, p.seat);
       const hot = turn != null && String(turn) === String(p.seat);
-      if (hot) {
-        const k = 0.5 + 0.5 * Math.sin(t * 5);
-        rr(g, RAIL_X + 8, y - 2, RAIL_W - 32, rowH - 6, 14);
-        g.fillStyle = rgba(th.accent, 0.12 + 0.1 * k);
-        g.fill();
-        g.lineWidth = 2;
-        g.strokeStyle = rgba(th.accent, 0.6 + 0.4 * k);
-        g.stroke();
-      }
       const alpha = p.online ? 1 : 0.45;
-      avatar(S, g, RAIL_X + 42, y + 27, 22, p, { alpha });
-      txt(g, String(p.name || `P${p.seat}`), RAIL_X + 76, y + 26, 25, p.color || INK1, { weight: 750, maxW: 160, alpha });
-      txt(g, fmt(S, num(p.credits)), RAIL_X + RAIL_W - 36, y + 26, 25, INK1, { align: "right", font: "mono", weight: 700, alpha });
-      const info = (S.def.railInfo || railInfoDefault)(S, p) || {};
-      if (info.text) txt(g, info.text, RAIL_X + 76, y + 50, 17, info.color || INK3, { weight: 800, maxW: 260, shadow: false, alpha });
-      else if (num(p.net) !== 0) txt(g, `SESSION ${signed(S, num(p.net))}`, RAIL_X + 76, y + 50, 17, num(p.net) > 0 ? rgba(OK, 0.8) : INK3, { weight: 700, shadow: false, alpha });
+      const info = Object.assign({}, (S.def.railInfo || railInfoDefault)(S, p) || {});
+      if (!info.text && num(p.net) !== 0) Object.assign(info, { text: `SESSION ${signed(S, num(p.net))}`, color: num(p.net) > 0 ? rgba(OK, 0.8) : INK3 });
+      plaque(S, g, r, p, { hot, alpha, info, bet: S.st.phase === "result" ? 0 : bets.get(String(p.seat)) || 0 });
+      shown.add(String(p.seat));
+      // the credits: an odometer (DOM reels over the plaque, moved by transforms)
+      odoFor(S, p, r.x + r.w - 14, r.y + 8, alpha);
     }
-    if (list.length > rows) txt(g, `+ ${list.length - rows} more`, RAIL_X + RAIL_W - 36, 528, 18, INK3, { align: "right", weight: 700, shadow: false });
+    for (const [seat, o] of S.odos)
+      if (!shown.has(seat)) {
+        o.remove();
+        S.odos.delete(seat);
+      }
+    if (list.length > L.rows) txt(g, `+ ${list.length - L.rows} more`, RAIL_X + RAIL_W - 34, L.rackY - 30, 16, INK3, { align: "right", weight: 700, shadow: false });
     // the table's chip rack (status.chips: only what the limits allow — 1K, 5K… at a high-roller table)
     const rack = arr(S.rack);
     const cr = rack.length > 6 ? 17 : 19;
     const step = Math.min(2 * cr + 8, (RAIL_W - 60) / Math.max(1, rack.length));
-    rack.forEach((c, i) => chip(g, RAIL_X + 22 + cr + i * step, 556, cr, c.color, c.label, { edge: c.edge }));
+    rack.forEach((c, i) => chip(g, RAIL_X + 24 + cr + i * step, L.rackY, cr, c.color, c.label, { edge: c.edge }));
     // the recent results strip
     const hist = arr(S.st.history).filter((h) => h && (!S.st.game || h.game === S.st.game)).slice(-7).reverse();
-    let x = RAIL_X + 22;
+    let x = RAIL_X + 24;
+    const y = L.recentY;
     hist.forEach((h, i) => {
       const lbl = String(h.label == null ? "?" : h.label);
       const w = Math.max(40, measure(g, lbl, 22, { font: "mono" }) + 18);
       if (x + w > RAIL_X + RAIL_W - 24) return;
-      rr(g, x, 612, w, 40, 10);
-      g.fillStyle = TONE[h.tone] || TONE.white;
+      rr(g, x, y + 6, w, 40, 10);
+      const hg = g.createLinearGradient(0, y + 6, 0, y + 46);
+      hg.addColorStop(0, shade(TONE[h.tone] || TONE.white, 1.25));
+      hg.addColorStop(1, shade(TONE[h.tone] || TONE.white, 0.8));
+      g.fillStyle = hg;
       g.fill();
-      if (i === 0) {
-        g.lineWidth = 3;
-        g.strokeStyle = th.accent;
-        g.stroke();
-      }
-      txt(g, lbl, x + w / 2, 640, 22, "#fff", { align: "center", font: "mono", weight: 800, alpha: i === 0 ? 1 : 0.8 });
+      g.lineWidth = i === 0 ? 3 : 1;
+      g.strokeStyle = i === 0 ? th.accent : "rgba(255,255,255,.18)";
+      g.stroke();
+      txt(g, lbl, x + w / 2, y + 34, 22, "#fff", { align: "center", font: "mono", weight: 800, alpha: i === 0 ? 1 : 0.8 });
       x += w + 8;
     });
-    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 22, 640, 20, INK3, { weight: 600 });
+    if (!hist.length) txt(g, "No rounds yet", RAIL_X + 24, y + 34, 20, INK3, { weight: 600 });
+  }
+  /** The seat's credits odometer: created on first use, moved with its plaque. */
+  function odoFor(S, p, x, y, alpha) {
+    const key = String(p.seat);
+    let o = S.odos.get(key);
+    if (!o) {
+      o = new Odo(S.odoBox, { x, y, size: 30, color: INK1, align: "right" });
+      S.odos.set(key, o);
+    }
+    o.place(x, y);
+    const op = String(alpha);
+    if (o.el.style.opacity !== op) o.el.style.opacity = op;
+    o.credits = num(p.credits);
+  }
+  /** Every frame: roll the odometers toward their seat's credits (held while that seat's moment plays). */
+  function odoFrame(S, t) {
+    if (!S.odos) return;
+    for (const [seat, o] of S.odos) {
+      if (!creditsHeld(S, seat)) {
+        const text = fmt(S, o.credits);
+        if (text !== o.text) {
+          const was = o.value;
+          o.value = o.credits;
+          o.color(was == null || o.credits === was ? INK1 : o.credits > was ? "#7dffc4" : "#ff8a9a");
+          o.set(text, t, was == null || o.credits >= was, was == null);
+          o.settleAt = t + 1.6;
+        }
+      }
+      o.frame(t);
+      if (o.settleAt && t > o.settleAt) {
+        o.settleAt = 0;
+        o.color(INK1);
+      }
+    }
+  }
+
+  // ================================================================================================ odometer credits
+  /**
+   * Credits as a slot-machine counter (docs/TV_VIEW.md §7): every digit is a reel — a DOM column 0…9,0 in a clipped
+   * window, moved by transform only — that spins to its new digit with a little overshoot when the value changes,
+   * lower digits spinning a turn further (they "count" more), the reels stopping left to right. A second, smeared
+   * column fades in while a reel turns fast (motion blur without a blur filter). Separators and K / M stay put. The
+   * shown text is whatever fmt / shortChip gives; a change of shape (999 → 1,000) rebuilds the cells, right-aligned.
+   */
+  const ODO_DIGITS = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0";
+  const easeOutBack = (u) => {
+    u = clamp(u, 0, 1);
+    const c = 1.9;
+    return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2);
+  };
+  /** The reel position (digit units, 0 … 10) `u` of the way from digit `a` to `b` with `turns` extra turns. */
+  function odoPos(a, b, turns, up, u) {
+    const d = up ? mod(b - a, 10) + 10 * turns : -(mod(a - b, 10) + 10 * turns);
+    return mod(a + d * easeOutBack(u), 10);
+  }
+  class Odo {
+    constructor(parent, o) {
+      this.o = o;
+      const el = document.createElement("div");
+      const s = el.style;
+      s.position = "absolute";
+      s.left = `${o.x}px`;
+      s.top = `${o.y}px`;
+      s.height = `${o.size}px`;
+      s.font = `${o.weight || 700} ${o.size * 0.86}px ${o.font === "serif" ? SERIF : MONO}`;
+      s.lineHeight = `${o.size}px`;
+      s.color = o.color || INK1;
+      s.whiteSpace = "nowrap";
+      s.pointerEvents = "none";
+      s.display = "flex";
+      s.transform = o.align === "right" ? "translateX(-100%)" : o.align === "center" ? "translateX(-50%)" : "";
+      s.textShadow = "0 2px 0 rgba(0,0,0,.55)";
+      if (o.letterSpacing) s.letterSpacing = o.letterSpacing;
+      parent.appendChild(el);
+      this.el = el;
+      this.cells = [];
+      this.text = null;
+      this.anim = null;
+    }
+    place(x, y) {
+      if (x === this.o.x && y === this.o.y) return;
+      this.o.x = x;
+      this.o.y = y;
+      this.el.style.left = `${x}px`;
+      this.el.style.top = `${y}px`;
+    }
+    color(c) {
+      if (c !== this.o.color) this.el.style.color = this.o.color = c;
+    }
+    /** Show `text` (rolling to it from the shown one unless `instant`); `up` = the value rose. */
+    set(text, t, up, instant) {
+      text = String(text);
+      if (text === this.text) return;
+      const old = this.text;
+      this.text = text;
+      const same = old != null && old.length === text.length && old.replace(/\d/g, "0") === text.replace(/\d/g, "0");
+      if (!same) this.build(text, old);
+      const n = text.length;
+      if (instant || old == null || reducedMotion()) {
+        this.cells.forEach((c, i) => c && c.reel && this.show(c, +text[i]));
+        this.anim = null;
+        return;
+      }
+      const from = this.cells.map((c) => (c && c.reel ? c.at : 0));
+      let k = 0;
+      this.anim = {
+        t0: t,
+        up: !!up,
+        cells: this.cells.map((c, i) => {
+          if (!c || !c.reel) return null;
+          const b = +text[i];
+          const a = Math.round(from[i]) % 10;
+          const digitsRight = text.slice(i + 1).replace(/\D/g, "").length;
+          const changed = a !== b || !same;
+          const order = k++;
+          return changed ? { a, b, turns: digitsRight === 0 ? 2 : digitsRight === 1 ? 1 : 0, dur: 0.55 + 0.09 * order } : null;
+        }),
+      };
+      void n;
+    }
+    build(text, old) {
+      this.el.textContent = "";
+      const prev = this.cells;
+      this.cells = [];
+      const n = text.length;
+      for (let i = 0; i < n; i++) {
+        const ch = text[i];
+        if (!/\d/.test(ch)) {
+          const sp = document.createElement("span");
+          sp.textContent = ch;
+          this.el.appendChild(sp);
+          this.cells.push({ reel: false });
+          continue;
+        }
+        const win = document.createElement("span");
+        const ws = win.style;
+        ws.position = "relative";
+        ws.display = "inline-block";
+        ws.overflow = "hidden";
+        ws.width = "0.62em";
+        ws.height = `${this.o.size}px`;
+        ws.textAlign = "center";
+        const col = document.createElement("span");
+        const blur = document.createElement("span");
+        for (const [c, smear] of [[col, false], [blur, true]]) {
+          const cs = c.style;
+          cs.position = "absolute";
+          cs.left = "0";
+          cs.right = "0";
+          cs.top = "0";
+          cs.whiteSpace = "pre";
+          c.textContent = ODO_DIGITS;
+          if (smear) {
+            cs.opacity = "0";
+            cs.textShadow = `0 ${-this.o.size * 0.22}px 0 rgba(255,255,255,.28), 0 ${this.o.size * 0.22}px 0 rgba(255,255,255,.28)`;
+          }
+          win.appendChild(c);
+        }
+        this.el.appendChild(win);
+        // right-aligned: the old digit in the same place from the right, so a growing number keeps its reels
+        const j = (old || "").length - (n - i);
+        const was = j >= 0 && prev[j] && prev[j].reel ? prev[j].at : 0;
+        const cell = { reel: true, col, blur, at: was, y: null, bo: null };
+        this.cells.push(cell);
+        this.show(cell, was);
+      }
+    }
+    show(c, pos, speed) {
+      c.at = pos;
+      const y = -(pos * this.o.size);
+      const ty = `translateY(${y.toFixed(1)}px)`;
+      if (ty !== c.y) {
+        c.y = ty;
+        c.col.style.transform = ty;
+        c.blur.style.transform = ty;
+      }
+      const bo = clamp(((speed || 0) - 6) / 14, 0, 0.9).toFixed(2);
+      if (bo !== c.bo) {
+        c.bo = bo;
+        c.blur.style.opacity = bo;
+        c.col.style.opacity = (1 - 0.5 * +bo).toFixed(2);
+      }
+    }
+    /** Advance the roll; true while it moves. */
+    frame(t) {
+      const A = this.anim;
+      if (!A) return false;
+      let moving = false;
+      A.cells.forEach((c, i) => {
+        const cell = this.cells[i];
+        if (!c || !cell) return;
+        const u = clamp((t - A.t0) / c.dur, 0, 1);
+        const p = odoPos(c.a, c.b, c.turns, A.up, u);
+        const u2 = clamp((t - A.t0 + 1 / 60) / c.dur, 0, 1);
+        const sp = Math.abs(wrapPi(((odoPos(c.a, c.b, c.turns, A.up, u2) - p) / 10) * TAU)) * (10 / TAU) * 60;
+        this.show(cell, u >= 1 ? c.b : p, u >= 1 ? 0 : sp);
+        if (u < 1) moving = true;
+      });
+      if (!moving) this.anim = null;
+      return moving;
+    }
+    remove() {
+      if (this.el.remove) this.el.remove();
+    }
+  }
+  const reducedMotion = () => {
+    try {
+      return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // ================================================================================================ the seat gallery
+  /**
+   * The seats, as leather plaques down the right of the table: avatar in a gold bezel, name in the player's colour,
+   * credits on an odometer, a live chip stack of what they have on the table, a status line. The panel's inset sits
+   * below them only once panel frames arrive (a DeskDot without a panel — a hosting device — gives the seats the
+   * whole height).
+   */
+  function railLayout(S) {
+    const panel = !!S.hasPanel;
+    const rowH = panel ? 80 : 86;
+    const max = panel ? 5 : 8;
+    return { panel, y0: 78, rowH, max, rows: Math.min(S.players.length, max), rackY: panel ? 536 : 820, recentY: panel ? 606 : 890 };
+  }
+  /** A seat's plaque on the stage, or null when it isn't listed: box (x, y, w, h), avatar (ax, ay), stack (sx, sy). */
+  function railSeat(S, seat) {
+    const L = railLayout(S);
+    const i = S.players.findIndex((p) => String(p.seat) === String(seat));
+    if (i < 0 || i >= L.rows) return null;
+    const x = RAIL_X + 12;
+    const y = L.y0 + i * L.rowH;
+    const w = RAIL_W - 36;
+    const h = L.rowH - 10;
+    return { i, x, y, w, h, ax: x + 38, ay: y + h / 2, sx: x + w - 30, sy: y + h - 22 };
+  }
+  /** The chips a seat has on the table (spot_bets), by seat. */
+  function onTable(S) {
+    const out = new Map();
+    for (const list of Object.values(obj(S.st.spot_bets))) for (const e of arr(list)) out.set(String(e.seat), (out.get(String(e.seat)) || 0) + num(e.amount));
+    return out;
+  }
+  function plaque(S, g, r, p, o) {
+    const th = S.th;
+    const { x, y, w, h } = r;
+    g.save();
+    if (o.alpha != null) g.globalAlpha *= o.alpha;
+    rr(g, x, y, w, h, 16);
+    const lg = g.createLinearGradient(0, y, 0, y + h);
+    lg.addColorStop(0, o.hot ? shade(th.accent_deep || "#3a2c08", 1.25) : "#271c16");
+    lg.addColorStop(1, "#110b09");
+    g.fillStyle = lg;
+    g.fill();
+    g.fillStyle = grain(g);
+    g.fill();
+    g.lineWidth = o.hot ? 2.5 : 1.5;
+    g.strokeStyle = o.hot ? th.accent : rgba(th.accent, 0.3);
+    g.stroke();
+    rr(g, x + 2, y + 2, w - 4, h * 0.5, 14);
+    g.fillStyle = "rgba(255,255,255,.035)";
+    g.fill();
+    // the player's colour: a jewel bar at the left edge
+    rr(g, x + 5, y + 12, 4, h - 24, 2);
+    g.fillStyle = p.color || INK1;
+    g.fill();
+    // the avatar in a gold bezel
+    const bz = g.createLinearGradient(r.ax - 28, r.ay - 28, r.ax + 28, r.ay + 28);
+    bz.addColorStop(0, "#fff0b8");
+    bz.addColorStop(0.5, "#a8761c");
+    bz.addColorStop(1, "#f0cf6a");
+    circle(g, r.ax, r.ay, 28);
+    g.fillStyle = bz;
+    g.fill();
+    g.restore();
+    avatar(S, g, r.ax, r.ay, 24, p, { alpha: o.alpha });
+    const a = o.alpha == null ? 1 : o.alpha;
+    txt(g, String(p.name || `P${p.seat}`), x + 76, y + 30, 24, p.color || INK1, { weight: 750, maxW: w - 190, alpha: a });
+    if (o.info && o.info.text) txt(g, o.info.text, x + 76, y + h - 14, 16, o.info.color || INK3, { weight: 800, maxW: w - 140, shadow: false, alpha: a, spacing: 0.5 });
+    if (o.bet > 0) stack(S, g, r.sx, r.sy, 15, o.bet, p.color, { alpha: a });
+  }
+
+  // ================================================================================================ the win / lose moment
+  /**
+   * When a round settles every screen plays the same moment, from the result phase's anchor on the shared clock
+   * (status.clock.phase_at): losing chips are swept to the dealer and "−500" fades over the loser's plaque; a tiered
+   * banner slams in (WINNER · BIG WIN · MEGA WIN · JACKPOT by the best payout multiple, or HOUSE WINS) over turning
+   * rays with a gold flash and — on big wins — a screen shake; coins fountain from each winner's chips into their
+   * plaque, which lights up while "+12,500" counts up with a juicy ease and their credits roll on the odometer.
+   * Every part is a pre-rendered sprite moved by transform / opacity (docs/TV_VIEW.md §6, §7). Only results in the
+   * public status are shown — winners (net > 0, with stake) and losers — never anything computed here.
+   */
+  const MOMENT = { SWEEP0: 0.05, SWEEP: 0.8, BANNER: 0.25, SLAM: 0.38, OUT0: 3.3, OUT: 0.45, COIN0: 0.5, FLY: 0.95, STAGGER: 0.12, COUNT: 1.25, SHAKE: 0.55, LOSE0: 0.15, SKIP: 2.6 };
+  const TIERS = {
+    jackpot: { word: "JACKPOT!", c: ["#fffbe0", "#ffd84a", "#e08a14", "#7a3a00"], glow: "#ffb02e", shake: 16, coins: 18, rays: 1 },
+    mega: { word: "MEGA WIN!", c: ["#fff0ff", "#ff7ae0", "#b23cff", "#3a0a5a"], glow: "#ff4fd8", shake: 10, coins: 14, rays: 1 },
+    big: { word: "BIG WIN!", c: ["#f0fff8", "#7dffc4", "#18b878", "#053a24"], glow: "#3ddc97", shake: 6, coins: 11, rays: 0.9 },
+    win: { word: "WINNER!", c: ["#fffaf0", "#ffe08a", "#d9a032", "#4a2e04"], glow: "#ffcc33", shake: 0, coins: 7, rays: 0.7 },
+    house: { word: "HOUSE WINS", c: ["#ffffff", "#d6d9e2", "#7d8291", "#1c1e24"], glow: "#ff4d5e", shake: 0, coins: 0, rays: 0 },
+  };
+  const TIER_RANK = { house: 0, win: 1, big: 2, mega: 3, jackpot: 4 };
+  /**
+   * A win's tier by its payout multiple (net ÷ stake): ≥ 30 jackpot (a straight-up roulette number), ≥ 10 mega,
+   * ≥ 3 big, else win; "lose" / "push" for net < 0 / = 0. The phone page has the same function (casino.html,
+   * "shared win moment"); the test checks they agree.
+   */
+  function winTier(net, stake) {
+    net = num(Number(net));
+    stake = num(Number(stake));
+    if (!(net > 0)) return net < 0 ? "lose" : "push";
+    const m = stake > 0 ? net / stake : 1;
+    return m >= 30 ? "jackpot" : m >= 10 ? "mega" : m >= 3 ? "big" : "win";
+  }
+  /** The "+12,500" ticker `age` s into the moment: 0 before `start`, then easeOutExpo up to exactly `net` after `dur`. */
+  function tickerAt(age, net, start, dur) {
+    const u = clamp((age - start) / dur, 0, 1);
+    if (u >= 1) return net;
+    return Math.round(net * (1 - Math.pow(2, -10 * u)) * (1 / (1 - Math.pow(2, -10))));
+  }
+  /** When winner number `wi`'s coins land in their plaque (moment age). */
+  const arriveAt = (wi) => MOMENT.COIN0 + MOMENT.STAGGER * wi + MOMENT.FLY;
+
+  /** The round's moment from the public status, or null (betting, previews, a round nobody played). */
+  function momentOf(S) {
+    if (S.preview) return null;
+    if (S.def.moment) return S.def.moment(S);
+    const st = S.st;
+    if (st.phase !== "result") return null;
+    const r = obj(st.result);
+    const stakes = onTable(S);
+    const winners = arr(r.winners)
+      .filter((w) => w && num(w.net) > 0)
+      .map((w) => ({ seat: w.seat, name: w.name, net: num(w.net), stake: num(w.stake) || stakes.get(String(w.seat)) || 0 }));
+    const won = new Set(winners.map((w) => String(w.seat)));
+    const losers = Array.isArray(r.losers)
+      ? r.losers.filter((w) => w && num(w.net) < 0).map((w) => ({ seat: w.seat, name: w.name, net: num(w.net), stake: num(w.stake) }))
+      : [...stakes].filter(([seat, a]) => a > 0 && !won.has(seat)).map(([seat, a]) => ({ seat, net: -a, stake: a }));
+    if (!winners.length && !losers.length) return null;
+    return momentFrom(S, `${st.game || S.def.id}|${r.round}|${st.round}`, obj(st.clock).phase_at, winners, losers);
+  }
+  function momentFrom(S, key, anchor, winners, losers) {
+    winners.forEach((w) => (w.tier = winTier(w.net, w.stake)));
+    let tier = "house";
+    for (const w of winners) if (TIER_RANK[w.tier] > TIER_RANK[tier]) tier = w.tier;
+    const top = winners.slice().sort((a, b) => TIER_RANK[b.tier] - TIER_RANK[a.tier] || b.net - a.net)[0] || null;
+    const lost = losers.reduce((a, w) => a - w.net, 0);
+    return { key, anchor: typeof anchor === "number" && S.ctx && typeof S.ctx.serverNow === "function" ? anchor : null, winners, losers, tier, top, lost };
+  }
+  /** Seconds into the current moment on the shared clock, or null. */
+  const momentAge = (S) => (S.mo && S.mo.data && S.mo.at != null ? S.T - S.mo.at : null);
+
+  const BAN_W = 1100;
+  const BAN_H = 300;
+  const RAYS = 760;
+  const FLASH_W = 900;
+  const FLASH_H = 480;
+  const COINS = 30;
+  const SPARKS = 14;
+  function momentLayers(S, root) {
+    const k = tableK();
+    const mk = (w, h, kk) => {
+      const l = layer(root, 0, 0, w, h, kk, true, true);
+      l.c.style.display = "none";
+      l.cache = { display: "none" };
+      l.c.style.left = "0px";
+      l.c.style.top = "0px";
+      return l;
+    };
+    const M = { data: null, at: null, key: null, on: false };
+    M.flash = mk(FLASH_W / 4, FLASH_H / 4, 1); // a soft burst: a quarter-size sprite shown 4× (it's all gradient)
+    M.flash.c.style.width = `${FLASH_W}px`;
+    M.flash.c.style.height = `${FLASH_H}px`;
+    M.rays = mk(RAYS / 2, RAYS / 2, 1);
+    M.rays.c.style.width = `${RAYS}px`;
+    M.rays.c.style.height = `${RAYS}px`;
+    M.plaques = [];
+    for (let i = 0; i < 8; i++) M.plaques.push({ l: mk(RAIL_W + 20, 120, k), key: null });
+    M.coins = [];
+    for (let i = 0; i < COINS; i++) M.coins.push(mk(44, 44, Math.min(k, 1.5)));
+    M.sparks = [];
+    for (let i = 0; i < SPARKS; i++) M.sparks.push(mk(40, 40, 1));
+    M.banner = mk(BAN_W, BAN_H, k);
+    M.ticker = mk(900, 120, k);
+    M.paintKey = {};
+    S.mo = M;
+    // the sprites that never change: the flash, a coin, a spark
+    const fg = M.flash.g;
+    const fl = fg.createRadialGradient(FLASH_W / 8, FLASH_H / 8, 2, FLASH_W / 8, FLASH_H / 8, FLASH_W / 8);
+    fl.addColorStop(0, "rgba(255,250,225,.95)");
+    fl.addColorStop(0.35, "rgba(255,214,120,.45)");
+    fl.addColorStop(1, "rgba(255,190,80,0)");
+    fg.fillStyle = fl;
+    fg.fillRect(0, 0, FLASH_W / 4, FLASH_H / 4);
+    M.flash.show();
+    for (const c of M.coins) {
+      const g = c.g;
+      const r = 17;
+      g.save();
+      g.shadowColor = "rgba(0,0,0,.5)";
+      g.shadowBlur = 5;
+      g.shadowOffsetY = 2;
+      circle(g, 22, 22, r);
+      const cg = g.createRadialGradient(16, 14, 2, 22, 22, r);
+      cg.addColorStop(0, "#fffbe0");
+      cg.addColorStop(0.4, "#ffd54a");
+      cg.addColorStop(0.85, "#c98a14");
+      cg.addColorStop(1, "#7a4a04");
+      g.fillStyle = cg;
+      g.fill();
+      g.restore();
+      circle(g, 22, 22, r * 0.7);
+      g.lineWidth = 2;
+      g.strokeStyle = "rgba(122,74,4,.7)";
+      g.stroke();
+      txt(g, "$", 22, 29, 19, "#8a5a06", { align: "center", weight: 900, shadow: false });
+      c.show();
+    }
+    for (const sp of M.sparks) {
+      const g = sp.g;
+      const gr = g.createRadialGradient(20, 20, 0, 20, 20, 20);
+      gr.addColorStop(0, "rgba(255,255,255,1)");
+      gr.addColorStop(0.25, "rgba(255,236,170,.8)");
+      gr.addColorStop(1, "rgba(255,200,80,0)");
+      g.fillStyle = gr;
+      g.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU;
+        const rr2 = i % 2 ? 5 : 20;
+        g.lineTo(20 + Math.cos(a) * rr2, 20 + Math.sin(a) * rr2);
+      }
+      g.closePath();
+      g.fill();
+      sp.show();
+    }
+  }
+
+  /**
+   * A tier's banner and rays, painted once per page into cached sprites (stage scale 1: the banner only shows while
+   * it moves and scales) — pre-warmed while the table is idle, so the moment's first frame only copies them.
+   */
+  const bannerCache = new Map();
+  function bannerSprites(tier) {
+    let sp = bannerCache.get(tier);
+    if (sp) return sp;
+    const T = TIERS[tier] || TIERS.win;
+    const bm = makeCanvas(BAN_W, BAN_H, 1);
+    const g = bm.g;
+    const cx = BAN_W / 2;
+    const cy = BAN_H / 2 + 10;
+    // a lacquered ribbon behind the word
+    g.save();
+    g.beginPath();
+    g.moveTo(90, cy - 58);
+    g.lineTo(BAN_W - 90, cy - 58);
+    g.lineTo(BAN_W - 50, cy);
+    g.lineTo(BAN_W - 90, cy + 58);
+    g.lineTo(90, cy + 58);
+    g.lineTo(50, cy);
+    g.closePath();
+    softStroke(g, 0, 26, "#000", 0.7, 0, 10, 5);
+    const rb = g.createLinearGradient(0, cy - 58, 0, cy + 58);
+    rb.addColorStop(0, shade(T.c[3], 1.6));
+    rb.addColorStop(0.5, T.c[3]);
+    rb.addColorStop(1, shade(T.c[3], 0.6));
+    g.fillStyle = rb;
+    g.fill();
+    g.restore();
+    g.lineWidth = 4;
+    g.strokeStyle = T.c[1];
+    g.stroke();
+    // the word: glow, a thick dark outline, a metal fill, a top light
+    const size = tier === "house" ? 104 : 132;
+    g.save();
+    g.font = `italic 900 ${size}px ${FONT}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    if ("letterSpacing" in g) g.letterSpacing = "2px";
+    // the glow: the word's outline stroked wide and faint a few times (no blur: this paints in one frame on a stick)
+    g.lineJoin = "round";
+    g.strokeStyle = T.glow;
+    for (let i = 3; i >= 1; i--) {
+      g.globalAlpha = 0.12;
+      g.lineWidth = 14 + i * 16;
+      g.strokeText(T.word, cx, cy, BAN_W - 120);
+    }
+    g.globalAlpha = 1;
+    g.lineWidth = 16;
+    g.strokeStyle = shade(T.c[3], 0.7);
+    g.strokeText(T.word, cx, cy, BAN_W - 120);
+    g.lineWidth = 6;
+    g.strokeStyle = T.c[0];
+    g.strokeText(T.word, cx, cy, BAN_W - 120);
+    const mg = g.createLinearGradient(0, cy - size / 2, 0, cy + size / 2);
+    mg.addColorStop(0, T.c[0]);
+    mg.addColorStop(0.45, T.c[1]);
+    mg.addColorStop(0.55, T.c[2]);
+    mg.addColorStop(1, T.c[1]);
+    g.fillStyle = mg;
+    g.fillText(T.word, cx, cy, BAN_W - 120);
+    g.restore();
+    const rm = makeCanvas(RAYS / 2, RAYS / 2, 1);
+    const rg = rm.g;
+    const c = RAYS / 4;
+    const grd = rg.createRadialGradient(c, c, 10, c, c, c);
+    grd.addColorStop(0, rgba(T.c[1], 0.75));
+    grd.addColorStop(0.5, rgba(T.c[1], 0.25));
+    grd.addColorStop(1, rgba(T.c[1], 0));
+    rg.fillStyle = grd;
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * TAU;
+      rg.beginPath();
+      rg.moveTo(c, c);
+      rg.arc(c, c, c, a, a + TAU / 36);
+      rg.closePath();
+      rg.fill();
+    }
+    sp = { banner: bm.c, rays: rm.c };
+    bannerCache.set(tier, sp);
+    return sp;
+  }
+  /** Put a tier's banner and rays into the moment's layers (two copies; nothing is drawn from scratch here). */
+  function momentPaint(S, tier) {
+    const M = S.mo;
+    const key = `${tier}|${S.k}`;
+    if (M.paintKey.banner === key) return;
+    M.paintKey.banner = key;
+    const sp = bannerSprites(tier);
+    for (const [l, im, w, h] of [[M.banner, sp.banner, BAN_W, BAN_H], [M.rays, sp.rays, RAYS / 2, RAYS / 2]]) {
+      l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+      l.g.clearRect(0, 0, w, h);
+      l.g.drawImage(im, 0, 0, w, h);
+      l.show();
+    }
+  }
+
+  /** The hero ticker under the banner: "+12,500 · ANNA" (or "The house takes 500"), redrawn when its text changes. */
+  function tickerPaint(S, text, sub, color) {
+    const M = S.mo;
+    const key = `${text}|${sub}|${color}|${S.k}`;
+    if (M.paintKey.ticker === key) return;
+    M.paintKey.ticker = key;
+    const l = M.ticker;
+    const g = l.g;
+    g.setTransform(l.k, 0, 0, l.k, 0, 0);
+    g.clearRect(0, 0, 900, 120);
+    txt(g, text, 450, 70, 74, color, { align: "center", font: "mono", weight: 800 });
+    if (sub) txt(g, sub, 450, 108, 26, INK1, { align: "center", weight: 750, maxW: 860 });
+    l.show();
+  }
+
+  /** A plaque's overlay: the lit frame and its badge (+12,500 / −500), redrawn only when the badge changes. */
+  const plaqueGlow = new Map();
+  function plaquePaint(S, slot, r, kind, text, color) {
+    const l = slot.l;
+    const key = `${kind}|${text}|${r.w}|${r.h}|${S.k}`;
+    if (slot.key === key) return;
+    slot.key = key;
+    const g = l.g;
+    g.setTransform(l.k, 0, 0, l.k, 0, 0);
+    g.clearRect(0, 0, l.w, l.h);
+    const ox = 10;
+    const oy = (l.h - r.h) / 2;
+    if (kind === "win") {
+      const gk = `${r.w}|${r.h}|${color}|${l.k}`;
+      let sp = plaqueGlow.get(gk);
+      if (!sp) {
+        sp = makeCanvas(l.w, l.h, l.k);
+        sp.g.shadowColor = color;
+        sp.g.shadowBlur = 22;
+        rr(sp.g, ox, oy, r.w, r.h, 16);
+        sp.g.lineWidth = 4;
+        sp.g.strokeStyle = color;
+        sp.g.stroke();
+        sp.g.shadowBlur = 0;
+        sp.g.lineWidth = 1.5;
+        sp.g.strokeStyle = "#fff6d0";
+        sp.g.stroke();
+        plaqueGlow.set(gk, sp);
+      }
+      g.drawImage(sp.c, 0, 0, l.w, l.h);
+    }
+    if (text) {
+      const size = 21;
+      const w = measure(g, text, size, { font: "mono", weight: 800 }) + 22;
+      const bx = ox + r.w - w - 10; // under the credits, clear of the name
+      const by = oy + r.h - 31;
+      rr(g, bx, by, w, 27, 13.5);
+      g.fillStyle = kind === "win" ? "rgba(6,40,22,.92)" : "rgba(60,8,16,.9)";
+      g.fill();
+      g.lineWidth = 2;
+      g.strokeStyle = color;
+      g.stroke();
+      txt(g, text, bx + w / 2, by + 21, size, kind === "win" ? "#7dffc4" : "#ff8a9a", { align: "center", font: "mono", weight: 800, shadow: false });
+    }
+    l.show();
+  }
+
+  function setStyle(el, key, v, cache) {
+    if (cache[key] !== v) {
+      cache[key] = v;
+      el.style[key] = v;
+    }
+  }
+  /**
+   * Hide a moving sprite: display none, so an idle sprite isn't a composited layer at all (every layer costs the
+   * page's commit a little on every frame — dozens of idle coins would cost a TV stick its frame rate).
+   */
+  function hideLayer(l) {
+    if (!l.cache) l.cache = {};
+    setStyle(l.c, "display", "none", l.cache);
+  }
+  function moveLayer(l, tf, op) {
+    if (!l.cache) l.cache = {};
+    setStyle(l.c, "display", "", l.cache);
+    setStyle(l.c, "transform", tf, l.cache);
+    setStyle(l.c, "opacity", op, l.cache);
+  }
+
+  /** Where a winner's coins start: the scene's own answer (their winning chips), else the middle of the felt. */
+  function coinFrom(S, seat, i) {
+    const p = S.def.winFrom ? S.def.winFrom(S, seat) : null;
+    const h = hash01(`${seat}|${i}`);
+    const base = p || [RAIL_X / 2, SH / 2];
+    return [base[0] + (h - 0.5) * 40, base[1] + (hash01(`${i}|${seat}`) - 0.5) * 30];
+  }
+
+  /**
+   * One frame of the moment (all of it a function of its age on the shared clock). Returns the shake offset for
+   * the scene root (paint() combines it with a scene's camera).
+   */
+  function momentFrame(S, t) {
+    const M = S.mo;
+    if (!M) return null;
+    const d = M.data;
+    const a = momentAge(S);
+    const on = d && a != null && a >= 0;
+    if (!on) {
+      // idle: pre-paint one tier's banner per frame, a few seconds after the scene mounted
+      if (!M.warm && S.t - (S.mountT || 0) > 3 && S.t >= S.animUntil && (S.st.phase === "betting" || S.st.phase === "idle") && S.t - (M.warmT || 0) > 1.5) {
+        M.warmT = S.t;
+        const next = Object.keys(TIERS).find((k) => !bannerCache.has(k));
+        if (next) bannerSprites(next);
+        else M.warm = true;
+      }
+      if (M.on) {
+        M.on = false;
+        for (const l of [M.flash, M.rays, M.banner, M.ticker, ...M.coins, ...M.sparks, ...M.plaques.map((p) => p.l)]) hideLayer(l);
+      }
+      return null;
+    }
+    M.on = true;
+    const T = TIERS[d.tier] || TIERS.win;
+    const cx = RAIL_X / 2;
+    const cy = S.def.bannerY || 430;
+    const late = M.skip; // the TV came in late: no replay, just the settled state
+    // the banner and its rays, the flash
+    momentPaint(S, d.tier);
+    const bu = (a - MOMENT.BANNER) / MOMENT.SLAM;
+    const out = clamp((a - MOMENT.OUT0) / MOMENT.OUT, 0, 1);
+    if (!late && bu >= 0 && out < 1) {
+      const sc = bu < 1 ? 1.7 - 0.7 * easeOutBack(bu) : 1 + 0.025 * Math.sin((a - MOMENT.BANNER) * 5);
+      const op = (bu < 1 ? clamp(bu * 3, 0, 1) : 1) * (1 - out);
+      moveLayer(M.banner, `translate(${cx - BAN_W / 2}px,${cy - BAN_H / 2}px) scale(${(sc * (1 - 0.3 * out)).toFixed(3)}) rotate(${(-0.03 * (1 - clamp(bu, 0, 1))).toFixed(3)}rad)`, op.toFixed(3));
+      if (T.rays) moveLayer(M.rays, `translate(${cx - RAYS / 2}px,${cy - RAYS / 2}px) rotate(${(a * 0.35).toFixed(3)}rad) scale(${(0.6 + 0.4 * clamp(bu, 0, 1)).toFixed(3)})`, (T.rays * 0.85 * clamp(bu, 0, 1) * (1 - out)).toFixed(3));
+      else hideLayer(M.rays);
+      const fu = (a - MOMENT.BANNER) / 0.35;
+      if (fu >= 0 && fu < 1 && d.tier !== "house") moveLayer(M.flash, `translate(${cx - FLASH_W / 2}px,${cy - FLASH_H / 2}px) scale(${(0.8 + 0.5 * fu).toFixed(3)})`, (0.7 * (1 - fu)).toFixed(3));
+      else hideLayer(M.flash);
+    } else {
+      hideLayer(M.banner);
+      hideLayer(M.rays);
+      hideLayer(M.flash);
+    }
+    // the hero ticker under the banner
+    const aq = Math.floor(a * 30) / 30; // the counters step at 30 Hz: half the repaints, the same count to the eye
+    if (!late && a >= MOMENT.BANNER + 0.2 && out < 1) {
+      if (d.top) tickerPaint(S, `+${fmt(S, tickerAt(aq, d.top.net, MOMENT.BANNER + 0.25, MOMENT.COUNT + 0.4))}`, `${d.top.name || `P${d.top.seat}`}${d.winners.length > 1 ? `  +  ${d.winners.length - 1} more` : ""}`, "#7dffc4");
+      else tickerPaint(S, d.lost ? `−${fmt(S, d.lost)}` : "", "The house takes the table", "#ff8a9a");
+      const k = easeOut((a - MOMENT.BANNER - 0.2) / 0.3);
+      moveLayer(M.ticker, `translate(${cx - 450}px,${(cy + BAN_H / 2 - 20 + (1 - k) * 30).toFixed(1)}px)`, (k * (1 - out)).toFixed(3));
+    } else hideLayer(M.ticker);
+    // sparkles round the banner
+    M.sparks.forEach((sp, i) => {
+      const life = 0.7 + 0.5 * hash01(`sl${i}`);
+      const t0 = MOMENT.BANNER + 0.15 + hash01(`st${i}`) * 2.4;
+      const u = (a - t0) / life;
+      if (late || d.tier === "house" || u < 0 || u > 1 || out >= 1) return hideLayer(sp);
+      const x = cx + (hash01(`sx${i}`) - 0.5) * BAN_W * 0.95;
+      const y = cy + (hash01(`sy${i}`) - 0.5) * BAN_H * 1.1;
+      const s = Math.sin(u * Math.PI) * (0.6 + 0.8 * hash01(`ss${i}`));
+      moveLayer(sp, `translate(${(x - 20).toFixed(1)}px,${(y - 20).toFixed(1)}px) rotate(${(u * 2).toFixed(2)}rad) scale(${s.toFixed(3)})`, Math.min(1, s * 1.5).toFixed(3));
+    });
+    // coins: a fountain from each winner's chips into their plaque
+    let ci = 0;
+    if (!late) {
+      d.winners.forEach((w, wi) => {
+        const target = railSeat(S, w.seat);
+        const to = target ? [target.ax, target.ay] : [RAIL_X + RAIL_W / 2, 60];
+        const n = Math.max(4, Math.round((TIERS[w.tier] || TIERS.win).coins / Math.max(1, Math.sqrt(d.winners.length))));
+        for (let j = 0; j < n && ci < COINS; j++, ci++) {
+          const c = M.coins[ci];
+          const t0 = MOMENT.COIN0 + MOMENT.STAGGER * wi + j * 0.045;
+          const u = (a - t0) / (MOMENT.FLY - j * 0.012);
+          if (u < 0 || u >= 1) {
+            hideLayer(c);
+            continue;
+          }
+          const from = coinFrom(S, w.seat, j);
+          const h = hash01(`c${w.seat}${j}`);
+          const ctrl = [lerp(from[0], to[0], 0.3) + (h - 0.5) * 260, Math.min(from[1], to[1]) - 220 - 200 * hash01(`h${j}${w.seat}`)];
+          const e = u * u * (3 - 2 * u);
+          const x = (1 - e) * (1 - e) * from[0] + 2 * (1 - e) * e * ctrl[0] + e * e * to[0];
+          const y = (1 - e) * (1 - e) * from[1] + 2 * (1 - e) * e * ctrl[1] + e * e * to[1];
+          const spin = 0.2 + 0.8 * Math.abs(Math.cos(a * 13 + j));
+          const sc = (1 + 0.45 * Math.sin(u * Math.PI)) * (u > 0.9 ? 1 - (u - 0.9) * 6 : 1);
+          moveLayer(c, `translate(${(x - 22).toFixed(1)}px,${(y - 22).toFixed(1)}px) scale(${(sc * spin).toFixed(3)},${sc.toFixed(3)})`, clamp(u * 8, 0, 1).toFixed(3));
+        }
+      });
+    }
+    for (; ci < COINS; ci++) hideLayer(M.coins[ci]);
+    // the plaques: winners light up and count, losers' "−500" floats away
+    const used = new Set();
+    const lit = 0.75 + 0.25 * Math.sin(a * 5);
+    d.winners.forEach((w, wi) => {
+      const r = railSeat(S, w.seat);
+      if (!r) return;
+      used.add(r.i);
+      const slot = M.plaques[r.i];
+      const arr0 = late ? -9 : arriveAt(wi);
+      const v = tickerAt(aq, w.net, arr0, MOMENT.COUNT);
+      plaquePaint(S, slot, r, "win", a >= arr0 ? `+${fmt(S, v)}` : "", (TIERS[w.tier] || TIERS.win).glow);
+      const pop = !late && a >= arr0 && a < arr0 + 0.3 ? 1 + 0.08 * Math.sin(((a - arr0) / 0.3) * Math.PI) : 1;
+      const op = late ? 1 : clamp((a - arr0 + 0.3) / 0.3, 0, 1);
+      moveLayer(slot.l, `translate(${r.x - 10}px,${(r.y - (120 - r.h) / 2).toFixed(1)}px) scale(${pop.toFixed(3)})`, (op * lit).toFixed(3));
+    });
+    d.losers.forEach((w) => {
+      const r = railSeat(S, w.seat);
+      if (!r || used.has(r.i)) return;
+      used.add(r.i);
+      const slot = M.plaques[r.i];
+      const u = late ? 1 : (a - MOMENT.LOSE0) / 2.2;
+      plaquePaint(S, slot, r, "lose", `−${fmt(S, -w.net)}`, BAD);
+      if (u < 0 || u >= 1) return hideLayer(slot.l);
+      moveLayer(slot.l, `translate(${r.x - 10}px,${(r.y - (120 - r.h) / 2 - 14 * easeOut(u)).toFixed(1)}px)`, (u < 0.15 ? u / 0.15 : 1 - Math.pow((u - 0.15) / 0.85, 2)).toFixed(3));
+    });
+    M.plaques.forEach((p, i) => {
+      if (!used.has(i)) hideLayer(p.l);
+    });
+    // the shake (big wins)
+    const su = (a - MOMENT.BANNER - 0.12) / MOMENT.SHAKE;
+    if (!late && T.shake && su >= 0 && su < 1) {
+      const amp = T.shake * (1 - su) * (1 - su);
+      return [amp * Math.sin(a * 71), amp * 0.7 * Math.cos(a * 53)];
+    }
+    return null;
+  }
+  /** A new status: start, keep or end the moment. */
+  function momentIngest(S, t) {
+    const M = S.mo;
+    if (!M) return;
+    const d = momentOf(S);
+    if (!d) {
+      M.data = null;
+      M.key = null;
+      M.at = null;
+      return;
+    }
+    if (d.key !== M.key) {
+      M.key = d.key;
+      M.at = d.anchor != null ? d.anchor : S.T - (S.def.momentSince ? S.def.momentSince(S, t) : S.clk.since(t));
+      const age = S.T - M.at;
+      M.skip = S.firstIngest || age > MOMENT.SKIP; // a TV that tunes in late shows the settled table, no replay
+      M.held = new Map();
+    } else if (d.anchor != null) M.at = d.anchor;
+    M.data = d;
+  }
+  /** Hold a seat's credits on the odometer until their coins land (winners) or the "−" shows (losers). */
+  function creditsHeld(S, seat) {
+    const M = S.mo;
+    const a = momentAge(S);
+    if (!M || !M.data || a == null || M.skip) return false;
+    const wi = M.data.winners.findIndex((w) => String(w.seat) === String(seat));
+    if (wi >= 0) return a < arriveAt(wi);
+    if (M.data.losers.some((w) => String(w.seat) === String(seat))) return a < MOMENT.LOSE0;
+    return false;
   }
 
   // ------------------------------------------------------------------------------------------------ shared headline
@@ -2045,9 +3482,6 @@
     }
   }
 
-  /** How far into the result sweep losing chips are (0..1), starting `delay` s into the result. */
-  const sweepK = (S, t, delay) => (S.st.phase === "result" ? clamp((S.clk.since(t) - delay) / 0.8, 0, 1) : 0);
-
   // ================================================================================================ ROULETTE
   const R_CX = 382;
   const R_CY = 548;
@@ -2093,7 +3527,12 @@
       txt(g, rLabel(n), 0, -R_HEAD + 30, 23, "#ffffff", { align: "center", weight: 800, shadow: false });
       g.restore();
     }
-    g.strokeStyle = "#d9b45a";
+    const fret = g.createLinearGradient(-R_HEAD, -R_HEAD, R_HEAD, R_HEAD);
+    fret.addColorStop(0, "#fff1c2");
+    fret.addColorStop(0.35, "#d9b45a");
+    fret.addColorStop(0.65, "#8a6420");
+    fret.addColorStop(1, "#f0d488");
+    g.strokeStyle = fret;
     for (let i = 0; i < N; i++) {
       const a = i * seg - seg / 2 - Math.PI / 2;
       g.lineWidth = 2.2;
@@ -2109,20 +3548,32 @@
     }
     // the cone and the turret
     circle(g, 0, 0, R_POCK_IN - 2);
-    const cg = g.createRadialGradient(-40, -50, 10, 0, 0, R_POCK_IN);
-    cg.addColorStop(0, "#8a5a32");
-    cg.addColorStop(0.6, "#5a3518");
-    cg.addColorStop(1, "#2a160a");
+    const cg = g.createRadialGradient(-50, -60, 6, 0, 0, R_POCK_IN);
+    cg.addColorStop(0, "#b07a46");
+    cg.addColorStop(0.35, "#7a4a24");
+    cg.addColorStop(0.75, "#4a2810");
+    cg.addColorStop(1, "#1e0f05");
     g.fillStyle = cg;
     g.fill();
+    // fine walnut rings on the cone
+    for (let r = 40; r < R_POCK_IN - 6; r += 9) {
+      circle(g, 0, 0, r);
+      g.lineWidth = 1;
+      g.strokeStyle = r % 2 ? "rgba(0,0,0,.12)" : "rgba(255,210,160,.05)";
+      g.stroke();
+    }
     for (const r of [140, 96]) {
       circle(g, 0, 0, r);
       g.lineWidth = 2;
       g.strokeStyle = "rgba(255,220,150,.25)";
       g.stroke();
     }
-    g.fillStyle = "#e6c46a";
-    g.strokeStyle = "#8a6a1a";
+    const arm = g.createLinearGradient(-8, 0, 8, 0);
+    arm.addColorStop(0, "#7a5a14");
+    arm.addColorStop(0.45, "#fff2c4");
+    arm.addColorStop(1, "#a8801e");
+    g.fillStyle = arm;
+    g.strokeStyle = "#6a4a10";
     for (let i = 0; i < 4; i++) {
       g.save();
       g.rotate((i * Math.PI) / 2);
@@ -2172,12 +3623,14 @@
     const psi0 = target - ballTravel(tSettle) - wheelTravel(tSettle);
     const psi = psi0 + ballTravel(t) + wheelTravel(t);
     let r = RP.TRACK;
+    let hop = 0;
     if (t > tDrop) {
       const u = (t - tDrop) / (tSettle - tDrop);
       const ease = u * u * (3 - 2 * u);
-      r = RP.TRACK - (RP.TRACK - RP.POCKET) * ease + 1.6 * Math.abs(Math.sin(u * 2.6 * Math.PI)) * (1 - u) * (1 - u);
+      hop = 1.6 * Math.abs(Math.sin(u * 2.6 * Math.PI)) * (1 - u) * (1 - u);
+      r = RP.TRACK - (RP.TRACK - RP.POCKET) * ease + hop;
     }
-    return { a: psi, r, settled: false };
+    return { a: psi, r, settled: false, hop };
   }
 
   /**
@@ -2229,7 +3682,7 @@
       const sl = sinceLockOf(rv, T);
       const b = rouletteBallRel(Math.max(0, sl), pocket, n, num(rv.spin_s, 7.5), num(rv.lock_s, LOCK));
       fx.lastBall = { pocket, T };
-      return { a: rot + b.a, r: panelR(b.r), alpha: clamp(sl / 0.25, 0, 1), settled: b.settled };
+      return { a: rot + b.a, r: panelR(b.r), alpha: clamp(sl / 0.25, 0, 1), settled: b.settled, hop: b.hop || 0 };
     }
     if (fx.lastBall && T - fx.lastBall.T < 0.5) {
       // a new round opened: the croupier lifts the ball out (the panel simply stops drawing it)
@@ -2254,6 +3707,25 @@
       S.L.wheel = layer(root, R_CX - D / 2, R_CY - D / 2, D, D, k, true);
       S.L.hit = layer(root, R_CX - D / 2, R_CY - D / 2, D, D, k, true);
       S.L.hit.c.style.opacity = "0";
+      // the ball's motion blur: a tapered streak behind it, turned along its path, stronger the faster it runs
+      S.L.streak = layer(root, 0, 0, 170, 34, k, true);
+      S.L.streak.c.style.display = "none";
+      S.L.streak.cache = { display: "none" };
+      S.L.streak.c.style.transformOrigin = "153px 17px";
+      const sg = S.L.streak.g;
+      const sgr = sg.createLinearGradient(0, 0, 160, 0);
+      sgr.addColorStop(0, "rgba(255,255,255,0)");
+      sgr.addColorStop(0.75, "rgba(235,238,248,.32)");
+      sgr.addColorStop(1, "rgba(255,255,255,.7)");
+      sg.fillStyle = sgr;
+      sg.beginPath();
+      sg.moveTo(0, 17);
+      sg.quadraticCurveTo(110, 9, 153, 7.5);
+      sg.arc(153, 17, 9.5, -Math.PI / 2, Math.PI / 2);
+      sg.quadraticCurveTo(110, 25, 0, 17);
+      sg.closePath();
+      sg.fill();
+      S.L.streak.show();
       S.L.ball = layer(root, 0, 0, 34, 34, k, true);
       S.L.ball.c.style.opacity = "0";
       const g = S.L.ball.g;
@@ -2289,12 +3761,43 @@
       S.L.hit.c.style.transform = tr;
       const ball = rouletteBallNow(S, T, rot, N);
       const bs = S.L.ball.c.style;
+      const fx = S.fx;
+      let bx = null;
+      let by = null;
       if (ball && ball.alpha > 0) {
-        const x = R_CX + Math.sin(ball.a) * ball.r - 17;
-        const y = R_CY - Math.cos(ball.a) * ball.r - 17;
-        bs.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`;
+        bx = R_CX + Math.sin(ball.a) * ball.r;
+        by = R_CY - Math.cos(ball.a) * ball.r;
+        // it hops toward the camera as it bounces over the frets (cosmetic: the position is the panel's)
+        const hs = 1 + 0.16 * clamp(num(ball.hop) / 1.6, 0, 1);
+        bs.transform = `translate(${(bx - 17).toFixed(2)}px,${(by - 17).toFixed(2)}px)${hs > 1.001 ? ` scale(${hs.toFixed(3)})` : ""}`;
         bs.opacity = ball.alpha.toFixed(3);
       } else if (bs.opacity !== "0") bs.opacity = "0";
+      // the streak: speed from the last frame (stage px / s), along the direction of travel
+      const pb = fx.bprev;
+      let speed = 0;
+      let dir = 0;
+      if (bx != null && pb && T > pb.T + 1e-4) {
+        speed = Math.hypot(bx - pb.x, by - pb.y) / (T - pb.T);
+        dir = Math.atan2(by - pb.y, bx - pb.x);
+      }
+      fx.bprev = bx != null ? { x: bx, y: by, T } : null;
+      const so = bx != null && speed < 4000 ? clamp((speed - 160) / 700, 0, 0.85) * ball.alpha : 0;
+      if (so > 0.01) moveLayer(S.L.streak, `translate(${(bx - 153).toFixed(1)}px,${(by - 17).toFixed(1)}px) rotate(${dir.toFixed(3)}rad) scale(${clamp(speed / 1100, 0.35, 1.15).toFixed(3)},1)`, so.toFixed(3));
+      else hideLayer(S.L.streak);
+      // the camera: once the ball settles it pushes in on the pocket, then pans out toward the layout's number as
+      // the dealer sets the dolly (a pure function of the shared clock, like everything here)
+      const rv = revealOf(S, "roulette");
+      S.cam = null;
+      if (rv && bx != null) {
+        const c = sinceLockOf(rv, T) - (num(rv.lock_s, LOCK) + num(rv.spin_s, 7.5) - 1.0);
+        if (c >= 0 && c < 1.3) {
+          const zin = easeOut(c / 0.35);
+          const zout = easeInOut((c - 0.6) / 0.7);
+          const n = rouletteWheel(S)[obj(rv.outcome).pocket];
+          const cell = n != null ? rouletteCenter(n, rouletteBoard(N === 38)) : [bx, by];
+          S.cam = { s: 1 + 0.14 * zin * (1 - zout), x: lerp(bx, cell[0], zout), y: lerp(by, cell[1], zout) };
+        }
+      }
       S.def.stamp(S);
       // the winning pocket glows (on the wheel) once the round's result is public
       const pocket = obj(obj(st.result).outcome).pocket;
@@ -2327,15 +3830,52 @@
     overlays(S, root) {
       dollyLayers(S, root, "dolly");
     },
-    // the dealer sets the dolly on the winning number the moment the ball settles in its pocket (the panel's t_settle)
+    // the dealer lifts the dolly from its rest, glides it over the layout and sets it on the winning number just
+    // before the result shows (the ball settles at the panel's t_settle, the dolly lands DOLLY_AFTER later); when
+    // the next round opens it goes home the same way. Its style is the house's (status.house.dolly).
     stamp(S) {
+      const fx = S.fx;
+      dollyPaint(S, "dolly", obj(S.st.house).dolly || "classic_gold");
       const rv = revealOf(S, "roulette");
       const n = rv ? rouletteWheel(S)[obj(rv.outcome).pocket] : undefined;
-      if (n == null) return dollyMove(S, "dolly", 0, 0, null);
-      const tSettle = num(rv.lock_s, LOCK) + num(rv.spin_s, 7.5) - 1.0;
-      const [x, y] = rouletteCenter(n, rouletteBoard(rouletteWheel(S).length === 38));
-      dollyPaint(S, "dolly");
-      dollyMove(S, "dolly", x, y + 14, sinceLockOf(rv, S.T) - tSettle);
+      if (n != null) {
+        const tLand = num(rv.lock_s, LOCK) + num(rv.spin_s, 7.5) - 1.0 + DOLLY_AFTER;
+        const [x, y] = rouletteCenter(n, rouletteBoard(rouletteWheel(S).length === 38));
+        const to = [x, y + 16];
+        const age = sinceLockOf(rv, S.T) - tLand;
+        const p = dollyPath(DOLLY_REST, to, age);
+        fx.dollyAt = [p.x, p.y];
+        fx.dollyHome = null;
+        return dollyMove(S, "dolly", p, age);
+      }
+      // home again: the same hand motion back to its rest, on this screen's clock (nothing to sync: it's empty felt)
+      if (fx.dollyAt && !fx.dollyHome) fx.dollyHome = { from: fx.dollyAt, T: S.T };
+      if (fx.dollyHome) {
+        const age = S.T - fx.dollyHome.T - 1.0;
+        const p = dollyPath(fx.dollyHome.from, DOLLY_REST, age);
+        if (age > 0.3) fx.dollyAt = fx.dollyHome = null;
+        return dollyMove(S, "dolly", p, null);
+      }
+      dollyMove(S, "dolly", { x: DOLLY_REST[0], y: DOLLY_REST[1], lift: 0, sy: 1 }, null);
+    },
+    winFrom(S, seat) {
+      // a winner's coins rise from their own winning chips
+      const st = S.st;
+      const n = rouletteWheel(S)[obj(obj(st.result).outcome).pocket];
+      const B = rouletteBoard(rouletteWheel(S).length === 38);
+      let sx = 0;
+      let sy = 0;
+      let k = 0;
+      for (const [spot, list] of Object.entries(obj(st.spot_bets))) {
+        if (n == null || !rouletteCovers(spot).includes(n) || !arr(list).some((e) => String(e.seat) === String(seat))) continue;
+        const p = rouletteSpotXY(spot, B);
+        if (p) {
+          sx += p[0];
+          sy += p[1];
+          k++;
+        }
+      }
+      return k ? [sx / k, sy / k] : null;
     },
     // the table layer only redraws for a countdown tick while betting; never while the wheel is spinning
     slowHz: (S) => (S.st.phase === "betting" && S.st.ends_in != null ? 1 : 0),
@@ -2343,19 +3883,44 @@
       const th = S.th;
       // the table
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 900, 480, 1100);
-      railStroke(g, th, 18);
-      // the bowl
-      circle(g, R_CX, R_CY, R_RIM + 10);
-      g.fillStyle = "rgba(0,0,0,.45)";
+      luxTable(g, th, 900, 480, 1100, 36);
+      // the bowl: sunk into the table on a long soft shadow, a polished brass ring, a lacquered walnut bowl
+      circle(g, R_CX, R_CY, R_RIM + 14);
+      softStroke(g, 0, 46, "#000", 0.85, 0, 18, 6);
+      g.fillStyle = "#1a0d06";
+      g.fill();
+      circle(g, R_CX, R_CY, R_RIM + 12);
+      const br = g.createLinearGradient(R_CX - R_RIM, R_CY - R_RIM, R_CX + R_RIM, R_CY + R_RIM);
+      br.addColorStop(0, "#fff0b8");
+      br.addColorStop(0.22, "#c9973a");
+      br.addColorStop(0.5, "#6e4a12");
+      br.addColorStop(0.74, "#e2b85a");
+      br.addColorStop(1, "#5a3a0c");
+      g.fillStyle = br;
       g.fill();
       circle(g, R_CX, R_CY, R_RIM);
-      const wg = g.createRadialGradient(R_CX - 80, R_CY - 120, 40, R_CX, R_CY, R_RIM);
-      wg.addColorStop(0, "#7a4a24");
-      wg.addColorStop(0.85, "#4a2a12");
-      wg.addColorStop(1, "#2a160a");
+      const wg = g.createRadialGradient(R_CX - 90, R_CY - 130, 30, R_CX, R_CY, R_RIM);
+      wg.addColorStop(0, "#8e5a2e");
+      wg.addColorStop(0.55, "#5e3517");
+      wg.addColorStop(0.88, "#3a1f0c");
+      wg.addColorStop(1, "#1f1006");
       g.fillStyle = wg;
       g.fill();
+      // the lacquer's reflection: a soft crescent of the lamp on the bowl's upper left
+      g.save();
+      circle(g, R_CX, R_CY, R_RIM - 4);
+      g.clip();
+      const gl = g.createLinearGradient(R_CX - R_RIM, R_CY - R_RIM, R_CX, R_CY);
+      gl.addColorStop(0, "rgba(255,240,215,.22)");
+      gl.addColorStop(0.45, "rgba(255,240,215,.05)");
+      gl.addColorStop(1, "rgba(255,240,215,0)");
+      g.beginPath();
+      g.arc(R_CX, R_CY, R_RIM - 4, Math.PI * 0.95, Math.PI * 1.75);
+      g.arc(R_CX + 26, R_CY + 26, R_RIM - 20, Math.PI * 1.75, Math.PI * 0.95, true);
+      g.closePath();
+      g.fillStyle = gl;
+      g.fill();
+      g.restore();
       circle(g, R_CX, R_CY, R_TRACK_OUT + 4);
       g.lineWidth = 6;
       g.strokeStyle = shade(th.accent, 0.8);
@@ -2384,8 +3949,8 @@
         g.fill();
         g.restore();
       }
-      txt(g, "ROULETTE", 60, 92, 44, th.accent, { weight: 850 });
-      txt(g, obj(S.st.rules).wheel === "american" ? "AMERICAN · 0 AND 00" : "EUROPEAN · SINGLE ZERO", 62, 128, 22, INK2, { weight: 700 });
+      txt(g, "ROULETTE", 62, 100, 52, th.accent, { weight: 700, font: "serif", gold: true, spacing: 5 });
+      txt(g, obj(S.st.rules).wheel === "american" ? "AMERICAN · 0 AND 00" : "EUROPEAN · SINGLE ZERO", 64, 136, 20, rgba(th.accent_hi || th.accent, 0.75), { weight: 700, spacing: 3 });
       // the printed layout
       const B = rouletteBoard(obj(S.st.rules).wheel === "american");
       const L = B.x0 + B.zw;
@@ -2398,22 +3963,25 @@
         g.rect(B.x0, B.y0 + i * h, B.zw, h);
         g.fillStyle = cellFill.green;
         g.fill();
-        txt(g, rLabel(n), B.x0 + B.zw / 2, B.y0 + i * h + h / 2 + 13, 36, "#fff", { align: "center", weight: 800 });
+        txt(g, rLabel(n), B.x0 + B.zw / 2, B.y0 + i * h + h / 2 + 13, 36, "#fff", { align: "center", weight: 800, emboss: true });
       });
       for (let n = 1; n <= 36; n++) {
         const q = numCell(n, B);
         g.beginPath();
         g.rect(q.x, q.y, B.cw, B.ch);
-        g.fillStyle = cellFill[rColor(n)];
+        const cf = g.createLinearGradient(0, q.y, 0, q.y + B.ch);
+        cf.addColorStop(0, shade(cellFill[rColor(n)], 1.18));
+        cf.addColorStop(1, shade(cellFill[rColor(n)], 0.78));
+        g.fillStyle = cf;
         g.fill();
-        txt(g, String(n), q.x + B.cw / 2, q.y + B.ch / 2 + 12, 32, "#fff", { align: "center", weight: 800 });
+        txt(g, String(n), q.x + B.cw / 2, q.y + B.ch / 2 + 12, 32, "#fff", { align: "center", weight: 800, emboss: true });
       }
       for (let c = 1; c <= 3; c++) {
         const y = B.y0 + (3 - c) * B.ch;
-        txt(g, "2:1", L + 12 * B.cw + B.colW / 2, y + B.ch / 2 + 10, 26, "#fff", { align: "center", weight: 800 });
+        txt(g, "2:1", L + 12 * B.cw + B.colW / 2, y + B.ch / 2 + 10, 26, "#fff", { align: "center", weight: 800, emboss: true });
       }
       const bottom = B.y0 + 3 * B.ch;
-      ["1st 12", "2nd 12", "3rd 12"].forEach((s, i) => txt(g, s, L + (4 * i + 2) * B.cw, bottom + B.dzH / 2 + 10, 28, "#fff", { align: "center", weight: 800 }));
+      ["1st 12", "2nd 12", "3rd 12"].forEach((s, i) => txt(g, s, L + (4 * i + 2) * B.cw, bottom + B.dzH / 2 + 10, 28, "#fff", { align: "center", weight: 700, font: "serif", emboss: true }));
       EVEN_SPOTS.forEach((s, i) => {
         const cx = L + (2 * i + 1) * B.cw;
         const cy = bottom + B.dzH + B.emH / 2;
@@ -2429,9 +3997,9 @@
           g.lineWidth = 2;
           g.strokeStyle = "#fff";
           g.stroke();
-        } else txt(g, EVEN_LABEL[s], cx, cy + 10, 28, "#fff", { align: "center", weight: 800 });
+        } else txt(g, EVEN_LABEL[s], cx, cy + 10, 28, "#fff", { align: "center", weight: 700, font: "serif", emboss: true });
       });
-      // the grid lines
+      // the grid lines: gold leaf on a dark bed (an inlay, not a print)
       g.strokeStyle = gold;
       g.lineWidth = 2.5;
       g.beginPath();
@@ -2459,8 +4027,18 @@
         g.moveTo(L + 2 * i * B.cw, bottom + B.dzH);
         g.lineTo(L + 2 * i * B.cw, bottom + B.dzH + B.emH);
       }
+      g.save();
+      g.lineWidth = 6;
+      g.strokeStyle = "rgba(0,0,0,.42)";
       g.stroke();
-      txt(g, "LAST NUMBERS", B.x0, 70, 20, INK3, { weight: 800, shadow: false });
+      g.restore();
+      const gline = g.createLinearGradient(0, B.y0, 0, bottom + B.dzH + B.emH);
+      gline.addColorStop(0, shade(gold, 1.35));
+      gline.addColorStop(0.5, gold);
+      gline.addColorStop(1, shade(gold, 0.8));
+      g.strokeStyle = gline;
+      g.stroke();
+      txt(g, "LAST NUMBERS", B.x0, 70, 18, rgba(th.accent_hi || th.accent, 0.7), { weight: 800, shadow: false, spacing: 3 });
     },
     draw(S, g, t) {
       const st = S.st;
@@ -2549,11 +4127,29 @@
       // everyone's chips on the layout
       const sb = obj(st.spot_bets);
 
+      const ma = momentAge(S);
+      const DEALER = [B.x0 - 20, B.y0 - 70]; // the croupier's side of the layout, by the wheel
       for (const spot of Object.keys(sb)) {
         const p = rouletteSpotXY(spot, B);
         if (!p) continue;
-        const wins = win != null && rouletteCovers(spot).includes(win);
-        spotChips(S, g, spot, sb[spot], p[0], p[1], t, { r: 21, glow: wins ? th.accent : null, dim: win != null && !wins });
+        const covers = rouletteCovers(spot);
+        const wins = win != null && covers.includes(win);
+        if (win != null && !wins && ma == null) {
+          spotChips(S, g, spot, sb[spot], p[0], p[1], t, { r: 21, dim: true });
+          continue;
+        }
+        spotChips(S, g, spot, sb[spot], p[0], p[1], t, { r: 21, glow: wins ? th.accent : null, sweepAt: win != null && !wins ? MOMENT.SWEEP0 : null, to: DEALER });
+        if (wins && ma != null) {
+          // the payout (stake × the spot's odds: 35, 17, 11, 8, 6 (top line), 5, 2, 1) pushed from the dealer
+          const mult = covers.length === 5 ? 6 : 36 / covers.length - 1;
+          const list = arr(sb[spot]);
+          const nn = list.length;
+          list.forEach((e, i) => {
+            const px = p[0] + (i - (nn - 1) / 2) * 21 * 0.9 + 24;
+            const py = p[1] + (i - (nn - 1) / 2) * 21 * 0.25 - 8;
+            flight(S, `pay|${spot}|${e.seat}`, { amount: Math.round(num(e.amount) * mult), owner: e.color || "#f0f0f0", r: 21, from: DEALER, to: [px, py], at: 0.3, dur: 0.55, glow: th.accent });
+          });
+        }
       }
       // the foot: totals and winners
       const total = Object.values(obj(st.totals)).reduce((a, b) => a + num(b), 0);
@@ -2734,8 +4330,7 @@
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 1150, 480, 900);
-      railStroke(g, th, 18);
+      luxTable(g, th, 1150, 480, 900, 36);
       // the wheel's housing
       circle(g, BX, BY, BR + 52);
       const wg = g.createRadialGradient(BX - 100, BY - 120, 60, BX, BY, BR + 52);
@@ -2960,7 +4555,10 @@
         }
         const x = SEV.X0 + d.x * SEV.SC - TRAY.x - 12;
         const y = SEV.Y0 + d.y * SEV.SC - 12;
-        l.c.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(1,${(d.h / SEV.DIE).toFixed(3)})`;
+        // the die tumbles as it rolls (a cosmetic turn that unwinds to square as it settles)
+        const spin = d.k < 1 ? (1 - d.k) * (1 - d.k) * (i ? -9 : 11) : 0;
+        l.c.style.transformOrigin = `${(l.w / 2).toFixed(1)}px ${(l.h / 2).toFixed(1)}px`;
+        l.c.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${spin.toFixed(3)}rad) scale(1,${(d.h / SEV.DIE).toFixed(3)})`;
         l.c.style.opacity = alpha.toFixed(3);
       });
     },
@@ -2968,8 +4566,7 @@
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 760, 480, 1000);
-      railStroke(g, th, 18);
+      luxTable(g, th, 760, 480, 1000, 36);
       rr(g, TRAY.x - 16, TRAY.y - 16, TRAY.w + 32, TRAY.h + 32, 34);
       const wg = g.createLinearGradient(0, TRAY.y - 16, 0, TRAY.y + TRAY.h + 16);
       wg.addColorStop(0, "#7a4a24");
@@ -3033,7 +4630,7 @@
   });
 
   // ================================================================================================ BACCARAT
-  const BAC_SHOE = [770, 160];
+  const BAC_SHOE = [1400, 160]; // the shoe sits right of the headline, by the banker
   const BAC_SLOTS = {
     player: { x: 80, w: 620, col: "#1f5fe0", name: "PLAYER" },
     banker: { x: 840, w: 620, col: "#d0182f", name: "BANKER" },
@@ -3077,8 +4674,7 @@
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 760, 300, 1100);
-      railStroke(g, th, 18);
+      luxTable(g, th, 760, 300, 1100, 36);
       for (const side of ["player", "banker"]) {
         const s = BAC_SLOTS[side];
         feltBox(g, th, s.x, 150, s.w, 300, { fill: rgba(s.col, 0.12), stroke: rgba(s.col, 0.9) });
@@ -3204,13 +4800,12 @@
       // the bets
       const sb = obj(st.spot_bets);
       const wins = res ? bacWinSpots(res) : new Set();
-      const sw = sweepK(S, t, 1.5);
       BAC_BETS.forEach((b) => {
         const isWin = wins.has(b.id) || (res && res.winner === "tie" && (b.id === "player" || b.id === "banker"));
         if (res && wins.has(b.id)) glowBox(g, b.x, 480, b.w, 200, th.accent, 1, 8);
         const tot = num(obj(st.totals)[b.id]);
         if (tot) txt(g, fmt(S, tot), b.x + b.w / 2, 560, 22, INK2, { align: "center", font: "mono", weight: 700 });
-        spotChips(S, g, b.id, sb[b.id], b.x + b.w / 2, 610, t, { r: 28, glow: res && wins.has(b.id) ? th.accent : null, sweep: res && !isWin ? sw : 0, to: [BAC_SHOE[0], 100] });
+        spotChips(S, g, b.id, sb[b.id], b.x + b.w / 2, 610, t, { r: 28, glow: res && wins.has(b.id) ? th.accent : null, sweepAt: res && !isWin ? 1.5 : null, to: [BAC_SHOE[0], 100] });
       });
       // roads
       const hist = arr(st.history).filter((h) => h.game === "baccarat" && h.outcome).map((h) => obj(h.outcome));
@@ -3298,8 +4893,7 @@
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 760, 400, 1100);
-      railStroke(g, th, 18);
+      luxTable(g, th, 760, 400, 1100, 36);
       feltBox(g, th, 70, 170, 330, 460, { fill: "rgba(0,0,0,.2)" });
       txt(g, "JOKER", 235, 220, 34, th.accent, { align: "center", weight: 900 });
       cardSlot(g, 235, 400, 200, 280, rgba("#ffffff", 0.25));
@@ -3364,7 +4958,6 @@
       // bets
       const spots = arr(st.spots);
       const sb = obj(st.spot_bets);
-      const sw = sweepK(S, t, 1.5);
       const main = [{ id: "andar", x: 70, w: 440 }, { id: "bahar", x: 530, w: 440 }];
       const winSpots = new Set();
       if (out) {
@@ -3378,7 +4971,7 @@
         txt(g, `PAYS ${sp.pays || "1:1"}`, m.x + 24, 930, 24, th.accent, { weight: 850 });
         const isWin = winSpots.has(m.id);
         if (isWin) glowBox(g, m.x, 700, m.w, 250, TONE[m.id], 0.6 + 0.4 * Math.sin(t * 6));
-        spotChips(S, g, m.id, sb[m.id], m.x + m.w / 2 + 60, 840, t, { r: 32, glow: isWin ? th.accent : null, sweep: out && !isWin ? sw : 0, to: AB_SHOE });
+        spotChips(S, g, m.id, sb[m.id], m.x + m.w / 2 + 60, 840, t, { r: 32, glow: isWin ? th.accent : null, sweepAt: out && !isWin ? 1.5 : null, to: AB_SHOE });
       });
       const bands = spots.filter((s) => s.kind === "count");
       bands.forEach((s, i) => {
@@ -3389,7 +4982,7 @@
         txt(g, s.pays || "", x + 60, y + 104, 18, th.accent, { align: "center", weight: 800 });
         const isWin = winSpots.has(s.id);
         if (isWin) glowBox(g, x, y, 120, 116, th.accent, 0.6 + 0.4 * Math.sin(t * 6), 12);
-        spotChips(S, g, s.id, sb[s.id], x + 60, y + 64, t, { r: 18, glow: isWin ? th.accent : null, sweep: out && !isWin ? sw : 0, to: AB_SHOE });
+        spotChips(S, g, s.id, sb[s.id], x + 60, y + 64, t, { r: 18, glow: isWin ? th.accent : null, sweepAt: out && !isWin ? 1.5 : null, to: AB_SHOE });
       });
       if (!bands.length) txt(g, "Count side bets are off", 1240, 820, 24, INK3, { align: "center", weight: 650 });
       if (out) winnersCard(S, g, 70, 170, 330, t, { delay: 2.0, max: 3 });
@@ -3448,8 +5041,7 @@
       g.lineTo(RAIL_X - 40, 360);
       g.arc(BJ_C[0], BJ_C[1], BJ_R + 180, Math.atan2(360 - BJ_C[1], RAIL_X - 40 - BJ_C[0]), Math.atan2(360 - BJ_C[1], 40 - BJ_C[0]));
       g.closePath();
-      feltFill(g, th, 760, 200, 1100);
-      railStroke(g, th, 22);
+      luxTable(g, th, 760, 200, 1100, 44);
       const r = obj(S.st.rules);
       arcText(g, `BLACKJACK PAYS ${r.blackjack_pays || "3:2"}`.replace(":", " TO "), BJ_C[0], BJ_C[1], 420, Math.PI / 2, 40, th.accent, 0.72);
       arcText(g, `DEALER ${r.soft17 === "hit" ? "HITS" : "STANDS ON"} SOFT 17 · INSURANCE PAYS 2 TO 1`, BJ_C[0], BJ_C[1], 372, Math.PI / 2, 22, rgba("#ffffff", 0.55), 0.66);
@@ -3608,32 +5200,35 @@
   }
   function pokerBg(S, g, title) {
     const th = S.th;
+    // the racetrack: a wide padded leather rail (the players' elbows) round the lacquered wood and the felt
     g.beginPath();
-    g.ellipse(PK.cx, PK.cy, PK.rx + 34, PK.ry + 34, 0, 0, TAU);
-    g.fillStyle = "#1b120c";
-    g.shadowColor = "rgba(0,0,0,.7)";
-    g.shadowBlur = 50;
+    g.ellipse(PK.cx, PK.cy, PK.rx + 44, PK.ry + 44, 0, 0, TAU);
+    softStroke(g, 0, 60, "#000", 0.85, 0, 22, 7);
+    g.fillStyle = "#120a07";
     g.fill();
-    g.shadowBlur = 0;
     g.beginPath();
     g.ellipse(PK.cx, PK.cy, PK.rx + 30, PK.ry + 30, 0, 0, TAU);
-    const lg = g.createLinearGradient(0, PK.cy - PK.ry - 30, 0, PK.cy + PK.ry + 30);
-    lg.addColorStop(0, "#3c2a20");
-    lg.addColorStop(1, "#160d08");
-    g.fillStyle = lg;
-    g.fill();
+    const lg = g.createLinearGradient(0, PK.cy - PK.ry - 50, 0, PK.cy + PK.ry + 50);
+    lg.addColorStop(0, "#3a221a");
+    lg.addColorStop(0.5, "#1c0f0b");
+    lg.addColorStop(1, "#0c0605");
+    g.lineWidth = 34;
+    g.strokeStyle = lg;
+    g.stroke();
+    g.lineWidth = 2;
+    g.strokeStyle = "rgba(255,220,180,.18)";
+    g.stroke();
     g.beginPath();
     g.ellipse(PK.cx, PK.cy, PK.rx, PK.ry, 0, 0, TAU);
-    feltFill(g, th, PK.cx, PK.cy - 60, PK.rx);
-    g.lineWidth = 3;
-    g.strokeStyle = rgba(th.accent, 0.6);
-    g.stroke();
+    luxTable(g, th, PK.cx, PK.cy - 60, PK.rx, 28);
     g.beginPath();
-    g.ellipse(PK.cx, PK.cy, PK.rx - 60, PK.ry - 50, 0, 0, TAU);
+    g.ellipse(PK.cx, PK.cy, PK.rx - 70, PK.ry - 60, 0, 0, TAU);
     g.lineWidth = 2;
-    g.strokeStyle = rgba(th.accent, 0.25);
+    g.strokeStyle = rgba(th.accent, 0.3);
+    g.setLineDash([2, 7]);
     g.stroke();
-    txt(g, title, PK.cx, PK.cy + 190, 40, rgba(th.accent, 0.18), { align: "center", weight: 900, shadow: false });
+    g.setLineDash([]);
+    txt(g, title, PK.cx, PK.cy + 190, 46, rgba(th.accent, 0.22), { align: "center", weight: 700, font: "serif", emboss: true, spacing: 6 });
   }
 
   /** One seat round the oval: avatar, name plate with the stack, hole cards (backs, or the showdown), bet chips. */
@@ -3953,8 +5548,7 @@
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 760, 480, 1100);
-      railStroke(g, th, 18);
+      luxTable(g, th, 760, 480, 1100, 36);
       rr(g, HB.x - 10, HB.y - 10, 10 * HB.cw + 20, 9 * HB.ch + 20, 18);
       g.fillStyle = "rgba(0,0,0,.35)";
       g.fill();
@@ -4171,8 +5765,17 @@
           const ch = strip[mod(base + r, n)] || "_";
           if (ch === "_") continue;
           const y = (1 + r - frac) * SL.cell + SL.cell / 2;
-          g.globalAlpha = moving ? 0.75 : 1;
-          g.drawImage(slotSprite(S, ch, 20), 105 - 70, y - 70, 140, 140);
+          const sp = slotSprite(S, ch, 20);
+          if (moving) {
+            // motion blur: the symbol smeared along the reel (three fading copies), drawn into the reel's own canvas
+            const v = clamp(Math.abs(pos - prev) * SL.cell * 0.5, 0, 60);
+            for (const [dy, al] of [[-v, 0.18], [-v / 2, 0.3], [v / 2, 0.3]]) {
+              g.globalAlpha = al;
+              g.drawImage(sp, 105 - 70, y - 70 + dy, 140, 140);
+            }
+          }
+          g.globalAlpha = moving ? 0.7 : 1;
+          g.drawImage(sp, 105 - 70, y - 70, 140, 140);
         }
         g.globalAlpha = 1;
         l.show();
@@ -4186,8 +5789,7 @@
       const th = S.th;
       const m = obj(S.st.machine);
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
-      feltFill(g, th, 760, 480, 1100);
-      railStroke(g, th, 18);
+      luxTable(g, th, 760, 480, 1100, 36);
       // the cabinet
       rr(g, SL.x, SL.y, SL.w, SL.h, 48);
       const cg = g.createLinearGradient(SL.x, 0, SL.x + SL.w, 0);
@@ -4351,6 +5953,8 @@
     rouletteCenter, reelPos, bigRoad, hash01, hexRgb, shade, wrapPi, bjSeatXY, pokerSeatXY, EU_WHEEL, US_WHEEL,
     B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
     R_CX, R_CY, BX, BY, SEV, LADDER, RACK_MAX, chipRack, rackOf, breakInto, shortChip, chipStyle, pyRound,
+    winTier, tickerAt, MOMENT, TIERS, dollyPath, DOLLY_STYLES, DOLLY_REST, DOLLY_AFTER, odoPos, Odo, chipSetOf, CHIP_SETS,
+    THEME_CHIP_SET, railSeat,
   }; // fmt: skip
   if (TV) {
     TV.casino = API;

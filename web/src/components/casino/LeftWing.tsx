@@ -5,7 +5,7 @@ import { lobbySwitch } from "./lobby";
 import { appMeta, toast, useStore } from "../../lib/store";
 import type { JsonSchemaProp } from "../../lib/types";
 import { Slider, Toggle } from "../controls";
-import { NumberInput, Section, Tabs } from "./bits";
+import { Chip, NumberInput, Section, Tabs } from "./bits";
 import { type Guide, type House, type HousieStatus, TABLE_THEMES, type TableTheme, casinoApps, casinoOp, fmt, useCasino } from "./state";
 
 // ------------------------------------------------------------------ house
@@ -179,6 +179,89 @@ function HouseForm({ house }: { house: House }) {
         )}
       </div>
     </>
+  );
+}
+
+// ------------------------------------------------------------------ dolly + chip set
+/** casino/session.py DOLLIES: id, name, and the swatch colours of its base, stem and finial (the picker's tiny art). */
+const DOLLIES: { id: string; name: string; base: string; stem: string; top: string; glass?: boolean }[] = [
+  { id: "classic_gold", name: "Classic Gold", base: "#d9a63a", stem: "#e9c25a", top: "#fff0b8" },
+  { id: "crystal", name: "Crystal", base: "#d9a63a", stem: "#cfe6ff", top: "#eef6ff", glass: true },
+  { id: "chrome", name: "Chrome", base: "#a9afbd", stem: "#d6dbe4", top: "#ffffff" },
+  { id: "onyx_gold", name: "Black Onyx & Gold", base: "#1c1c22", stem: "#25252c", top: "#e9c25a" },
+  { id: "rose_gold", name: "Rose Gold", base: "#d98e74", stem: "#e7a58c", top: "#ffe6da" },
+  { id: "diamond", name: "Diamond-cut", base: "#d9a63a", stem: "#e9c25a", top: "#cfeaff" },
+  { id: "marble_brass", name: "Marble & Brass", base: "#ece8de", stem: "#c99a3a", top: "#f6e2a0" },
+  { id: "neon", name: "Neon Arcade", base: "#1d1430", stem: "#18d8ff", top: "#ff7ad0" },
+];
+/** A dolly in miniature: domed base, collar, slim stem and the finial (ball, crystal head or a cut diamond). */
+function DollyArt({ d }: { d: (typeof DOLLIES)[number] }) {
+  const glow = d.id === "neon" ? "drop-shadow(0 0 3px #ff2fa0)" : undefined;
+  return (
+    <svg viewBox="0 0 40 56" width={34} height={48} aria-hidden style={{ filter: glow }}>
+      <defs>
+        <linearGradient id={`dl-${d.id}`} x1="0" x2="1">
+          <stop offset="0" stopColor="#000" stopOpacity=".35" /><stop offset=".35" stopColor="#fff" stopOpacity=".45" /><stop offset="1" stopColor="#000" stopOpacity=".4" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="20" cy="51" rx="15" ry="3.5" fill="#000" opacity=".35" />
+      <path d="M5 48 Q5 40 20 40 Q35 40 35 48 Z" fill={d.base} />
+      <path d="M5 48 Q5 40 20 40 Q35 40 35 48 Z" fill={`url(#dl-${d.id})`} />
+      {d.glass ? (
+        <path d="M13 41 Q13 33 17 28 Q18 22 14 19 L26 19 Q22 22 23 28 Q27 33 27 41 Z" fill={d.stem} opacity=".55" stroke="#fff" strokeWidth=".8" />
+      ) : (
+        <>
+          <rect x="15" y="36" width="10" height="4" rx="1.5" fill={d.stem} />
+          <rect x="18.4" y="15" width="3.2" height="22" fill={d.stem} />
+          <rect x="18.4" y="15" width="3.2" height="22" fill={`url(#dl-${d.id})`} />
+          <rect x="16.5" y="25" width="7" height="2" rx="1" fill={d.base} />
+        </>
+      )}
+      {d.id === "diamond" ? (
+        <path d="M12 9 L16 4 L24 4 L28 9 L20 19 Z" fill={d.top} stroke="#fff" strokeWidth=".7" />
+      ) : (
+        <circle cx="20" cy={d.glass ? 13 : 10} r={d.glass ? 6.5 : 5.5} fill={d.top} stroke={d.glass ? "#fff" : "none"} strokeWidth=".7" />
+      )}
+      <circle cx={d.id === "diamond" ? 17 : 18} cy={d.id === "diamond" ? 7 : d.glass ? 11 : 8} r="1.3" fill="#fff" opacity=".9" />
+    </svg>
+  );
+}
+function DollyPicker({ house }: { house: House }) {
+  const cur = house.dolly ?? "classic_gold";
+  if (house.dolly == null) return <p className="cz-empty">This engine is older than the studio and has no dolly styles yet — restart it to pick one.</p>;
+  return (
+    <div className="cz-dollies" role="radiogroup" aria-label="Roulette dolly">
+      {DOLLIES.map((d) => (
+        <button key={d.id} role="radio" aria-checked={d.id === cur} className="cz-dolly" data-on={d.id === cur || undefined} title={d.name}
+          onClick={() => casinoOp("settings", { dolly: d.id }).catch(() => undefined)}>
+          <DollyArt d={d} />
+          <b>{d.name}</b>
+        </button>
+      ))}
+    </div>
+  );
+}
+/** casino/chips.py CHIP_SETS — "auto" follows the table theme (THEME_CHIP_SET). */
+const CHIP_SETS: [string, string][] = [
+  ["auto", "Match the table"], ["clay", "Clay classic"], ["ceramic", "Ceramic print"], ["gold_rim", "Gold-rimmed"],
+  ["neon", "Neon"], ["jade", "Jade & gold"], ["pixel", "Pixel arcade"], ["ivory", "Ivory inlay"],
+];
+function ChipSetPicker({ house }: { house: House }) {
+  const cur = house.chip_set ?? "auto";
+  const live = useCasino((s) => s.status?.chip_set) ?? "clay";
+  if (house.chip_set == null) return <p className="cz-empty">This engine is older than the studio and has one chip design — restart it to pick a set.</p>;
+  return (
+    <div className="cz-chipsets" role="radiogroup" aria-label="Chip set">
+      {CHIP_SETS.map(([id, name]) => (
+        <button key={id} role="radio" aria-checked={id === cur} className="cz-chipset" data-on={id === cur || undefined}
+          onClick={() => casinoOp("settings", { chip_set: id }).catch(() => undefined)}>
+          <span className="cz-chipset-row" data-chips={id === "auto" ? live : id}>
+            {[25, 500, 5000].map((v) => <Chip key={v} value={v} size={26} />)}
+          </span>
+          <b>{name}{id === "auto" ? <em> · now {CHIP_SETS.find((c) => c[0] === live)?.[1] ?? live}</em> : null}</b>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -475,6 +558,8 @@ export function LeftWing() {
             <Section title="Presets" hint="Set the house and the table rules in one tap."><Presets app={app} house={house} /></Section>
             <Section title="House" hint="Shared by every casino game."><HouseForm house={house} /></Section>
             <Section title="Table theme" hint="The felt and accent on the panel, every phone and this studio."><ThemePicker app={app} /></Section>
+            <Section title="Chip set" hint="The chips' material and inlay — on the TV, every phone and this studio. Values keep their colours."><ChipSetPicker house={house} /></Section>
+            <Section title="Roulette dolly" hint="The marker the dealer sets on the winning number (TV, phones)."><DollyPicker house={house} /></Section>
           </>
         )}
         {tab === "guide" && <Section title={guide?.title ?? name} hint="How to play and the rulebook, as the phones show it."><GuideView key={app ?? ""} guide={guide} /></Section>}

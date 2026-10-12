@@ -28,6 +28,10 @@ export type PlayerRow = {
 export type House = {
   base_credits: number; min_bet: number; max_bet: number; bet_seconds: number;
   result_seconds: number; turn_seconds: number; auto_next: boolean;
+  /** the roulette dolly's style (casino/session.py DOLLIES); older engines: absent */
+  dolly?: string;
+  /** the chip set: "auto" (match the table theme) or a set id (casino/chips.py CHIP_SETS); older engines: absent */
+  chip_set?: string;
 };
 export type CasinoStatus = {
   casino?: boolean; view?: string; name?: string; game?: string;
@@ -47,7 +51,11 @@ export type CasinoStatus = {
   table_theme?: TableTheme;
   /** the table's chip rack (casino/chips.py chip_rack): only the chips the house allows; older engines: absent */
   chips?: RackChip[];
-  result?: { round: number; outcome: Record<string, unknown>; label?: string; tone?: string; winners?: { seat: number | string | null; name: string; net: number }[] };
+  /** the chip set in use (the host's pick, or the table theme's own): clay, ceramic, gold_rim, neon, jade, pixel, ivory */
+  chip_set?: string;
+  result?: { round: number; outcome: Record<string, unknown>; label?: string; tone?: string;
+    winners?: { seat: number | string | null; name: string; net: number; stake?: number }[];
+    losers?: { seat: number | string | null; name: string; net: number; stake?: number }[] };
   [k: string]: unknown;
 };
 export type SpotBettor = { seat: number | "host"; name: string; color: string; amount: number };
