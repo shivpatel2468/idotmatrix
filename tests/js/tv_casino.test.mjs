@@ -417,3 +417,129 @@ test("a high-roller table draws its stacks without errors (status.chips from a n
   eq(bad.slice(0, 5), []);
   scene.unmount();
 });
+
+// ------------------------------------------------------------------ the win / lose moment, the dolly, odometers, chip sets
+test("win tiers and the count-up: the phone page's block agrees with the TV", () => {
+  const page = readFileSync(new URL("../../src/deskdot/casino.html", import.meta.url), "utf8");
+  const block = page.slice(page.indexOf("/* ===== BEGIN shared win moment"), page.indexOf("/* ===== END shared win moment"));
+  const box = { Math, Number };
+  vm.runInNewContext(`${block}; globalThis.P = { winTier, tickerAt };`, box);
+  for (const [net, stake, want] of [[35, 1, "jackpot"], [350, 10, "jackpot"], [170, 10, "mega"], [20, 10, "win"], [30, 10, "big"], [0, 5, "push"], [-5, 5, "lose"], [10, 0, "win"]]) {
+    assert.equal(C.winTier(net, stake), want, `${net}/${stake}`);
+    assert.equal(box.P.winTier(net, stake), want, `phone ${net}/${stake}`);
+  }
+  for (const a of [-1, 0, 0.3, 0.5, 0.9, 1.4, 2, 5]) assert.equal(C.tickerAt(a, 12500, 0.35, 1.25), box.P.tickerAt(a, 12500, 0.35, 1.25), `age ${a}`);
+  assert.equal(C.tickerAt(0, 12500, 0.35, 1.25), 0);
+  assert.equal(C.tickerAt(1.6, 12500, 0.35, 1.25), 12500);
+  let last = 0;
+  for (let a = 0.35; a <= 1.6; a += 1 / 60) {
+    const v = C.tickerAt(a, 12500, 0.35, 1.25);
+    assert.ok(v >= last && v <= 12500, "counts up, never past the win");
+    last = v;
+  }
+});
+
+test("the moment starts on the result's shared-clock anchor (status.clock.phase_at) on every screen", () => {
+  const scene = registered.find((s) => s.match("casino_roulette"));
+  const snaps = FIX.statuses.casino_roulette;
+  const i = snaps.findIndex((s) => s.phase === "result");
+  const strip = (st) => Object.fromEntries(Object.entries(st).filter(([k]) => !k.startsWith("_")));
+  const OFF = 1760000000;
+  for (const lag of [0, 0.4, 1.1]) {
+    // a screen whose state arrives `lag` s late still anchors the moment where the engine says the result began
+    const t = snaps[i]._t + lag;
+    const ctx = { ...ctxFor("casino_roulette"), now: () => t, serverNow: () => t + OFF };
+    ctx.status = strip(snaps[i - 1]);
+    scene.mount(element(), ctx);
+    scene._paint(t - 0.1);
+    ctx.status = strip(snaps[i]);
+    ctx.stateAt = t;
+    scene.update(ctx);
+    scene._paint(t);
+    const S = scene._state();
+    assert.equal(S.mo.at, snaps[i].clock.phase_at, `lag ${lag}`);
+    assert.equal(S.mo.data.winners[0].seat, snaps[i].result.winners[0].seat);
+    assert.ok(S.mo.data.losers.length >= 1, "losers are swept too");
+    assert.equal(S.err, null);
+    scene.unmount();
+  }
+});
+
+test("every result plays its moment without errors: banners, coins, plaques, sweeps on each table", () => {
+  for (const app of Object.keys(FIX.statuses)) {
+    let seen = 0;
+    bad.length = 0;
+    play(app, (S) => {
+      if (S.mo && S.mo.data) seen++;
+    });
+    assert.deepEqual(bad.slice(0, 5), [], app);
+    if (FIX.statuses[app].some((s) => s.phase === "result" && s.result && ((s.result.winners || []).length || (s.result.losers || []).length)))
+      assert.ok(seen > 30, `${app}: the moment ran for ${seen} frames`);
+  }
+});
+
+test("the dolly: the dealer's hand path is continuous and sets it down on the number", () => {
+  const from = C.DOLLY_REST;
+  const to = [900, 500];
+  let prev = C.dollyPath(from, to, -2);
+  assert.deepEqual([prev.x, prev.y, prev.lift], [from[0], from[1], 0]);
+  for (let a = -1.2; a <= 0.4; a += 1 / 120) {
+    const p = C.dollyPath(from, to, a);
+    assert.ok(Math.hypot(p.x - prev.x, p.y - prev.y) < 20 && Math.abs(p.lift - prev.lift) < 6, `smooth at ${a.toFixed(3)}`);
+    assert.ok(p.lift >= 0 && p.lift <= 70);
+    prev = p;
+  }
+  const down = C.dollyPath(from, to, 0.5);
+  assert.deepEqual([down.x, down.y, down.lift, down.sy], [to[0], to[1], 0, 1]);
+  assert.equal(Object.keys(C.DOLLY_STYLES).length, 8);
+  assert.equal(Object.keys(C.DOLLY_STYLES)[0], "classic_gold");
+});
+
+test("roulette: the dolly lands on the winning number DOLLY_AFTER s after the ball settles, in the house's style", () => {
+  let landed = 0;
+  play("casino_roulette", (S, t) => {
+    const rv = (S.ctx.tv || {}).reveal;
+    if (!rv) return;
+    const age = t - (rv.at - rv.since_lock) - (1 + 7.5 - 1 + C.DOLLY_AFTER);
+    if (age > 0.3) {
+      const n = C.EU_WHEEL[rv.outcome.pocket];
+      const [x, y] = C.rouletteCenter(n, C.rouletteBoard(false));
+      const p = xyOf(S.L.dolly.d.c.style);
+      near(p[0] + 50, x, 0.6, "dolly x");
+      near(p[1] + 142, y + 16, 0.6, "dolly y");
+      landed++;
+    }
+    assert.equal(S.L.dolly.painted, (S.st.house || {}).dolly || "classic_gold");
+  });
+  assert.ok(landed > 30);
+});
+
+test("odometer reels: land exactly on the new digit, overshoot a little, turn the right way", () => {
+  for (const [a, b, turns, up] of [[3, 7, 0, true], [9, 2, 1, true], [5, 1, 2, false], [0, 0, 1, true]]) {
+    near(C.odoPos(a, b, turns, up, 0), a, 1e-9, "starts on the old digit");
+    near(C.odoPos(a, b, turns, up, 1), b, 1e-9, "ends on the new digit");
+  }
+  // the overshoot: past the target just before settling (up: beyond 7, i.e. into 8)
+  const mid = C.odoPos(3, 7, 0, true, 0.75);
+  assert.ok(mid > 7 && mid < 8, `overshoot ${mid}`);
+});
+
+test("chip sets: status.chip_set wins, else the table theme's own set, else clay; each set draws", () => {
+  assert.equal(C.chipSetOf({ chip_set: "neon", table_theme: { id: "classic" } }), "neon");
+  assert.equal(C.chipSetOf({ table_theme: { id: "arcade" } }), "pixel");
+  assert.equal(C.chipSetOf({ chip_set: "bogus", table_theme: { id: "jade" } }), "jade");
+  assert.equal(C.chipSetOf({}), "clay");
+  const scene = registered.find((s) => s.match("casino_baccarat"));
+  for (const set of C.CHIP_SETS) {
+    bad.length = 0;
+    const ctx = ctxFor("casino_baccarat");
+    const st = JSON.parse(JSON.stringify(FIX.statuses.casino_baccarat.find((s) => Object.keys(s.spot_bets || {}).length)));
+    ctx.status = { ...st, chip_set: set };
+    scene.mount(element(), ctx);
+    scene._paint(1000);
+    assert.equal(scene._state().err, null, set);
+    assert.equal(scene._state().chipSet, set);
+    eq(bad.slice(0, 5), [], set);
+    scene.unmount();
+  }
+});

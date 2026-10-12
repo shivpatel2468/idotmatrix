@@ -252,20 +252,76 @@ A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk
   scene's ambient glow repaints at most twice a second and only when it visibly changed.
 - **Canvases match the screen.** Backing stores are sized to the device pixels they cover after the stage scale,
   capped (table layers at 1.5 device px per stage px, wheels at 2, the panel at 1600 px) — the same in both tiers.
+- **Idle sprites leave the layer tree.** A pooled sprite that isn't showing is `display: none`, not `opacity: 0`
+  (dozens of transparent composited layers measurably slowed the 6× benchmark). Sprites that only ever show while
+  moving and scaling (the win banners, rays, the flash) are painted at stage scale 1 and a soft burst at ¼ size.
+- **Paint the expensive once, early.** Sprites that take a long paint (a tier banner: wide stroked text) are cached
+  per page and pre-warmed one per 1.5 s while betting, never on the moment's first frame.
 - **Measure.** A headless benchmark (software canvas and compositing, CDP CPU throttling ×6 at 960×540 DPR 2, fixture
   statuses over a mocked TV socket) compares p50 / p95 frame intervals and main-thread busy time before and after a
   change; the numbers are in the change's report.
 
-## 7. The casino chips
+## 7. The casino as the main screen (3.7.0)
+
+DeskDot's future is a hosting device with or without the pixel panel, so a casino table on the TV is the casino's
+main screen: an imaginary ultra-luxury table per game, the table as the hero, the players in a gallery beside it.
+
+**The table** (cached background, drawn once per theme — every effect is free per frame): a damask salon wall, an
+overhead lamp's warm pool and a vignette; the felt (the theme's, deep pile, grain) sinks under the rail in a soft inner
+shadow with a gold pinstripe printed inside it; the rail is lacquered mahogany built from layered strokes (dark edges,
+a warm crown, a gloss line) with brass inlay on both edges and a long contact shadow (`luxTable`, `railStroke`;
+soft shadows are stacked faint strokes — `softStroke` — never `shadowBlur` on a big path, which costs a TV stick
+hundreds of ms). Titles are engraved in gold leaf in a system serif (`txt(…, {font: "serif", gold: true})`); the
+printed layout is embossed (`emboss`); roulette's grid is a gold inlay on a dark bed, its cells lacquered, the bowl a
+polished brass ring round lacquered walnut with the lamp's reflection, the wheel's frets and turret turned metal. The
+poker tables have a padded leather racetrack. The header turns into the casino's own in table mode (tv.html: the
+table's name in gold-leaf serif capitals over a gilded double rule).
+
+**The seat gallery** (right, the rail layer): one leather plaque per player — avatar in a gold bezel, a jewel bar in
+their colour, name, status line, a live chip stack of what they have on the table, and their credits on an
+**odometer** (`Odo`: a DOM reel per digit moved by transform, rolling with a little overshoot, units a lap or two
+further, stopping left to right, a smeared copy fading in at speed; instant with reduced motion). The panel's live
+inset appears under the gallery only once panel frames arrive; without a panel the gallery takes the full height (up
+to 8 seats). Chips follow the table's chip **set** (`status.chip_set`: clay, ceramic, gold-rimmed, neon, jade,
+pixel, ivory — docs/CASINO.md §13), the denomination colours and labels unchanged.
+
+**Game animation** — every outcome-related motion is a pure function of the shared clock (§3), never invented:
+- Roulette: the ball carries a motion-blur streak (a pre-rendered tapered sprite turned along its path, faded by
+  speed) and hops toward the camera on the frets (a cosmetic scale from the panel's own bounce term); when it
+  settles the camera pushes in on the pocket (×1.14) and pans to the layout's number (`S.cam`, a transform of the
+  scene root, ≈ 1.3 s); the dealer's unseen hand lifts the **dolly** from its rest beside the wheel, glides it over the
+  layout, sets it down on the number `DOLLY_AFTER` (0.95 s) after the settle with a soft click ring and a felt
+  shadow that firms up as it lands (`dollyPath`, tested), and takes it home when the next round opens. Its style is
+  the house's (`status.house.dolly`, 8 styles drawn as sprites: Classic Gold, Crystal, Chrome, Black Onyx & Gold,
+  Rose Gold, Diamond-cut, Marble & Brass, Neon Arcade). Losing stacks are swept to the croupier and each winning
+  spot gets its payout stack pushed from the dealer (stake × the spot's odds).
+- Cards turn in 3D (narrow on the axis, lift toward the camera, the turning edge leans and darkens); dice tumble as
+  they roll (a cosmetic turn that unwinds to square as they settle on the panel's faces); slot reels smear along the
+  strip at speed; big six's clapper ticks on the pegs; housie balls drop and bounce.
+
+**The win / lose moment** — when a round settles every screen plays the same moment from the result's anchor
+`status.clock.phase_at` (a screen that tunes in more than 2.6 s late shows the settled table, no replay). It reads
+only the public result: `result.winners` (net > 0, with `stake`) and `result.losers` (docs/CASINO.md §13).
+- 0.05 s: losing chips swept to the dealer (0.8 s); a loser's plaque shows "−500" floating up and fading.
+- 0.25 s: a tiered banner slams in (scale 1.7 → 1 with overshoot) over turning rays with a gold flash: **WINNER!**
+  (payout < 3× the stake), **BIG WIN!** (≥ 3×), **MEGA WIN!** (≥ 10×), **JACKPOT!** (≥ 30×, a straight-up number),
+  or **HOUSE WINS** when nobody won; big tiers shake the screen (6 / 10 / 16 px, decaying over 0.55 s). Under it the
+  biggest winner's "+12,500" counts up with an easeOutExpo (`tickerAt`, the same function as the phones').
+- 0.5 s on: coins fountain from each winner's chips on an arc into their plaque (staggered 0.12 s per winner); when
+  they land the plaque lights up in the tier's colour, its "+12,500" badge counts and the odometer rolls to the new
+  credits (credits are held until then). Sparkles twinkle round the banner. It all fades by 3.75 s.
+- Every part is a pre-rendered sprite moved by transform / opacity: the banners and rays are painted once per page
+  (pre-warmed one per second while betting), coins / sparks / plaque overlays are pooled small canvases hidden with
+  `display: none` when idle (an idle composited layer still costs a stick its frame rate), chips in flight are a
+  pool of stack sprites (`flight` / `flightsFrame`) — the big table layer redraws once when the moment starts, never
+  per frame. The phone page plays a lighter moment for the player's own result (docs/CASINO.md §13).
 
 Tables show the chips the house allows (docs/CASINO.md §5): the rail lists the table's rack — `status.chips`, or the
 same rack computed from `house.min_bet` / `max_bet` with a copy of the ladder when an older engine doesn't send it
 (`chipRack` in tv-casino.js, tested against `casino/chips.py`). Every stack on the felt is its amount broken into
 ladder chips (largest at the bottom, greedy), in the ladder's colours and edge stripes; the top chip's inlay is the
-player's colour with the amount in K / M. On roulette the dealer lowers a crystal **dolly** (the win marker on a
-gold base) onto the winning number the moment the ball settles, and it stays until the round clears; the other
-tables mark their winning spot with a stamp and a short burst of sparks. Like every reveal animation these are a
-pure function of the shared clock, so every screen shows them in the same frame.
+player's colour with the amount in K / M. The other tables mark their winning spot with a stamp and a short burst of
+sparks.
 
 ## 8. The web app (browser version)
 

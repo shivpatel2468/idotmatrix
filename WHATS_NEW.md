@@ -11,7 +11,7 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
-## 3.7.0 — 12 Oct 2026 · Page themes for the whole studio
+## 3.7.0 — 12 Oct 2026 · Page themes everywhere and a luxury casino on the TV
 
 ### New
 
@@ -26,6 +26,44 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: they take the page theme's colours too, just like casino games take their table's colours — tuned so they
     stay bright and readable on the LEDs. Any colour you chose yourself stays, photos, flags, weather icons and games
     keep theirs, and each app has a "Follow page theme" switch if you'd rather it didn't.
+
+- **A luxury casino on the TV**
+  - Before: the TV showed the casino table flat, with a simple list of players on the side.
+  - Now: every table looks like a real high-limit table in a private salon — polished wood rails with brass, deep
+    felt under a warm lamp, gold-leaf lettering — and the players sit in a gallery of leather name plates with their
+    picture, their chips on the table and their money. It works with or without the LED panel.
+- **You can see who won**
+  - Before: when a round ended it was hard to tell who had won.
+  - Now: a big arcade moment plays on the TV — WINNER!, BIG WIN!, MEGA WIN! or JACKPOT! slams onto the screen, gold
+    coins fly into the winner's name plate, which lights up while "+12,500" counts up, and the screen shakes on big
+    wins. Losing chips get swept away with a red "−500", and when nobody wins it says HOUSE WINS. Every TV and phone
+    plays it at the same moment.
+- **Your own win on your phone**
+  - Before: your phone showed a small "You won" card.
+  - Now: your phone shows the same JACKPOT / MEGA WIN / BIG WIN moment for your own result, with spinning rays, a
+    counter, a coin shower and a buzz pattern.
+- **Choose the roulette dolly**
+  - Before: the marker on the winning number was always a glass dolly.
+  - Now: pick one of eight in the casino's House settings — Classic Gold (the default), Crystal, Chrome, Black Onyx &
+    Gold, Rose Gold, Diamond-cut, Marble & Brass or Neon Arcade. On the TV the dealer's hand lifts it, glides it over
+    the table and sets it down on the number with a soft click.
+- **Chips that match the table**
+  - Before: every table used the same chips.
+  - Now: each table theme has its own chip design — clay, printed ceramic, gold-rimmed, neon, jade, pixel or ivory —
+    on the TV, the phones and the studio. The colours that tell you a chip's value stay the same. You can also pick
+    one set for every table in House settings.
+- **Money that rolls like a slot machine**
+  - Before: credits just changed to the new number.
+  - Now: when your credits change, the digits spin like slot-machine reels and land on the new amount — on the TV,
+    your phone and the studio.
+
+### Better
+
+- **More movement at the TV table**
+  - Before: the roulette ball and the cards moved simply.
+  - Now: the ball streaks as it races round and hops over the frets, the camera zooms in on the winning pocket and
+    then on the number, cards turn over in 3D, dice tumble and slot reels blur — all still in step with the panel
+    and every phone.
 
 ## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 

@@ -3,7 +3,7 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme
+## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme; luxury TV casino, win moment, dollies, chip sets, odometer credits
 
 - **Page themes** (studio-wide, separate from the casino's table themes): 21 themes in `gfx/themes.py` `PAGE_THEMES`
   (`ember` = the original look and the default; studio originals `graphite`, `sunset`, `citrus`; 17 adapted table
@@ -26,6 +26,35 @@ The technical log for developers. For the same updates in plain words (before �
   space, quakes, rainradar, headlines, daily, trivia, text, fontlab, visualizer (new "Page theme" palette), loops,
   nowplaying, native. Not following: casino, games (genre themes), pets, photos / gallery, flags, agent.
   `tests/test_page_themes.py`.
+
+- **TV casino redesign** (`tv/tv-casino.js`, docs/TV_VIEW.md §6–7): luxury table art in the cached background
+  (`luxTable` felt + lacquered mahogany rail with brass inlay, `damask` salon wall, overhead lamp + vignette,
+  `softStroke` stacked-stroke shadows instead of `shadowBlur`, embossed / gold-leaf serif text via `txt` options
+  `emboss`, `gold`, `font: "serif"`, `spacing`; brass bowl, metal frets and turret; leather racetrack on the poker
+  tables); a seat gallery (`plaque`, `railLayout`, `railSeat`) with DOM odometer credits (`Odo`, `odoPos`) and live
+  stacks; the panel inset only once frames arrive. Roulette: ball streak sprite + hop scale, camera push-in / pan
+  (`S.cam` → `rootFx`), payouts pushed from the dealer, losing stacks swept. 3D card turn in `drawCard`, dice tumble
+  rotation, slot reel smear. Table-mode header in `tv.html` (serif gold-leaf name, gilded double rule).
+- **Win / lose moment** (TV): anchored on `status.clock.phase_at`; `momentOf` / `momentFrom` / `momentFrame` /
+  `momentIngest`, tiers `winTier` (net ÷ stake ≥ 30 / 10 / 3 → jackpot / mega / big, else win; house), `tickerAt`
+  count-up, pooled sprites (banner + rays cached per tier and pre-warmed while betting, flash, 30 coins, 14 sparks,
+  8 plaque overlays, `flight` stack pool), screen shake, credits held until the coins land (`creditsHeld`); idle
+  sprites `display: none`. Late screens (> 2.6 s) show the settled state.
+- **Dolly styles**: `House.dolly` (`casino/session.py` `DOLLIES`, select schema, validator; default `classic_gold`)
+  in `status.house`; TV `DOLLY_STYLES` (8 sprite styles, `dollyPaint`), dealer-hand path `dollyPath` (rest → lift →
+  glide → set down → settle, click ring), `DOLLY_AFTER` 0.95 s after the ball settles; phone `.rt .dolly[data-dolly]`;
+  studio `LeftWing` `DollyPicker`.
+- **Chip sets**: `casino/chips.py` `CHIP_SETS`, `THEME_CHIP_SET` (one per table theme), `chip_set_for`; `House.chip_set`
+  (`auto` | set); `status.chip_set`; TV `chipSprite` per set (`chipSetOf`), phone `html[data-chips]`, studio
+  `.cz[data-chips]` + `ChipSetPicker`. Ladder colours / labels unchanged.
+- **Odometer credits** in the studio (`bits.tsx` `Credits`, rAF transforms, reduced motion) and the phone's bank
+  plaque (`odoSet`); phone win moment (`casino.html` "shared win moment" block: `winTier`, `tickerAt`; rays, tier
+  word, coin fountain, shake, per-tier vibration, phase_at-anchored count-up).
+- **Result data**: `status.result.winners[].stake`, new `status.result.losers` (`casino/table.py`).
+- Tests: `tests/test_casino_dolly.py`; `tests/js/tv_casino.test.mjs` (+7: phone/TV tier agreement, moment anchor,
+  moments on every table, dolly path and landing, odometer reels, chip sets); fixture regenerated. Benchmark (6×
+  CPU, 960×540 @2, software): roulette p95 16.8 ms (before 16.8), baccarat p95 33.4 ms (before 50.0, lite), tetris
+  unchanged; main-thread busy +14–23 pts.
 
 ## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
 

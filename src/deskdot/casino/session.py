@@ -4,7 +4,7 @@ One session per engine (`AppContext.shared("casino", CasinoSession)`), shared by
 follow players from roulette to dice to blackjack. Persisted in the store section ``casino``:
 
 * ``wallets`` / ``ledger`` — the bank (`bank.py`);
-* ``house`` — base credits, table limits and timers (`House`);
+* ``house`` — base credits, table limits, timers, the roulette dolly's style and the chip set (`House`);
 * ``nonce`` — the round counter (never reused);
 * ``history`` — the last rounds with their fairness proofs (revealed seeds), newest last.
 
@@ -20,11 +20,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from . import fair
 from .bank import Bank
-from .chips import chip_rack
+from .chips import CHIP_SETS, chip_rack
 
 if TYPE_CHECKING:
     from .table import CasinoGame, RoundResult
@@ -43,6 +43,31 @@ HOST_OPS = (
 )
 
 
+#: The roulette dolly (the win marker the dealer sets on the winning number) — the styles the TV draws
+#: (tv/tv-casino.js DOLLY_STYLES), the studio's House picker shows and the phones mark the number with.
+DOLLIES: dict[str, str] = {
+    "classic_gold": "Classic Gold",
+    "crystal": "Crystal",
+    "chrome": "Chrome",
+    "onyx_gold": "Black Onyx & Gold",
+    "rose_gold": "Rose Gold",
+    "diamond": "Diamond-cut",
+    "marble_brass": "Marble & Brass",
+    "neon": "Neon Arcade",
+}
+
+
+def _choice(default: str, options: dict[str, str], title: str, description: str = "") -> Any:
+    """A select field — the same JSON schema as ``engine.Choice`` (``enum`` + ``enumLabels``), without importing
+    the engine into the casino package."""
+    return Field(
+        default,
+        title=title,
+        description=description,
+        json_schema_extra={"enum": list(options), "enumLabels": dict(options)},
+    )
+
+
 class House(BaseModel):
     """The host's table settings, shared by every casino game."""
 
@@ -53,6 +78,33 @@ class House(BaseModel):
     result_seconds: int = Field(7, ge=3, le=60, title="Result shown for")
     turn_seconds: int = Field(20, ge=5, le=120, title="Turn time (card games)")
     auto_next: bool = Field(True, title="Open the next round automatically")
+    dolly: str = _choice(
+        "classic_gold",
+        DOLLIES,
+        title="Roulette dolly",
+        description="The marker the dealer sets on the winning number (TV, phones).",
+    )
+
+    chip_set: str = _choice(
+        "auto",
+        {"auto": "Match the table", **CHIP_SETS},
+        title="Chip set",
+        description="The chips' design — material, edge and inlay. Match the table follows the table theme.",
+    )
+
+    @field_validator("dolly")
+    @classmethod
+    def _known_dolly(cls, v: str) -> str:
+        if v not in DOLLIES:
+            raise ValueError(f"unknown dolly {v!r}")
+        return v
+
+    @field_validator("chip_set")
+    @classmethod
+    def _known_chip_set(cls, v: str) -> str:
+        if v != "auto" and v not in CHIP_SETS:
+            raise ValueError(f"unknown chip set {v!r}")
+        return v
 
 
 @dataclass
