@@ -60,12 +60,12 @@ function GridCard({ a, live, selected, fav, onPick, onFav }: CardProps) {
         </button>
       </div>
       {live ? (
-        <span className="theme-dark engrave absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-0.5 !text-[7.5px] !text-ember backdrop-blur">
+        <span className="lg-badge engrave absolute left-3 top-3 flex items-center gap-1 rounded-full px-1.5 py-0.5 !text-[7.5px] !text-ember">
           <span className="led !h-[5px] !w-[5px]" data-on="ember" /> Live
         </span>
       ) : (
         <button title="Show on the panel now" aria-label={`Show ${a.name} now`} onClick={(e) => { e.stopPropagation(); api.activate(a.id); }}
-          className="theme-dark tile-play absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-ink-1 opacity-0 backdrop-blur transition hover:bg-ember hover:text-on-ember focus:opacity-100 group-hover:opacity-100">
+          className="lg-badge tile-play absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full opacity-0 transition focus:opacity-100 group-hover:opacity-100">
           <Icon name="play" size={12} fill="currentColor" />
         </button>
       )}

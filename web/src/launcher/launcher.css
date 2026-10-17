@@ -224,3 +224,51 @@ html[data-shell="mac"] body, html[data-shell="gtk"] body { background: transpare
 :root[data-panel="paper"] .lx-led::after { background-image: radial-gradient(circle at center, transparent 58%, rgba(248, 245, 239, 0.92) 72%); }
 :root[data-panel="paper"] .lx-led { box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.12), 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 0 5px #b8892a55, 0 18px 34px -16px rgba(40, 30, 16, 0.45); }
 :root[data-panel="paper"] .lx-led:is(.sm, .xs) { box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.12); }
+
+/* ------------------------------------------------------------ Liquid Glass (docs/STUDIO_UI.md § Liquid Glass; the
+   names and values mirror web/src/index.css). In a browser tab the bar is a slab of glass over the page (Spotlight in
+   macOS 26); inside `deskdot launcher` the window is the card and nothing of the desktop can be blurred, so it is the
+   frosted, near-opaque fill. html[data-glass] = liquid | frosted | solid (launcher.html sets it, lib/glass.ts refines). */
+:root {
+  --lg-tint: color-mix(in oklab, var(--c2) 62%, transparent); --lg-frost: color-mix(in oklab, var(--c2) 96%, transparent);
+  --lg-edge: rgba(255, 255, 255, 0.1); --lg-rim-a: rgba(255, 255, 255, 0.34); --lg-rim-b: rgba(255, 255, 255, 0.03); --lg-rim-c: rgba(255, 255, 255, 0.14);
+  --lg-glare: rgba(255, 255, 255, 0.06); --lg-control: rgba(239, 236, 228, 0.07); --lg-track: rgba(239, 236, 228, 0.08);
+  --lg-lens: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.07)); --lg-lens-rim: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  --lg-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 28px 70px -20px rgba(0, 0, 0, 0.8); --lg-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+}
+:root[data-theme="light"] {
+  --lg-tint: color-mix(in oklab, var(--c2) 64%, transparent); --lg-frost: color-mix(in oklab, var(--c2) 95%, var(--c0));
+  --lg-edge: rgba(64, 48, 24, 0.12); --lg-rim-a: #fff; --lg-rim-b: rgba(255, 255, 255, 0.4); --lg-rim-c: rgba(255, 255, 255, 0.85);
+  --lg-glare: rgba(255, 255, 255, 0.55); --lg-control: rgba(255, 255, 255, 0.62); --lg-track: rgba(64, 48, 24, 0.07);
+  --lg-lens: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.86)); --lg-lens-rim: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, 0.12), 0 4px 12px -4px rgba(64, 48, 24, 0.22);
+  --lg-shadow-lift: 0 1px 3px rgba(64, 48, 24, 0.08), 0 10px 24px -10px rgba(64, 48, 24, 0.16), 0 34px 70px -28px rgba(64, 48, 24, 0.42);
+}
+html[data-shell="browser"] .lx-card, html[data-shell="browser"][data-theme="light"] .lx-card {
+  position: relative; isolation: isolate; background: transparent; border-color: var(--lg-edge); border-radius: 26px; box-shadow: var(--lg-shadow-lift);
+}
+html[data-shell="browser"] .lx-card::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), radial-gradient(130% 70% at 0% 0%, var(--card-wash), transparent 60%), var(--lg-tint);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8);
+}
+html[data-shell="browser"] .lx-card::after {
+  content: ""; position: absolute; inset: -1px; z-index: 1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(155deg, var(--lg-rim-a), var(--lg-rim-b) 34%, var(--lg-rim-b) 66%, var(--lg-rim-c));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+html[data-shell="browser"]:is([data-glass="frosted"], [data-glass="solid"]) .lx-card::before { -webkit-backdrop-filter: none; backdrop-filter: none; background: radial-gradient(130% 70% at 0% 0%, var(--card-wash), transparent 60%), var(--lg-frost); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { html[data-shell="browser"] .lx-card::before { background: var(--lg-frost); } }
+@media (prefers-reduced-transparency: reduce) { html[data-shell="browser"] .lx-card::before { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--c1); } }
+html[data-shell="browser"] :is(.lx-preview, .lx-foot), html[data-shell="browser"][data-theme="light"] :is(.lx-preview, .lx-foot) { background-color: transparent; background-image: none; }
+html[data-shell="browser"][data-theme="light"] .lx-foot { background: var(--m-rule-gold) top / 100% 1px no-repeat; }
+/* controls: a glass segmented track with a lens, glass keys and chips that squash when pressed */
+.lx-seg, :root[data-theme="light"] .lx-seg { background: var(--lg-track); border-color: var(--lg-edge); border-radius: 999px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12); }
+.lx-seg button { border-radius: 999px; transition: transform 0.4s var(--lg-spring); }
+.lx-seg button.on, :root[data-theme="light"] .lx-seg button.on { background: var(--lg-lens); box-shadow: var(--lg-lens-rim); animation: lx-morph 0.5s var(--lg-spring) both; }
+.lx-bri-row button, .lx-chips span { background: var(--lg-control); border-color: var(--lg-edge); border-radius: 999px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: transform 0.4s var(--lg-spring); }
+.lx-bri-row button:active { transform: scale(0.92); transition-duration: 0.12s; }
+.lx-row.sel, .lx-tile.sel { border-radius: 14px; }
+@keyframes lx-morph { 0% { transform: scale(0.72, 0.84); opacity: 0.4; } 55% { transform: scale(1.08, 0.94); opacity: 1; } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lx-seg button.on { animation: none; } }
+/* light: the LED tiles while the dark device is chosen keep their device look; the page shadow is warm, never black */
+html[data-shell="browser"][data-theme="light"] body { background-color: var(--c0); }

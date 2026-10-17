@@ -23,7 +23,13 @@ In dark mode the LED preview sits in a graphite bezel with screws, a recessed we
 sheen. In light mode it becomes a **paper panel** (§ Paper panel below): white enamel, a porcelain LED grid and every
 colour re-mapped to read as ink on it — the same instrument, made for daylight (Display menu → *Panel preview in light
 mode* → *Dark device* keeps the black device). The DeskDot LED logo follows: in light it is drawn in its `paper` style
-(deep rose and gold dots) on a small porcelain plate with a gilded rim (`.led-plate`).
+(deep rose and gold dots), straight on the header — no sign or plate behind it in either theme.
+
+**Liquid Glass.** Over both rooms, the navigation and control layer — bars, toolbars, the tab bar, sheets, menus,
+popovers, dialogs, toasts, the playback dock, the panels around the LED panel, and every control — is Liquid Glass
+(§ Liquid Glass): it blurs and bends what is behind it, catches the light on its rim, and controls squash and spring
+back. Light mode has no dark chrome at all: the only dark things are the *Dark device* choice, the fruit fly's 3D
+scenes (renders, like a video) and the games' own colours (black roulette pockets, black chips, cards).
 
 ## Themes (`lib/theme.ts`, `web/index.html`)
 
@@ -46,8 +52,9 @@ mode* → *Dark device* keeps the black device). The DeskDot LED logo follows: i
   (same origin as the studio when served by the engine), else `prefers-color-scheme`; the TV defaults to dark.
 - **Components never hardcode colour.** Use the tokens below (Tailwind utilities resolve per theme), the `--m-*`
   materials in plain CSS, `light:` / `dark:` variants for the rare theme-only tweak, and `.theme-dark` on a subtree
-  that must stay dark in both themes (LED thumbnails' badges, the 3D fly wings — `.fly-wing`, `.fly-full`, `.roam-tip`,
-  the casino's and fly view's bezels, and `.bezel` while light mode keeps the dark device get it automatically). Seat
+  that must stay dark in both themes — now only the fly's 3D scenes (`.fly-wing`, `.fly-pane`, whose HUD reads on the
+  dark render) and `.bezel` while light mode keeps the dark device get it. Never use it for chrome or badges: light
+  mode has no dark chrome (badges over thumbnails are `.lg-badge`, veils over the panel `.lg-veil`). Seat
   colours, LED palette swatches and canvases are data, not chrome.
 - Theme changes cross-fade (`html.theme-fade`, 0.35 s; never on first paint, off with reduced motion). Live panels,
   image thumbnails and the header logo cross-fade their pictures too (§ Paper panel).
@@ -133,9 +140,10 @@ entries; a 32×32 frame uses a few dozen colours, so a frame costs 1 024 lookups
 and **multiplied** in (a soft coloured halo that darkens instead of blooming white); *Pixel* — crisp, no halo; *LED*
 — ink dots in a light housing (`#f8f5ef`; unlit LEDs are shallow porcelain dimples, a cached layer like the dark one)
 with a faint multiply halo under them. Calibration ("Show my colour calibration") is applied first, then the mapping.
-The light `.bezel` turns white enamel with a porcelain well and brass-and-ivory screws. Exceptions that keep the dark
-device: `raw` panels (the calibration wizard's screen reference) and the fly view (`device`, a dark 3D scene). The
-casino's table bezel (`.cz-bezel`) stays the casino's; its panel is paper.
+The light `.bezel` turns white enamel with a porcelain well and brass-and-ivory screws — every bezel, the casino's
+(`.cz-bezel`, on a brass rail and the table's felt) and the fly view's full-screen panel included. The one exception
+that keeps the emissive device: `raw` panels (the calibration wizard's screen reference, which must show what the LEDs
+emit), set in a light frame. The AI creator's preview and the Now Playing layout pictures are paper too.
 
 **Image previews** — library tiles, AppRail cards and the casino's game tiles (`.led-preview > img`) and the launcher
 (`.lx-led > img`) are `<img>` GIFs/PNGs. `installPaperImages()` lays a `canvas.paper-img` over each one (no component
@@ -154,12 +162,70 @@ image (the image hides only after the fade); the header logo cross-fades the sam
 (`localStorage["deskdot.panelLight"]`, `usePanelLight()` / `setPanelLight()`), included in the menu's Reset.
 
 **The logo** (`lib/logo.ts`): two styles as data — `NEON_STYLE` (additive halos, white-hot core; tubes `LOGO`) and
-`PAPER_STYLE` (tubes `#c2154d` rose / `#996300` gold, ≥ 4.5:1 on the plate; unlit dots a faint warm grey; a multiply
+`PAPER_STYLE` (tubes `#c2154d` rose / `#996300` gold, ≥ 4.5:1 on porcelain; unlit dots a faint warm grey; a multiply
 halo; a soft sheen for the core). `NeonLogo.setLook("neon" | "paper")`; `NeonMark` follows `<html data-theme>`. The
-plain-JS copies (`// <deskdot-logo>`) carry both styles and a `PAPER_PLATE`; `mount()` follows its page's own light /
-dark live (`opts.light`, else a shadow host's or `<html>`'s `data-theme`, else the system) and, in light, replaces a
-dark logo sign the page puts behind the canvas with the porcelain plate. `tests/test_logo_copies.py` keeps both styles
-identical everywhere.
+plain-JS copies (`// <deskdot-logo>`) carry both styles; `mount()` follows its page's own light / dark live
+(`opts.light`, else a shadow host's or `<html>`'s `data-theme`, else the system). No page puts a sign or plate behind
+the logo (the old `.led-plate` / `PAPER_PLATE` are gone): it sits straight on its header. `tests/test_logo_copies.py`
+keeps both styles identical everywhere.
+
+## Liquid Glass (`index.css` § LIQUID GLASS, `lib/glass.ts`)
+
+Our own CSS/SVG after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials). Apple's design kits
+are licensed only for designing apps on Apple platforms, so nothing of theirs is downloaded or embedded.
+
+**Principles we follow.** Glass is the navigation and control layer floating above content — never the content itself
+(tiles, cards, the LED panel), and never glass on glass (a panel inside a panel is a plain raised fill). It blurs and
+saturates what is behind it, bends it near the edges (a lens), carries a specular rim lit from the top-left plus a
+highlight that follows the pointer (or the phone's tilt), has inner light and shade for thickness and soft depth
+shadows, adapts its tint to light / dark and the page theme, uses capsules for controls and concentric, larger radii
+(sheets 34 px, the tab bar 30 px, panels 14–22 px), and morphs: a selection lens stretches in and settles
+(`lg-morph`), pressed controls squash and spring back (`--lg-spring`).
+
+**Tokens** (`:root` / `:root[data-theme="light"]`, mixed from the chassis tokens so every page theme tints them; also
+declared on `.theme-dark`; the phone pages, the web app, the launcher and the TV mirror the names):
+
+| Group | Names |
+| --- | --- |
+| body | `--lg-tint` (regular), `--lg-tint-thick` (text-heavy), `--lg-frost` (fallback, near opaque), `--lg-solid`, `--lg-blur` 20 px / `--lg-blur-thick` 28 px, `--lg-sat` 1.8, `--lg-glare` (top sheen), `--lg-inner` (thickness) |
+| rim | `--lg-edge` / `--lg-edge-strong` (hairline), `--lg-rim-a` (lit edge), `--lg-rim-b` (shade), `--lg-rim-c` (far-edge bounce), `--lg-spec` (pointer spot) |
+| depth | `--lg-shadow`, `--lg-shadow-lift` (menus, sheets, the tab bar) |
+| controls | `--lg-control` (+ `-hover`, `-sheen`, `-rim`, `-shadow`, `-shadow-press`), `--lg-prominent-sheen` (tinted glass), `--lg-track` / `--lg-track-shade`, `--lg-lens` (+ `-rim`, `-shadow`), `--lg-knob` / `--lg-knob-held` / `--lg-knob-edge`, `--lg-spring` |
+
+**Classes.** `.glass` (regular: toolbars, bars), `.glass-thick` (sheets, menus, popovers, dialogs, toasts),
+`.glass-capsule` (toolbar groups), `.glass-control` (keys, chips: translucent fill + rim + sheen, *no* backdrop blur —
+controls are many and small), `.glass-lens` (the selection), `.lg-badge` (small glass capsules over thumbnails and the
+panel: LIVE, ▶, delete, the look switch), `.lg-veil` (a dim / frosted veil over the live panel), `.lg-toolbar` (keys
+inside a capsule go clear until hovered). The element is transparent and isolated (a stacking context, *not* a
+containing block, so fixed popovers and sheets inside still cover the screen); `::before` is the body (tint + sheen +
+inner light + `backdrop-filter: blur() saturate()`), `::after` the 1 px gradient rim (mask ring). A glass group that
+holds an open menu raises itself (`:has([role=menu|dialog|listbox])`); the header sits at `z-index: 30`.
+
+**Where.** `.surface` *is* thick glass (library, inspector, fly dock, the stage's cards, every menu / popover / dialog /
+toast, the playback dock); the header's status pill and its toolbar (search · brightness · Display menu · power guard)
+are glass capsules and the header rule is gone; phones: the header bar, the floating capsule tab bar (content scrolls
+under it; the open tab is a lens that morphs in), floating sheets, the theme key and its menu, the "now showing"
+strip, Quick controls tiles; keys are capsules (`.key-ember` = prominent tinted glass), `.seg` a capsule track with a
+lens, `.toggle` Apple's switch (the knob stretches while held), `.fader` a glass knob that swells while held, chips
+and dock presets glass controls. Casino wings: a pale glass rail with a glass tab track. The launcher's bar is a slab
+of glass in a browser tab (frosted inside the `deskdot launcher` window, which can't blur the desktop). Phone pages
+(casino.html, controller.html, join), the web app (`host.css`) and the TV mirror the tokens in their own CSS.
+
+**Modes and fallbacks** — `<html data-glass>` (set before first paint by the inline script in `index.html` /
+`launcher.html`, refined by `installGlass()`; the Display menu → More → **Glass** forces one per browser,
+`localStorage["deskdot.glass"]` = auto | liquid | frosted | solid):
+
+| Mode | When | What |
+| --- | --- | --- |
+| liquid | blur supported, not the Android app, not a low-end device | real blur; `html.lg-lens` adds the SVG edge lens (`backdrop-filter: url(#lg-lens) …`, an `feDisplacementMap` injected by `lib/glass.ts`) on Chromium with a fine pointer |
+| frosted | no `backdrop-filter`, `window.DeskDotAndroid` (its WebView let content show through translucent bars), ≤ 4 GB or ≤ 4 cores, or chosen | no backdrop-filter, `--lg-frost` (98 % dark / opaque light): text never sits on raw content |
+| solid | `prefers-reduced-transparency` or chosen | opaque fills, quieter rims |
+
+Touch screens keep real blur only on the small fixed bars (tab bar, phone header); panels, sheets, dialogs, veils and
+badges are frosted there — a blur re-renders on every scroll frame and whenever the live panel behind it changes.
+`@supports not (backdrop-filter…)` and `@media (prefers-reduced-transparency)` guard the CSS without JS. Glass panels
+rise in with a transform-only animation (`lg-rise`): an opacity animation makes the element a backdrop root and its
+blur would see nothing. The TV gets static faux glass only (no `backdrop-filter`, docs/TV_VIEW.md §6).
 
 ## Tokens (`web/src/index.css` → `@theme` + `:root[data-theme="light"]`)
 
@@ -183,7 +249,7 @@ identical everywhere.
 | `gold-text` | `#ffd600` | `#8a6412` (5.1:1) | gold as text (`.text-gold`) |
 | `ok` / `ok-line` | `#3ddc97` / `#1f5c43` | `#18794e` / `#a8d8bf` | status |
 | `warn`, `bad`, `info` | `#ffb020`, `#ff3b5c`, `#37c8ff` | `#9a5b00`, `#c8203e`, `#0b6f9e` | status only |
-| `scrim` | `#000000` | `#2a2218` warm umber | dialog backdrops (`bg-scrim/60 light:bg-scrim/35`) |
+| `scrim` | `#000000` | `#ece6db` porcelain veil | dialog backdrops (`bg-scrim/60 light:bg-scrim/60` + a blur = frosted in light) |
 | `font-display` | Bricolage Grotesque (variable) | | names, headings |
 | `font-mono` | Martian Mono | | engraved labels, data, keys |
 | radius | 14 px surfaces, 9–10 px controls, 5 px swatches | | |
@@ -206,7 +272,8 @@ porcelain, lacquer and gold leaf — instead of glow:
 
 The accent / chassis mixes are declared on `:root`, `.cz`, `.theme-dark` and `[data-accent-scope]` — a custom property
 computes where it is declared, so a subtree that re-tints `--color-ember` carries `data-accent-scope` to get matching
-washes. Everything is static gradients (painted once): no animated blur, no `backdrop-filter` dependence (phones).
+washes. Everything is static gradients (painted once); the only blur is Liquid Glass (§ Liquid Glass), with its
+frosted fallback wherever blur is missing or slow.
 
 Fonts are bundled with `@fontsource` — the studio works fully offline.
 
@@ -216,14 +283,14 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 | --- | --- |
 | `.surface` | machined panel: gradient, hairline, inner top highlight |
 | `.engrave` | 9.5 px mono uppercase, 0.18 em tracking, `ink-3` — every label |
-| `.key`, `.key-ember`, `.key-ghost`, `.key-icon` | hardware buttons; ember = the one primary action in view |
+| `.key`, `.key-ember`, `.key-ghost`, `.key-icon` | glass capsule buttons (squash + spring on press); ember = prominent tinted glass, the one primary action in view |
+| `.glass`, `.glass-thick`, `.glass-capsule`, `.glass-control`, `.glass-lens`, `.lg-badge`, `.lg-veil`, `.lg-toolbar` | Liquid Glass (§ Liquid Glass) |
 | `.fader` | range input; set `--fill` to the percentage for the lit track |
 | `.seg` | segmented control (≤ 4 options) |
 | `.toggle` | switch; ember glow when on |
 | `.field` | inset text/select/textarea |
 | `.led[data-on=ok|warn|bad|ember]` | status dot |
 | `.bezel`, `.screw` | the panel housing (graphite; white enamel + porcelain well with the paper panel in light; satin rim + long shadow) |
-| `.led-plate` | the LED logo's plate: invisible in dark, a porcelain plate with a gilded rim in light (logo in its paper style) |
 | `.led-preview`, `.led-mask`, `--led-gap`, `.paper-img` | image thumbnails of the panel, their LED dot mask (gap colour fades with the theme), the paper canvas laid over them |
 | `.led-well` | the well behind a small live `LedPanel` (header mini panel, inspector, Display menu tiles): porcelain with the paper panel |
 | `.theme-tile`, `.theme-swatch` | the Studio theme picker (`components/ThemePicker.tsx`) |
@@ -270,8 +337,9 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
   - **Header** (52 px + the notch inset): status dot, the logo, Search and one **⋯** key. Brightness, panel
     power, the fruit-fly toggle + flies-allowed sign, Device / Settings / Message live in the **Quick controls**
     bottom sheet (`TopBar.tsx QuickSheet`).
-  - **Bottom tab bar** in the thumb zone — **Panel**, **Apps**, **Presets**, **Settings** — with a lit pill behind
-    the active icon (the active glyph turns duotone); tapping the open tab scrolls it to the top.
+  - **Bottom tab bar** in the thumb zone — **Panel**, **Apps**, **Presets**, **Settings** — a floating glass capsule
+    (content scrolls under it) with a glass lens behind the open tab that morphs in (the active glyph turns duotone);
+    tapping the open tab scrolls it to the top.
   - **Panel tab** = one scroll area (`.phone-stage`): the panel at full width but at most 40 % of the screen height,
     its tools, the now-showing card, then **app rows** (`components/AppRail.tsx`) you swipe left / right —
     Favourites, Recent (`lib/recent.ts`, the last 16 apps shown, per browser), then one row per category. Native
@@ -676,6 +744,10 @@ mode). Nothing animates layout or paint per frame; the main thread only draws th
   the next due frame of a visible canvas; nothing of it runs while the paper panel is off.
 - Progress bars run on a CSS `transform: scaleX` transition re-aimed on each state update — no per-frame JS.
 - Sheets follow the finger by writing `transform` directly (no React render per pointer move).
+- Liquid Glass: `backdrop-filter` only on floating chrome, never on a scrolling area; on touch screens only on the small
+  fixed bars (panels, sheets, dialogs, veils and badges are frosted); controls never blur; the specular highlight
+  writes two custom properties on the hovered glass element at most once per frame (tilt: ≤ 15 Hz, two elements);
+  frosted where blur is missing, slow or untrustworthy (the Android app). The TV: static faux glass only.
 - Touch screens switch off the costly desktop effects (index.css "phone app polish"): the full-screen film-grain
   blend layer, backdrop blurs behind sheets and dialogs (they re-blur whenever the live panel changes), CSS filters on
   animated GIF thumbnails, the roaming fly's animated glow; the theme cross-fade animates colours only. The roaming

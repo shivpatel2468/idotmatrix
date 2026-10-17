@@ -6,8 +6,8 @@ const HEADER: LogoTimeline = { build: 1.5, hold: 14, off: 1.2 };
 
 /** The header logo: "DeskDot" in LEDs, built and struck like neon, on a loop. Hover strikes it again.
  *  It redraws only while something moves (build, strike, the loose letter's blink, power-down), idles while the
- *  tubes just hum, and stops while the tab is hidden. Light mode draws the `paper` style (ink tubes on the porcelain
- *  `.led-plate`); switching theme cross-fades between the two. */
+ *  tubes just hum, and stops while the tab is hidden. Light mode draws the `paper` style (ink tubes), straight on the
+ *  header like the neon one — no sign or plate behind it; switching theme cross-fades between the two. */
 export function NeonMark({ pitch = 3.4 }: { pitch?: number }) {
   const cv = useRef<HTMLCanvasElement>(null);
   const fade = useRef<HTMLCanvasElement>(null);
@@ -91,7 +91,7 @@ export function NeonMark({ pitch = 3.4 }: { pitch?: number }) {
   return (
     <span className="relative block" onMouseEnter={() => restart.current()}>
       <canvas ref={cv} aria-label="DeskDot, written in LED dots" role="img" className="block" />
-      <canvas ref={fade} aria-hidden className="pointer-events-none absolute left-0 top-0 opacity-0" />
+      <canvas ref={fade} aria-hidden width={0} height={0} className="pointer-events-none absolute left-0 top-0 h-0 w-0 opacity-0" />
     </span>
   );
 }

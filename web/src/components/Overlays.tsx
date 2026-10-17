@@ -24,7 +24,7 @@ export function Modal({ open, onClose, title, children, width = 440, header, bod
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid grid-cols-[minmax(0,1fr)] place-items-center bg-scrim/60 light:bg-scrim/28 sm:backdrop-blur-[3px] sm:light:backdrop-blur-[6px] sm:p-4" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 grid grid-cols-[minmax(0,1fr)] place-items-center bg-scrim/60 light:bg-scrim/60 sm:backdrop-blur-[3px] sm:light:backdrop-blur-[6px] sm:p-4" onMouseDown={onClose}>
       <div className="surface flex h-screen h-[100dvh] w-full animate-rise flex-col max-sm:!rounded-none sm:h-auto" style={{ maxWidth: width }}
         onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head flex shrink-0 items-center border-b border-line px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5 sm:pt-3">
@@ -160,7 +160,7 @@ export function CommandPalette() {
   const list = cmds.filter((c) => { const t = `${c.label} ${c.hint}`.toLowerCase(); return words.every((w) => t.includes(w)); }).slice(0, 9);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex justify-center bg-scrim/55 light:bg-scrim/30 px-3 pt-[10vh] backdrop-blur-[2px] sm:pt-[14vh]" onMouseDown={close}>
+    <div className="fixed inset-0 z-50 flex justify-center bg-scrim/55 light:bg-scrim/60 px-3 pt-[10vh] backdrop-blur-[2px] sm:pt-[14vh]" onMouseDown={close}>
       <div className="surface h-fit w-full max-w-lg overflow-hidden animate-rise" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label="Find anything">
         <div className="flex items-center gap-3 border-b border-line px-4">
           <Search size={15} className="text-ink-3" />

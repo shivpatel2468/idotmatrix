@@ -25,8 +25,8 @@
   // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
   // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
   // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
-  // neon on black, light the "paper" style (ink tubes) — and a dark LED sign the page put behind the canvas becomes a
-  // porcelain plate. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
+  // neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+  // behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
   const DeskDotLogo = (() => {
     const GLYPHS = {
       D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -40,11 +40,6 @@
     const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
     const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
     const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
-    // light: the porcelain plate with a gilded rim that replaces a page's dark LED sign (the studio's .led-plate)
-    const PAPER_PLATE = {
-      background: "radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%)",
-      boxShadow: "inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64,48,24,0.07), 0 0 0 1px rgba(150,112,40,0.4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184,137,42,0.5), 0 10px 22px -12px rgba(64,48,24,0.4)",
-    };
     const STRIKE = [
       [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
       [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -228,16 +223,11 @@
         return t ? t === "light" : !!(media && media.matches);
       });
       let look = "";
-      /** The page's light / dark changed? Re-pick the style and the plate. True when it changed. */
+      /** The page's light / dark changed? Re-pick the style. True when it changed. */
       const restyle = () => {
         const next = isLight() ? "paper" : "neon";
         if (next === look) return false;
         look = next;
-        canvas.style.background = canvas.style.boxShadow = "";
-        if (look === "paper" && getComputedStyle(canvas).backgroundImage !== "none") {
-          canvas.style.background = PAPER_PLATE.background;
-          canvas.style.boxShadow = PAPER_PLATE.boxShadow;
-        }
         return true;
       };
       const watch = () => restyle() && now();
@@ -331,6 +321,17 @@
     try { return window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) { return "dark"; }
   })();
   try { document.documentElement.dataset.theme = uiMode; } catch (e) { /* no DOM yet */ }
+  // Liquid Glass (docs/STUDIO_UI.md § Liquid Glass, as web/index.html): solid for reduced transparency; frosted (near
+  // opaque, no blur) without backdrop-filter, inside the Android app or on a TV (static faux glass); else liquid
+  const glassMode = (() => {
+    try {
+      const g = localStorage.getItem("deskdot.glass") || "auto";
+      const bl = window.CSS && CSS.supports && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+      if ((window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches) || g === "solid") return "solid";
+      return g === "frosted" || !bl || isTv || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid";
+    } catch (e) { return "frosted"; }
+  })();
+  try { document.documentElement.dataset.glass = glassMode; } catch (e) { /* no DOM yet */ }
   const realFetch = window.fetch.bind(window);
   const RealWebSocket = window.WebSocket;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -405,6 +406,7 @@
     css.rel = "stylesheet";
     css.href = "/app/join/join.css" + VERSION;
     const veil = el("div", uiMode === "light" ? "veil light" : "veil");
+    veil.dataset.glass = glassMode;
     veil.hidden = true;
     veil.setAttribute("role", "status");
     veil.setAttribute("aria-live", "polite");

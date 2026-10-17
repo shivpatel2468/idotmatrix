@@ -487,14 +487,14 @@ export function LedPanel({
         role="img"
       />
       {/* the previous picture while light <-> dark cross-fades (lib/paper.ts crossFade places and fades it) */}
-      <canvas ref={fade} aria-hidden className="pointer-events-none absolute left-0 top-0 opacity-0" />
+      <canvas ref={fade} aria-hidden width={0} height={0} className="pointer-events-none absolute left-0 top-0 h-0 w-0 opacity-0" />
       {lookSwitch && !forced && (px || 0) >= 160 && (
-        <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-0.5 rounded-full border border-white/10 bg-black/70 p-0.5 opacity-0 backdrop-blur transition group-hover/panel:opacity-100 focus-within:opacity-100"
+        <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-0.5 lg-badge rounded-full p-0.5 opacity-0 transition group-hover/panel:opacity-100 focus-within:opacity-100"
           role="radiogroup" aria-label="Preview style">
           {LOOKS.map((l) => (
             <button key={l} role="radio" aria-checked={look === l} title={LOOK_HINT[l]}
               onClick={(e) => { e.stopPropagation(); setLook(l); }}
-              className={`rounded-full px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-wider transition ${look === l ? "bg-white/15 text-white" : "text-white/55 hover:text-white"}`}>
+              className={`rounded-full px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-wider transition ${look === l ? "glass-lens text-ink-1" : "text-ink-3 hover:text-ink-1"}`}>
               {LOOK_LABEL[l]}
             </button>
           ))}

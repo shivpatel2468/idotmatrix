@@ -34,7 +34,7 @@ const RailCard = memo(function RailCard({ a, live }: { a: AppMeta; live: boolean
         api.activate(a.id).catch(() => undefined); // req() already toasts the error
       }}>
       <Preview id={a.id} />
-      {live && <span className="rail-live theme-dark"><span className="led !h-[5px] !w-[5px]" data-on="ember" />Live</span>}
+      {live && <span className="rail-live"><span className="led !h-[5px] !w-[5px]" data-on="ember" />Live</span>}
       <span className="rail-name">{a.name}</span>
     </button>
   );

@@ -132,7 +132,7 @@ export function QrCode({ text, size = 208 }: { text: string; size?: number }) {
   }, [text]);
   return (
     <svg viewBox={`0 0 ${n} ${n}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label={`QR code for ${text}`}
-      className="rounded-[10px] shadow-[0_0_0_1px_rgba(255,255,255,.08),0_18px_40px_-18px_rgba(0,0,0,.9)]">
+      className="rounded-[10px] [box-shadow:0_0_0_1px_var(--lg-edge),var(--lg-shadow-lift)]">
       <rect width={n} height={n} fill="#fff" />
       <path d={d} fill="#000" />
     </svg>

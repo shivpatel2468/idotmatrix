@@ -52,10 +52,9 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 }
 #bar-left { min-width: 0; display: flex; align-items: center; gap: 22px; }
 #bar-right { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 28px; }
-/* the DeskDot logo in LEDs (tv.js DeskDotLogo; its canvas carries ~2 dots of glow room) on a small LED sign */
+/* the DeskDot logo in LEDs (tv.js DeskDotLogo; its canvas carries ~2 dots of glow room), straight on the bar — no sign */
 .wordmark { position: relative; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
-.wordmark canvas { display: block; border-radius: 14px; background: radial-gradient(130% 150% at 50% 0, #17161c, #060608 72%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), inset 0 -6px 14px rgba(0, 0, 0, .6), 0 0 0 1px rgba(0, 0, 0, .6); }
+.wordmark canvas { display: block; }
 .wordmark small { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
   font: 700 15px/1 var(--font); color: var(--ink-3); letter-spacing: .32em; }
 .bar-sep { width: 1px; height: 46px; background: var(--line-2); }
@@ -305,8 +304,9 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 
 /* ------------------------------------------------------------------ light mode (html[data-theme="light"], tv.js)
    A TV is dark unless ?theme=light or the options menu picked Light. The studio's light palette ("Gallery":
-   porcelain and ivory, deep ink, hairlines and long soft shadows — docs/STUDIO_UI.md); the panel stays a dark device
-   on its plinth, the LED logo sits on a small LED sign, and a casino table becomes a daylight salon (stage[data-table], below).
+   porcelain and ivory, deep ink, hairlines and long soft shadows — docs/STUDIO_UI.md); the panel is the studio's paper
+   panel (ink on porcelain in white enamel, tv.js paperOf), the LED logo sits straight on the bar in its paper style,
+   and a casino table becomes a daylight salon (stage[data-table], below).
    Same cost as dark: static gradients and shadows only, nothing animated. */
 :root[data-theme="light"] {
   color-scheme: light;
@@ -323,9 +323,6 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .8), 0 14px 34px -18px rgba(64, 48, 24, .35);
 }
 :root[data-theme="light"] #bar::after { background: linear-gradient(90deg, transparent 2%, #d6386a 26%, #c9a24a 74%, transparent 98%); opacity: .45; }
-/* light: the LED logo is drawn in its paper style (ink tubes, tv.js DeskDotLogo) on a porcelain plate with a gilded rim */
-:root[data-theme="light"] .wordmark canvas { border-radius: 14px; background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, .07), 0 0 0 1px rgba(150, 112, 40, .4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, .5), 0 10px 24px -12px rgba(64, 48, 24, .4); }
 :root[data-theme="light"] #bar-cat { background: var(--chassis-1); }
 :root[data-theme="light"] #bar-cat::before { box-shadow: 0 0 0 3px rgba(184, 31, 75, .16); }
 :root[data-theme="light"] #bar-join { background: #ffffff; box-shadow: 0 10px 24px -16px rgba(64, 48, 24, .45); }
@@ -339,6 +336,18 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 -2px 0 rgba(0, 0, 0, .65), 0 0 0 1px #0b0b0e,
     0 2px 4px rgba(40, 30, 16, .12), 0 60px 90px -40px rgba(40, 30, 16, .6), 0 22px 30px -18px rgba(40, 30, 16, .35);
 }
+/* the paper panel's housing (the studio's light .bezel): white enamel, a porcelain well, brass-and-ivory screws */
+:root[data-theme="light"] .tv-bezel {
+  background: linear-gradient(145deg, #ffffff 0%, #f7f3ec 46%, #ebe4d7 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(64, 48, 24, .16), inset 0 0 0 1px rgba(64, 48, 24, .07),
+    0 0 0 1px rgba(64, 48, 24, .14), 0 0 0 7px rgba(255, 255, 255, .8), 0 0 0 8px rgba(184, 137, 42, .35),
+    0 2px 4px rgba(40, 30, 16, .1), 0 60px 90px -40px rgba(40, 30, 16, .5), 0 22px 30px -18px rgba(40, 30, 16, .3);
+}
+:root[data-theme="light"] .tv-well { background: #ebe6dc; box-shadow: inset 0 3px 10px rgba(64, 48, 24, .22), inset 0 0 0 1px rgba(64, 48, 24, .12), 0 1px 0 #fff; }
+:root[data-theme="light"] .tv-well::after { background: linear-gradient(160deg, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, .1) 100%); }
+:root[data-theme="light"] .tv-screw { background: radial-gradient(circle at 35% 30%, #fffdf8, #d9cdb4 55%, #a8936a 100%); box-shadow: inset 0 0 0 1px rgba(64, 48, 24, .25), 0 1px 0 #fff; }
+:root[data-theme="light"] .tv-screw::after { background: rgba(64, 48, 24, .5); }
+:root[data-theme="light"] .g-player canvas { background: #f6f1e7; }
 :root[data-theme="light"] .tv-card { background: linear-gradient(180deg, #ffffff, #fbf9f5); border-color: var(--line);
   box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(64, 48, 24, .05), 0 24px 50px -28px rgba(64, 48, 24, .4); }
 :root[data-theme="light"] .tv-chip { background: var(--chassis-1); }
@@ -356,9 +365,6 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 /* waiting / closed */
 :root[data-theme="light"] #veil { background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe5da 75%); }
 :root[data-theme="light"] #veil::before { background: radial-gradient(circle, rgba(64, 48, 24, .1) 3px, transparent 3.6px) 0 0 / 30px 30px; }
-:root[data-theme="light"] #veil-logo { border-radius: 40px; background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, .07), 0 0 0 1px rgba(150, 112, 40, .4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, .5), 0 40px 70px -34px rgba(64, 48, 24, .5);
-  margin: 0 0 6px; }
 :root[data-theme="light"] .veil-dots i { box-shadow: 0 0 0 8px rgba(184, 31, 75, .1); }
 :root[data-theme="light"] .veil-dots i:nth-child(2) { background: #d6386a; box-shadow: 0 0 0 8px rgba(214, 56, 106, .1); }
 :root[data-theme="light"] .veil-dots i:nth-child(3) { background: #c9a24a; box-shadow: 0 0 0 8px rgba(201, 162, 74, .14); }
@@ -367,7 +373,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   box-shadow: inset 0 1px 0 #fff, 0 18px 34px -20px rgba(64, 48, 24, .45); }
 /* the notice and the options menu */
 :root[data-theme="light"] #tv-toast { background: rgba(255, 255, 255, .97); box-shadow: 0 20px 44px -22px rgba(64, 48, 24, .5); }
-:root[data-theme="light"] #tv-menu { background: linear-gradient(180deg, rgba(42, 34, 24, 0) 35%, rgba(42, 34, 24, .32)); }
+:root[data-theme="light"] #tv-menu { background: linear-gradient(180deg, rgba(244, 240, 232, 0) 25%, rgba(244, 240, 232, .72)); }
 :root[data-theme="light"] .tvm-card { background: linear-gradient(180deg, #ffffff, #fbf9f5); border-color: var(--line);
   box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(64, 48, 24, .06), 0 40px 90px -30px rgba(64, 48, 24, .55); }
 :root[data-theme="light"] .tvm-opt { background: #ffffff; box-shadow: 0 8px 18px -14px rgba(64, 48, 24, .4); }
@@ -424,7 +430,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 /* a casino table in daylight (3.7.0): a light luxury salon — ivory and champagne, white lacquer, antique gold (the
    studio's light casino, web/src/components/casino/casino.css; MATERIALS v2). The scene's canvases draw the room in the
    same palette (tv-casino.js ROOMS.light); the felt keeps the table theme's colour. The bar: ivory with the table's name
-   engraved in antique gold, a gilded double rule under it; the LED logo on its dark sign with a gold-leaf rim. */
+   engraved in antique gold, a gilded double rule under it; the LED logo straight on the bar in its paper style. */
 :root[data-theme="light"] #stage[data-table="1"]::before {
   background:
     radial-gradient(900px 640px at 0% 0%, var(--m-wash-a), transparent 70%),
@@ -448,6 +454,67 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 :root[data-theme="light"] #stage[data-table="1"] #bar::after { background: var(--m-rule-gold); }
 :root[data-theme="light"] #stage[data-table="1"] #veil {
   background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe2d2 75%); }
+
+/* ------------------------------------------------------------------ Liquid Glass, TV edition (docs/STUDIO_UI.md § Liquid Glass)
+   The studio's --lg-* tokens by name, as STATIC faux glass: no backdrop-filter anywhere on the TV (docs/TV_VIEW.md §6 —
+   a TV stick may composite in software, and a blur re-renders under every panel frame). The glass is layered fills,
+   painted once: a translucent tint over the static stage (dense enough that text never sits on raw content), a top
+   sheen, inner light and shade for thickness, a 1 px specular rim lit from the top (inset shadows) and a soft depth
+   shadow. The header bar and the options menu are glass; the menu's options, the bar's chips, the code tiles and the
+   notice are glass controls. Nothing animates but what already did (the menu's slide, a pick's flash). */
+:root {
+  --lg-tint: rgba(24, 24, 30, .78); --lg-tint-thick: rgba(22, 22, 28, .93);
+  --lg-glare: rgba(255, 255, 255, .07); --lg-edge: rgba(255, 255, 255, .09);
+  --lg-rim-a: rgba(255, 255, 255, .3); --lg-rim-b: rgba(255, 255, 255, .04);
+  --lg-inner: inset 0 16px 26px -20px rgba(255, 255, 255, .14), inset 0 -16px 28px -22px rgba(0, 0, 0, .6);
+  --lg-shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 16px 40px -16px rgba(0, 0, 0, .7);
+  --lg-control: rgba(255, 255, 255, .07); --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 55%);
+  --lg-control-rim: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -1px 0 rgba(255, 255, 255, .03);
+  --lg-control-shadow: 0 2px 4px rgba(0, 0, 0, .3), 0 10px 22px -12px rgba(0, 0, 0, .55);
+}
+:root[data-theme="light"] {
+  --lg-tint: rgba(255, 255, 255, .74); --lg-tint-thick: rgba(255, 253, 249, .94);
+  --lg-glare: rgba(255, 255, 255, .6); --lg-edge: rgba(64, 48, 24, .12);
+  --lg-rim-a: #ffffff; --lg-rim-b: rgba(255, 255, 255, .45);
+  --lg-inner: inset 0 18px 28px -20px rgba(255, 255, 255, .95), inset 0 -16px 30px -22px rgba(64, 48, 24, .16);
+  --lg-shadow: 0 1px 2px rgba(64, 48, 24, .07), 0 18px 44px -20px rgba(64, 48, 24, .34);
+  --lg-control: rgba(255, 255, 255, .64); --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 60%);
+  --lg-control-rim: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, .5), inset 0 0 0 1px rgba(255, 255, 255, .5);
+  --lg-control-shadow: 0 1px 2px rgba(64, 48, 24, .1), 0 10px 22px -12px rgba(64, 48, 24, .32);
+}
+/* the header bar: glass over the stage (the table room's tint, #bar::before, still shows through at a casino) */
+#bar, :root[data-theme="light"] #bar {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 55%), var(--lg-tint);
+  border-bottom-color: var(--lg-edge);
+  box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), var(--lg-shadow);
+}
+:root[data-theme="light"] #stage[data-table="1"] #bar { box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), var(--lg-shadow); }
+#stage[data-table="1"] #bar::before { opacity: .78; }
+/* the options menu: thick glass (dense: it holds the most text), its options glass controls */
+.tvm-card, :root[data-theme="light"] .tvm-card {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
+  border-color: var(--lg-edge);
+  box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), 0 2px 6px rgba(0, 0, 0, .12), 0 40px 90px -30px rgba(0, 0, 0, .6);
+}
+:root[data-theme="light"] .tvm-card { box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), 0 2px 6px rgba(64, 48, 24, .06), 0 40px 90px -30px rgba(64, 48, 24, .5); }
+.tvm-opt, :root[data-theme="light"] .tvm-opt {
+  background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge);
+  box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+}
+.tvm-opt[aria-checked="true"] { background: linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 55%), linear-gradient(180deg, rgba(255, 72, 24, .34), rgba(255, 72, 24, .16)); }
+:root[data-theme="light"] .tvm-opt[aria-checked="true"] { background: var(--lg-control-sheen), linear-gradient(180deg, rgba(184, 31, 75, .14), rgba(184, 31, 75, .05)), #ffffff; }
+.tvm-opt.focus { box-shadow: var(--lg-control-rim), 0 0 0 4px #fff, 0 0 36px rgba(255, 255, 255, .38); }
+:root[data-theme="light"] .tvm-opt.focus { box-shadow: var(--lg-control-rim), 0 0 0 4px var(--ink-1), 0 22px 40px -18px rgba(64, 48, 24, .55); }
+.tvm-hint kbd, :root[data-theme="light"] .tvm-hint kbd { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); }
+/* glass controls on the bar and the veil, and the notice */
+#bar-cat, :root[data-theme="light"] #bar-cat { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); }
+#bar-join, :root[data-theme="light"] #bar-join { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); border-radius: 20px; }
+:root[data-theme="light"] #stage[data-table="1"] #bar-join { background: var(--lg-control-sheen), rgba(255, 255, 255, .8); }
+.veil-code b, :root[data-theme="light"] .veil-code b { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); }
+#tv-toast, :root[data-theme="light"] #tv-toast {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 55%), var(--lg-tint-thick); border-color: var(--lg-edge);
+  box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-shadow);
+}
 </style>
 </head>
 <body>

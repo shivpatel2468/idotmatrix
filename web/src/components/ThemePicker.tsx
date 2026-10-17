@@ -11,19 +11,20 @@ const ICON: Record<ThemePref, React.ReactNode> = {
 /** A tiny picture of the studio in each theme (it shows the other theme too), in the current page theme. */
 function Swatch({ id }: { id: ThemePref }) {
   const pt = derive(pageThemeSeed(usePageTheme()));
-  const room = (bg: string, panel: string, line: string, accent: string, ink: string) => (
+  const room = (bg: string, panel: string, line: string, accent: string, ink: string, paper = false) => (
     <>
       <i style={{ inset: 0, borderRadius: 0, background: bg }} />
       <i style={{ left: "7%", top: "14%", width: "22%", bottom: "14%", background: panel, boxShadow: `0 0 0 1px ${line}` }} />
       <i style={{ right: "7%", top: "14%", width: "22%", bottom: "14%", background: panel, boxShadow: `0 0 0 1px ${line}` }} />
-      <i style={{ left: "36%", right: "36%", top: "22%", bottom: "22%", background: "#0b0b0e", borderRadius: 4, boxShadow: "0 0 0 2px #1c1c22" }} />
-      <i style={{ left: "41%", right: "41%", top: "32%", bottom: "32%", borderRadius: 2, background: "radial-gradient(circle, #ff4f7b 0 30%, #ffcc33 60%, transparent 62%)", opacity: 0.85 }} />
+      <i style={{ left: "36%", right: "36%", top: "22%", bottom: "22%", background: paper ? "#ebe6dc" : "#0b0b0e", borderRadius: 4, boxShadow: paper ? "0 0 0 2px #fff, 0 0 0 3px rgba(64,48,24,0.18)" : "0 0 0 2px #1c1c22" }} />
+      {/* light mode's panel is the paper panel: ink dots on porcelain (the same colours, re-tuned) */}
+      <i style={{ left: "41%", right: "41%", top: "32%", bottom: "32%", borderRadius: 2, background: paper ? "radial-gradient(circle, #c2154d 0 30%, #996300 60%, transparent 62%)" : "radial-gradient(circle, #ff4f7b 0 30%, #ffcc33 60%, transparent 62%)", opacity: 0.85 }} />
       <i style={{ left: "11%", top: "22%", width: "12%", height: 3, background: accent }} />
       <i style={{ left: "11%", top: "32%", width: "14%", height: 2, background: ink, opacity: 0.35 }} />
       <i style={{ left: "11%", top: "39%", width: "10%", height: 2, background: ink, opacity: 0.25 }} />
     </>
   );
-  const light = room(pt.light.c0, "#ffffff", pt.light.lineA, pt.light.accent, "#1c1a22");
+  const light = room(pt.light.c0, "#ffffff", pt.light.lineA, pt.light.accent, "#1c1a22", true);
   const dark = room(pt.dark.c0, pt.dark.c2, pt.dark.lineA, pt.dark.accent, "#efece4");
   return (
     <span className="theme-swatch" aria-hidden>

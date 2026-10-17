@@ -130,7 +130,7 @@
   --color-warn: #9a5b00;
   --color-bad: #c8203e;
   --color-info: #0b6f9e;
-  --color-scrim: #2a2218;       /* warm umber scrim, never flat black on ivory */
+  --color-scrim: #ece6db;       /* a light porcelain veil (frosted with a blur): never a dark wash in light mode */
 
   --m-hi: rgba(255, 255, 255, 0.9);
   --m-hi-key: rgba(255, 255, 255, 1);
@@ -236,10 +236,79 @@
   --m-focus-ring: 0 0 0 3px color-mix(in oklab, var(--color-ember) 18%, transparent);
 }
 
-/* A subtree that stays dark in both themes (hardware, 3D scenes). Mirrors the DARK values above. The panel's bezel is
-   dark hardware unless light mode draws the paper panel (html[data-panel="paper"], lib/paper.ts). */
-:root[data-theme="light"] :is(.theme-dark, .fly-wing, .fly-full, .roam-tip),
-:root[data-theme="light"]:not([data-panel="paper"]) .bezel, :root[data-theme="light"] :is(.cz-bezel, .fly-full-bezel) {
+/* =====================================================================================================================
+ * LIQUID GLASS tokens (docs/STUDIO_UI.md § Liquid Glass; the classes are at the end of this file). Our own CSS after
+ * Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets. The tints are mixed
+ * from the chassis tokens, so every page theme (and its light / dark) tints the glass; plain pages mirror these names.
+ *   body      --lg-tint (regular) · --lg-tint-thick (text-heavy panels) · --lg-frost (fallback: near opaque, no blur)
+ *             · --lg-solid (reduced transparency) · --lg-blur / --lg-blur-thick · --lg-sat · --lg-glare (top sheen)
+ *             · --lg-inner (thickness: inner light and shade)
+ *   rim       --lg-edge / --lg-edge-strong (the hairline) · --lg-rim-a (lit edge) · --lg-rim-b (edge in shade)
+ *             · --lg-rim-c (bounce on the far edge) · --lg-spec (the pointer's specular spot)
+ *   depth     --lg-shadow · --lg-shadow-lift
+ *   controls  --lg-control (+ -hover, -sheen, -rim, -shadow, -shadow-press) · --lg-prominent-sheen (tinted glass)
+ *             · --lg-track / --lg-track-shade (seg, switch, slider wells) · --lg-lens (+ -rim, -shadow: the selection)
+ *             · --lg-knob / --lg-knob-held / --lg-knob-edge · --lg-spring (the press / morph curve)
+ * ===================================================================================================================== */
+:root, .theme-dark {
+  --lg-blur: 20px; --lg-blur-thick: 28px; --lg-sat: 1.8;
+  --lg-tint: color-mix(in oklab, var(--color-chassis-2) 50%, transparent);
+  --lg-tint-thick: color-mix(in oklab, var(--color-chassis-2) 74%, transparent);
+  --lg-frost: color-mix(in oklab, var(--color-chassis-2) 98%, transparent);
+  --lg-solid: var(--color-chassis-2);
+  --lg-glare: rgba(255, 255, 255, 0.06);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.04), inset 0 14px 22px -18px rgba(255, 255, 255, 0.16), inset 0 -14px 24px -20px rgba(0, 0, 0, 0.55);
+  --lg-edge: rgba(255, 255, 255, 0.09); --lg-edge-strong: rgba(255, 255, 255, 0.18);
+  --lg-rim-a: rgba(255, 255, 255, 0.36); --lg-rim-b: rgba(255, 255, 255, 0.03); --lg-rim-c: rgba(255, 255, 255, 0.14);
+  --lg-spec: rgba(255, 255, 255, 0.55);
+  --lg-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 12px 32px -14px rgba(0, 0, 0, 0.7);
+  --lg-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 28px 70px -20px rgba(0, 0, 0, 0.8);
+  --lg-control: color-mix(in oklab, var(--color-ink-1) 7%, transparent);
+  --lg-control-hover: color-mix(in oklab, var(--color-ink-1) 12%, transparent);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 55%);
+  --lg-control-rim: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  --lg-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --lg-control-shadow-press: 0 0 1px rgba(0, 0, 0, 0.4);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: color-mix(in oklab, var(--color-ink-1) 8%, transparent);
+  --lg-track-shade: rgba(0, 0, 0, 0.45);
+  --lg-lens: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.07));
+  --lg-lens-rim: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+  --lg-lens-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
+  --lg-knob: linear-gradient(180deg, #ffffff, #e9e6df); --lg-knob-held: rgba(255, 255, 255, 0.32); --lg-knob-edge: rgba(0, 0, 0, 0.25);
+  --lg-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+}
+:root[data-theme="light"] {
+  --lg-tint: color-mix(in oklab, var(--color-chassis-2) 56%, transparent);
+  --lg-tint-thick: color-mix(in oklab, var(--color-chassis-2) 78%, transparent);
+  --lg-frost: color-mix(in oklab, var(--color-chassis-2) 94%, var(--color-chassis-0));
+  --lg-glare: rgba(255, 255, 255, 0.55);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.7), inset 0 16px 24px -18px rgba(255, 255, 255, 0.95), inset 0 -14px 26px -20px rgba(64, 48, 24, 0.16);
+  --lg-edge: rgba(64, 48, 24, 0.12); --lg-edge-strong: color-mix(in oklab, var(--color-ember) 26%, rgba(64, 48, 24, 0.2));
+  --lg-rim-a: #ffffff; --lg-rim-b: rgba(255, 255, 255, 0.4); --lg-rim-c: rgba(255, 255, 255, 0.85);
+  --lg-spec: #ffffff;
+  --lg-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.08), 0 4px 10px -4px rgba(64, 48, 24, 0.1), 0 18px 40px -20px rgba(64, 48, 24, 0.3);
+  --lg-shadow-lift: 0 1px 3px rgba(64, 48, 24, 0.08), 0 10px 24px -10px rgba(64, 48, 24, 0.16), 0 34px 70px -28px rgba(64, 48, 24, 0.42);
+  --lg-control: rgba(255, 255, 255, 0.62);
+  --lg-control-hover: rgba(255, 255, 255, 0.86);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%);
+  --lg-control-rim: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(255, 255, 255, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+  --lg-control-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.1), 0 3px 10px -4px rgba(64, 48, 24, 0.22);
+  --lg-control-shadow-press: 0 0 1px rgba(64, 48, 24, 0.2);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: rgba(64, 48, 24, 0.07);
+  --lg-track-shade: rgba(64, 48, 24, 0.14);
+  --lg-lens: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.86));
+  --lg-lens-rim: inset 0 1px 0 #ffffff, inset 0 0 0 0.5px rgba(64, 48, 24, 0.06);
+  --lg-lens-shadow: 0 1px 2px rgba(64, 48, 24, 0.12), 0 4px 12px -4px rgba(64, 48, 24, 0.22);
+  --lg-knob-held: rgba(255, 255, 255, 0.55); --lg-knob-edge: rgba(64, 48, 24, 0.18);
+}
+
+/* A subtree that stays dark in both themes: only the fruit fly's 3D scenes (dark renders, like a video — their HUD reads
+   on them) and the panel's bezel while light mode keeps the dark device (Display menu → Dark device). Everything else
+   is light in light mode. Mirrors the DARK values above. */
+:root[data-theme="light"] :is(.theme-dark, .fly-wing, .fly-pane),
+:root[data-theme="light"]:not([data-panel="paper"]) .bezel {
   color-scheme: dark;
   color: #efece4;
   --color-chassis-0: #08080a; --color-chassis-1: #0f0f13; --color-chassis-2: #16161b;
@@ -319,25 +388,14 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
 }
 
 @layer components {
-  /* a machined surface: faint top highlight, hairline border */
+  /* a floating panel: Liquid Glass (thick) — the glass body and its specular rim are drawn by ::before / ::after (see
+     § LIQUID GLASS at the end of this file); the element itself stays transparent and isolated */
   .surface {
-    background: linear-gradient(180deg, var(--color-chassis-2), var(--color-chassis-1));
-    border: 1px solid var(--color-line);
-    box-shadow: inset 0 1px 0 var(--m-hi), var(--m-surface-shadow);
+    position: relative; isolation: isolate;
+    background: transparent;
+    border: 1px solid var(--lg-edge);
+    box-shadow: var(--lg-shadow);
     border-radius: var(--radius-chassis);
-  }
-  /* light: porcelain lifted by a three-layer umber shadow, a white rim along the top, a whisper of the accent in the
-     top light and a gilded hairline catching it — the light-mode answer to dark's lit edges */
-  :root[data-theme="light"] .surface {
-    border-color: color-mix(in oklab, var(--color-line) 78%, transparent);
-    background:
-      linear-gradient(90deg, transparent 6%, color-mix(in oklab, var(--color-gold-2) 70%, transparent) 50%, transparent 94%) top / 100% 1px no-repeat,
-      radial-gradient(120% 46% at 50% 0%, color-mix(in oklab, var(--color-ember) 4%, transparent), transparent 72%),
-      var(--m-card-bg);
-    box-shadow:
-      inset 0 1px 0 var(--m-rim), inset 0 -1px 0 rgba(64, 48, 24, 0.035),
-      0 0 0 1px rgba(64, 48, 24, 0.018), 0 1px 2px rgba(64, 48, 24, 0.05), 0 6px 14px -8px rgba(64, 48, 24, 0.12),
-      0 24px 48px -28px rgba(64, 48, 24, 0.3);
   }
   /* engraved label: the studio's signature typographic voice */
   .engrave {
@@ -349,46 +407,33 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
   }
   /* light: small caps pressed into the paper (letterpress) */
   :root[data-theme="light"] .engrave { text-shadow: var(--m-emboss); }
-  /* hardware key */
+  /* key: a Liquid Glass control (§ Liquid Glass) — a capsule of clear glass with a specular rim; it squashes and
+     springs back when pressed. `.key-ember` is the prominent (tinted) glass for the one primary action in view. */
   .key {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
-    height: 2.1rem; padding: 0 0.85rem; border-radius: 9px;
+    height: 2.1rem; padding: 0 0.95rem; border-radius: 999px;
     font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--color-ink-1);
-    background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom));
-    border: 1px solid var(--color-line-2);
-    box-shadow: inset 0 1px 0 var(--m-hi-key), 0 2px 0 var(--m-key-floor);
-    transition: transform 0.08s, box-shadow 0.08s, background 0.2s, color 0.2s, border-color 0.2s;
+    background: var(--lg-control-sheen), var(--lg-control);
+    border: 1px solid var(--lg-edge);
+    box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+    transition: transform 0.42s var(--lg-spring), box-shadow 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s, filter 0.2s;
     user-select: none; white-space: nowrap;
   }
-  .key:hover { border-color: var(--m-key-hover); }
-  .key:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 0 0 var(--m-key-floor); }
-  :root[data-theme="light"] .key { box-shadow: var(--m-bevel), var(--m-raised-shadow); text-shadow: var(--m-emboss); }
-  :root[data-theme="light"] .key:hover { border-color: color-mix(in oklab, var(--color-ember) 22%, var(--m-key-hover)); box-shadow: var(--m-bevel), 0 1px 0 var(--m-key-floor), 0 2px 3px rgba(64, 48, 24, 0.08), 0 8px 16px -8px rgba(64, 48, 24, 0.28); }
-  :root[data-theme="light"] .key:active { box-shadow: inset 0 1px 3px rgba(64, 48, 24, 0.16), inset 0 0 0 1px rgba(64, 48, 24, 0.03); background: linear-gradient(180deg, var(--m-key-bottom), var(--m-key-top)); }
+  .key:hover { background: var(--lg-control-sheen), var(--lg-control-hover); border-color: var(--lg-edge-strong); }
+  .key:active { transform: scale(0.95, 0.93); transition-duration: 0.12s; box-shadow: var(--lg-control-rim), var(--lg-control-shadow-press); filter: brightness(1.04); }
   .key:disabled { opacity: 0.4; pointer-events: none; }
   .key-ember {
     color: var(--color-on-ember);
-    background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 84%, white), var(--color-ember));
-    border-color: color-mix(in oklab, var(--color-ember) 72%, white);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 color-mix(in oklab, var(--color-ember) 40%, black), 0 0 24px -6px color-mix(in oklab, var(--color-ember) 70%, transparent);
+    background: var(--lg-prominent-sheen), color-mix(in oklab, var(--color-ember) 90%, transparent);
+    border-color: color-mix(in oklab, var(--color-ember) 70%, white);
+    text-shadow: 0 1px 1px color-mix(in oklab, var(--color-ember) 60%, black);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 6px 18px -8px color-mix(in oklab, var(--color-ember) 80%, transparent), 0 1px 2px color-mix(in oklab, var(--color-ember) 40%, transparent);
   }
-  .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 45%, white); }
-  :root[data-theme="light"]:not([data-cz]) .key-ember {
-    /* lacquer: a glossy top half (sheen), deepening toward the base, a coloured halo instead of a glow */
-    background:
-      var(--m-sheen),
-      linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 78%, white), var(--color-ember) 55%, color-mix(in oklab, var(--color-ember) 86%, black));
-    border-color: color-mix(in oklab, var(--color-ember) 80%, black);
-    text-shadow: 0 -1px 0 color-mix(in oklab, var(--color-ember) 60%, black);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.12),
-      0 1px 0 color-mix(in oklab, var(--color-ember) 55%, black), 0 2px 4px -1px color-mix(in oklab, var(--color-ember) 35%, transparent),
-      0 10px 22px -10px color-mix(in oklab, var(--color-ember) 75%, transparent);
-  }
-  :root[data-theme="light"] .key-ember:hover { border-color: color-mix(in oklab, var(--color-ember) 70%, black); filter: brightness(1.06); }
+  .key-ember:hover { background: var(--lg-prominent-sheen), var(--color-ember); border-color: color-mix(in oklab, var(--color-ember) 50%, white); }
+  :root[data-theme="light"] .key-ember { color: #fff; text-shadow: 0 1px 1px color-mix(in oklab, var(--color-ember) 70%, black); }
   .key-ghost { background: transparent; border-color: transparent; box-shadow: none !important; color: var(--color-ink-2); }
-  .key-ghost:hover { background: var(--color-chassis-3); color: var(--color-ink-1); border-color: var(--color-line); }
+  .key-ghost:hover { background: var(--lg-control); color: var(--color-ink-1); border-color: var(--lg-edge); }
   .key-icon { width: 2.1rem; padding: 0; }
 
   /* LED status dot */
@@ -423,61 +468,47 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
   textarea.field { height: auto; padding: 0.55rem 0.7rem; resize: vertical; min-height: 4.2rem; }
   select.field { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-3) 50%), linear-gradient(135deg, var(--color-ink-3) 50%, transparent 50%); background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 1.8rem; }
 
-  /* fader: a range input styled like a mixing-desk slider */
+  /* slider: a thin track filled with the accent and a glass knob — a white capsule that swells into clear glass while
+     held (iOS 26) */
   .fader { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; }
   .fader::-webkit-slider-runnable-track {
-    height: 4px; border-radius: 9px;
-    background: linear-gradient(90deg, var(--color-ember) var(--fill, 50%), var(--color-chassis-4) var(--fill, 50%));
+    height: 5px; border-radius: 9px;
+    background: linear-gradient(90deg, var(--color-ember) var(--fill, 50%), var(--lg-track) var(--fill, 50%));
+    box-shadow: inset 0 0.5px 1px var(--lg-track-shade);
   }
-  .fader::-moz-range-track { height: 4px; border-radius: 9px; background: var(--color-chassis-4); }
-  .fader::-moz-range-progress { height: 4px; border-radius: 9px; background: var(--color-ember); }
+  .fader::-moz-range-track { height: 5px; border-radius: 9px; background: var(--lg-track); }
+  .fader::-moz-range-progress { height: 5px; border-radius: 9px; background: var(--color-ember); }
   .fader::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 5px;
-    background: linear-gradient(180deg, var(--m-thumb-top), var(--m-thumb-bottom)); border: 1px solid var(--m-thumb-top);
-    box-shadow: var(--m-thumb-shadow), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    -webkit-appearance: none; width: 26px; height: 17px; margin-top: -6px; border-radius: 999px;
+    background: var(--lg-knob); border: 0.5px solid var(--lg-knob-edge);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 9px -2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.38s var(--lg-spring), background 0.2s, box-shadow 0.2s;
   }
-  .fader::-moz-range-thumb { width: 16px; height: 16px; border-radius: 5px; background: var(--m-thumb-bottom); border: 1px solid var(--m-thumb-top); box-shadow: var(--m-thumb-shadow); }
-  /* light: an engraved groove filled with lacquer, a pearl knob with a champagne rim */
-  :root[data-theme="light"] .fader::-webkit-slider-runnable-track {
-    background:
-      linear-gradient(90deg, color-mix(in oklab, var(--color-ember) 72%, white), var(--color-ember) var(--fill, 50%), transparent var(--fill, 50%)),
-      var(--color-chassis-4);
-    box-shadow: inset 0 1px 1px rgba(64, 48, 24, 0.18), 0 1px 0 #fff;
+  .fader:active::-webkit-slider-thumb {
+    transform: scale(1.32, 1.42); background: var(--lg-knob-held);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 0.5px rgba(255, 255, 255, 0.7), inset 0 -2px 4px -1px rgba(0, 0, 0, 0.1), 0 6px 16px -4px rgba(0, 0, 0, 0.35);
   }
-  :root[data-theme="light"] .fader::-moz-range-track { box-shadow: inset 0 1px 1px rgba(64, 48, 24, 0.18), 0 1px 0 #fff; }
-  :root[data-theme="light"] .fader::-webkit-slider-thumb {
-    border-radius: 99px; border-color: color-mix(in oklab, var(--color-gold-2) 70%, var(--color-line-2));
-    background: radial-gradient(circle at 50% 30%, #fff 0 35%, #f3ede2 75%, #e6dccb);
-    box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.12), 0 1px 2px rgba(64, 48, 24, 0.25), 0 4px 10px -2px rgba(64, 48, 24, 0.3), 0 0 0 3px color-mix(in oklab, var(--color-ember) 10%, transparent);
-  }
-  :root[data-theme="light"] .fader::-moz-range-thumb { border-radius: 99px; border-color: color-mix(in oklab, var(--color-gold-2) 70%, var(--color-line-2)); background: #f6f1e8; }
+  .fader::-moz-range-thumb { width: 26px; height: 17px; border-radius: 999px; background: var(--lg-knob); border: 0.5px solid var(--lg-knob-edge); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 9px -2px rgba(0, 0, 0, 0.3); }
+  .fader:active::-moz-range-thumb { transform: scale(1.3); background: var(--lg-knob-held); }
 
-  /* segmented control */
-  .seg { display: flex; padding: 3px; gap: 3px; border-radius: 10px; background: var(--color-chassis-0); border: 1px solid var(--color-line); box-shadow: var(--m-inset); }
-  .seg > button { flex: 1; height: 1.75rem; border-radius: 7px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-3); transition: all 0.15s; white-space: nowrap; padding: 0 0.4rem; }
+  /* segmented control: a glass capsule track; the chosen option is a bright lens that morphs in (stretches, settles) */
+  .seg { display: flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--lg-track); border: 1px solid var(--lg-edge); box-shadow: inset 0 1px 2px var(--lg-track-shade); }
+  .seg > button { flex: 1; height: 1.75rem; border-radius: 999px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-3); transition: color 0.15s, background-color 0.2s; white-space: nowrap; padding: 0 0.6rem; }
   .seg > button:hover { color: var(--color-ink-1); }
-  .seg > button[data-active="true"] { color: var(--color-ink-1); background: linear-gradient(180deg, var(--m-key-top), var(--m-key-bottom)); box-shadow: inset 0 1px 0 var(--m-hi-key), 0 1px 0 var(--m-key-floor); }
-  /* light: a recessed tray; the chosen option is a raised porcelain key inked in the accent, with a lacquer underline */
-  :root[data-theme="light"] .seg { background: var(--m-well-bg); box-shadow: var(--m-well-shadow); border-color: color-mix(in oklab, var(--color-line-2) 70%, transparent); }
-  :root[data-theme="light"]:not([data-cz]) .seg > button[data-active="true"] {
-    color: var(--color-ember);
-    background: linear-gradient(180deg, #fff, var(--m-key-bottom));
-    box-shadow: var(--m-bevel), inset 0 -2px 0 color-mix(in oklab, var(--color-ember) 55%, transparent), 0 1px 2px rgba(64, 48, 24, 0.14), 0 3px 8px -3px rgba(64, 48, 24, 0.18);
-  }
+  .seg > button[data-active="true"] { color: var(--color-ink-1); background: var(--lg-lens); box-shadow: var(--lg-lens-rim), var(--lg-lens-shadow); animation: lg-morph 0.5s var(--lg-spring) both; }
+  :root[data-theme="light"]:not([data-cz]) .seg > button[data-active="true"] { color: var(--color-ember); font-weight: 600; }
 
-  /* toggle */
-  .toggle { position: relative; width: 38px; height: 22px; border-radius: 99px; background: var(--color-chassis-0); border: 1px solid var(--color-line-2); transition: background 0.2s; flex-shrink: 0; }
-  .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 99px; background: var(--color-ink-3); transition: transform 0.2s var(--ease-snap), background 0.2s; }
-  .toggle[aria-checked="true"] { background: var(--color-ember-deep); border-color: var(--color-ember-line); }
-  .toggle[aria-checked="true"]::after { transform: translateX(16px); background: var(--color-ember); box-shadow: 0 0 10px var(--color-ember); }
-  /* light: an iOS-style pill — white knob, the track fills with rose */
-  :root[data-theme="light"] .toggle { background: linear-gradient(180deg, color-mix(in oklab, var(--color-chassis-4) 85%, #cfc6b6), var(--color-chassis-4)); border-color: transparent; box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18), 0 1px 0 #fff; }
-  :root[data-theme="light"] .toggle::after { background: radial-gradient(circle at 50% 30%, #fff 0 40%, #f4efe6); box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.1), 0 1px 3px rgba(64, 48, 24, 0.3); }
-  :root[data-theme="light"] .toggle[aria-checked="true"] {
-    background: var(--m-sheen), linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 82%, white), var(--color-ember));
-    box-shadow: inset 0 1px 2px color-mix(in oklab, var(--color-ember) 50%, black), 0 1px 0 #fff, 0 4px 12px -6px color-mix(in oklab, var(--color-ember) 70%, transparent);
+  /* switch: Apple's capsule — the track fills with the accent, the white knob stretches into a glass lens while held */
+  .toggle { position: relative; width: 42px; height: 25px; border-radius: 99px; background: var(--lg-track); border: 1px solid var(--lg-edge); box-shadow: inset 0 1px 2px var(--lg-track-shade); transition: background-color 0.25s, border-color 0.25s; flex-shrink: 0; }
+  .toggle::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 19px; height: 19px; border-radius: 99px;
+    background: var(--lg-knob); box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 0, 0, 0.18), 0 3px 8px -2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.42s var(--lg-spring), width 0.3s var(--lg-spring), left 0.3s var(--lg-spring), background 0.2s;
   }
-  :root[data-theme="light"] .toggle[aria-checked="true"]::after { background: radial-gradient(circle at 50% 30%, #fff 0 40%, #f4efe6); box-shadow: inset 0 -1px 0 rgba(64, 48, 24, 0.1), 0 1px 3px color-mix(in oklab, var(--color-ember) 50%, rgba(64, 48, 24, 0.5)); }
+  .toggle:active::after { width: 25px; background: var(--lg-knob-held); }
+  .toggle[aria-checked="true"] { background: var(--lg-prominent-sheen), var(--color-ember); border-color: color-mix(in oklab, var(--color-ember) 70%, white); }
+  .toggle[aria-checked="true"]::after { transform: translateX(17px); }
+  .toggle[aria-checked="true"]:active::after { left: -4px; }
 
 }
 
@@ -565,22 +596,6 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
   border-radius: inherit;
 }
 .text-gold { color: var(--color-gold-text); }
-
-/* The LED logo's plate. Dark: invisible (the tubes glow on the chassis). Light: the logo is drawn in its paper style
-   (ink tubes, lib/logo.ts PAPER_STYLE) on a small porcelain plate with a gilded rim — the same plate the pages' copies
-   of the logo put up (PAPER_PLATE in the `// <deskdot-logo>` blocks). */
-.led-plate { display: inline-grid; place-items: center; border-radius: 12px; }
-:root[data-theme="light"] .led-plate {
-  padding: 2px 6px;
-  background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    inset 0 -5px 12px rgba(64, 48, 24, 0.07),
-    0 0 0 1px rgba(150, 112, 40, 0.4),
-    0 0 0 3px #fbf7ee,
-    0 0 0 4px color-mix(in oklab, var(--color-gold) 50%, transparent),
-    0 10px 22px -12px rgba(64, 48, 24, 0.4);
-}
 
 /* the studio theme picker (Settings → Display & colour): three little rooms */
 .theme-tile {
@@ -1659,7 +1674,7 @@ body { overscroll-behavior: none; }
 /* small live panels set in a well (the header's mini panel, the inspector, the Display menu's tiles) */
 :root[data-panel="paper"] .led-well { background-color: #ebe6dc; box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.14); }
 /* the device itself: white enamel instead of graphite, a porcelain well, brass-and-ivory screws */
-:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) {
+:root[data-panel="paper"] .bezel {
   background: linear-gradient(145deg, #ffffff 0%, #f7f3ec 46%, #ebe4d7 100%);
   box-shadow:
     inset 0 1px 0 #fff, inset 0 -1px 0 rgba(64, 48, 24, 0.16), inset 0 0 0 1px rgba(64, 48, 24, 0.07),
@@ -1667,10 +1682,10 @@ body { overscroll-behavior: none; }
     0 2px 4px rgba(40, 30, 16, 0.1), 0 26px 50px -24px rgba(40, 30, 16, 0.42),
     0 60px 90px -50px color-mix(in oklab, var(--color-ember) 30%, rgba(40, 30, 16, 0.3));
 }
-:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel)::before { box-shadow: inset 0 2px 6px rgba(64, 48, 24, 0.22), 0 1px 0 #fff; background: #ebe6dc; }
-:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel)::after { background: linear-gradient(160deg, rgba(255, 255, 255, 0.22), transparent 35%, transparent 70%, rgba(255, 255, 255, 0.1)); }
-:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) .screw { background: radial-gradient(circle at 35% 30%, #fffdf8, #d9cdb4 55%, #a8936a 100%); box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.25), 0 1px 0 #fff; }
-:root[data-panel="paper"] .bezel:not(.cz-bezel, .fly-full-bezel) .screw::after { background: rgba(64, 48, 24, 0.5); }
+:root[data-panel="paper"] .bezel::before { box-shadow: inset 0 2px 6px rgba(64, 48, 24, 0.22), 0 1px 0 #fff; background: #ebe6dc; }
+:root[data-panel="paper"] .bezel::after { background: linear-gradient(160deg, rgba(255, 255, 255, 0.22), transparent 35%, transparent 70%, rgba(255, 255, 255, 0.1)); }
+:root[data-panel="paper"] .bezel .screw { background: radial-gradient(circle at 35% 30%, #fffdf8, #d9cdb4 55%, #a8936a 100%); box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.25), 0 1px 0 #fff; }
+:root[data-panel="paper"] .bezel .screw::after { background: rgba(64, 48, 24, 0.5); }
 /* preset covers: an LED equaliser — deep-tinted dots on porcelain, a wash of the preset's colour (--led-paper: its
    tint taken toward the ink, as the paper mapping does with a full-bright LED colour) */
 :root[data-panel="paper"] [data-tone] { --led-paper: color-mix(in oklab, var(--led) 60%, #1c1a22); }
@@ -1682,3 +1697,275 @@ body { overscroll-behavior: none; }
 :root[data-panel="paper"] .led-hotspot:hover { border-color: rgba(28, 26, 34, 0.55); }
 :root[data-panel="paper"] .radar-blip:hover { border-color: rgba(0, 119, 48, 0.7); }
 :root[data-panel="paper"] .radar-blip[data-sel] { border-color: #007730; box-shadow: 0 0 12px rgba(0, 119, 48, 0.45); }
+
+/* =====================================================================================================================
+ * LIQUID GLASS — the navigation and control layer (docs/STUDIO_UI.md § Liquid Glass; tokens near the top).
+ * Our own CSS/SVG after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets.
+ * Glass is for what floats above the content (bars, toolbars, sheets, menus, popovers, the dock, panels around the LED
+ * panel) and for controls; content itself (tiles, cards, the panel) is never glass, and glass never stacks on glass.
+ *
+ *   .glass          regular glass: capsule toolbars, the tab bar, the phone header, floating bars
+ *   .glass-thick    denser glass for text-heavy panels: sheets, menus, popovers, dialogs, toasts (.surface is this)
+ *   .glass-capsule  .glass with capsule ends (toolbar groups, pills)
+ *   .glass-control  a control's glass (keys, chips): translucent fill + rim + sheen, NO backdrop blur (cheap)
+ *   .glass-lens     the bright lens marking the selection inside glass (segmented, tab bar); morphs in (lg-morph)
+ *
+ * How it is drawn: the element is transparent and isolated (a stacking context — not a containing block, so fixed
+ * popovers and sheets rendered inside still cover the screen); ::before is the glass body — tint + top sheen + inner
+ * light/shade, with backdrop-filter blur() saturate() (and the SVG edge lens `url(#lg-lens)` on Chromium desktops,
+ * html.lg-lens) — and ::after the specular rim: a 1 px gradient ring lit from the top-left, with a soft highlight that
+ * follows the pointer (--lg-x / --lg-y, set per element by lib/glass.ts) or the phone's tilt.
+ *
+ * Modes — <html data-glass> (the inline script in index.html / launcher.html sets it before first paint; lib/glass.ts
+ * refines it and the Display menu can force it):
+ *   liquid    real blur (+ html.lg-lens on Chromium with a fine pointer)
+ *   frosted   no backdrop-filter: a near-opaque frosted fill (--lg-frost) — no blur support, the Android app's WebView
+ *             (blur there let content show through the bars), low-end devices; text never sits on raw content
+ *   solid     prefers-reduced-transparency or the Display menu's "Solid": opaque fills, no blur, quieter rims
+ * Touch screens keep real blur only on the small fixed bars (tab bar, phone header); panels, sheets and dialogs are
+ * frosted there (a blur re-renders whenever the live panel behind it changes, and on every scroll frame).
+ * ===================================================================================================================== */
+@layer components {
+  .glass, .glass-thick, .glass-capsule { position: relative; isolation: isolate; background: transparent; border: 1px solid var(--lg-edge); box-shadow: var(--lg-shadow); border-radius: 22px; }
+  .glass-capsule { border-radius: 999px; }
+  .glass-control {
+    background: var(--lg-control-sheen), var(--lg-control); border: 1px solid var(--lg-edge);
+    box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+    transition: transform 0.42s var(--lg-spring), background-color 0.2s, border-color 0.2s;
+  }
+  .glass-control:active { transform: scale(0.95, 0.93); transition-duration: 0.12s; }
+  .glass-lens { background: var(--lg-lens); box-shadow: var(--lg-lens-rim), var(--lg-lens-shadow); animation: lg-morph 0.5s var(--lg-spring) both; }
+}
+/* the morph: a lens or a pressed control stretches like a drop of liquid, then settles */
+@keyframes lg-morph { 0% { transform: scale(0.72, 0.84); opacity: 0.4; } 55% { transform: scale(1.08, 0.94); opacity: 1; } 100% { transform: none; } }
+
+/* every glass surface — the classes plus the studio's own floating chrome */
+:is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now) { --lg-x: 24%; --lg-y: -40%; isolation: isolate; }
+.mini-now { position: relative; }
+:is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, var(--lg-glare), transparent 46%), var(--lg-tint);
+  box-shadow: var(--lg-inner);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+}
+:is(.glass-thick, .surface, .sheet, .theme-fab-menu)::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
+  -webkit-backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+  backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+}
+:is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::after {
+  content: ""; position: absolute; inset: -1px; z-index: 1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background:
+    radial-gradient(150px circle at var(--lg-x) var(--lg-y), var(--lg-spec), transparent 70%),
+    linear-gradient(155deg, var(--lg-rim-a), var(--lg-rim-b) 34%, var(--lg-rim-b) 66%, var(--lg-rim-c));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* glass never stacks on glass: a panel inside a panel is a plain, slightly raised fill */
+:is(.surface, .glass, .glass-thick, .sheet) :is(.surface, .glass-thick)::before { background: var(--lg-control); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:is(.surface, .glass, .glass-thick, .sheet) :is(.surface, .glass-thick) { box-shadow: var(--lg-control-shadow); }
+
+/* the edge lens (Chromium, fine pointer, liquid): the backdrop is bent toward the rim like a thick pane before it is
+   blurred — lib/glass.ts injects the SVG filter #lg-lens and sets html.lg-lens */
+:root.lg-lens[data-glass="liquid"] :is(.glass, .glass-capsule, .tabbar, .phone-head)::before {
+  -webkit-backdrop-filter: url(#lg-lens) blur(var(--lg-blur)) saturate(var(--lg-sat));
+  backdrop-filter: url(#lg-lens) blur(var(--lg-blur)) saturate(var(--lg-sat));
+}
+:root.lg-lens[data-glass="liquid"] :is(.glass-thick, .surface, .sheet, .theme-fab-menu)::before {
+  -webkit-backdrop-filter: url(#lg-lens) blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+  backdrop-filter: url(#lg-lens) blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+}
+
+/* fallbacks: frosted (no blur — a near-opaque fill), solid (reduced transparency) */
+:root[data-glass="frosted"] :is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::before { background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost); }
+}
+@media (pointer: coarse) {
+  /* touch screens: real blur only on the small fixed bars; panels and sheets are frosted (smooth scrolling, no re-blur
+     while the live panel behind them changes) */
+  :is(.glass-thick, .surface, .sheet, .theme-fab-menu, .mini-now)::before,
+  :root.lg-lens[data-glass="liquid"] :is(.glass-thick, .surface, .sheet, .theme-fab-menu)::before {
+    background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+:root[data-glass="solid"] :is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::before {
+  background: var(--lg-solid); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-glass="solid"] :is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::after { opacity: 0.4; }
+:root[data-glass="solid"] { --lg-control: var(--color-chassis-2); --lg-control-hover: var(--color-chassis-3); --lg-control-sheen: linear-gradient(transparent, transparent); }
+@media (prefers-reduced-transparency: reduce) {
+  :is(.glass, .glass-thick, .glass-capsule, .surface, .tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now)::before {
+    background: var(--lg-solid) !important; box-shadow: none; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  }
+  :root { --lg-control: var(--color-chassis-2); --lg-control-hover: var(--color-chassis-3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-lens, .seg > button[data-active="true"], .tabbar-btn[aria-current="page"] .tabbar-pill { animation: none; }
+}
+
+/* ---- Liquid Glass in the studio's chrome ---------------------------------------------------------------------------
+   The element is clear (its glass is the ::before / ::after above); these rules set shape, spacing and depth. */
+:root[data-theme] :is(.tabbar, .phone-head, .sheet, .theme-fab-menu, .mini-now) { background: transparent; }
+
+/* phone header: a clear bar over the page (sealed by its rim, not by a rule) */
+:root[data-theme] .phone-head { border: 0; border-bottom: 1px solid var(--lg-edge); box-shadow: var(--lg-shadow); }
+:root[data-theme] .phone-head::before, :root[data-theme] .phone-head::after { border-radius: 0; }
+:root[data-theme] .phone-head::after { padding: 0 0 1px; }
+
+/* tab bar: a floating capsule of glass in the thumb zone (iOS 26) — content scrolls under it; the open tab sits in a
+   bright lens that morphs in */
+:root[data-theme] .tabbar {
+  inset: auto 10px calc(8px + env(safe-area-inset-bottom, 0px)) 10px; padding: 5px;
+  border: 1px solid var(--lg-edge); border-radius: 30px; box-shadow: var(--lg-shadow-lift);
+}
+.tabbar-btn { min-height: 54px; gap: 2px; border-radius: 24px; position: relative; }
+:root[data-theme] .tabbar-btn[aria-current="page"] { color: var(--color-ember); }
+.tabbar-btn[aria-current="page"]::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 24px;
+  background: var(--lg-lens); box-shadow: var(--lg-lens-rim), var(--lg-lens-shadow);
+  animation: lg-morph 0.5s var(--lg-spring) both;
+}
+:root[data-theme] .tabbar-btn[aria-current="page"] .tabbar-pill { background: transparent; box-shadow: none; }
+.tabbar-btn:active { transform: scale(0.94); transition: transform 0.12s; }
+.tabbar-btn { transition: color 0.2s, transform 0.4s var(--lg-spring); }
+/* the floating bar is lower and narrower than the old docked one: the scroll areas keep their clearance */
+@media (prefers-reduced-motion: reduce) { .tabbar-btn[aria-current="page"]::before { animation: none; } }
+
+/* sheets: a glass card floating above the bottom edge, its corners concentric with the screen's */
+:root[data-theme] .sheet {
+  inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px; max-height: calc(88dvh - 8px);
+  border: 1px solid var(--lg-edge); border-radius: 34px; box-shadow: var(--lg-shadow-lift);
+}
+@media (min-width: 640px) { :root[data-theme] .sheet { left: calc(50% - 260px); right: auto; width: 520px; } }
+:root[data-theme] .sheet-handle { background: color-mix(in oklab, var(--color-ink-1) 22%, transparent); box-shadow: none; }
+:root[data-theme] .sheet-foot { border-top-color: var(--lg-edge); }
+/* the scrim: a light veil in light mode (never a dark wash on ivory), a dim one in dark */
+:root[data-theme="light"] .sheet-scrim { background: color-mix(in oklab, var(--color-chassis-0) 46%, transparent); }
+
+/* the theme key's menu, the "now showing" strip: glass */
+:root[data-theme] .theme-fab-menu { border: 1px solid var(--lg-edge); border-radius: 26px; box-shadow: var(--lg-shadow-lift); }
+:root[data-theme] .mini-now { border: 1px solid var(--lg-edge); border-radius: 22px; box-shadow: var(--lg-shadow); }
+:root[data-theme] .theme-fab-key {
+  background: var(--lg-control-sheen), var(--lg-control); border: 1px solid var(--lg-edge);
+  box-shadow: var(--lg-control-rim), var(--lg-shadow); color: var(--color-gold-text);
+}
+:root[data-theme] .theme-fab-ico { background: var(--lg-control); border-color: var(--lg-edge); border-radius: 999px; }
+
+/* menus, popovers and dialogs (.surface) float higher than panels; rows inside pick up the lens when chosen */
+.surface[role="menu"], .surface[role="dialog"], .picker-pop { box-shadow: var(--lg-shadow-lift); }
+:root[data-theme] .picker-pop { border-radius: 20px; }
+:root[data-theme] :is(.picker-item[data-active="true"], .picker-row[aria-selected="true"], .theme-fab-menu > button[aria-checked="true"]) {
+  background: var(--lg-lens); box-shadow: var(--lg-lens-rim), var(--lg-lens-shadow);
+}
+.picker-item, .picker-row { border-radius: 12px; }
+
+/* desktop header: no rule under it — the controls float in glass capsules (toolbar groups, macOS 26) */
+:root[data-theme] .studio-head::before, :root[data-theme] .studio-head::after { display: none; }
+.lg-toolbar { display: flex; align-items: center; gap: 4px; padding: 3px; }
+.lg-toolbar > .key:not(.key-ember) { background: transparent; border-color: transparent; box-shadow: none; }
+.lg-toolbar > .key:not(.key-ember):hover { background: var(--lg-control-hover); border-color: var(--lg-edge); }
+:root[data-theme] .status-pill { background: transparent; border-color: transparent; box-shadow: none; }
+
+/* chips: glass capsules; the chosen chip is the lens in the accent */
+:root[data-theme] .lib-chip:not([aria-selected="true"]) { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); }
+:root[data-theme] .lib-chip[aria-selected="true"] { background: var(--lg-prominent-sheen), color-mix(in oklab, var(--color-ember) 14%, var(--lg-control)); border-color: color-mix(in oklab, var(--color-ember) 40%, var(--lg-edge)); box-shadow: var(--lg-control-rim), var(--m-accent-halo); }
+
+/* playback dock presets and quick tiles: glass controls */
+:root[data-theme] :is(.dock-preset, .qs-tile) { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); transition: transform 0.42s var(--lg-spring), background-color 0.2s; }
+:root[data-theme] :is(.dock-preset, .qs-tile):active { transform: scale(0.96); transition-duration: 0.12s; }
+:root[data-theme] .dock-preset[aria-pressed="true"] { background: var(--m-accent-wash); border-color: var(--m-accent-edge); box-shadow: var(--lg-control-rim), var(--m-accent-halo); }
+:root[data-theme] .qs-card { background: var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); border-radius: 22px; }
+
+/* small floating badges over thumbnails and the panel (LIVE, ▶, Playing, the look switch): glass capsules, light in
+   light mode — never black chips on ivory */
+.lg-badge {
+  background: color-mix(in oklab, var(--color-chassis-2) 72%, transparent); color: var(--color-ink-1);
+  border: 1px solid var(--lg-edge); box-shadow: var(--lg-control-rim), 0 2px 8px -2px rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(10px) saturate(1.6); backdrop-filter: blur(10px) saturate(1.6);
+}
+:root[data-theme="light"] .lg-badge { background: rgba(255, 255, 255, 0.8); box-shadow: var(--lg-control-rim), 0 2px 8px -3px rgba(64, 48, 24, 0.35); }
+:root[data-glass="frosted"] .lg-badge, :root[data-glass="solid"] .lg-badge { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--lg-frost); }
+@media (pointer: coarse) { .lg-badge { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--lg-frost); } }
+:root[data-theme] .rail-live, :root[data-theme] .preset-playing { background: color-mix(in oklab, var(--color-chassis-2) 88%, transparent); border: 1px solid var(--lg-edge); box-shadow: var(--lg-control-rim), 0 2px 6px -2px rgba(0, 0, 0, 0.3); }
+:root[data-theme] .preset-playing { color: var(--color-ink-1); }
+:root[data-theme="light"] :is(.rail-live, .preset-playing) { background: rgba(255, 255, 255, 0.9); box-shadow: var(--lg-control-rim), 0 2px 6px -2px rgba(64, 48, 24, 0.3); }
+:root[data-theme="light"] .preset-playing .eq i { background: var(--led-paper, var(--tint, var(--color-ember))); }
+:root[data-theme] .tile-play:hover { background: var(--color-ember); color: var(--color-on-ember); border-color: transparent; }
+
+/* a veil over the live panel (opening an app, Play mode's "click to play"): dims in dark, frosts in light */
+.lg-veil { background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+:root[data-theme="light"] .lg-veil { background: color-mix(in oklab, var(--color-chassis-0) 62%, transparent); -webkit-backdrop-filter: blur(3px) saturate(1.2); backdrop-filter: blur(3px) saturate(1.2); }
+@media (pointer: coarse) { .lg-veil, :root[data-theme="light"] .lg-veil { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* a glass group raises itself while a menu or popover inside it is open, so later panels never cover the menu */
+:is(.surface, .glass, .glass-thick, .glass-capsule, .studio-head):has(:is([role="menu"], [role="dialog"], [role="listbox"])) { z-index: 45; }
+.studio-head { z-index: 30; }
+
+/* ---- light mode: no dark chrome anywhere (the 3D fly scenes and the chosen "Dark device" are the only dark things) */
+/* the power guard: an amber-and-ivory hazard cover on a porcelain hinge, a lacquer-red button */
+:root[data-theme="light"] .safety-cover {
+  background: repeating-linear-gradient(-45deg, #f2b31c 0 5px, #fff7e2 5px 10px);
+  border-color: color-mix(in oklab, #c98a00 70%, #fff); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), var(--lg-control-shadow);
+}
+:root[data-theme="light"] .safety-hinge { background: linear-gradient(180deg, #f3ece0, #cdbfa6); box-shadow: 0 1px 0 #fff; }
+:root[data-theme="light"] .safety-btn { box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(196, 15, 31, 0.35), 0 4px 10px -4px rgba(196, 15, 31, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.18); }
+
+/* the page-theme tiles' LED dots: on the paper panel's ground in light */
+:root[data-theme="light"] .pt-leds { background: #ebe6dc; box-shadow: inset 0 0 0 1px rgba(64, 48, 24, 0.14); }
+
+/* the roaming fly's tooltip: glass */
+:root[data-theme="light"] .roam-tip {
+  background: rgba(255, 255, 255, 0.86); color: var(--color-ink-1);
+  border-color: color-mix(in oklab, var(--color-ember) 30%, rgba(64, 48, 24, 0.12));
+  box-shadow: var(--lg-control-rim), 0 10px 26px -12px rgba(64, 48, 24, 0.45);
+}
+:root[data-theme="light"] .roam-tip span { color: var(--color-ember); }
+:root[data-theme="light"] .roam-shadow { background: radial-gradient(closest-side, rgba(64, 48, 24, 0.35), transparent); }
+
+/* the fruit fly's view: its 3D scenes stay dark renders (content, like a video); the chrome around them is light */
+:root[data-theme="light"] .fly-wing { border-color: var(--lg-edge); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.7), var(--lg-shadow-lift); }
+:root[data-theme="light"] .fly-full {
+  background:
+    radial-gradient(1200px 700px at 50% -10%, var(--m-daylight), transparent 70%),
+    radial-gradient(900px 600px at 50% 50%, var(--m-wash-a), transparent 66%), var(--color-chassis-0);
+}
+:root[data-theme="light"] .fly-full-bar { background: linear-gradient(to bottom, color-mix(in oklab, var(--color-chassis-0) 80%, transparent), transparent); }
+:root[data-theme="light"] .fly-full-bar .fly-glass {
+  background: rgba(255, 255, 255, 0.78); border-color: var(--lg-edge);
+  box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+}
+:root[data-theme="light"] .fly-full[data-layout="side"] .fly-pane, :root[data-theme="light"] .fly-full[data-layout="stacked"] .fly-pane,
+:root[data-theme="light"] .fly-full[data-layout="inset"] .fly-full-keys { border-color: var(--lg-edge); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.7), var(--lg-shadow-lift); }
+
+/* the casino table in light: a brass rail instead of a black lacquer ring, warm shade instead of black */
+:root[data-theme="light"] .cz-table {
+  box-shadow: inset 0 0 0 2px rgba(var(--gold-rgb), 0.6), inset 0 0 0 7px color-mix(in srgb, var(--gold-lo) 55%, #f6efe0), inset 0 0 0 9px rgba(var(--gold-rgb), 0.35),
+    inset 0 10px 34px color-mix(in srgb, var(--felt-deep) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--cz-metal) 60%, #fff), 0 0 0 5px color-mix(in srgb, var(--gold-2) 45%, #f6f1e6),
+    0 0 0 6px color-mix(in srgb, var(--cz-metal) 55%, transparent), 0 0 0 10px color-mix(in srgb, var(--cz-tint) 16%, #fbf8f2),
+    0 0 0 11px color-mix(in srgb, var(--cz-metal) 30%, transparent),
+    0 30px 60px -28px rgba(40, 30, 16, 0.45), 0 30px 90px -18px var(--cz-halo), 0 0 70px -14px var(--cz-glow);
+}
+:root[data-theme="light"] .cz-qrbig { background: color-mix(in oklab, var(--color-chassis-0) 60%, transparent); }
+:root[data-theme="light"] .cz-bulb { background: color-mix(in srgb, var(--gold-lo) 45%, #fff); box-shadow: inset 0 -1px 1px rgba(64, 48, 24, 0.25); animation-name: cz-bulb-on-l, cz-chase-l; }
+/* the marquee in daylight: an unlit bulb is pale brass, never a black dot */
+@keyframes cz-bulb-on-l {
+  from { background: color-mix(in srgb, var(--gold-lo) 30%, #fff); box-shadow: none; }
+  60% { background: color-mix(in srgb, #fff 70%, var(--gold-2)); box-shadow: 0 0 12px 3px rgba(var(--gold-rgb), 0.8); }
+  to { background: var(--gold); box-shadow: 0 0 6px 1px rgba(var(--gold-rgb), 0.7); }
+}
+@keyframes cz-chase-l {
+  0% { background: color-mix(in srgb, #fff 55%, var(--gold-2)); box-shadow: 0 0 8px 2px rgba(var(--gold-rgb), 0.8), 0 0 0 1px rgba(64, 48, 24, 0.15); }
+  33.33% { background: color-mix(in srgb, var(--gold-lo) 32%, #fff); box-shadow: inset 0 -1px 1px rgba(64, 48, 24, 0.22); }
+  66.66% { background: var(--gold-lo); box-shadow: 0 0 4px rgba(var(--gold-rgb), 0.5); }
+}
+
+/* glass that rises in: transform only. An opacity animation (animate-rise fades in, and its fill keeps it "animating")
+   makes the panel a backdrop root, and its blur would then see nothing behind it */
+:is(.surface, .glass, .glass-thick, .glass-capsule).animate-rise { animation: lg-rise 0.5s var(--ease-snap); }
+@keyframes lg-rise { from { transform: translateY(10px) scale(0.97); } }

@@ -83,7 +83,7 @@ export function MusicDeck() {
                 onClick={() => api.patchSettings("nowplaying", { layout: id })}
                 className={clsx("flex flex-col items-center gap-1 rounded-[10px] border p-1.5 text-[11px] transition",
                   chosen === id ? "border-ember-line bg-ember-deep/70 text-ink-1" : "border-line bg-chassis-1/80 text-ink-3 hover:text-ink-1")}>
-                <img src={`/api/nowplaying/layouts/${id}.png?scale=3`} alt="" loading="lazy" className="aspect-square w-full rounded-[4px] bg-black [image-rendering:pixelated]" />
+                <span className="led-preview relative block aspect-square w-full overflow-hidden rounded-[4px] bg-black"><img src={`/api/nowplaying/layouts/${id}.png?scale=3`} alt="" loading="lazy" className="block h-full w-full [image-rendering:pixelated]" /></span>
                 <span className="w-full truncate text-center">{labels[id] ?? id}</span>
               </button>
             ))}

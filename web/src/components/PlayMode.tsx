@@ -419,7 +419,7 @@ function PlayView() {
           <div className={clsx("relative transition-opacity duration-500", !power && "opacity-15")} style={{ width: inner, height: inner }}>
             <LedPanel size={inner} crisp />
             {!playing && (
-              <div className="absolute inset-0 grid place-items-center bg-black/60 p-6 text-center backdrop-blur-[2px]">
+              <div className="lg-veil absolute inset-0 grid place-items-center p-6 text-center">
                 <div>
                   <div className="font-display text-[20px] font-[640]">{opening ? `Opening ${appMeta(opening.app)?.name ?? opening.app}…` : "No game is showing"}</div>
                   {!opening && <p className="mt-1 text-[12.5px] text-ink-2">Pick one from the game menu above.</p>}
@@ -427,7 +427,7 @@ function PlayView() {
               </div>
             )}
             {playing && !focused && !touch && (
-              <button className="absolute inset-0 grid place-items-center bg-black/55 backdrop-blur-[1.5px]" onClick={() => root.current?.focus()}>
+              <button className="lg-veil absolute inset-0 grid place-items-center" onClick={() => root.current?.focus()}>
                 <span className="surface flex items-center gap-2 px-4 py-2.5 text-[13px]"><span className="led" data-on="warn" /> Click to play — keys are paused</span>
               </button>
             )}

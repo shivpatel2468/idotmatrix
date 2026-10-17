@@ -387,7 +387,7 @@ function FlyFull() {
               <span className="screw right-[7px] top-[7px]" />
               <span className="screw bottom-[7px] left-[7px]" />
               <span className="screw bottom-[7px] right-[7px]" />
-              <div className="relative h-full w-full"><LedPanel crisp lookSwitch={false} device /></div>
+              <div className="relative h-full w-full"><LedPanel crisp lookSwitch={false} /></div>
             </div>
           </div>
         )}

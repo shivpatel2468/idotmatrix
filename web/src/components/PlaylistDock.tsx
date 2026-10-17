@@ -147,7 +147,7 @@ function PresetCard({ p, active, variant }: { p: Preset; active: boolean; varian
       className={clsx("grid place-items-center rounded-full transition hover:text-bad focus:opacity-100",
         variant === "dock"
           ? "absolute -right-1.5 -top-1.5 h-6 w-6 border border-line-2 bg-chassis-3 text-ink-3 opacity-0 shadow group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-          : "theme-dark absolute right-2 top-2 z-[2] h-7 w-7 bg-black/45 text-ink-1")}>
+          : "lg-badge absolute right-2 top-2 z-[2] h-7 w-7 text-ink-2")}>
       <X size={variant === "dock" ? 11 : 13} />
     </button>
   );
@@ -184,7 +184,7 @@ function PresetCard({ p, active, variant }: { p: Preset; active: boolean; varian
       <div className="preset-art">
         <PresetArt id={p.id} />
         <IconTile name={p.icon || "list-music"} tone={tone} size={38} glyph={19} solid className="preset-badge" />
-        {active && <span className="preset-playing theme-dark"><span className="eq" aria-hidden><i /><i /><i /></span>Playing</span>}
+        {active && <span className="preset-playing"><span className="eq" aria-hidden><i /><i /><i /></span>Playing</span>}
         {del}
       </div>
       <div className="preset-foot">

@@ -8,6 +8,7 @@ import { useStore } from "./lib/store";
 import { installTheme } from "./lib/theme";
 import { installPaper } from "./lib/paper";
 import { installPaperImages } from "./lib/paperImg";
+import { installGlass } from "./lib/glass";
 import "./index.css";
 
 // the page theme (index.html painted the cached copy before first paint; this re-derives it and keeps it live),
@@ -16,6 +17,8 @@ installPageTheme();
 installTheme();
 // light mode's paper panel (html[data-panel]; lib/paper.ts) — follows the theme from here on
 installPaper();
+// Liquid Glass: clear, frosted or solid for this device (html[data-glass]), the edge lens and the specular highlight
+installGlass();
 // the engine owns the page theme: every device follows its pick (docs/STUDIO_UI.md § Page themes)
 useStore.subscribe((s) => syncPageTheme(s.state?.settings?.page_theme));
 

@@ -115,6 +115,24 @@ The technical log for developers. For the same updates in plain words (before �
   swapping a page's dark logo sign for `PAPER_PLATE`; tv.html, controller.html, join.css and host.css plates are
   porcelain in light. `tests/test_logo_copies.py` compares both styles and checks the paper tubes' contrast.
   docs/STUDIO_UI.md § Paper panel.
+- **Liquid Glass + light mode without dark spots + no logo plate.** `index.css`: `--lg-*` tokens (light/dark, mixed
+  from the chassis so page themes tint them) and `.glass` / `.glass-thick` / `.glass-capsule` / `.glass-control` /
+  `.glass-lens` (element transparent + isolated; `::before` = tint, sheen, inner light, `backdrop-filter: blur()
+  saturate()`; `::after` = 1 px gradient rim with a pointer-tracked specular spot); applied to `.surface` (all
+  panels, menus, dialogs, toasts), `.tabbar` (floating capsule + morphing lens), `.phone-head`, `.sheet` (floating,
+  34 px radius), header toolbar capsules (`.lg-toolbar`), keys (capsules, spring squash), `.seg`, `.toggle`, `.fader`
+  (glass knob), chips, badges (`.lg-badge`), veils (`.lg-veil`). `lib/glass.ts`: `<html data-glass="liquid|frosted|
+  solid">` (inline pre-paint in `index.html` / `launcher.html`; reduced transparency → solid; no backdrop-filter,
+  `window.DeskDotAndroid` or ≤ 4 GB / ≤ 4 cores → frosted), `html.lg-lens` (SVG `feDisplacementMap` edge lens via
+  `backdrop-filter: url(#lg-lens)` on Chromium + fine pointer), pointer / tilt specular, Display menu → More → Glass;
+  touch screens: blur only on the small fixed bars. Glass panels rise with a transform-only animation (an opacity
+  animation makes a backdrop root). Light: `--color-scrim` is a porcelain veil, `.theme-dark` forced subtrees reduced to
+  the fly's 3D panes and the chosen dark device; paper bezel for `.cz-bezel` and `.fly-full-bezel` (fly panel follows
+  paper); light hazard guard, roam tip, page-theme LED dots, casino rail / felt rim / marquee bulbs, AI preview
+  (`paperHex`), Now Playing layout tiles (`.led-preview`), theme tiles. `.led-plate` and the logo copies'
+  `PAPER_PLATE` removed (and the pages' logo sign CSS). Cross-fade overlay canvases start at 0×0 (their default
+  300×150 widened phone pages). Phone pages, web app, launcher and TV (static faux glass, no `backdrop-filter`; paper
+  panel ported to `tv.js`) mirror the tokens.
 
 ## 3.6.0 — 2026-10-09 · Light theme, phone app, connection, TV options, API health, 14 new apps
 
