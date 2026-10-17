@@ -293,11 +293,11 @@ function MediaField({ v, set }: { v: string; set: (v: unknown) => void }) {
       {items.map((m) => (
         <div key={m.id} className="group relative">
           <button onClick={() => set(m.id)} title={`${m.name} · ${m.width}×${m.height}${m.frames > 1 ? ` · ${m.frames} frames` : ""}`}
-            className={clsx("block aspect-square w-full overflow-hidden rounded-[9px] border bg-black", v === m.id ? "border-ember shadow-[0_0_14px_-3px_var(--color-ember)]" : "border-line")}>
+            className={clsx("block aspect-square w-full overflow-hidden rounded-[9px] border bg-chassis-0", v === m.id ? "border-ember shadow-[0_0_14px_-3px_var(--color-ember)]" : "border-line")}>
             <img src={`/api/media/${m.id}/preview.png?scale=4`} alt={m.name} className="h-full w-full [image-rendering:pixelated]" />
           </button>
           <button onClick={async () => { await api.deleteMedia(m.id); load(); }} title="Delete"
-            className="theme-dark absolute right-1 top-1 hidden rounded bg-black/70 p-0.5 text-ink-2 hover:text-bad group-hover:block">
+            className="lg-badge absolute right-1 top-1 hidden rounded-full p-1 text-ink-2 hover:text-bad group-hover:block">
             <Trash2 size={11} />
           </button>
         </div>

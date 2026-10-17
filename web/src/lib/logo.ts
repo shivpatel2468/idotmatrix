@@ -8,8 +8,8 @@
  *  tests/test_logo_copies.py fails if their glyphs, tubes, colours, styles or timings drift from this file: change
  *  them everywhere at once.
  *
- *  Two styles: `neon` (dark pages — the tubes glow on black) and `paper` (light pages — the same tubes as deep ink on a
- *  porcelain plate, animating the same way). The studio header picks by theme (components/NeonMark.tsx); the copies'
+ *  Two styles: `neon` (dark pages — the tubes glow on the page) and `paper` (light pages — the same tubes as deep ink,
+ *  straight on the page with no plate, animating the same way). The studio header picks by theme (components/NeonMark.tsx); the copies'
  *  mount() follows their page's own light / dark. */
 
 // 7-row pixel font (rows 0–1 ascenders / cap height, 2–6 x-height)

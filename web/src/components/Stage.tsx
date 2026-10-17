@@ -137,9 +137,9 @@ function OpeningOverlay() {
   }, [opening, cur?.app, cur?.baking, set]);
   if (!opening) return null;
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-end bg-black/45 p-[6%] backdrop-blur-[1.5px] animate-rise">
+    <div className="lg-veil pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-end p-[6%] animate-rise">
       <div className="opening-scan" />
-      <div className="relative flex max-w-[86%] flex-col items-center gap-2 rounded-[12px] border border-line bg-chassis-1/90 px-4 py-3 text-center shadow-2xl">
+      <div className="glass-thick relative flex max-w-[86%] flex-col items-center gap-2 !rounded-[20px] px-4 py-3 text-center">
         <span className="engrave flex items-center gap-2 !text-ember">
           <span className="led" data-on="ember" /> {cur?.baking && cur.app === opening.app ? "Baking loop ·" : "Opening"} {name ?? opening.app}
         </span>

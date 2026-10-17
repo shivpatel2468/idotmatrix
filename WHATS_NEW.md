@@ -117,8 +117,19 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 - **A light DeskDot logo in light mode**
   - Before: in light mode the logo in the header sat on a small black sign so its glowing letters would show.
   - Now: the logo has its own light version — the same letters, built and lit the same way, in deep rose and gold
-    dots on a white porcelain plate with a thin gold rim. The phone pages, the web app and the TV show it too when
-    they are in light mode.
+    dots, straight on the header like the glowing one in dark mode. The phone pages, the web app and the TV show it
+    too when they are in light mode.
+- **Liquid Glass everywhere**
+  - Before: bars, menus, sheets and buttons were solid painted surfaces.
+  - Now: the top bar, the phone's tab bar (now a floating capsule), sheets, menus, pop-ups, the playback dock and the
+    panels around the LED panel are made of glass in the style of Apple's Liquid Glass — they blur and gently bend
+    what's behind them, catch the light along their edges (the highlight follows your mouse, or the tilt of your
+    phone), and buttons, switches, sliders and tabs squash and spring back when you press them. It works in light
+    and dark and in every page theme, on the phone pages, the web app and the launcher too; the TV gets a calm,
+    still version.
+  - On older or slower phones, inside the Android app, and wherever blur isn't supported, the glass turns frosted —
+    nearly solid, so text never sits on top of busy content. "Reduce transparency" on your device makes it solid. You
+    can choose for yourself in the Display menu → More → Glass (Auto, Clear, Frosted, Solid).
 
 ### Fixed
 
@@ -142,6 +153,22 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Before: previous, play/pause and next always showed, even when the computer couldn't control the player.
   - Now: they work on Windows, on macOS (Spotify and Music, other players with nowplaying-cli) and on Linux
     (playerctl), and they hide where the player can't be controlled.
+- **No more black patches in light mode**
+  - Before: light mode still had black bits: black badges and play buttons on the app tiles, the black frame and
+    screws around the LED panel in the casino and the fruit-fly view, black Now Playing layout pictures, a black AI
+    preview, dark tooltips, dark brown dimming behind dialogs, a black-and-yellow power guard, a dark band across the
+    casino side panels, and black panels and plaques on the phone casino page, the phone controller and the TV.
+  - Now: all of them are light — glass badges, white enamel around the panel, the panel drawn in ink on porcelain
+    everywhere (also on the TV and the phone pages), a pale frosted veil behind dialogs. The only dark things left
+    are the ones you choose (the "Dark device" panel preview), the fruit fly's 3D scenes, and real colours of the
+    games (black roulette pockets, black chips, cards).
+- **No box around the logo**
+  - Before: the DeskDot logo in the middle of the header sat inside a little plate or sign.
+  - Now: the logo sits straight on the header, in the studio, the phone app, the TV, the phone pages and the web app.
+- **Phone tab bar sometimes off screen**
+  - Before: on some phones the page came out a little too wide, so it zoomed out and the tab bar slipped below the
+    bottom edge.
+  - Now: the page fits the screen exactly and the tab bar is always there.
 
 ## 3.6.0 — 9 Oct 2026 · Light mode, a better phone app, 14 new live apps
 

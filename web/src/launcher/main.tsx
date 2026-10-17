@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { installPageTheme } from "../lib/pageTheme";
 import { installPaper } from "../lib/paper";
 import { installPaperImages } from "../lib/paperImg";
+import { installGlass } from "../lib/glass";
 import { Launcher } from "./Launcher";
 import "./launcher.css";
 
@@ -13,6 +14,8 @@ document.documentElement.dataset.shell = shell ?? "browser";
 installPageTheme();
 // the studio's light-mode paper panel: the launcher's LED previews follow it (lib/paper.ts, lib/paperImg.ts)
 installPaper();
+// Liquid Glass for the command bar (launcher.css mirrors the studio's glass): clear, frosted or solid for this device
+installGlass();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

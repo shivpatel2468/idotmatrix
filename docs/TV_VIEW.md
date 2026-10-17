@@ -282,7 +282,9 @@ A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk
   sprite of exactly that shadow (`glowFx`: the shape drawn off the sprite with its shadow offset back in), stamped
   with one `drawImage`. Text casts a hard offset shadow. The panel's bloom is a CPU box blur on a 64×64 grid, added by
   the compositor. No `filter: blur()` / `backdrop-filter` in CSS, no animated `box-shadow` (glows pulse a
-  pseudo-element's opacity).
+  pseudo-element's opacity). Liquid Glass on the TV (header bar, options menu and its controls) is static faux glass:
+  layered tint, top sheen, inner light/shade, a 1 px rim and a soft shadow, painted once — the menu ~93 % opaque so
+  text never sits on raw content (docs/STUDIO_UI.md § Liquid Glass). In light mode the TV's panel is the paper panel.
 - **No work for nothing.** A panel skips a frame whose bytes didn't change; number formatting is cached; the generic
   scene's ambient glow repaints at most twice a second and only when it visibly changed.
 - **Canvases match the screen.** Backing stores are sized to the device pixels they cover after the stage scale,

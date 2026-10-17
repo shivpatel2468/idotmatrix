@@ -259,14 +259,6 @@ button:active {
   box-shadow: inset 0 1px 0 #fff, inset 0 0 0 5px #fff, inset 0 0 0 6px rgba(184, 137, 42, 0.22),
     0 2px 6px rgba(64, 48, 24, 0.06), 0 30px 70px -26px rgba(64, 48, 24, 0.4), 0 40px 90px -40px rgba(214, 56, 106, 0.35);
 }
-/* light: the LED logo in its paper style (ink tubes, join.js DeskDotLogo) on a porcelain plate with a gilded rim */
-.veil.light .logo {
-  margin: 0 auto 10px;
-  border-radius: 16px;
-  background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, 0.07), 0 0 0 1px rgba(150, 112, 40, 0.4),
-    0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, 0.5), 0 12px 26px -12px rgba(64, 48, 24, 0.4);
-}
 .veil.light .dots i {
   background: #e6e0d5;
   box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18);
@@ -311,4 +303,132 @@ button:active {
     animation: none;
     background: var(--ember);
   }
+}
+
+/* ------------------------------------------------------------------ Liquid Glass (mirrors web/src/index.css § LIQUID GLASS by
+   name; docs/STUDIO_UI.md § Liquid Glass). The card floats as thick glass over the room: transparent + isolated, ::before =
+   the body (tint, top sheen, inner light/shade, backdrop blur), ::after = the 1 px specular rim. The code is a clear glass
+   capsule, the button the prominent (tinted) capsule that squashes when pressed. .veil[data-glass] (join.js): liquid ·
+   frosted (no blur support, the Android app, a TV: a near-opaque fill) · solid (reduced transparency). */
+.veil {
+  --lg-blur-thick: 28px;
+  --lg-sat: 1.8;
+  --lg-tint-thick: color-mix(in srgb, var(--c2) 76%, transparent);
+  --lg-frost: color-mix(in srgb, var(--c2) 95%, transparent);
+  --lg-solid: var(--c2);
+  --lg-glare: rgba(255, 255, 255, 0.06);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.04), inset 0 14px 22px -18px rgba(255, 255, 255, 0.16), inset 0 -14px 24px -20px rgba(0, 0, 0, 0.55);
+  --lg-edge: rgba(255, 255, 255, 0.1);
+  --lg-rim-a: rgba(255, 255, 255, 0.36);
+  --lg-rim-b: rgba(255, 255, 255, 0.03);
+  --lg-rim-c: rgba(255, 255, 255, 0.14);
+  --lg-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.35), 0 28px 70px -20px rgba(0, 0, 0, 0.8);
+  --lg-control: rgba(255, 255, 255, 0.07);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 55%);
+  --lg-control-rim: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+}
+.veil.light {
+  --lg-tint-thick: color-mix(in srgb, #fff 78%, transparent);
+  --lg-frost: color-mix(in srgb, #fff 95%, var(--c0));
+  --lg-glare: rgba(255, 255, 255, 0.55);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.7), inset 0 16px 24px -18px rgba(255, 255, 255, 0.95), inset 0 -14px 26px -20px rgba(64, 48, 24, 0.16);
+  --lg-edge: rgba(64, 48, 24, 0.13);
+  --lg-rim-a: #fff;
+  --lg-rim-b: rgba(255, 255, 255, 0.4);
+  --lg-rim-c: rgba(255, 255, 255, 0.85);
+  --lg-shadow-lift: 0 1px 3px rgba(64, 48, 24, 0.08), 0 10px 24px -10px rgba(64, 48, 24, 0.16), 0 34px 70px -28px rgba(64, 48, 24, 0.42), 0 40px 90px -40px rgba(214, 56, 106, 0.3);
+  --lg-control: rgba(255, 255, 255, 0.62);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%);
+  --lg-control-rim: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 52%);
+}
+.veil .card,
+.veil.light .card {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border: 1px solid var(--lg-edge);
+  border-radius: 30px;
+  box-shadow: var(--lg-shadow-lift);
+}
+.veil .card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
+  box-shadow: var(--lg-inner);
+  -webkit-backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+  backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+}
+.veil .card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(150px circle at 24% -40%, var(--lg-rim-a), transparent 70%),
+    linear-gradient(155deg, var(--lg-rim-a), var(--lg-rim-b) 34%, var(--lg-rim-b) 66%, var(--lg-rim-c));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.veil[data-glass="frosted"] .card::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.veil[data-glass="solid"] .card::before {
+  background: var(--lg-solid);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@media (pointer: coarse) {
+  .veil .card::before {
+    background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .veil .card::before {
+    background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .veil .card::before {
+    background: var(--lg-solid) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+.veil .code,
+.veil.light .code {
+  border-radius: 999px;
+  border-color: var(--lg-edge);
+  background: var(--lg-control-sheen), var(--lg-control);
+  box-shadow: var(--lg-control-rim);
+}
+.veil button,
+.veil.light button {
+  border-radius: 999px;
+  transition: transform 0.42s var(--lg-spring);
+}
+.veil button {
+  background: var(--lg-prominent-sheen), linear-gradient(180deg, var(--ember2), var(--ember));
+}
+.veil button:active {
+  transform: scale(0.95, 0.93);
+  transition-duration: 0.12s;
+}
+/* light: the dimmed game page under the reconnect veil is a pale veil, never a dark wash */
+.veil.light.over {
+  background: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.08), transparent 60%), rgba(244, 240, 232, 0.9);
 }

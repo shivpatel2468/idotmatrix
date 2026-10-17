@@ -47,7 +47,7 @@ canvas.av{display:block;image-rendering:pixelated}
 /* ---------- light mode: the studio's switch (localStorage deskdot.theme: light | dark | system) sets
    html[data-theme=light|dark]; without a pick the phone's preference decides (the media query covers the first paint).
    Porcelain and ivory screens with the studio's light tokens (docs/STUDIO_UI.md); the pad becomes a white console
-   controller with soft shadows; LED things (avatars, the seat badge, the logo) keep a small dark plate. Your colour
+   controller with soft shadows; LED things (avatars, the seat badge) sit in porcelain wells — nothing dark (§ LIQUID GLASS). Your colour
    as text is deepened (--ct, same hue) so it reads on white. */
 .app{--ct:var(--c)}
 :root[data-theme=light]{--bg:#f4f0e8;--s1:#fbf9f5;--s2:#ffffff;--s3:#f0ebe2;--s4:#e6e0d5;--line:#e7e1d6;--line2:#d8d0c2;
@@ -58,9 +58,6 @@ canvas.av{display:block;image-rendering:pixelated}
   --line:#e7e1d6;--line2:#d8d0c2;--ink:#1c1a22;--dim:#4a4652;--mute:#6b6673;color-scheme:light}}
 [data-theme=light] .app{--ct:color-mix(in srgb,var(--c) 52%,#000);
   background:radial-gradient(120% 55% at 50% -14%,var(--ca20),transparent 60%),radial-gradient(circle,rgba(64,48,24,.06) 1px,transparent 1.4px) 0 0/14px 14px,var(--bg)}
-/* light: the LED logo in its paper style (ink tubes, DeskDotLogo) on a porcelain plate with a gilded rim */
-[data-theme=light] .ddlogo{margin:0 auto 6px;border-radius:18px;background:radial-gradient(120% 140% at 50% 0%,#fff 0%,#f8f4ec 58%,#eee7da 100%);
-  box-shadow:inset 0 1px 0 #fff,inset 0 -5px 12px rgba(64,48,24,.07),0 0 0 1px rgba(150,112,40,.4),0 0 0 3px #fbf7ee,0 0 0 4px rgba(184,137,42,.5),var(--sh2)}
 [data-theme=light] .net{background:rgba(255,255,255,.88);box-shadow:var(--sh1)}
 [data-theme=light] :is(.who b,.rdy,.fb.a,.lay button[aria-checked=true],.wheel.go,.sw-glyph,.fx,.tzh.on svg,.last,.rps-msg.hot,.mc svg,.rbk h3,.rbk b){color:var(--ct)}
 [data-theme=light] .rbk ol li::before{color:var(--ct)}
@@ -499,6 +496,115 @@ canvas.av{display:block;image-rendering:pixelated}
 .rbk b{color:var(--c)}
 .rbk .bt{display:flex;gap:8px;padding:0 16px 16px}.rbk .bt button{flex:1;min-height:48px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);color:var(--ink);font-weight:800}
 .rbk .bt button.hot{background:var(--c);color:#050507;border-color:transparent}
+/* ================= LIQUID GLASS (mirrors web/src/index.css § LIQUID GLASS by name; docs/STUDIO_UI.md § Liquid Glass) =================
+   Our own CSS after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets. Glass is
+   the chrome floating above the controller (the connection pill, toasts, the reconnect pill, the settings sheet, the
+   rulebook, the end card) and the controls (keys, pills, segmented); the pad and the LED avatars are content. The element
+   stays transparent and isolated; ::before is the glass body, ::after the 1 px specular rim. <html data-glass> is set
+   first thing in the page script: liquid · frosted (no blur support / the Android app: near-opaque) · solid (reduced
+   transparency). Touch screens: real blur only on the small pills; the sheets and the end card are frosted. */
+:root{
+  --lg-blur:20px;--lg-blur-thick:28px;--lg-sat:1.8;
+  --lg-tint:color-mix(in srgb,var(--s2) 52%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 76%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,transparent);--lg-solid:var(--s2);
+  --lg-glare:rgba(255,255,255,.06);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.04),inset 0 14px 22px -18px rgba(255,255,255,.16),inset 0 -14px 24px -20px rgba(0,0,0,.55);
+  --lg-edge:rgba(255,255,255,.1);
+  --lg-rim-a:rgba(255,255,255,.36);--lg-rim-b:rgba(255,255,255,.03);--lg-rim-c:rgba(255,255,255,.14);
+  --lg-shadow:0 1px 1px rgba(0,0,0,.3),0 12px 32px -14px rgba(0,0,0,.7);
+  --lg-shadow-lift:0 2px 4px rgba(0,0,0,.35),0 28px 70px -20px rgba(0,0,0,.8);
+  --lg-control:rgba(255,255,255,.07);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 55%);
+  --lg-control-rim:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.03);
+  --lg-control-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px -6px rgba(0,0,0,.5);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.06) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(255,255,255,.08);--lg-track-shade:rgba(0,0,0,.45);
+  --lg-lens:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+  --lg-lens-rim:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 .5px rgba(255,255,255,.12);
+  --lg-lens-shadow:0 2px 8px -2px rgba(0,0,0,.5);
+  --lg-spring:cubic-bezier(.34,1.56,.5,1)}
+[data-theme=light]{
+  --lg-tint:color-mix(in srgb,var(--s2) 58%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 80%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,var(--bg));
+  --lg-glare:rgba(255,255,255,.55);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.7),inset 0 16px 24px -18px rgba(255,255,255,.95),inset 0 -14px 26px -20px rgba(64,48,24,.16);
+  --lg-edge:rgba(64,48,24,.13);
+  --lg-rim-a:#fff;--lg-rim-b:rgba(255,255,255,.4);--lg-rim-c:rgba(255,255,255,.85);
+  --lg-shadow:0 .5px 1px rgba(64,48,24,.08),0 4px 10px -4px rgba(64,48,24,.1),0 18px 40px -20px rgba(64,48,24,.3);
+  --lg-shadow-lift:0 1px 3px rgba(64,48,24,.08),0 10px 24px -10px rgba(64,48,24,.16),0 34px 70px -28px rgba(64,48,24,.42);
+  --lg-control:rgba(255,255,255,.62);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 60%);
+  --lg-control-rim:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.6);
+  --lg-control-shadow:0 .5px 1px rgba(64,48,24,.1),0 3px 10px -4px rgba(64,48,24,.22);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(64,48,24,.07);--lg-track-shade:rgba(64,48,24,.14);
+  --lg-lens:linear-gradient(180deg,#fff,rgba(255,255,255,.86));
+  --lg-lens-rim:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(64,48,24,.06);
+  --lg-lens-shadow:0 1px 2px rgba(64,48,24,.12),0 4px 12px -4px rgba(64,48,24,.22)}
+@keyframes lg-morph{0%{transform:scale(.72,.84);opacity:.4}55%{transform:scale(1.08,.94);opacity:1}100%{transform:none}}
+
+/* the glass surfaces */
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard){isolation:isolate;background:transparent;border-color:var(--lg-edge);box-shadow:var(--lg-shadow)}
+html[data-theme] :is(.net:not(.corner),.endcard,.rbk .in){position:relative}
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{
+  content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,var(--lg-glare),transparent 46%),var(--lg-tint);box-shadow:var(--lg-inner);
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat))}
+html[data-theme] :is(.toast,.sheet,.rbk .in,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-tint-thick);
+  -webkit-backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat))}
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::after{
+  content:"";position:absolute;inset:-1px;z-index:1;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(150px circle at 24% -40%,var(--lg-rim-a),transparent 70%),linear-gradient(155deg,var(--lg-rim-a),var(--lg-rim-b) 34%,var(--lg-rim-b) 66%,var(--lg-rim-c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+html[data-glass=frosted] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost)}}
+@media (pointer:coarse){
+  html[data-theme] :is(.sheet,.rbk .in,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}}
+html[data-glass=solid] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:var(--lg-solid);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-glass=solid] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::after{opacity:.4}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:var(--lg-solid)!important;box-shadow:none;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+/* shapes: capsules for the pills, larger concentric radii for the sheets and the end card */
+html[data-theme] .toast{border-radius:999px;border:1px solid var(--c)}
+html[data-theme] :is(.sheet,.rbk .in){border-radius:30px 30px 0 0;border:1px solid var(--lg-edge);border-bottom:0}
+html[data-theme] .land .sheet{border-radius:30px 0 0 30px;border:1px solid var(--lg-edge);border-right:0}
+html[data-theme] .endcard{padding:24px 22px 22px;border:1px solid var(--lg-edge);border-radius:30px}
+html[data-theme] .recon{border:1px solid color-mix(in srgb,var(--amber) 45%,transparent)}
+
+/* controls: clear glass capsules that squash and spring back; the player's colour is the prominent (tinted) glass */
+html[data-theme] :is(.gear,.pillb,.ghost,.act,.rps-help,.tapnext,.code,.rbk .bt button){
+  background:var(--lg-control-sheen),var(--lg-control);border:1px solid var(--lg-edge);box-shadow:var(--lg-control-rim),var(--lg-control-shadow);
+  transition:transform .42s var(--lg-spring),background-color .2s,border-color .2s}
+html[data-theme] :is(.pillb,.ghost,.act,.rps-help,.tapnext,.code,.rbk .bt button,.done,.go){border-radius:999px}
+html[data-theme] .gear{border-radius:50%}
+html[data-theme] :is(.gear,.pillb,.ghost,.act,.rps-help,.tapnext,.rbk .bt button,.done,.go,.mcard,.tile,.meb):active{transform:scale(.95,.93);transition-duration:.12s}
+html[data-theme] :is(.pillb.hot,.rbk .bt button.hot,.done){background:var(--lg-prominent-sheen),var(--c);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px -8px var(--ca55)}
+html[data-theme] .go{background:var(--lg-prominent-sheen),var(--c);transition:transform .42s var(--lg-spring)}
+/* segmented: a glass track, the chosen option a lens that morphs in */
+html[data-theme] :is(.seg,.lay,.rbk .tabs){border-radius:999px;background:var(--lg-track);border:1px solid var(--lg-edge);box-shadow:inset 0 1px 2px var(--lg-track-shade)}
+html[data-theme] :is(.seg,.lay,.rbk .tabs) button{border-radius:999px}
+html[data-theme] :is(.seg button[aria-checked=true],.lay button[aria-checked=true],.rbk .tabs button[aria-selected=true]){animation:lg-morph .5s var(--lg-spring) both}
+html[data-theme] :is(.lay button[aria-checked=true]){background:var(--lg-lens);box-shadow:var(--lg-lens-rim),var(--lg-lens-shadow)}
+@media (prefers-reduced-motion:reduce){html[data-theme] :is(.seg button,.lay button,.rbk .tabs button){animation:none!important}}
+
+/* ---------- light without dark: no black plates behind the LED avatars, no umber scrims ---------- */
+/* the LED avatars sit in porcelain wells (drawAvatar draws their unlit LEDs as faint dimples in light) */
+[data-theme=light] .well{background:#ebe6dc;border-color:var(--line2);box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 34px var(--ca20)}
+[data-theme=light] .info.turn .well{box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 50px var(--ca55)}
+[data-theme=light] .ready .well{animation-name:breathe-l}
+@keyframes breathe-l{50%{box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 60px var(--ca55)}}
+[data-theme=light] :is(.meb,.pl .av,.chip canvas,.rps-side canvas){background:#ebe6dc;box-shadow:inset 0 1px 3px rgba(64,48,24,.2)}
+[data-theme=light] .meb{box-shadow:inset 0 1px 3px rgba(64,48,24,.2),0 0 14px var(--ca35)}
+[data-theme=light] .chip-c[aria-checked=true]::after{background:#fff;box-shadow:0 0 0 1.5px rgba(64,48,24,.35)}
+[data-theme=light] .badge{background:radial-gradient(circle,var(--ca20) 1.4px,transparent 2px) 0 0/12px 12px,radial-gradient(circle at 50% 40%,var(--ca10),transparent 70%),#fff;
+  color:var(--ct);text-shadow:none;box-shadow:0 0 0 6px rgba(255,255,255,.7),0 0 50px var(--ca35),var(--sh2)}
+[data-theme=light] :is(.scrim,.rbk){background:color-mix(in srgb,var(--bg) 62%,transparent)}
+[data-theme=light] .end{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+[data-theme=light] .toast{color:var(--ink)}
+[data-theme=light] .recon{color:#6e4c00}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -703,6 +809,13 @@ canvas.av{display:block;image-rendering:pixelated}
 
 <script>
 "use strict";
+// Liquid Glass, first thing (as web/index.html; docs/STUDIO_UI.md § Liquid Glass): solid for reduced transparency;
+// frosted (near opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
+(function () { try {
+  var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && CSS.supports && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+  var rt = window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+} catch (e) {} })();
 // Light / dark: the studio's switch, localStorage deskdot.theme = light | dark | system (same origin as the studio on
 // this device), else the phone's own preference. html[data-theme] = light | dark, set first (no flash).
 (() => {
@@ -717,6 +830,7 @@ canvas.av{display:block;image-rendering:pixelated}
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", m === "light" ? "#f4f0e8" : "#08080a");
     } catch (_) {}
+    try { window.dispatchEvent(new Event("deskdot:theme")); } catch (_) {} // the LED avatars redraw their unlit LEDs
   };
   apply();
   try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
@@ -747,8 +861,8 @@ canvas.av{display:block;image-rendering:pixelated}
 // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
 // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
 // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
-// neon on black, light the "paper" style (ink tubes) — and a dark LED sign the page put behind the canvas becomes a
-// porcelain plate. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
+// neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+// behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
 const DeskDotLogo = (() => {
   const GLYPHS = {
     D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -762,11 +876,6 @@ const DeskDotLogo = (() => {
   const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
   const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
   const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
-  // light: the porcelain plate with a gilded rim that replaces a page's dark LED sign (the studio's .led-plate)
-  const PAPER_PLATE = {
-    background: "radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%)",
-    boxShadow: "inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64,48,24,0.07), 0 0 0 1px rgba(150,112,40,0.4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184,137,42,0.5), 0 10px 22px -12px rgba(64,48,24,0.4)",
-  };
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -950,16 +1059,11 @@ const DeskDotLogo = (() => {
       return t ? t === "light" : !!(media && media.matches);
     });
     let look = "";
-    /** The page's light / dark changed? Re-pick the style and the plate. True when it changed. */
+    /** The page's light / dark changed? Re-pick the style. True when it changed. */
     const restyle = () => {
       const next = isLight() ? "paper" : "neon";
       if (next === look) return false;
       look = next;
-      canvas.style.background = canvas.style.boxShadow = "";
-      if (look === "paper" && getComputedStyle(canvas).backgroundImage !== "none") {
-        canvas.style.background = PAPER_PLATE.background;
-        canvas.style.boxShadow = PAPER_PLATE.boxShadow;
-      }
       return true;
     };
     const watch = () => restyle() && now();
@@ -1107,7 +1211,7 @@ function drawAvatar(cv, id, color, led = true) {
     if (!led) { if (fill) { g.fillStyle = fill; g.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5); } continue; }
     g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
     if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; }
-    else { g.shadowBlur = 0; g.fillStyle = "rgba(255,255,255,.06)"; }
+    else { g.shadowBlur = 0; g.fillStyle = document.documentElement.dataset.theme === "light" ? "rgba(64,48,24,.09)" : "rgba(255,255,255,.06)"; }
     g.fill();
   }
   g.shadowBlur = 0;
@@ -1682,6 +1786,7 @@ function taken() { // colours other seats show on the panel: the host, other pho
   return t;
 }
 const hasTeams = () => S.modes.some((m) => m.teams === "versus");
+window.addEventListener("deskdot:theme", () => { try { if (S.hello) { paintMe(); renderChar(); } } catch (_) {} });
 function paintMe() { // everything that shows my look
   setColor(S.me.color);
   for (const cv of $$("#pv, #pv2, .meb .av, .info .av")) drawAvatar(cv, S.me.avatar, S.me.color);

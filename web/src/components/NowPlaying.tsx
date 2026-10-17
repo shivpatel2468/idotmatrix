@@ -115,7 +115,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
             <button className="key key-icon !h-12 !w-12" disabled={!running} onClick={() => api.playlist("prev")} aria-label="Previous" title="Previous (←)">
               <SkipBack size={18} />
             </button>
-            <button className={clsx("np-play grid h-16 w-16 place-items-center rounded-full transition", running ? "bg-ink-1 text-chassis-0" : "bg-ember text-chassis-0")}
+            <button className={clsx("np-play grid h-16 w-16 place-items-center rounded-full transition", running ? "glass-control text-ink-1" : "key-ember !p-0")}
               disabled={!running && !items.length} onClick={() => api.playlist(running ? "stop" : "play")}
               aria-label={running ? "Stop playlist" : "Play playlist"} title={running ? "Stop (Space)" : "Play (Space)"}>
               {running ? <Square size={18} fill="currentColor" /> : <Play size={22} fill="currentColor" className="translate-x-[1px]" />}

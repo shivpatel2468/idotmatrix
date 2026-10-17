@@ -22,6 +22,16 @@
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.style.colorScheme = t;
   } catch { /* never block the host */ }
+  // Liquid Glass before first paint (web/src/lib/glass.ts refines it once the studio loads; the same rules as the inline
+  // script in web/index.html): solid for reduced transparency; frosted — near opaque, no blur — without backdrop-filter
+  // or inside the Android app (its WebView let content show through translucent bars); clear glass otherwise.
+  try {
+    let g = "auto";
+    try { g = localStorage.getItem("deskdot.glass") || "auto"; } catch { /* storage blocked */ }
+    const blur = !!(window.CSS && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)")));
+    const rt = !!(window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches);
+    document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !blur || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+  } catch { /* never block the host */ }
   // The page theme (web/src/lib/pageTheme.ts) the studio cached on the last visit, before first paint. A constructed
   // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads.
   try {
@@ -39,8 +49,8 @@
   // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
   // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
   // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
-  // neon on black, light the "paper" style (ink tubes) — and a dark LED sign the page put behind the canvas becomes a
-  // porcelain plate. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
+  // neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+  // behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
   const DeskDotLogo = (() => {
     const GLYPHS = {
       D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -54,11 +64,6 @@
     const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
     const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
     const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
-    // light: the porcelain plate with a gilded rim that replaces a page's dark LED sign (the studio's .led-plate)
-    const PAPER_PLATE = {
-      background: "radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%)",
-      boxShadow: "inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64,48,24,0.07), 0 0 0 1px rgba(150,112,40,0.4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184,137,42,0.5), 0 10px 22px -12px rgba(64,48,24,0.4)",
-    };
     const STRIKE = [
       [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
       [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -242,16 +247,11 @@
         return t ? t === "light" : !!(media && media.matches);
       });
       let look = "";
-      /** The page's light / dark changed? Re-pick the style and the plate. True when it changed. */
+      /** The page's light / dark changed? Re-pick the style. True when it changed. */
       const restyle = () => {
         const next = isLight() ? "paper" : "neon";
         if (next === look) return false;
         look = next;
-        canvas.style.background = canvas.style.boxShadow = "";
-        if (look === "paper" && getComputedStyle(canvas).backgroundImage !== "none") {
-          canvas.style.background = PAPER_PLATE.background;
-          canvas.style.boxShadow = PAPER_PLATE.boxShadow;
-        }
         return true;
       };
       const watch = () => restyle() && now();
@@ -936,9 +936,13 @@
     host.id = "deskdot-web-host";
     const root = host.attachShadow({ mode: "open" });
     // the card follows the studio theme (host.css :host([data-theme="light"])); the studio may switch it live
-    const syncTheme = () => host.setAttribute("data-theme", document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+    // …and its glass mode (host.css :host([data-glass]); <html data-glass>, set above and by the studio's lib/glass.ts)
+    const syncTheme = () => {
+      host.setAttribute("data-theme", document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+      host.setAttribute("data-glass", document.documentElement.getAttribute("data-glass") || "liquid");
+    };
     syncTheme();
-    new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-glass"] });
     root.innerHTML = `<link rel="stylesheet" href="${new URL("host.css", BASE).href}">
 <div class="landing" part="landing" role="dialog" aria-modal="true" aria-labelledby="dd-title">
   <div class="card">

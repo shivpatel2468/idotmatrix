@@ -58,7 +58,7 @@
 /* ---------- light mode (docs/CASINO.md §5): the studio's switch (localStorage deskdot.theme: light | dark | system)
    puts html[data-theme=light|dark]; without a pick the phone's own preference decides (the media query below covers
    the first paint). The felt, the chips, the cards and the game tiles never change: the ROOM around the table turns
-   to porcelain, ivory and champagne, with black-lacquer plaques and gold-leaf details. The room tokens beat the
+   to porcelain, ivory and champagne, with clear glass (§ LIQUID GLASS below) and gold-leaf details — nothing dark. The room tokens beat the
    inline values applyTheme sets (!important): every table theme gets the same ivory room, faintly tinted by its
    felt, and its accent deepened to bronze for text (AA on every light surface for all 21 themes). */
 :root[data-theme=light]{
@@ -70,7 +70,7 @@
   --well:color-mix(in srgb,var(--s3) 60%,#fff);--veil:color-mix(in srgb,var(--s1) 95%,transparent);--toastbg:color-mix(in srgb,var(--s2) 97%,transparent);
   --accent-soft:rgba(var(--gold-rgb),.16);--glow:rgba(var(--gold-rgb),.3);
   --line:color-mix(in srgb,var(--room) 12%,rgba(64,48,24,.13));--line2:color-mix(in srgb,var(--room) 16%,rgba(64,48,24,.22));--ink:#1c1a22;--dim:#46424e;--mute:#57525f;--ok:#18794e;--bad:#c8203e;
-  --lacq:#17130f;--lacq2:#2b241c;--sh1:0 1px 2px rgba(64,48,24,.07),0 12px 28px -16px rgba(64,48,24,.32);
+  --sh1:0 1px 2px rgba(64,48,24,.07),0 12px 28px -16px rgba(64,48,24,.32);
   --sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
   color-scheme:light}
 @media (prefers-color-scheme:light){:root:not([data-theme=dark]){
@@ -82,9 +82,6 @@
   --ink:#1c1a22;--dim:#46424e;--mute:#57525f;--line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);color-scheme:light}}
 [data-theme=light] .app{background:radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--felt) 14%,transparent),transparent 62%),
   radial-gradient(90% 40% at 50% 110%,rgba(var(--gold-rgb),.14),transparent 70%),var(--bg)}
-/* the LED logo on a little LED sign (the tubes need the dark) */
-[data-theme=light] .ddlogo{margin:0 auto 10px;border-radius:18px;background:radial-gradient(130% 150% at 50% 0,#1d1c22,#09090b 72%);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 14px rgba(0,0,0,.6),0 0 0 3px color-mix(in srgb,var(--gold) 50%,#d9d2c3),var(--sh2)}
 [data-theme=light] .h1 em{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 46%,#1a1206),color-mix(in srgb,var(--gold) 62%,#000),color-mix(in srgb,var(--gold) 40%,#1a1206));
   -webkit-background-clip:text;background-clip:text}
 [data-theme=light] .stack i{box-shadow:0 10px 22px -6px rgba(64,48,24,.5),inset 0 0 0 9px rgba(0,0,0,.14)}
@@ -93,27 +90,13 @@
 [data-theme=light] .phase{background:linear-gradient(180deg,var(--s2),var(--s1));border-color:color-mix(in srgb,var(--gold) 34%,var(--s4))}
 [data-theme=light] .ring .tr{stroke:rgba(64,48,24,.12)}
 [data-theme=light] .ring.hurry span{color:var(--bad)}
-/* the bank plaque: black lacquer, a gold-leaf rim, the credits in gold */
-[data-theme=light] .bank{background:radial-gradient(120% 130% at 50% 0,rgba(var(--gold-rgb),.18),transparent 62%),linear-gradient(180deg,var(--lacq2),var(--lacq));
-  border-color:color-mix(in srgb,var(--gold) 62%,#000);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 0 0 1px rgba(0,0,0,.45),var(--sh1)}
-[data-theme=light] .bk-who span{color:#cbc4b4}
-[data-theme=light] .bk-who span.staked,[data-theme=light] #credits{color:var(--gold-hi)}
-[data-theme=light] #credits.up{color:#4dff8a}[data-theme=light] #credits.down{color:#ff8a9c}
 [data-theme=light] .act.on{background:rgba(24,121,78,.1);border-color:rgba(24,121,78,.42)}
 [data-theme=light] .rack .chip{box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 55%,#000),0 9px 14px -6px rgba(64,48,24,.5)}
 [data-theme=light] .rack .chip[aria-checked=true]{box-shadow:0 11px 0 color-mix(in srgb,var(--cc) 55%,#000),0 18px 22px -8px rgba(64,48,24,.5),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.5)}
 [data-theme=light] .lockb{color:#9c1830;box-shadow:var(--sh2)}
 [data-theme=light] :is(.toast,.howto .card,.tour-card,.win.lose .card){box-shadow:var(--sh2)}
 [data-theme=light] .al-card{box-shadow:0 0 0 6px rgba(var(--gold-rgb),.16),0 0 50px rgba(var(--gold-rgb),.28),var(--sh2)}
-/* a win: a black-lacquer plaque with the amount in gold */
-[data-theme=light] .win:not(.lose) .card{background:radial-gradient(circle at 50% 0,rgba(var(--gold-rgb),.32),transparent 70%),linear-gradient(180deg,var(--lacq2),var(--lacq));
-  color:#f3efe4;box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 30%,transparent),0 0 70px rgba(var(--gold-rgb),.4),var(--sh2)}
-[data-theme=light] .win:not(.lose) .card b{color:var(--gold-hi)}
-[data-theme=light] .win:not(.lose) .card :is(small,span){color:#cbc4b4}
 [data-theme=light] .win.lose .card{border-color:var(--line2)}
-[data-theme=light] .paused{color:var(--gold-hi)}
-[data-theme=light] .scrim{background:rgba(30,22,10,.38)}
-[data-theme=light] .howto{background:rgba(30,22,10,.42)}
 [data-theme=light] .sheet{border-top-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 -24px 60px -22px rgba(64,48,24,.45)}
 [data-theme=light] :is(.howto .card,.tour-card){background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--gold) 13%,var(--s2)),var(--s2) 70%)}
 [data-theme=light] .steps li::before{color:var(--gold-hi)}
@@ -146,7 +129,6 @@
 [data-theme=light] .hud::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gold) 70%,#4a4438) 30%,color-mix(in srgb,var(--gold) 70%,#4a4438) 70%,transparent)}
 /* gold keys: pale accents (ivory, champagne, silver, ice) need an engraved metal edge to stand off the ivory */
 [data-theme=light] :is(.go,.act.hot,.pill.hot,.sl-go,.pv-btn.raise,.htabs button[aria-selected=true],.sl-bet[aria-checked=true],.hs-mini[aria-pressed="true"]){border:1px solid color-mix(in srgb,var(--gold) 55%,#4a4438)}
-[data-theme=light] .livep-bz{box-shadow:0 0 0 2px rgba(var(--gold-rgb),.6),0 0 0 7px var(--lacq),0 0 0 8px color-mix(in srgb,var(--gold) 50%,transparent),0 30px 60px -20px rgba(64,48,24,.6)}
 /* light, the salon's materials (as the studio's casino.css light block): the room washed with the felt and lit by the
    accent from above, a fine felt-tinted dot grid and linen weave with a warm vignette; raised porcelain keys with a
    white top highlight and a key floor; gold-leaf keys with a glossy sheen and an accent halo (light's glow); the felt
@@ -925,6 +907,165 @@ html,body,.board,.dock{touch-action:manipulation}
 [data-chips=ivory] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp)::before{background:#f6efdc;box-shadow:inset 0 0 0 1.5px var(--cc)}
 [data-chips=ivory] :is(.chip span,.fly b,.rt .chp b){color:color-mix(in srgb,var(--cc) 65%,#000)}
 @media (prefers-reduced-motion:reduce){.win .rays,.win .tier,.win.shake .card,.rt .dolly{animation:none!important}.win:not(.lose) .rays{opacity:1}}
+/* ================= LIQUID GLASS (mirrors web/src/index.css § LIQUID GLASS by name; docs/STUDIO_UI.md § Liquid Glass) =================
+   Our own CSS after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets. Glass is
+   the chrome that floats above the table (the bank, the phase strip, the seat footer, toasts, sheets, cards, the alert)
+   and the controls (keys, chips of the help tabs, pills); the felt, the cards, the chips and the pockets are content and
+   never glass. The element stays transparent and isolated; ::before is the glass body (tint + top sheen + inner light and
+   shade + backdrop blur/saturate), ::after the 1 px specular rim. <html data-glass> is set first thing in the page
+   script: liquid (real blur) · frosted (no blur support or the Android app: a near-opaque fill — text never sits on raw
+   content) · solid (reduced transparency). Touch screens: real blur only on the small bars (bank, phase, footer, toasts,
+   pills); sheets and the big cards are frosted. */
+:root{
+  --lg-blur:20px;--lg-blur-thick:28px;--lg-sat:1.8;
+  --lg-tint:color-mix(in srgb,var(--s2) 52%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 76%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,transparent);--lg-solid:var(--s2);
+  --lg-glare:rgba(255,255,255,.06);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.04),inset 0 14px 22px -18px rgba(255,255,255,.16),inset 0 -14px 24px -20px rgba(0,0,0,.55);
+  --lg-edge:rgba(255,255,255,.1);--lg-edge-strong:rgba(255,255,255,.2);
+  --lg-rim-a:rgba(255,255,255,.36);--lg-rim-b:rgba(255,255,255,.03);--lg-rim-c:rgba(255,255,255,.14);
+  --lg-shadow:0 1px 1px rgba(0,0,0,.3),0 12px 32px -14px rgba(0,0,0,.7);
+  --lg-shadow-lift:0 2px 4px rgba(0,0,0,.35),0 28px 70px -20px rgba(0,0,0,.8);
+  --lg-control:rgba(255,255,255,.07);--lg-control-hover:rgba(255,255,255,.12);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 55%);
+  --lg-control-rim:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.03);
+  --lg-control-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px -6px rgba(0,0,0,.5);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.06) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(255,255,255,.08);--lg-track-shade:rgba(0,0,0,.45);
+  --lg-lens:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+  --lg-lens-rim:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 .5px rgba(255,255,255,.12);
+  --lg-lens-shadow:0 2px 8px -2px rgba(0,0,0,.5);
+  --lg-spring:cubic-bezier(.34,1.56,.5,1)}
+[data-theme=light]{
+  --lg-tint:color-mix(in srgb,var(--s2) 58%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 80%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,var(--bg));
+  --lg-glare:rgba(255,255,255,.55);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.7),inset 0 16px 24px -18px rgba(255,255,255,.95),inset 0 -14px 26px -20px rgba(64,48,24,.16);
+  --lg-edge:rgba(64,48,24,.13);--lg-edge-strong:color-mix(in srgb,var(--metal) 40%,rgba(64,48,24,.2));
+  --lg-rim-a:#fff;--lg-rim-b:rgba(255,255,255,.4);--lg-rim-c:rgba(255,255,255,.85);
+  --lg-shadow:0 .5px 1px rgba(64,48,24,.08),0 4px 10px -4px rgba(64,48,24,.1),0 18px 40px -20px rgba(64,48,24,.3);
+  --lg-shadow-lift:0 1px 3px rgba(64,48,24,.08),0 10px 24px -10px rgba(64,48,24,.16),0 34px 70px -28px rgba(64,48,24,.42);
+  --lg-control:rgba(255,255,255,.62);--lg-control-hover:rgba(255,255,255,.86);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 60%);
+  --lg-control-rim:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.6);
+  --lg-control-shadow:0 .5px 1px rgba(64,48,24,.1),0 3px 10px -4px rgba(64,48,24,.22);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(64,48,24,.07);--lg-track-shade:rgba(64,48,24,.14);
+  --lg-lens:linear-gradient(180deg,#fff,rgba(255,255,255,.86));
+  --lg-lens-rim:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(64,48,24,.06);
+  --lg-lens-shadow:0 1px 2px rgba(64,48,24,.12),0 4px 12px -4px rgba(64,48,24,.22)}
+@keyframes lg-morph{0%{transform:scale(.72,.84);opacity:.4}55%{transform:scale(1.08,.94);opacity:1}100%{transform:none}}
+
+/* the glass surfaces */
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard){
+  isolation:isolate;background:transparent;border-color:var(--lg-edge);box-shadow:var(--lg-shadow)}
+html[data-theme] :is(.bank,.foot,.endcard){position:relative}
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,var(--lg-glare),transparent 46%),var(--lg-tint);box-shadow:var(--lg-inner);
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat))}
+html[data-theme] :is(.toast,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-tint-thick);
+  -webkit-backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat))}
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::after{
+  content:"";position:absolute;inset:-1px;z-index:1;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(150px circle at 24% -40%,var(--lg-rim-a),transparent 70%),linear-gradient(155deg,var(--lg-rim-a),var(--lg-rim-b) 34%,var(--lg-rim-b) 66%,var(--lg-rim-c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+/* fallbacks: frosted (no blur — a near-opaque fill), solid (reduced transparency); touch: big panels frosted */
+html[data-glass=frosted] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost)}}
+@media (pointer:coarse){
+  html[data-theme] :is(.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+    background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}}
+html[data-glass=solid] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:var(--lg-solid);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-glass=solid] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::after{opacity:.4}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+    background:var(--lg-solid)!important;box-shadow:none;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+
+/* shapes: capsules for controls and small bars, larger concentric radii for sheets and cards */
+html[data-theme] :is(.bank,.paused,.lockb,.toast){border-radius:999px}
+html[data-theme] .bank{padding-left:16px;padding-right:18px}
+html[data-theme] .phase{border-radius:24px}
+html[data-theme] :is(.sheet){border-radius:30px 30px 0 0;border:1px solid var(--lg-edge);border-bottom:0}
+html[data-theme] :is(.tour-card,.al-card){border-radius:30px}
+/* the how-to card scrolls itself (pseudo layers would scroll away): a frosted fill and the rim as an inset highlight */
+html[data-theme] .howto .card{border-radius:30px;border-color:var(--lg-edge);background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);
+  box-shadow:inset 0 1px 0 var(--lg-rim-a),var(--lg-inner),var(--lg-shadow-lift)}
+html[data-glass=solid] .howto .card{background:var(--lg-solid)}
+html[data-theme] .win .card{border-radius:32px}
+html[data-theme] .endcard{padding:22px 22px 20px;border:1px solid var(--lg-edge);border-radius:30px}
+html[data-theme] .foot{border-top:1px solid var(--lg-edge)}
+/* the win card keeps its accent ring outside the glass */
+html[data-theme] .win:not(.lose) .card{border:2px solid var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 26%,transparent),0 0 70px rgba(var(--gold-rgb),.35),var(--lg-shadow-lift)}
+html[data-theme] .al-card{border:2px solid var(--gold);box-shadow:0 0 0 6px rgba(var(--gold-rgb),.14),0 0 50px rgba(var(--gold-rgb),.28),var(--lg-shadow-lift)}
+html[data-theme] .lockb{border:1.5px solid var(--red);box-shadow:var(--lg-shadow)}
+
+/* controls: clear glass capsules / circles that squash and spring back when pressed; the gold keys are the prominent
+   (tinted) glass */
+html[data-theme] :is(.ib,.hb,.act,.pill,.sh-h button,.tz button,.code,.sl-bet,.tapnext){
+  background:var(--lg-control-sheen),var(--lg-control);border:1px solid var(--lg-edge);box-shadow:var(--lg-control-rim),var(--lg-control-shadow);
+  transition:transform .42s var(--lg-spring),background-color .2s,border-color .2s}
+html[data-theme] :is(.ib,.hb){width:46px;height:46px;border-radius:50%}
+html[data-theme] :is(.act,.pill,.sh-h button,.tz button,.code,.sl-bet){border-radius:999px}
+html[data-theme] :is(.ib,.hb,.act,.pill,.sh-h button,.tz button,.sl-bet,.go,.sl-go,.meb):active{transform:scale(.95,.93);transition-duration:.12s}
+html[data-theme] :is(.act.hot,.pill.hot,.sl-bet[aria-checked=true],.tz .tour-go){background:var(--lg-prominent-sheen),linear-gradient(180deg,var(--gold-hi),var(--gold));color:var(--gold-ink);border-color:color-mix(in srgb,var(--gold) 60%,#fff);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px -8px rgba(var(--gold-rgb),.8),0 1px 2px rgba(0,0,0,.18)}
+html[data-theme] .act.on{background:var(--lg-control-sheen),color-mix(in srgb,var(--ok) 16%,transparent);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+html[data-theme] :is(.go,.sl-go){border-radius:999px;background:var(--lg-prominent-sheen),linear-gradient(180deg,var(--gold-hi),var(--gold) 45%,var(--gold2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 22px -8px var(--glow),0 2px 4px rgba(0,0,0,.2);transition:transform .42s var(--lg-spring)}
+html[data-theme] :is(.go,.sl-go):active{box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px -4px var(--glow)}
+html[data-theme] .meb{border-radius:50%;transition:transform .42s var(--lg-spring)}
+html[data-theme] .meb canvas{border-radius:50%}
+/* segmented (the help tabs): a glass track, the chosen tab a lens in the accent that morphs in */
+html[data-theme] .htabs{border-radius:999px;background:var(--lg-track);border:1px solid var(--lg-edge);box-shadow:inset 0 1px 2px var(--lg-track-shade)}
+html[data-theme] .htabs button{border-radius:999px}
+html[data-theme] .htabs button[aria-selected=true]{box-shadow:var(--lg-lens-rim),var(--lg-lens-shadow);animation:lg-morph .5s var(--lg-spring) both}
+@media (prefers-reduced-motion:reduce){html[data-theme] .htabs button[aria-selected=true]{animation:none}}
+
+/* ---------- light without dark: no black lacquer, umber scrims or black plates anywhere around the table ---------- */
+/* the bank: clear glass with the credits in the table's text-safe gold */
+[data-theme=light] .bk-who span{color:var(--dim)}
+[data-theme=light] .bk-who span.staked{color:var(--gold-text)}
+[data-theme=light] #credits{color:var(--gold-text);text-shadow:none}
+[data-theme=light] #credits.up{color:var(--ok);text-shadow:none}[data-theme=light] #credits.down{color:var(--bad)}
+[data-theme=light] .bk-coin{box-shadow:inset 0 0 0 3.5px var(--gold),0 0 0 1px color-mix(in srgb,var(--metal) 60%,transparent)}
+/* the win card: white glass on a gold ring, the amount in text-safe gold */
+[data-theme=light] .win .card b{color:var(--gold-text);text-shadow:none}
+[data-theme=light] .win .card :is(small,span){color:var(--dim)}
+[data-theme=light] .win .tier{-webkit-text-stroke:1px rgba(64,48,24,.35);filter:drop-shadow(0 2px 0 rgba(64,48,24,.3))}
+/* scrims: a pale veil, never a dark wash */
+[data-theme=light] :is(.scrim,.howto){background:color-mix(in srgb,var(--bg) 62%,transparent)}
+[data-theme=light] .end{background:color-mix(in srgb,var(--bg) 94%,transparent)}
+[data-theme=light] .paused{color:var(--gold-text)}
+[data-theme=light] .lockb{color:#9c1830}
+[data-theme=light] .al-t{text-shadow:none}
+/* who sits on a spot / other players' stakes: white glass chips with ink lettering */
+[data-theme=light] :is(.wd,.rt .oth){background:rgba(255,255,255,.88);border-color:rgba(64,48,24,.16);color:#2a2630;box-shadow:0 1px 3px rgba(64,48,24,.25)}
+[data-theme=light] .wd i{box-shadow:0 0 0 1px rgba(64,48,24,.35)}
+[data-theme=light] .wd i.me{box-shadow:0 0 0 1.5px #1c1a22}
+/* the live panel: drawn as ink on porcelain in light (Live.draw), in a white-enamel bezel with the metal ring */
+[data-theme=light] .livep-bz{background:linear-gradient(145deg,#fff,#f4efe6 50%,#e9e2d5);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(64,48,24,.14),0 0 0 1px rgba(64,48,24,.14),0 0 0 5px rgba(255,255,255,.85),0 0 0 6px color-mix(in srgb,var(--metal) 55%,transparent),0 30px 60px -20px rgba(64,48,24,.5)}
+[data-theme=light] .livep-bz canvas,[data-theme=light] .lthumb{background:#ebe6dc;box-shadow:inset 0 2px 6px rgba(64,48,24,.22)}
+[data-theme=light] .lthumb{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--metal) 60%,transparent),inset 0 1px 3px rgba(64,48,24,.2)}
+/* the slot machine: a porcelain cabinet with its own colour as the rim (classic gold, neon pink, space cyan), ivory reels */
+[data-theme=light] .sl-mach{background:linear-gradient(180deg,#fff,#f3eee5);box-shadow:inset 0 0 0 2px var(--gold2),inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px color-mix(in srgb,var(--metal) 50%,transparent),var(--sh1)}
+[data-theme=light] .sl-mach.neon{box-shadow:inset 0 0 0 2px #d42aa8,inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px rgba(212,42,168,.35),var(--sh1)}
+[data-theme=light] .sl-mach.space{box-shadow:inset 0 0 0 2px #128e9a,inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px rgba(18,142,154,.35),var(--sh1)}
+[data-theme=light] .sl-name{color:var(--gold-text)}
+[data-theme=light] .sl-name small{color:var(--dim)}
+[data-theme=light] .sl-reel{background:linear-gradient(180deg,#e9e3d7,#fbf9f5 30%,#fbf9f5 70%,#e9e3d7);box-shadow:inset 0 0 0 1px rgba(64,48,24,.14),inset 0 3px 8px -3px rgba(64,48,24,.25)}
+[data-theme=light] .sl-pay b{text-shadow:none}
+[data-theme=light] .sl-lever{background:linear-gradient(90deg,#efe6d2,#fffbf2 50%,#efe6d2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--metal) 55%,transparent),var(--sh1)}
+[data-theme=light] .sl-lever .slot{background:#d9cfbd;box-shadow:inset 0 2px 4px rgba(64,48,24,.35)}
+[data-theme=light] .sl-lever .hint{color:var(--gold-text)}
+[data-theme=light] .sl-knob{box-shadow:0 6px 12px rgba(64,48,24,.4),inset 0 -4px 0 rgba(0,0,0,.18)}
+/* soft umber shadows in place of black drop shadows on the keys */
+[data-theme=light] .lockb{box-shadow:var(--lg-shadow)}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -1004,6 +1145,13 @@ html,body,.board,.dock{touch-action:manipulation}
 
 <script>
 "use strict";
+// Liquid Glass, first thing (as web/index.html; docs/STUDIO_UI.md § Liquid Glass): solid for reduced transparency;
+// frosted (near opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
+(function () { try {
+  var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && CSS.supports && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+  var rt = window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+} catch (e) {} })();
 // Light / dark (docs/CASINO.md §5): the studio's switch, localStorage deskdot.theme = light | dark | system (same
 // origin as the studio on this device), else the phone's own preference. html[data-theme] = light | dark; first so
 // the page never paints in the wrong one (the stylesheet's media query covers the instant before this runs).
@@ -1029,8 +1177,8 @@ const UiMode = (() => {
 // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
 // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
 // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
-// neon on black, light the "paper" style (ink tubes) — and a dark LED sign the page put behind the canvas becomes a
-// porcelain plate. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
+// neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+// behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
 const DeskDotLogo = (() => {
   const GLYPHS = {
     D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -1044,11 +1192,6 @@ const DeskDotLogo = (() => {
   const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
   const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
   const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
-  // light: the porcelain plate with a gilded rim that replaces a page's dark LED sign (the studio's .led-plate)
-  const PAPER_PLATE = {
-    background: "radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%)",
-    boxShadow: "inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64,48,24,0.07), 0 0 0 1px rgba(150,112,40,0.4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184,137,42,0.5), 0 10px 22px -12px rgba(64,48,24,0.4)",
-  };
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -1232,16 +1375,11 @@ const DeskDotLogo = (() => {
       return t ? t === "light" : !!(media && media.matches);
     });
     let look = "";
-    /** The page's light / dark changed? Re-pick the style and the plate. True when it changed. */
+    /** The page's light / dark changed? Re-pick the style. True when it changed. */
     const restyle = () => {
       const next = isLight() ? "paper" : "neon";
       if (next === look) return false;
       look = next;
-      canvas.style.background = canvas.style.boxShadow = "";
-      if (look === "paper" && getComputedStyle(canvas).backgroundImage !== "none") {
-        canvas.style.background = PAPER_PLATE.background;
-        canvas.style.boxShadow = PAPER_PLATE.boxShadow;
-      }
       return true;
     };
     const watch = () => restyle() && now();
@@ -1418,7 +1556,7 @@ function drawAvatar(cv, id, color) {
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const ch = px[y][x], fill = ch === "." || ch === " " ? null : col[ch];
     g.beginPath(); g.arc(x * cell + cell / 2, y * cell + cell / 2, r, 0, Math.PI * 2);
-    if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; } else { g.shadowBlur = 0; g.fillStyle = "rgba(255,255,255,.06)"; }
+    if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; } else { g.shadowBlur = 0; g.fillStyle = document.documentElement.dataset.theme === "light" ? "rgba(64,48,24,.09)" : "rgba(255,255,255,.06)"; }
     g.fill();
   }
 }
@@ -2230,7 +2368,7 @@ function paintBrowserBar() {
   const css = (S.pub && S.pub.table_theme && S.pub.table_theme.css) || {};
   if (meta) meta.setAttribute("content", UiMode.mode === "light" ? "#f4f0e8" : (themeId !== "classic" && css.felt3) || "#063823");
 }
-UiMode.onChange = () => { try { paintBrowserBar(); } catch (_) {} };
+UiMode.onChange = () => { try { paintBrowserBar(); } catch (_) {} try { if (S.hello) paintMe(); } catch (_) {} }; // avatars redraw their unlit LEDs
 try { paintBrowserBar(); } catch (_) {}
 
 /* ------------------------------------------------ the live panel: the engine's frames (binary 32×32×3, opt-in, ≤ 10 fps)
@@ -2263,17 +2401,36 @@ const Live = (() => {
     if (!off) off = document.createElement("canvas");
     if (off.width !== W) { off.width = W; off.height = W; }
     const o = off.getContext("2d"); o.clearRect(0, 0, W, W);
-    o.fillStyle = "rgba(255,255,255,.06)"; o.beginPath();
+    // light: the panel drawn as ink on porcelain (as the studio's paper panel, simplified): unlit LEDs are faint dimples,
+    // a lit LED is its colour darkened until it reads on ivory, dim ones fade toward the ground; no glow
+    const paper = document.documentElement.dataset.theme === "light";
+    o.fillStyle = paper ? "rgba(64,48,24,.1)" : "rgba(255,255,255,.06)"; o.beginPath();
     for (let i = 0; i < 1024; i++) { const k = i * 3; if (px[k] + px[k + 1] + px[k + 2] < 24) { const x = (i % 32 + 0.5) * c, y = ((i >> 5) + 0.5) * c; o.moveTo(x + r * 0.5, y); o.arc(x, y, r * 0.5, 0, 6.2832); } }
     o.fill();
     for (let i = 0; i < 1024; i++) {
       const k = i * 3, R = px[k], G = px[k + 1], B = px[k + 2];
       if (R + G + B < 24) continue;
-      o.fillStyle = `rgb(${R},${G},${B})`; o.beginPath(); o.arc((i % 32 + 0.5) * c, ((i >> 5) + 0.5) * c, r, 0, 6.2832); o.fill();
+      o.fillStyle = paper ? inkOf(R, G, B) : `rgb(${R},${G},${B})`; o.beginPath(); o.arc((i % 32 + 0.5) * c, ((i >> 5) + 0.5) * c, r, 0, 6.2832); o.fill();
     }
     g.clearRect(0, 0, W, W);
-    if (glow && "filter" in g) { g.save(); g.filter = `blur(${Math.max(1, c * 0.6).toFixed(1)}px)`; g.globalAlpha = 0.85; g.drawImage(off, 0, 0); g.restore(); }
+    if (glow && !paper && "filter" in g) { g.save(); g.filter = `blur(${Math.max(1, c * 0.6).toFixed(1)}px)`; g.globalAlpha = 0.85; g.drawImage(off, 0, 0); g.restore(); }
     g.drawImage(off, 0, 0);
+  }
+  /** an LED colour as ink on the porcelain ground (#ebe6dc): full drive → the colour darkened to ≤ 30 % luminance,
+   *  dim → mixed toward the ground (brighter on the panel = darker on paper). Cached per colour. */
+  const inks = new Map();
+  function inkOf(R, G, B) {
+    const key = (R << 16) | (G << 8) | B;
+    let v = inks.get(key);
+    if (v) return v;
+    const m = Math.max(R, G, B) / 255, a = 1 - (1 - m) * (1 - m);
+    let r = R / (m || 1), gg = G / (m || 1), b = B / (m || 1);
+    const y = (0.2126 * r + 0.7152 * gg + 0.0722 * b) / 255, k = y > 0.3 ? 0.3 / y : 1;
+    r *= k; gg *= k; b *= k;
+    v = `rgb(${Math.round(235 + (r - 235) * a)},${Math.round(230 + (gg - 230) * a)},${Math.round(220 + (b - 220) * a)})`;
+    if (inks.size > 4096) inks.clear();
+    inks.set(key, v);
+    return v;
   }
   function kick() { if (!raf) raf = requestAnimationFrame(paint); }
   function paint() { raf = 0; if (!dirty) return; dirty = false; if (on) draw(big, true); if (!thumb.hidden) draw(thumb, false); }

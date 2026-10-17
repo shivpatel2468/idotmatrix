@@ -23,8 +23,8 @@ function Wordmark() {
   const phone = typeof window !== "undefined" && window.innerWidth < 640;
   return (
     <div className="flex shrink-0 justify-center" title="DeskDot studio">
-      {/* light theme: the logo is drawn in its paper style (ink tubes) on a porcelain plate with a gilded rim (index.css .led-plate) */}
-      <span className="led-plate"><NeonMark pitch={phone ? 2.6 : 3.8} /></span>
+      {/* straight on the header, no sign or plate: neon tubes in dark, the paper style (ink tubes) in light */}
+      <NeonMark pitch={phone ? 2.6 : 3.8} />
     </div>
   );
 }
@@ -54,10 +54,10 @@ function StatusPill() {
   const { tone, label, detail, retry } = usePanelStatus();
   const dev = useStore((s) => s.state?.device);
   return (
-    <div className="flex min-w-0 items-center">
+    <div className="glass-capsule lg-toolbar flex min-w-0 items-center">
       <ConnectionSheet />
       <button onClick={openConnection} title={detail ? `${detail} — click for details` : "Connection details"} aria-label={`Panel: ${label} — connection details`}
-        className="status-pill flex min-w-0 items-center gap-2.5 rounded-full border border-line bg-chassis-1 py-1.5 pl-3 pr-3 transition hover:border-line-2">
+        className="status-pill flex min-w-0 items-center gap-2.5 rounded-full border py-1.5 pl-3 pr-3 transition hover:bg-[var(--lg-control-hover)]">
         <span className="led shrink-0" data-on={tone} />
         <span className="max-w-[40vw] truncate text-[12.5px] font-medium sm:max-w-[180px]">{label}</span>
         {dev?.kind === "sim" && <span className="engrave rounded bg-chassis-3 px-1.5 py-0.5 !text-[8px] !text-info" title="Simulated panel">Sim</span>}
@@ -242,17 +242,22 @@ export function TopBar() {
       {/* on wide screens these live under the settings panel (App.tsx FlyDock) */}
       <div className="xl:hidden"><RoamSign /></div>
       <FlyToggle picker compact className="xl:hidden" />
-      <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">
-        <Search size={13} /> <span className="normal-case tracking-normal">Find anything</span>
-        <kbd className="ml-1 rounded border border-line bg-chassis-0 px-1.5 py-0.5 text-[9px] text-ink-3">Ctrl K</kbd>
-      </button>
-      <button onClick={() => set({ palette: true })} className="key key-icon lg:hidden" title="Find an app or action" aria-label="Search">
-        <Search size={15} />
-      </button>
-      <Brightness />
-      {/* the Display menu: preview look + glow at a glance, the panel's settings one tap further */}
-      <DisplayMenu trigger="settings" />
-      <SafetySwitch />
+      {/* the toolbar: one glass capsule holding search, brightness, the Display menu and the power guard */}
+      <div className="glass-capsule lg-toolbar min-w-0 pr-1.5">
+        <button onClick={() => set({ palette: true })} className="key key-ghost hidden lg:inline-flex" title="Find an app or action (Ctrl K)">
+          <Search size={13} /> <span className="normal-case tracking-normal">Find anything</span>
+          <kbd className="kbd ml-1 !text-[9px] !text-ink-3">Ctrl K</kbd>
+        </button>
+        <button onClick={() => set({ palette: true })} className="key key-icon lg:hidden" title="Find an app or action" aria-label="Search">
+          <Search size={15} />
+        </button>
+        <span className="mx-1 hidden h-5 w-px bg-[var(--lg-edge)] md:block" aria-hidden />
+        <Brightness />
+        <span className="mx-1 hidden h-5 w-px bg-[var(--lg-edge)] md:block" aria-hidden />
+        {/* the Display menu: preview look + glow at a glance, the panel's settings one tap further */}
+        <DisplayMenu trigger="settings" />
+        <SafetySwitch />
+      </div>
       </div>
     </header>
   );
