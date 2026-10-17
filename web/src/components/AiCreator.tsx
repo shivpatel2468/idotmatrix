@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "../lib/api";
 import { toast, useStore } from "../lib/store";
+import { paperHex, usePaper } from "../lib/paper";
 import { Picker } from "./Picker";
 
 const PRESET_PROMPTS = [
@@ -29,6 +30,8 @@ const PRESET_PROMPTS = [
 ];
 
 export function AiCreator() {
+  // light mode's paper panel: the preview is ink on porcelain like every other panel in the studio (lib/paper.ts)
+  const paper = usePaper();
   const open = useStore((s) => s.aiOpen);
   const set = useStore((s) => s.set);
 
@@ -160,19 +163,22 @@ export function AiCreator() {
     const pal = result.palette;
 
     return (
-      <div className="relative aspect-square w-full max-w-[280px] rounded-[14px] bg-[#050508] p-3 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.6)] border border-[#202028]">
+      <div className={paper
+        ? "relative aspect-square w-full max-w-[280px] rounded-[14px] border border-[rgba(64,48,24,0.16)] bg-[#ebe6dc] p-3 shadow-[inset_0_2px_6px_rgba(64,48,24,0.18),0_0_0_4px_#fff,0_14px_30px_-16px_rgba(64,48,24,0.45)]"
+        : "relative aspect-square w-full max-w-[280px] rounded-[14px] bg-[#050508] p-3 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_0_20px_rgba(0,0,0,0.6)] border border-[#202028]"}>
         <div className="grid h-full w-full grid-cols-32 grid-rows-32 gap-[1px]">
           {frame.rows.map((row, y) =>
             row.split("").map((ch, x) => {
-              const hex = pal[ch] || "#000000";
-              const isLit = hex !== "#000000";
+              const raw = pal[ch] || "#000000";
+              const isLit = raw !== "#000000";
+              const hex = paper ? paperHex(raw) : raw;
               return (
                 <div
                   key={`${y}-${x}`}
                   className="rounded-[0.5px] transition-colors duration-75"
                   style={{
                     backgroundColor: hex,
-                    boxShadow: isLit ? `0 0 3px ${hex}` : "none",
+                    boxShadow: isLit && !paper ? `0 0 3px ${hex}` : "none",
                   }}
                 />
               );
@@ -184,7 +190,7 @@ export function AiCreator() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-scrim/70 light:bg-scrim/40 backdrop-blur-[4px] animate-fade">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-scrim/70 light:bg-scrim/65 backdrop-blur-[4px] animate-fade">
       <div className="surface flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-[18px] border border-line-2 shadow-2xl animate-rise">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line bg-chassis-2 px-5 py-3.5">

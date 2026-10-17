@@ -246,7 +246,7 @@ function Guided({ info, onDone }: { info: MotionInfo; onDone: () => void }) {
       <Progress steps={GUIDED_STAGES.length} at={at} labels={["Frame rate", "App switches", "Live data", "Done"]} />
       <div className="flex flex-wrap items-start gap-4">
         <figure className="m-0">
-          <div className="rounded-[10px] border border-line bg-black p-1.5"><LedPanel size={160} look="pixel" glow={false} lookSwitch={false} raw /></div>
+          <div className="rounded-[12px] border border-line bg-chassis-2 p-1.5 [box-shadow:var(--lg-control-shadow)]"><LedPanel size={160} look="pixel" glow={false} lookSwitch={false} raw /></div>
           <figcaption className="engrave mt-1.5 text-center">Same test, on screen</figcaption>
         </figure>
         <div className="min-w-[220px] flex-1 space-y-2">
@@ -317,7 +317,7 @@ function Bench({ info }: { info: MotionInfo }) {
       <VideoChips videos={info.tests} value={test} onChange={setTest} />
       <div className="flex flex-wrap items-start gap-4">
         <figure className="m-0">
-          <div className="rounded-[10px] border border-line bg-black p-1.5"><LedPanel size={176} look="pixel" glow={false} lookSwitch={false} raw /></div>
+          <div className="rounded-[12px] border border-line bg-chassis-2 p-1.5 [box-shadow:var(--lg-control-shadow)]"><LedPanel size={176} look="pixel" glow={false} lookSwitch={false} raw /></div>
           <figcaption className="engrave mt-1.5 text-center">{native ? "Panel: native loop · screen: stream" : "Same test, on screen"}</figcaption>
         </figure>
         <div className="min-w-[240px] flex-1 divide-y divide-line">

@@ -24,7 +24,7 @@ export function useClearOnUnmount() {
 export function ScreenReference({ size = 208, split }: { size?: number; split?: number }) {
   return (
     <figure className="m-0">
-      <div className="relative overflow-hidden rounded-[10px] border border-line bg-black p-1.5" style={{ width: size + 12 }}>
+      <div className="relative overflow-hidden rounded-[12px] border border-line bg-chassis-2 p-1.5 [box-shadow:var(--lg-control-shadow)]" style={{ width: size + 12 }}>
         <LedPanel size={size} look="pixel" glow={false} lookSwitch={false} raw />
         {split !== undefined && <SplitLine split={split} />}
       </div>
@@ -74,7 +74,7 @@ export function PanelSketch({ a, b, split = 16, size = 120, caption = "Sent to t
   }, [key]); // `key` captures a, b and split
   return (
     <figure className="m-0">
-      <div className="rounded-[10px] border border-line bg-black p-1.5">
+      <div className="rounded-[12px] border border-line bg-chassis-2 p-1.5 [box-shadow:var(--lg-control-shadow)]">
         <canvas ref={cv} width={N} height={N} style={{ width: size, height: size, imageRendering: "pixelated", display: "block" }} aria-label={caption} role="img" />
       </div>
       <figcaption className="engrave mt-1.5 text-center">{caption}</figcaption>

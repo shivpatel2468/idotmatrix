@@ -1052,3 +1052,23 @@ html[data-cz] .toggle[aria-checked="true"] { border-color: color-mix(in srgb, va
 .cz-odo-reel { position: relative; display: inline-block; overflow: hidden; width: 0.62em; height: 1.15em; line-height: 1.15em; vertical-align: bottom; text-align: center; }
 .cz-odo-reel > i { position: absolute; left: 0; right: 0; top: 0; font-style: normal; white-space: pre; will-change: transform; }
 .cz-odo-reel > i + i { opacity: 0; text-shadow: 0 -0.22em 0 currentColor, 0 0.22em 0 currentColor; filter: none; }
+
+/* Liquid Glass in light (docs/STUDIO_UI.md § Liquid Glass): the wings' rail is no longer a strip of dark felt — it is a
+   pale glass band washed in the table's colour, and its tabs sit in a glass track like the studio's segmented control */
+:root[data-theme="light"] .cz-wing::before {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.35)),
+    radial-gradient(90% 140% at 50% 0%, color-mix(in srgb, var(--cz-tint) 22%, #fff), color-mix(in srgb, var(--cz-tint) 10%, #fbf8f2));
+  background-size: 100% 100%, 100% 100%;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, 0.6), 0 1px 0 color-mix(in srgb, var(--cz-metal) 45%, transparent), 0 8px 16px -10px var(--cz-halo);
+}
+:root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs {
+  background: rgba(64, 48, 24, 0.07); border-color: rgba(64, 48, 24, 0.12); border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.14), 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+:root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs > button { border-radius: 999px; }
+:root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs > button:not([data-on="true"]) { color: var(--cz-ink-2); }
+:root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs > button:not([data-on="true"]):hover { color: var(--cz-ink-1); background: rgba(255, 255, 255, 0.7); }
+:root[data-theme="light"] .cz-wing .cz-wing-body > .cz-tabs > button:not([data-on="true"]) > i { color: var(--gold-text); background: rgba(var(--gold-rgb), 0.2); }
+:root[data-theme="light"] .cz-tabs > button[data-on="true"] { animation: lg-morph 0.5s var(--lg-spring) both; }
+/* the felt in daylight: the table's colour, lit from above, without the near-black edge it has on the dark page */
+:root[data-theme="light"] .cz-table { background: var(--cz-pat), radial-gradient(90% 90% at 50% 40%, color-mix(in srgb, var(--felt-hi) 80%, #fff), var(--felt-hi) 55%, var(--felt)); background-size: var(--cz-pat-size), 100% 100%; }

@@ -1357,7 +1357,7 @@
     g.save();
     if (o.alpha != null) g.globalAlpha *= o.alpha;
     circle(g, x, y, r);
-    g.fillStyle = "#121218";
+    g.fillStyle = P.light ? "#fdfaf3" : "#121218"; // light: an ivory disc (the art turns to ink on it, below)
     g.fill();
     g.lineWidth = Math.max(3, r * 0.12);
     g.strokeStyle = color;
@@ -1376,7 +1376,9 @@
     if (Array.isArray(art) && art.length) {
       const n = art.length;
       const cell = (r * 1.25) / n;
-      const pal = { c: color, d: shade(color, 0.55), w: "#f0f0f0", k: "#000000", y: "#ffc800", r: "#ff3c3c" };
+      const pal = P.light
+        ? { c: inkOf(color), d: shade(color, 0.35), w: P.ink2, k: "#000000", y: "#9a6a00", r: "#c8203e" }
+        : { c: color, d: shade(color, 0.55), w: "#f0f0f0", k: "#000000", y: "#ffc800", r: "#ff3c3c" };
       for (let j = 0; j < n; j++) {
         const row = String(art[j]);
         for (let i = 0; i < row.length; i++) {
@@ -1388,7 +1390,7 @@
       }
     } else {
       const name = String((p && p.name) || "?");
-      txt(g, name.slice(0, 1).toUpperCase(), x, y + r * 0.36, r * 1.0, color, { align: "center", weight: 800, shadow: false });
+      txt(g, name.slice(0, 1).toUpperCase(), x, y + r * 0.36, r * 1.0, inkOf(color), { align: "center", weight: 800, shadow: false });
     }
     g.restore();
   }
@@ -2611,7 +2613,7 @@
     txt(g, "RECENT", x + 22, L.recentY - 8, 16, lbl, { weight: 800, shadow: false, spacing: 3 });
     if (!L.panel) return;
     // the panel's housing (only while panel frames arrive): gunmetal at night, champagne lacquer in daylight — the
-    // panel itself stays a dark device in its well
+    // panel sits in a dark well at night and a porcelain one in daylight (tv.js draws it as the paper panel then)
     rr(g, PANEL_X - 14, PANEL_Y - 14, PANEL_SIZE + 28, PANEL_SIZE + 28, 16);
     if (P.light) softStroke(g, 0, 18, P.railShadow[0], 0.22, 0, 8, 4);
     const bz = g.createLinearGradient(0, PANEL_Y - 14, 0, PANEL_Y + PANEL_SIZE + 14);
@@ -2623,7 +2625,7 @@
     g.strokeStyle = P.light ? "rgba(184,137,42,.7)" : rgba(th.accent, 0.35);
     g.stroke();
     rr(g, PANEL_X - 3, PANEL_Y - 3, PANEL_SIZE + 6, PANEL_SIZE + 6, 6);
-    g.fillStyle = "#030304";
+    g.fillStyle = P.light ? "#ebe6dc" : "#030304";
     g.fill();
   }
 

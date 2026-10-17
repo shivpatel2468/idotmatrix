@@ -591,7 +591,10 @@
 :root[data-theme="light"] .tvg{background:radial-gradient(1200px 900px at 22% 50%,rgba(255,255,255,.75),transparent 60%),var(--chassis-0)}
 :root[data-theme="light"] :is(.tvg-seat .nm,.tvg-team h3,.tvg-pick .col h4,.tvg-duel .sym,.tvg-duel .nm,.tvg-hand .nm){color:color-mix(in srgb,var(--c) 55%,#000);text-shadow:none}
 :root[data-theme="light"] .tvg-pill{color:color-mix(in srgb,var(--p) 55%,#000)}
-:root[data-theme="light"] .tvg-av{background:#17130f}
+:root[data-theme="light"] .tvg-av{background:color-mix(in srgb,var(--c,#888) 9%,#fbf8f1);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c,#888) 35%,transparent),inset 0 1px 0 #fff;color:color-mix(in srgb,var(--c) 55%,#000)}
+:root[data-theme="light"] .tvg-count{color:var(--ink-1,#1c1a22);text-shadow:0 0 0 transparent,0 8px 0 rgba(64,48,24,.12)}
+:root[data-theme="light"] :is(.tvg-duel .mv,.tvg-opt.sel i){color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+:root[data-theme="light"] .tvg-key{background:linear-gradient(180deg,#fff,var(--chassis-1))}
 :root[data-theme="light"] :is(.tvg-tag,.tvg-wait){background:rgba(64,48,24,.07)}
 :root[data-theme="light"] .tvg-key{box-shadow:0 3px 0 #d3cabb}
 :root[data-theme="light"] .tvg-team{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,#fff),var(--chassis-1))}

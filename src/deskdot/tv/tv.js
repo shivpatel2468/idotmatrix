@@ -15,8 +15,8 @@
   // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
   // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
   // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
-  // neon on black, light the "paper" style (ink tubes) — and a dark LED sign the page put behind the canvas becomes a
-  // porcelain plate. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
+  // neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+  // behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
   const DeskDotLogo = (() => {
     const GLYPHS = {
       D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -30,11 +30,6 @@
     const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
     const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
     const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
-    // light: the porcelain plate with a gilded rim that replaces a page's dark LED sign (the studio's .led-plate)
-    const PAPER_PLATE = {
-      background: "radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%)",
-      boxShadow: "inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64,48,24,0.07), 0 0 0 1px rgba(150,112,40,0.4), 0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184,137,42,0.5), 0 10px 22px -12px rgba(64,48,24,0.4)",
-    };
     const STRIKE = [
       [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
       [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -218,16 +213,11 @@
         return t ? t === "light" : !!(media && media.matches);
       });
       let look = "";
-      /** The page's light / dark changed? Re-pick the style and the plate. True when it changed. */
+      /** The page's light / dark changed? Re-pick the style. True when it changed. */
       const restyle = () => {
         const next = isLight() ? "paper" : "neon";
         if (next === look) return false;
         look = next;
-        canvas.style.background = canvas.style.boxShadow = "";
-        if (look === "paper" && getComputedStyle(canvas).backgroundImage !== "none") {
-          canvas.style.background = PAPER_PLATE.background;
-          canvas.style.boxShadow = PAPER_PLATE.boxShadow;
-        }
         return true;
       };
       const watch = () => restyle() && now();
@@ -682,6 +672,7 @@
       crossFade(() => {
         paintTheme(v); // the DOM restyles through CSS; canvas scenes redraw their static layers once (restyle)
         restyle();
+        redrawPanels(); // light draws the paper panel, dark the emissive one
       });
     }
     renderMenu();
@@ -1152,11 +1143,106 @@
   const BLOOM_N = 64; // the bloom's grid (2 px per LED; the blurs are ≥ 0.8 LED wide, finer adds nothing)
   const LED_BG = "#060608";
   const LED_OFF = [0x15, 0x15, 0x1b];
+
+  // ------------------------------------------------------------------------------------------- the paper panel
+  // Light mode draws the panel as the studio's paper panel (web/src/lib/paper.ts, docs/STUDIO_UI.md § Paper panel): a
+  // black square of neon is the loudest thing on an ivory wall, so every LED colour is re-mapped perceptually (OKLab)
+  // to ink on porcelain — brighter on the panel = darker on paper, hue kept, ≥ 4.5:1 on an unlit LED — unlit LEDs are
+  // a porcelain ground, the LED look's grille white enamel, and there is no additive bloom or hot core (light doesn't
+  // glow on paper). Cached per exact colour: a frame costs 1 024 Map lookups. The engine's frames are untouched.
+  const PAPER = { housing: "#f8f5ef", ground: "#ebe6dc", ink: "#1c1a22" };
+  const paperOf = (() => {
+    const toLin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const toSrgb = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(0, c) ** (1 / 2.4) - 0.055);
+    const toLab = (r, g, b) => {
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+      const q = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+      return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * q, 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * q, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * q];
+    };
+    const toLin3 = (L, a, b) => {
+      const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+      const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+      const q = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+      return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * q, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * q, -0.0041960863 * l - 0.7034186147 * m + 1.7076953058 * q];
+    };
+    const inGamut = (c) => c[0] >= -1e-4 && c[1] >= -1e-4 && c[2] >= -1e-4 && c[0] <= 1.0001 && c[1] <= 1.0001 && c[2] <= 1.0001;
+    const maxChroma = (L, h) => {
+      const ca = Math.cos(h), sa = Math.sin(h);
+      let lo = 0, hi = 0.4;
+      for (let i = 0; i < 18; i++) {
+        const c = (lo + hi) / 2;
+        if (inGamut(toLin3(L, c * ca, c * sa))) lo = c;
+        else hi = c;
+      }
+      return lo;
+    };
+    const lum = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    const hexLin = (h) => [1, 3, 5].map((i) => toLin(parseInt(h.slice(i, i + 2), 16) / 255));
+    const smooth = (a, b, x) => {
+      const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    };
+    const GL = hexLin(PAPER.ground);
+    const GROUND = toLab(GL[0], GL[1], GL[2]);
+    const GY = lum(GL);
+    const IL = hexLin(PAPER.ink);
+    const INK = toLab(IL[0], IL[1], IL[2]);
+    const pack = (L, a, b) => {
+      let lin = toLin3(L, a, b);
+      if (!inGamut(lin)) {
+        const c = Math.hypot(a, b), h = Math.atan2(b, a);
+        const k = c > 0 ? maxChroma(L, h) / c : 0;
+        lin = toLin3(L, a * k, b * k);
+      }
+      const to8 = (x) => Math.round(Math.min(1, Math.max(0, toSrgb(x))) * 255);
+      return [to8(lin[0]), to8(lin[1]), to8(lin[2])];
+    };
+    const inkFor = (r, g, b) => {
+      const f = toLab(toLin(r), toLin(g), toLin(b));
+      const cf = Math.hypot(f[1], f[2]);
+      let h = Math.atan2(f[2], f[1]);
+      const deg = (h * 180) / Math.PI;
+      h -= ((14 * Math.PI) / 180) * smooth(70, 100, deg) * (1 - smooth(110, 135, deg)); // yellows lean to gold
+      const w = smooth(0, 0.6, 1 - Math.min(r, g, b));
+      const rel = cf > 1e-4 ? Math.min(1, cf / Math.max(1e-4, maxChroma(f[0], h))) : 0;
+      let L = 0.47 + 0.15 * smooth(0.45, 0.98, f[0]);
+      let t = [0, 0, 0];
+      for (let i = 0; i < 40; i++) {
+        const c = rel * maxChroma(L, h) * w;
+        t = [INK[0] + (L - INK[0]) * w, INK[1] * (1 - w) + c * Math.cos(h), INK[2] * (1 - w) + c * Math.sin(h)];
+        const y = lum(toLin3(t[0], t[1], t[2]).map((x) => Math.max(0, x)));
+        if ((Math.max(y, GY) + 0.05) / (Math.min(y, GY) + 0.05) >= 4.5 || t[0] < 0.2) break;
+        L -= 0.01;
+      }
+      return t;
+    };
+    const cache = new Map();
+    return (r, g, b) => {
+      const key = (r << 16) | (g << 8) | b;
+      let v = cache.get(key);
+      if (v) return v;
+      if (cache.size > 65536) cache.clear();
+      const lv = Math.max(r, g, b) / 255;
+      if (lv < 3 / 255) v = pack(GROUND[0], GROUND[1], GROUND[2]);
+      else {
+        const t = inkFor(r / 255 / lv, g / 255 / lv, b / 255 / lv);
+        const a = 1 - (1 - lv) ** 2;
+        const ac = a ** (1 - 0.45 * smooth(0.03, 0.2, lv));
+        v = pack(GROUND[0] + (t[0] - GROUND[0]) * a, GROUND[1] + (t[1] - GROUND[1]) * ac, GROUND[2] + (t[2] - GROUND[2]) * ac);
+      }
+      cache.set(key, v);
+      return v;
+    };
+  })();
+  /** Light mode draws the paper panel. */
+  const isPaper = () => TV.theme === "light";
   const pv = { data: null, raw: null, rawG: null, rawImg: null, led: null, ledG: null, ledImg: null, cores: null, coreN: 0, bloom: {}, bloomCanvas: {} };
 
   /** The frame as 32×32 images — raw (pixel, glow, the bloom) and the LED look's colours — and its hot cores. */
   function frameImages(data) {
-    if (pv.data === data) return pv;
+    const paper = isPaper();
+    if (pv.data === data && pv.paper === paper) return pv;
     if (!pv.raw) {
       pv.raw = mk(PANEL);
       pv.rawG = pv.raw.getContext("2d");
@@ -1174,6 +1260,15 @@
       const r = data[i];
       const gg = data[i + 1];
       const bb = data[i + 2];
+      if (paper) {
+        // ink on porcelain: the same mapped colour in every look; unlit = the ground; no hot cores
+        const m = paperOf(r, gg, bb);
+        a[j] = b[j] = m[0];
+        a[j + 1] = b[j + 1] = m[1];
+        a[j + 2] = b[j + 2] = m[2];
+        a[j + 3] = b[j + 3] = 255;
+        continue;
+      }
       a[j] = r;
       a[j + 1] = gg;
       a[j + 2] = bb;
@@ -1200,6 +1295,7 @@
     pv.rawG.putImageData(pv.rawImg, 0, 0);
     pv.ledG.putImageData(pv.ledImg, 0, 0);
     pv.data = data;
+    pv.paper = paper;
     pv.bloom = {};
     return pv;
   }
@@ -1398,7 +1494,9 @@
   // ------------------------------------------------------------------------------------------- the LED grille
   const grilles = new Map(); // D -> { grille, core, cell, s }
   function ledParts(D) {
-    let p = grilles.get(D);
+    const paper = isPaper();
+    const key = paper ? -D : D;
+    let p = grilles.get(key);
     if (p) return p;
     if (grilles.size > 6) grilles.clear();
     const cell = D / PANEL;
@@ -1408,7 +1506,7 @@
     // the grille: the backplate with a rounded hole per LED (anti-aliased edges blend the LED into the plate)
     const grille = mk(D);
     const g = grille.getContext("2d");
-    g.fillStyle = LED_BG;
+    g.fillStyle = paper ? PAPER.housing : LED_BG; // light: white enamel between porcelain LEDs
     g.fillRect(0, 0, D, D);
     g.globalCompositeOperation = "destination-out";
     g.fillStyle = "#000";
@@ -1440,7 +1538,7 @@
     cg.arc(s / 2, s / 2, c / 2, 0, Math.PI * 2);
     cg.fill();
     p = { grille, core, cell, s };
-    grilles.set(D, p);
+    grilles.set(key, p);
     return p;
   }
 
@@ -1449,8 +1547,9 @@
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalAlpha = 1;
     g.globalCompositeOperation = "source-over";
+    const paper = isPaper();
     if (!data) {
-      g.fillStyle = look === "led" ? `rgb(${LED_OFF.join(",")})` : "#000";
+      g.fillStyle = paper ? PAPER.ground : look === "led" ? `rgb(${LED_OFF.join(",")})` : "#000";
       g.fillRect(0, 0, D, D);
       if (look === "led") g.drawImage(ledParts(D).grille, 0, 0);
       return;
@@ -1469,7 +1568,7 @@
       }
       g.globalAlpha = 1;
     }
-    if (glow && look !== "pixel") {
+    if (glow && look !== "pixel" && !paper) {
       const b = bloomImage(look);
       if (b) {
         g.globalCompositeOperation = "lighter";
@@ -1513,8 +1612,9 @@
     const glow = opts.glow === 0 || opts.glow === false ? 0 : 1;
     // the canvas's real device pixels, a whole number per LED (crisp squares), capped
     const D = Math.max(PANEL, Math.min(1600, Math.round((css * TV.pixelRatio) / PANEL) * PANEL));
-    const st = canvas._pv || (canvas._pv = { data: undefined, bytes: null, D: 0, look: "", glow: -1 });
-    if (st.D === D && st.look === look && st.glow === glow && (st.data === data || sameFrame(st.bytes, data))) {
+    const paper = isPaper();
+    const st = canvas._pv || (canvas._pv = { data: undefined, bytes: null, D: 0, look: "", glow: -1, paper: false });
+    if (st.D === D && st.look === look && st.glow === glow && st.paper === paper && (st.data === data || sameFrame(st.bytes, data))) {
       st.data = data;
       return; // a status update, or the same frame again: the canvas already shows it
     }
@@ -1522,6 +1622,7 @@
     st.D = D;
     st.look = look;
     st.glow = glow;
+    st.paper = paper;
     if (data) {
       if (!st.bytes) st.bytes = new Uint8Array(FRAME_BYTES);
       for (let i = 0; i < FRAME_BYTES; i++) st.bytes[i] = data[i];
@@ -1531,7 +1632,7 @@
     if (canvas.width !== D) canvas.width = D;
     if (canvas.height !== D) canvas.height = D;
     const g = canvas.getContext("2d");
-    const wantBloom = !!(glow && data && look !== "pixel");
+    const wantBloom = !!(glow && data && look !== "pixel" && !paper); // paper: no additive light
     const layer = wantBloom ? bloomLayer(canvas, css) : null;
     paintPanel(g, D, data, look, wantBloom && !layer);
     const img = layer ? bloomPixels(look) : null;
@@ -1577,6 +1678,14 @@
       y: "#ffc800",
       r: "#ff3c3c",
     };
+    if (isPaper()) {
+      // light: the art as ink on a light tile (the paper panel's mapping: white → ink, colours deepened), black = the tile
+      for (const key of Object.keys(pal)) {
+        const m = /(\d+),(\d+),(\d+)/.exec(pal[key]);
+        const c = m ? [+m[1], +m[2], +m[3]] : hexRgb(pal[key]);
+        pal[key] = key === "k" ? "" : `rgb(${paperOf(c[0], c[1], c[2]).join(",")})`;
+      }
+    }
     if (!art) {
       g.fillStyle = pal.c;
       g.beginPath();
@@ -2096,7 +2205,7 @@
         ? `<rect x="${x + 2.6}" y="${y + 2.6}" width="14.8" height="14.8" rx="3.6" fill="${c}"/>`
         : `<rect x="${x}" y="${y}" width="20" height="20" fill="${c}"/>`;
     }).join("");
-    const bg = kind === "led" ? '<rect width="60" height="60" fill="#060608"/>' : "";
+    const bg = kind === "led" ? `<rect width="60" height="60" fill="${TV.theme === "light" ? PAPER.housing : "#060608"}"/>` : "";
     const glow = kind === "glow" ? `<g filter="url(#tvm-soft)" opacity=".9">${cells}</g>` : "";
     return `<svg viewBox="0 0 60 60" aria-hidden="true">${bg}${glow}${cells}</svg>`;
   };
@@ -2106,7 +2215,7 @@
     const bar = v === "light" ? "#ffffff" : "#1b1b22";
     const line = v === "light" ? "#d8d0c2" : "#33333d";
     return `<svg viewBox="0 0 60 60" aria-hidden="true"><rect width="60" height="60" fill="${wall}"/><rect width="60" height="11" fill="${bar}"/>` +
-      `<rect y="11" width="60" height="1" fill="${line}"/><rect x="9" y="19" width="26" height="26" rx="3" fill="#060608"/>` +
+      `<rect y="11" width="60" height="1" fill="${line}"/><rect x="9" y="19" width="26" height="26" rx="3" fill="${v === "light" ? PAPER.ground : "#060608"}"${v === "light" ? ' stroke="#d8d0c2"' : ""}/>` +
       `<rect x="14" y="24" width="7" height="7" rx="1.6" fill="#ff3f78"/><rect x="23" y="24" width="7" height="7" rx="1.6" fill="#ffcc33"/>` +
       `<rect x="14" y="33" width="7" height="7" rx="1.6" fill="#36c5f0"/><rect x="23" y="33" width="7" height="7" rx="1.6" fill="#3ddc84"/>` +
       `<rect x="40" y="21" width="13" height="4" rx="2" fill="${line}"/><rect x="40" y="29" width="10" height="4" rx="2" fill="${line}"/></svg>`;

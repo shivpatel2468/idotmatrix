@@ -77,7 +77,7 @@ function Drawers() {
   if (!drawer || phone) return null;
   return (
     <div className={drawer === "inspector" ? "xl:hidden" : "md:hidden"}>
-      <div className="fixed inset-0 z-40 bg-scrim/55 light:bg-scrim/30 backdrop-blur-[2px]" onClick={() => set({ drawer: null })} />
+      <div className="fixed inset-0 z-40 bg-scrim/55 light:bg-scrim/60 backdrop-blur-[2px]" onClick={() => set({ drawer: null })} />
       <div className={`fixed bottom-3 top-3 z-40 flex w-[min(380px,calc(100vw-24px))] animate-rise flex-col ${drawer === "inspector" ? "right-3" : "left-3"}`}
         onKeyDown={(e) => e.key === "Escape" && set({ drawer: null })}>
         {drawer === "inspector" ? <Inspector /> : <Library />}

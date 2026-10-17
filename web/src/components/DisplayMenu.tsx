@@ -6,6 +6,7 @@ import {
 } from "../lib/look";
 import { PANEL_LIGHT_HINT, PANEL_LIGHT_LABEL, type PanelLight, setPanelLight, usePanelLight } from "../lib/paper";
 import { openSettings, type SettingsTab } from "../lib/store";
+import { GLASS_CHOICES, setGlassPref, useGlassPref } from "../lib/glass";
 import { usePhone } from "../lib/useMedia";
 import { LedPanel } from "./LedPanel";
 import { Sheet } from "./Sheet";
@@ -131,7 +132,7 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
               onMouseDown={(e) => e.preventDefault()}
               className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-[10px] border p-1.5 pb-2 text-center transition",
                 look === l ? "border-ember bg-ember-deep/40" : "border-line hover:border-line-2 hover:bg-chassis-2/60")}>
-              <span className="led-well grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black theme-dark" aria-hidden>
+              <span className="led-well grid aspect-square w-full place-items-center overflow-hidden rounded-[6px] bg-black" aria-hidden>
                 <LedPanel size={72} look={l} lookSwitch={false} className="grid place-items-center" />
               </span>
               <span className="mt-0.5 text-[13px] font-[600] text-ink-1">{LOOK_LABEL[l]}</span>
@@ -195,6 +196,7 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
         </button>
         {more && (
           <div id={`${ids}-more`} className="mt-2 flex flex-col gap-3">
+            <GlassChoice />
             <div className="flex flex-col gap-1.5">
               <span id={`${ids}-match`} className="text-[12.5px] font-[560] text-ink-1">Show my colour calibration</span>
               <div className="seg !p-1" role="group" aria-labelledby={`${ids}-match`}>
@@ -240,6 +242,25 @@ function DisplayBody({ goSettings }: { goSettings: (t: SettingsTab) => void }) {
           <Settings2 size={13} /> All settings
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Liquid Glass on this device (lib/glass.ts): Auto picks clear glass where blur is smooth, frosted where it isn't. */
+function GlassChoice() {
+  const pref = useGlassPref();
+  const id = useId();
+  const hint = GLASS_CHOICES.find((c) => c.id === pref)?.hint ?? "";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span id={id} className="text-[12.5px] font-[560] text-ink-1">Glass</span>
+      <div className="seg !p-1" role="group" aria-labelledby={id}>
+        {GLASS_CHOICES.map((c) => (
+          <button key={c.id} type="button" aria-pressed={pref === c.id} data-active={pref === c.id} className="!h-8" title={c.hint}
+            onMouseDown={(e) => e.preventDefault()} onClick={() => setGlassPref(c.id)}>{c.name}</button>
+        ))}
+      </div>
+      <p className="text-[11px] leading-snug text-ink-3">{hint}.</p>
     </div>
   );
 }

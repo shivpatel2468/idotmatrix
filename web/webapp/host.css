@@ -89,15 +89,6 @@
 :host([data-theme="light"]) .led[data-on="warn"] { box-shadow: 0 0 0 3px rgba(154, 91, 0, 0.2); }
 :host([data-theme="light"]) .led[data-on="bad"] { box-shadow: 0 0 0 3px rgba(200, 32, 62, 0.18); }
 :host([data-theme="light"]) select { background: linear-gradient(180deg, #f3eee5, #fff 60%); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.11); }
-/* light: the LED logo in its paper style (ink tubes, host.js DeskDotLogo) on a small porcelain plate with a gilded rim */
-:host([data-theme="light"]) .brand .logo {
-  margin: -4px 0 -4px -4px;
-  padding: 0 4px;
-  border-radius: 10px;
-  background: radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #f8f4ec 58%, #eee7da 100%);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -5px 12px rgba(64, 48, 24, 0.07), 0 0 0 1px rgba(150, 112, 40, 0.4),
-    0 0 0 3px #fbf7ee, 0 0 0 4px rgba(184, 137, 42, 0.5), 0 10px 22px -12px rgba(64, 48, 24, 0.4);
-}
 * {
   box-sizing: border-box;
 }
@@ -400,3 +391,102 @@ select {
     font-size: 16px;
   }
 }
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   Liquid Glass (docs/STUDIO_UI.md § Liquid Glass; the studio's --lg-* tokens by name, web/src/index.css). The floating
+   chrome — the card, the connection pill and the notice — is glass: the element is transparent and isolated, ::before
+   is the body (tint + top sheen + inner light/shade, backdrop blur + saturate), ::after the 1 px specular rim lit from
+   the top-left. Keys, the select and the progress groove are glass controls (fill + rim + sheen, no blur, capsules that
+   squash and spring back). Modes follow :host([data-glass]) (host.js mirrors <html data-glass>): frosted = no blur, a
+   near-opaque fill (no backdrop-filter support, the Android app); solid = opaque (reduced transparency). Touch screens:
+   the card (in a scrolling veil) is frosted, the small fixed pill keeps its blur. */
+:host {
+  --lg-blur: 20px; --lg-blur-thick: 28px; --lg-sat: 1.8;
+  --lg-tint: rgba(22, 22, 27, 0.5); --lg-tint-thick: rgba(22, 22, 27, 0.74); --lg-frost: rgba(22, 22, 27, 0.95); --lg-solid: #16161b;
+  --lg-glare: rgba(255, 255, 255, 0.06);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.04), inset 0 14px 22px -18px rgba(255, 255, 255, 0.16), inset 0 -14px 24px -20px rgba(0, 0, 0, 0.55);
+  --lg-edge: rgba(255, 255, 255, 0.09); --lg-edge-strong: rgba(255, 255, 255, 0.18);
+  --lg-rim-a: rgba(255, 255, 255, 0.36); --lg-rim-b: rgba(255, 255, 255, 0.03); --lg-rim-c: rgba(255, 255, 255, 0.14);
+  --lg-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 12px 32px -14px rgba(0, 0, 0, 0.7);
+  --lg-control: rgba(239, 236, 228, 0.07); --lg-control-hover: rgba(239, 236, 228, 0.12);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 55%);
+  --lg-control-rim: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  --lg-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: rgba(239, 236, 228, 0.08); --lg-track-shade: rgba(0, 0, 0, 0.45);
+  --lg-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+}
+:host([data-theme="light"]) {
+  --lg-tint: rgba(255, 255, 255, 0.56); --lg-tint-thick: rgba(255, 255, 255, 0.78); --lg-frost: rgba(253, 251, 248, 0.96); --lg-solid: #ffffff;
+  --lg-glare: rgba(255, 255, 255, 0.55);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.7), inset 0 16px 24px -18px rgba(255, 255, 255, 0.95), inset 0 -14px 26px -20px rgba(64, 48, 24, 0.16);
+  --lg-edge: rgba(64, 48, 24, 0.12); --lg-edge-strong: rgba(184, 31, 75, 0.3);
+  --lg-rim-a: #ffffff; --lg-rim-b: rgba(255, 255, 255, 0.4); --lg-rim-c: rgba(255, 255, 255, 0.85);
+  --lg-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.08), 0 4px 10px -4px rgba(64, 48, 24, 0.1), 0 18px 40px -20px rgba(64, 48, 24, 0.3);
+  --lg-control: rgba(255, 255, 255, 0.62); --lg-control-hover: rgba(255, 255, 255, 0.86);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%);
+  --lg-control-rim: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(255, 255, 255, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+  --lg-control-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.1), 0 3px 10px -4px rgba(64, 48, 24, 0.22);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: rgba(64, 48, 24, 0.07); --lg-track-shade: rgba(64, 48, 24, 0.14);
+}
+/* the glass surfaces */
+.card, .pill, .toast, :host([data-theme="light"]) .card, :host([data-theme="light"]) .pill {
+  isolation: isolate; background: transparent; border: 1px solid var(--lg-edge); box-shadow: var(--lg-shadow);
+}
+.card { position: relative; border-radius: 28px; }
+.toast { border-radius: 18px; }
+.card::before, .pill::before, .toast::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
+  box-shadow: var(--lg-inner);
+  -webkit-backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat)); backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+}
+.pill::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 46%), var(--lg-tint);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)); backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+}
+.card::after, .pill::after, .toast::after {
+  content: ""; position: absolute; inset: -1px; z-index: 1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(155deg, var(--lg-rim-a), var(--lg-rim-b) 34%, var(--lg-rim-b) 66%, var(--lg-rim-c));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* the gilded hairline on the light card's top edge stays (it rides on the rim) */
+:host([data-theme="light"]) .card { background: linear-gradient(90deg, transparent 8%, rgba(230, 205, 138, 0.8) 50%, transparent 92%) top / 100% 1px no-repeat; }
+/* the controls: capsules of clear glass that squash and spring back */
+.key, :host([data-theme="light"]) .key {
+  border-radius: 999px; border-color: var(--lg-edge);
+  background: var(--lg-control-sheen), var(--lg-control);
+  box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+  transition: transform 0.42s var(--lg-spring), background-color 0.2s, border-color 0.2s;
+}
+.key:hover, :host([data-theme="light"]) .key:hover { background: var(--lg-control-sheen), var(--lg-control-hover); border-color: var(--lg-edge-strong); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); }
+.key:active { transform: scale(0.95, 0.93); transition-duration: 0.12s; }
+.key.ember, :host([data-theme="light"]) .key.ember {
+  color: var(--on-ember); background: var(--lg-prominent-sheen), var(--ember); border-color: var(--ember);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 6px 18px -8px var(--ember);
+}
+.key.ghost, :host([data-theme="light"]) .key.ghost { background: transparent; border-color: var(--lg-edge-strong); box-shadow: none; }
+select, :host([data-theme="light"]) select { border-radius: 999px; padding: 5px 10px; background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); }
+.bar, :host([data-theme="light"]) .bar { background: var(--lg-track); border-color: transparent; box-shadow: inset 0 1px 2px var(--lg-track-shade); }
+/* the veil behind the card: a blur only while clear glass is on */
+:host([data-glass="frosted"]) .landing, :host([data-glass="solid"]) .landing { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* fallbacks */
+:host([data-glass="frosted"]) :is(.card, .pill, .toast)::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :is(.card, .pill, .toast)::before { background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost); }
+}
+@media (pointer: coarse) {
+  .card::before, .toast::before { background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+:host([data-glass="solid"]) :is(.card, .pill, .toast)::before { background: var(--lg-solid); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:host([data-glass="solid"]) :is(.card, .pill, .toast)::after { opacity: 0.4; }
+@media (prefers-reduced-transparency: reduce) {
+  :is(.card, .pill, .toast)::before { background: var(--lg-solid) !important; box-shadow: none; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .landing { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .key { transition: none; } }
