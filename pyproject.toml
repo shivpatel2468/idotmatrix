@@ -53,7 +53,9 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 110
-target-version = "py312"
+# Matches requires-python (>=3.11,<3.14, see docs/adr/0012-wear-armv7-host.md): py312 would make ruff
+# suggest PEP 695 generic syntax (UP047/UP046), which the wear flavor's Python 3.11 can't parse.
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
