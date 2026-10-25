@@ -64,6 +64,7 @@ from .multiplayer import (
     avatar_table,
     clean_cid,
     game_profile,
+    lan_ip,
     player_pid,
 )
 from .power import start_power_watch
@@ -303,6 +304,11 @@ def create_app(cfg: Config) -> FastAPI:
             holder["hub"].state_changed()
 
     phub = build_hub(store, provider_changed)
+    # a panel paired at runtime (PUT /api/device/address) survives a restart via this override; DELETE clears it
+    # back to the deskdot.toml default (None = first IDM-* panel found).
+    saved_address = store.get("device_address", "__unset__")
+    if saved_address != "__unset__":
+        cfg = cfg.model_copy(update={"address": saved_address})
     device = build_device(cfg)
     engine = Engine(cfg, store, device, phub)
     engine.library = library
@@ -1393,6 +1399,40 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         from .device.ble import scan as ble_scan
 
         return await ble_scan()
+
+    @app.put("/api/device/address")
+    async def set_device_address(address: str = Body(..., embed=True)) -> dict[str, Any]:
+        """Pair with a specific panel address (MAC, or a UUID on macOS) without restarting the engine.
+
+        Candidates come from `GET /api/device/scan`. Takes effect immediately and survives a restart; see
+        `DELETE /api/device/address` to forget it again.
+        """
+        address = address.strip()
+        if not address:
+            raise HTTPException(400, "address required")
+        store.set("device_address", address)
+        device.info.address = address
+        await device.reconnect()
+        return {"ok": True, "address": address}
+
+    @app.delete("/api/device/address")
+    async def forget_device_address() -> dict[str, Any]:
+        """Forget the paired panel; the device goes back to discovering the first IDM-* panel it finds."""
+        store.set("device_address", None)
+        device.info.address = None
+        await device.reconnect()
+        return {"ok": True, "address": None}
+
+    @app.get("/api/host")
+    async def host_info() -> dict[str, Any]:
+        """Where this engine can be reached on the LAN — e.g. for the watch's join QR and studio-sharing QR."""
+        ip = lan_ip()
+        return {
+            "lan_ip": ip,
+            "port": cfg.port,
+            "url": f"http://{ip}:{cfg.port}/",
+            "public_url": cfg.public_url,
+        }
 
     @app.post("/api/device/raw")
     async def raw(hex_payload: str = Body(..., embed=True, alias="hex")) -> dict[str, Any]:

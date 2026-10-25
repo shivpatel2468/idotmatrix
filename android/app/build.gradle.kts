@@ -50,6 +50,18 @@ android {
                 abiFilters.clear()
                 abiFilters += listOf("armeabi-v7a", "arm64-v8a") // the Fossil Gen 6 is v7a-only; v8a for other Wear 3 watches
             }
+            // Signed with the shared gen6-watch debug keystore so the debug APK can be installed directly on the
+            // watch (adb install -r); not needed for `mobile`, which uses Android's auto-generated debug key.
+            // Path comes from local.properties (`deskdot.wearKeystore`) so the keystore location stays
+            // machine-specific and nothing about it is committed.
+            localProps.getProperty("deskdot.wearKeystore")?.let { ksPath ->
+                signingConfig = signingConfigs.create("wearDebug") {
+                    storeFile = file(ksPath)
+                    storePassword = "android"
+                    keyAlias = "androiddebugkey"
+                    keyPassword = "android"
+                }
+            }
         }
     }
 
@@ -67,6 +79,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
 }
 
 chaquopy {
@@ -167,4 +180,45 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
+
+    // Wear UI only (the DeskDot Watch native screens, android/app/src/wear) — never pulled into the mobile flavor.
+    "wearImplementation"(platform("androidx.compose:compose-bom:2024.09.00"))
+    "wearImplementation"("androidx.compose.ui:ui")
+    "wearImplementation"("androidx.compose.ui:ui-graphics")
+    "wearImplementation"("androidx.compose.foundation:foundation")
+    "wearImplementation"("androidx.activity:activity-compose:1.9.3")
+    "wearImplementation"("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
+    "wearImplementation"("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    "wearImplementation"("androidx.wear.compose:compose-material:1.4.0")
+    "wearImplementation"("androidx.wear.compose:compose-foundation:1.4.0")
+    "wearImplementation"("androidx.wear.compose:compose-navigation:1.4.0")
+    "wearImplementation"("com.google.android.horologist:horologist-compose-layout:0.6.8")
+    "wearImplementation"("com.google.android.horologist:horologist-compose-material:0.6.8")
+    "wearImplementation"("androidx.wear.tiles:tiles:1.4.0")
+    "wearImplementation"("androidx.wear.tiles:tiles-material:1.4.0")
+    "wearImplementation"("androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1")
+    "wearImplementation"("com.google.zxing:core:3.5.3")
+    "wearImplementation"("androidx.compose.ui:ui-tooling-preview")
+    // Talking to the on-watch engine at 127.0.0.1:8765 (REST + the /ws WebSocket for live preview frames).
+    "wearImplementation"("com.squareup.okhttp3:okhttp:4.12.0")
+    "wearImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+}
+
+// Enable Compose for the wear flavor only, without changing the phone build.
+//
+// `id("org.jetbrains.kotlin.plugin.compose")` in the shared `plugins {}` block was tried first, but it attaches
+// the Compose IR compiler transform to *every* Kotlin compile task in the module unconditionally (confirmed:
+// removing `buildFeatures.compose` had no effect on `compileMobileDebugKotlin`, which still failed with
+// "Compose Compiler requires the Compose Runtime to be on the class path" because mobile has no Compose runtime
+// on its classpath by design). So instead the Compose compiler plugin jar is added directly to the Kotlin
+// compiler's `pluginClasspath` only for the Kotlin compile tasks of the `wear` flavor — the standard low-level
+// mechanism `org.jetbrains.kotlin.plugin.compose` itself uses, just scoped by hand per variant.
+val composeCompilerPlugin: Configuration by configurations.creating
+dependencies {
+    composeCompilerPlugin("org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.0.21")
+}
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    if (name.contains("Wear")) {
+        pluginClasspath.from(composeCompilerPlugin)
+    }
 }

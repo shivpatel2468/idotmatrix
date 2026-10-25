@@ -25,6 +25,40 @@ def test_meta_state_and_frame(tmp_path: Path) -> None:
         assert png.status_code == 200 and png.content[:4] == b"\x89PNG"
 
 
+def test_device_address_set_and_forget(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        assert c.put("/api/device/address", json={"address": ""}).status_code == 400
+
+        r = c.put("/api/device/address", json={"address": "AA:BB:CC:DD:EE:FF"})
+        assert r.status_code == 200
+        assert r.json() == {"ok": True, "address": "AA:BB:CC:DD:EE:FF"}
+        assert c.get("/api/state").json()["device"]["address"] == "AA:BB:CC:DD:EE:FF"
+
+        r = c.delete("/api/device/address")
+        assert r.status_code == 200
+        assert r.json() == {"ok": True, "address": None}
+        assert c.get("/api/state").json()["device"]["address"] is None
+
+
+def test_device_address_persists_across_restart(tmp_path: Path) -> None:
+    # SimDevice always reports a fixed "SIM:..." address regardless of cfg.address, so assert on the
+    # persisted store value (what a real ble/android/web device would actually be built with) instead.
+    from deskdot.config import Store
+
+    with _client(tmp_path) as c:
+        assert c.put("/api/device/address", json={"address": "11:22:33:44:55:66"}).status_code == 200
+    store = Store(tmp_path / "state.json")
+    assert store.get("device_address") == "11:22:33:44:55:66"
+
+
+def test_host_info(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        body = c.get("/api/host").json()
+        assert body["port"] == 8765
+        assert body["url"] == f"http://{body['lan_ip']}:8765/"
+        assert body["public_url"] is None
+
+
 def test_settings_validation(tmp_path: Path) -> None:
     with _client(tmp_path) as c:
         assert c.patch("/api/apps/clock/settings", json={"style": "analog"}).json()["style"] == "analog"
