@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Overridden to true by the `wear` flavor overlay. Drives whether the engine binds to loopback only by
+         default (the watch is always-on on 1 GB RAM / ~300 mAh; the phone's existing LAN-reachable behaviour,
+         including multiplayer controller pages, must not change). See android_main.py and android/README.md. -->
+    <bool name="is_watch">false</bool>
+</resources>

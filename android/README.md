@@ -73,14 +73,16 @@ cd android
 # local.properties (not committed):
 #   sdk.dir=C:/path/to/Android/sdk
 #   deskdot.buildPython=C:/path/to/python3.13.exe
-./gradlew assembleDebug             # → app/build/outputs/apk/debug/app-debug.apk
+#   deskdot.buildPython311=C:/path/to/python3.11.exe   (only needed to build the `wear` flavor, see below)
+./gradlew assembleMobileDebug        # → app/build/outputs/apk/mobile/debug/app-mobile-debug.apk (the phone build)
+./gradlew assembleDebug              # builds every flavor, including `wear`
 ```
 
 ## Install on the phone
 
 1. On the phone: **Settings → About phone → tap "Build number" 7 times**, then **Developer options → USB debugging** on.
 2. Plug it into the laptop, accept the "Allow USB debugging?" prompt on the phone.
-3. `adb install -r app/build/outputs/apk/debug/app-debug.apk` (adb is in the SDK's `platform-tools`).
+3. `adb install -r app/build/outputs/apk/mobile/debug/app-mobile-debug.apk` (adb is in the SDK's `platform-tools`).
 4. Open **DeskDot**, allow **Nearby devices** (and notifications), and allow it to **ignore battery optimisation**.
 
 Only one thing can hold the panel's Bluetooth link: **stop the engine on the laptop first**, and don't open the
@@ -101,3 +103,82 @@ Wi-Fi: `lan_studio = true`, then browse to `http://<phone-ip>:8765`.
 build. Rebuild it whenever `pydantic` is upgraded (the versions must match exactly):
 `tools/build-pydantic-core.sh` (Rust + `rustup target add aarch64-linux-android`, the Android NDK, maturin, and
 Chaquopy's Python target for `libpython3.13.so` and `_sysconfigdata`).
+
+## Wear (Fossil Gen 6 / Wear OS 3)
+
+The `wear` product flavor runs the exact same `src/deskdot` engine on the watch, standalone (no paired-phone
+companion app needed) — see [docs/adr/0012-wear-armv7-host.md](../docs/adr/0012-wear-armv7-host.md) for the
+32-bit decision and what it cost. Summary:
+
+- **Python 3.11, not 3.13.** Chaquopy dropped armeabi-v7a (and x86) for Python 3.12+, and the Fossil Gen 6 is
+  **32-bit only** (`ro.product.cpu.abilist = armeabi-v7a,armeabi` — confirmed on the actual watch). The codebase's
+  one 3.12-only construct (`def verify[T](...)` in `src/deskdot/casino/fair.py`, PEP 695) was rewritten to plain
+  `TypeVar` syntax — same behaviour, now 3.11-compatible — and the whole suite passes under Python 3.11
+  (`uv run --python 3.11 --extra mcp pytest -q`). `pyproject.toml`'s `requires-python` is now `>=3.11,<3.14`.
+- **ABIs**: `armeabi-v7a` (the Fossil Gen 6) **and** `arm64-v8a` (other 64-bit Wear OS 3 watches), built as one
+  universal `wear` APK — not split per ABI, to keep the build simple and because the watch takes v7a either way.
+- **Build config**: unlike the phone (single ABI), `wear`'s `pip {}` block can't `install()` a hard-coded wheel
+  path for pydantic-core — Chaquopy runs one pip install per target ABI, and a fixed path is fed to both, so the
+  wrong-ABI wheel is rejected ("not a supported wheel on this platform"). Instead it adds
+  `options("--find-links", "wheels")` and installs the bare `pydantic-core==2.46.5` requirement, so pip's own
+  platform-compatibility check picks the matching-ABI file from `app/wheels/` for each sub-build. Also: Chaquopy's
+  `pip {}` installs **accumulate** across `defaultConfig` and `productFlavors` (unlike scalar settings such as
+  `version`, which override) — every dependency, even ones identical between flavors, is listed inside the
+  `mobile`/`wear` flavor blocks, not in `defaultConfig`, so the phone's cp313 wheel is never fed to the wear
+  (cp311) venv and vice versa.
+- **Dependencies**: `numpy==1.26.2` and `psutil==7.1.3` have official cp311 wheels for both ABIs on Chaquopy's
+  repository (`chaquo.com/pypi-13.1`) — same versions as the phone build. **Pillow is pinned to 9.2.0 for `wear`**
+  (not 11.0.0): Chaquopy's repository has no cp311 Pillow wheel newer than 9.2.0 for either ABI. Audited: every
+  Pillow API `deskdot` uses (`Image.Resampling`/`Transpose`, `ImageOps.fit`/`exif_transpose`,
+  `ImageFilter.UnsharpMask`/`MedianFilter`/`GaussianBlur`, `Image.fromarray`/`frombuffer`) has existed since
+  Pillow 9.1 — this is an older build of the same library, not a missing feature.
+- **pydantic-core**: cross-compile for both ABIs with the generalised `tools/build-pydantic-core.sh`:
+  ```powershell
+  PYDANTIC_CORE=2.46.5 NDK=/path/to/ndk/27.x ARCH=armv7 PY_VERSION=3.11 HOST_PYTHON=python3.11 \
+    PYTARGET=/path/to/chaquopy-target-3.11-armeabi-v7a ./build-pydantic-core.sh
+  PYDANTIC_CORE=2.46.5 NDK=/path/to/ndk/27.x ARCH=arm64 PY_VERSION=3.11 HOST_PYTHON=python3.11 \
+    PYTARGET=/path/to/chaquopy-target-3.11-arm64-v8a ./build-pydantic-core.sh
+  ```
+  **Not yet built in this repo** — needs `rustup`, `cargo` and `maturin` on the build machine, none of which were
+  available in the environment this flavor was scaffolded in. `android/app/build.gradle.kts`'s `wear` flavor
+  references the two resulting wheel filenames (`pydantic_core-2.46.5-cp311-cp311-android_21_armeabi_v7a.whl`,
+  `...-android_24_arm64_v8a.whl`); until they exist, `assembleWearDebug` fails at the pip-install step with
+  "`WARNING: ... looks like a filename, but the file does not exist`". This is the one real blocker left before the
+  `wear` flavor produces an installable APK — it was confirmed to be the *only* blocker by temporarily dropping in
+  two placeholder files with the right names (copies of the phone's cp313 wheel, which install but would crash at
+  Python import time on a real device) and confirming `assembleWearDebug` then runs the full pipeline — pip install
+  for both ABIs, manifest merge, resource merge, `compileWearDebugKotlin`, dexing, packaging — to `BUILD SUCCESSFUL`
+  (placeholders were deleted afterwards; they are not, and must never be, committed).
+- **Manifest**: `src/wear/AndroidManifest.xml` adds `<uses-feature android:name="android.hardware.type.watch"/>`
+  and `com.google.android.wearable.standalone = true`, merged over `src/main/AndroidManifest.xml`.
+- **UI**: `src/wear/java/com/deskdot/app/MainActivity.kt` replaces the phone's WebView-on-launch activity with a
+  minimal round-safe placeholder (black background, a status line, an "Open Studio" button) — it never inflates a
+  `WebView` until the button is tapped, to keep idle memory down on 1 GB of RAM. This is **not** the watch UI: the
+  owner's round remote/studio screen is being designed separately and will replace this activity.
+- **Network: identical to the phone, by design.** The owner's call: the watch is a primary host, not a crippled
+  one — `lan_studio`, `host` ("0.0.0.0", gated per-route by `LanGate`), the studio reachable from other devices on
+  the Wi-Fi, and multiplayer controllers joining `/p/<code>` (QR → `multiplayer.lan_ip()`, unchanged) all behave
+  exactly as on the phone. `android_main.py` was not touched for this. The one real Wear-specific risk: left to
+  itself, Wear OS drops the Wi-Fi radio and routes IP traffic over the Bluetooth-to-phone proxy once the screen
+  sleeps — fine for a watch face checking a server, fatal for *hosting* a LAN service. `EngineService.onCreate`
+  (gated by the `is_watch` bool resource, see below) calls `ConnectivityManager.requestNetwork` for a
+  `TRANSPORT_WIFI` + `NET_CAPABILITY_INTERNET` network and `bindProcessToNetwork` once it's available, released in
+  `onDestroy`; this is in addition to the existing `WifiManager.WifiLock` (shared with the phone), which alone is
+  not enough to stop Wear OS's proxy routing. **Not tested on the watch** — no APK could be built (see pydantic-core
+  below) or installed (not this session's job) to confirm the radio actually stays associated once the screen
+  sleeps; this is the design based on Wear OS's documented behaviour, not a verified result.
+- **Foreground service, BLE, boot receiver**: otherwise unchanged, shared with the phone (`EngineService.kt`,
+  `BleBridge.kt`, `BootReceiver.kt`) — Wear OS 3 (API 30) honours `FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE`,
+  wake/Wi-Fi locks and `BOOT_COMPLETED` the same way stock Android 11 does, and panel scan/connect/reconnect
+  (`BleBridge`) is the same BLE GATT code on both flavors. The battery-optimisation exemption prompt
+  (`MainActivity`'s `askBatteryExemption`, shared code — wear's activity calls the same path via
+  `EngineService.start`) is the same mitigation against Wear OS's own Doze/App Standby as on vendor phones.
+- **`R.bool.is_watch`**: `false` in `src/main/res/values/bools.xml`, `true` in `src/wear/res/values/bools.xml` —
+  the one runtime flag that tells shared Kotlin code which flavor it's running as (used only for the Wi-Fi
+  keep-alive above; nothing else branches on it).
+- **Build**: `cd android && ./gradlew assembleWearDebug` once the wheels above exist (needs
+  `deskdot.buildPython311` in `local.properties`, see **Build** above).
+- **Memory**: not yet measured on-device or on an emulator (no Wear OS emulator image and no installable APK were
+  available in this session — see docs/adr/0012). `android_main.py`'s existing lazy imports (`uvicorn`, `config`,
+  `server` imported inside `run()`, not at module load) already keep the engine's import-time footprint small on
+  both flavors; the studio WebView is now lazy on `wear` too (see **UI** above).

@@ -8,6 +8,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
@@ -39,11 +43,13 @@ class EngineService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
+    private var wifiNetworkCallback: ConnectivityManager.NetworkCallback? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        if (resources.getBoolean(R.bool.is_watch)) requestWifiNetwork()
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL, getString(R.string.channel_engine), NotificationManager.IMPORTANCE_LOW).apply {
@@ -90,6 +96,41 @@ class EngineService : Service() {
         }, "deskdot-engine").start()
     }
 
+    /**
+     * Wear OS: left to itself, the watch drops its Wi-Fi radio and routes IP traffic over the Bluetooth proxy to
+     * the paired phone as soon as the screen sleeps — fine for browsing, fatal for LAN hosting (the studio over
+     * Wi-Fi, multiplayer controllers joining `/p/<code>`). Requesting (and holding) a Wi-Fi network with internet
+     * capability keeps the radio associated and routes through it instead, for as long as the engine runs.
+     * [WifiManager.WifiLock] alone (already held above, for the phone too) is not enough on Wear OS for this.
+     */
+    private fun requestWifiNetwork() {
+        val cm = getSystemService(ConnectivityManager::class.java) ?: return
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .build()
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                Log.i(TAG, "Wi-Fi network available for LAN hosting: $network")
+                try {
+                    cm.bindProcessToNetwork(network) // route the engine's sockets over Wi-Fi, not the BT proxy
+                } catch (t: Throwable) {
+                    Log.w(TAG, "bindProcessToNetwork: $t")
+                }
+            }
+
+            override fun onLost(network: Network) {
+                Log.w(TAG, "Wi-Fi network lost: $network")
+            }
+        }
+        try {
+            cm.requestNetwork(request, cb)
+            wifiNetworkCallback = cb
+        } catch (t: Throwable) {
+            Log.w(TAG, "requestNetwork: $t")
+        }
+    }
+
     override fun onDestroy() {
         engineRunning = false
         try {
@@ -99,6 +140,13 @@ class EngineService : Service() {
         }
         wakeLock?.release()
         wifiLock?.release()
+        wifiNetworkCallback?.let {
+            try {
+                getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(it)
+            } catch (t: Throwable) {
+                Log.w(TAG, "unregisterNetworkCallback: $t")
+            }
+        }
         super.onDestroy()
     }
 

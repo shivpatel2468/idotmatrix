@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Wear-flavor manifest overlay (merged into src/main/AndroidManifest.xml by the manifest merger).
+  See docs/adr/0012-wear-armv7-host.md.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <application>
+        <!-- Runs without a paired-phone companion app: the engine and studio are fully self-contained on-watch. -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+    </application>
+</manifest>

@@ -1,5 +1,12 @@
 // DeskDot for Android: the whole engine (Python, via Chaquopy) runs on the phone as a foreground service and
 // owns the panel's BLE link through BleBridge. See docs/adr/0011-android-host-app.md and android/README.md.
+//
+// Two product flavors share this module (one flavor dimension, "form"):
+//   - mobile (default): unchanged phone build — Python 3.13, arm64-v8a only.
+//   - wear:             Fossil Gen 6 / Wear OS 3 — Python 3.11 (Chaquopy drops 32-bit ABIs on 3.12+), built for
+//                        armeabi-v7a AND arm64-v8a as one universal APK. See docs/adr/0012-wear-armv7-host.md.
+// A separate :wear module was considered and rejected: it would duplicate BleBridge, EngineService, BootReceiver
+// and the whole Chaquopy source-set wiring for zero behavioural difference in that code between form factors.
 
 import java.util.Properties
 
@@ -30,6 +37,22 @@ android {
         }
     }
 
+    flavorDimensions += "form"
+    productFlavors {
+        create("mobile") {
+            dimension = "form"
+            // inherits defaultConfig as-is: minSdk 26, arm64-v8a only — bit-for-bit the pre-wear phone build.
+        }
+        create("wear") {
+            dimension = "form"
+            minSdk = 30 // Wear OS 3
+            ndk {
+                abiFilters.clear()
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a") // the Fossil Gen 6 is v7a-only; v8a for other Wear 3 watches
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -51,26 +74,68 @@ chaquopy {
         version = "3.13"
         // a Python 3.13 on the build machine (Chaquopy compiles the app's Python with it)
         localProps.getProperty("deskdot.buildPython")?.let { buildPython(it) }
-        pip {
-            // Rust extension with no official Android build: cross-compiled once, see android/README.md
-            install("wheels/pydantic_core-2.46.5-cp313-cp313-android_24_arm64_v8a.whl")
-            install("pydantic==2.13.5")
-            // Android wheels from Chaquopy's repository (numpy 1.26 is tested: docs/adr/0011)
-            install("numpy==1.26.2")
-            install("pillow==11.0.0")
-            install("psutil==7.1.3")
-            // pure Python; plain uvicorn (no uvloop/httptools on Android)
-            install("fastapi==0.141.1")
-            install("starlette==1.7.0")
-            install("uvicorn==0.53.0")
-            install("h11==0.16.0")
-            install("websockets==17.1")
-            install("httpx==0.28.1")
-            install("python-multipart==0.0.32")
-            install("tzdata==2026.4")
-        }
         // StaticFiles needs the studio as real files on disk
         extractPackages("deskdot_web")
+        // NOTE: `pip {}` installs accumulate across defaultConfig + productFlavors (they are not an override like
+        // `version`), so every dependency — including ones identical between flavors — is listed per flavor below,
+        // not here, to avoid the mobile flavor's cp313 pydantic-core wheel also being fed to the wear (cp311) venv.
+    }
+    productFlavors {
+        getByName("mobile") {
+            pip {
+                // Rust extension with no official Android build: cross-compiled once, see android/README.md
+                install("wheels/pydantic_core-2.46.5-cp313-cp313-android_24_arm64_v8a.whl")
+                install("pydantic==2.13.5")
+                // Android wheels from Chaquopy's repository (numpy 1.26 is tested: docs/adr/0011)
+                install("numpy==1.26.2")
+                install("pillow==11.0.0")
+                install("psutil==7.1.3")
+                // pure Python; plain uvicorn (no uvloop/httptools on Android)
+                install("fastapi==0.141.1")
+                install("starlette==1.7.0")
+                install("uvicorn==0.53.0")
+                install("h11==0.16.0")
+                install("websockets==17.1")
+                install("httpx==0.28.1")
+                install("python-multipart==0.0.32")
+                install("tzdata==2026.4")
+            }
+        }
+        // Chaquopy has no armeabi-v7a build of Python 3.12+ (dropped 32-bit ABIs from 3.12 on; see docs/adr/0012),
+        // so the wear flavor pins Python 3.11 — still 3.11 semantics, same deskdot source, no feature cut. The
+        // codebase's only 3.12-only syntax (one PEP 695 `def verify[T]`) was rewritten to the equivalent
+        // `TypeVar`-based form (src/deskdot/casino/fair.py) so it runs unchanged on 3.11 and 3.13 alike.
+        getByName("wear") {
+            version = "3.11"
+            localProps.getProperty("deskdot.buildPython311")?.let { buildPython(it) }
+            pip {
+                // cross-compiled for both ABIs the same way as the phone's (android/tools/build-pydantic-core.sh
+                // ARCH=armv7|arm64 PY_VERSION=3.11) — NOT YET BUILT, see android/README.md "Wear" section.
+                // Unlike the (single-ABI) mobile flavor, `install(path)` can't be used directly here: wear builds
+                // two ABIs, and a hard-coded path is fed unconditionally to both per-ABI pip sub-installs, so the
+                // wrong-ABI wheel is rejected as "not a supported wheel on this platform". Instead, point pip at
+                // the wheels directory and let its own platform-compatibility check pick the matching-ABI file.
+                options("--find-links", "wheels")
+                install("pydantic-core==2.46.5")
+                install("pydantic==2.13.5")
+                // confirmed present on Chaquopy's repository (chaquo.com/pypi-13.1) for both ABIs, cp311:
+                install("numpy==1.26.2")
+                // Pillow stops at 9.2.0 for cp311 on Chaquopy's repository (no 10.x/11.x cp311 wheel exists for
+                // either ABI). Audited: every PIL API deskdot uses (Image.Resampling/Transpose, ImageOps.fit /
+                // exif_transpose, ImageFilter.UnsharpMask/MedianFilter/GaussianBlur, Image.fromarray/frombuffer)
+                // has existed since Pillow 9.1 — no feature is missing, just an older build of the same library.
+                install("pillow==9.2.0")
+                install("psutil==7.1.3")
+                install("fastapi==0.141.1")
+                install("starlette==1.7.0")
+                install("uvicorn==0.53.0")
+                install("h11==0.16.0")
+                install("websockets==17.1")
+                install("httpx==0.28.1")
+                install("python-multipart==0.0.32")
+                install("tzdata==2026.4")
+            }
+        }
     }
     sourceSets {
         getByName("main") {

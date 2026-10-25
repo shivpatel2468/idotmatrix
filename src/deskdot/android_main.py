@@ -1,4 +1,4 @@
-"""Entry point for the DeskDot Android app (see docs/adr/0011 and android/).
+"""Entry point for the DeskDot Android app (see docs/adr/0011, docs/adr/0012 and android/).
 
 The app's foreground service calls `run(files_dir)` once on a background thread; it blocks while the engine
 serves the studio on port 8765 and holds the panel link through `device/android.py`. `stop()` (from the service's
@@ -6,7 +6,9 @@ onDestroy) asks uvicorn to shut down cleanly, which hands the panel off exactly 
 
 Configuration: `<files_dir>/deskdot.toml` if present (same keys as on the desktop), with the phone's defaults
 below. The studio stays reachable only from the phone itself unless `lan_studio = true` is set there; the
-multiplayer controller pages are always reachable on the LAN, as on the desktop.
+multiplayer controller pages are always reachable on the LAN, as on the desktop. The `wear` flavor behaves
+identically — same `lan_studio`/`host` defaults, same multiplayer-over-LAN — see android/README.md's Wear
+section for what EngineService/BleBridge do on the watch to keep Wi-Fi actually up while hosting.
 """
 
 from __future__ import annotations
