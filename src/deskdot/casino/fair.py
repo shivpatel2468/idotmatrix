@@ -133,7 +133,7 @@ class Round:
         return out
 
 
-def verify[T](
+def verify(
     server_seed_hex: str,
     hash_hex: str,
     client_seed_: str,

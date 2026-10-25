@@ -3,7 +3,7 @@ name = "deskdot"
 version = "3.7.0"
 description = "DeskDot — a real-time engine, studio and MCP bridge for the iDotMatrix 32x32 RGB LED panel."
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "bleak>=1.0",
     "fastapi>=0.115",

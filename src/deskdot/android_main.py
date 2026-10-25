@@ -11,6 +11,7 @@ multiplayer controller pages are always reachable on the LAN, as on the desktop.
 
 from __future__ import annotations
 
+import gc
 import logging
 import os
 from pathlib import Path
@@ -31,6 +32,11 @@ def _web_dist() -> Path | None:
 
 def run(files_dir: str, port: int = 8765) -> None:
     global _server
+    # The app's engine allocates almost entirely long-lived objects (the device link, providers, app state) after
+    # startup, so generation-0 collections mostly re-scan the same survivors. Doubling its threshold trades a little
+    # transient RAM for noticeably fewer GC pauses — worthwhile on the watch's weaker CPU (Snapdragon Wear 4100+),
+    # harmless on the phone. Generations 1/2 are left alone so resident garbage doesn't grow unbounded on 1 GB RAM.
+    gc.set_threshold(1400, 10, 10)
     base = Path(files_dir)
     (base / "data").mkdir(parents=True, exist_ok=True)
     (base / "plugins").mkdir(parents=True, exist_ok=True)
