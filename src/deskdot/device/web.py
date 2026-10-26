@@ -31,7 +31,7 @@ import logging
 from typing import Any
 
 from . import protocol as P
-from .base import Device
+from .base import Device, wait_for
 
 log = logging.getLogger("deskdot.web")
 
@@ -143,7 +143,7 @@ class WebBleDevice(Device):
             self._picked.clear()
             self._bridge.connect(P.NAME_PREFIX, self._listener)
             try:
-                result = await asyncio.wait_for(self._connect_future, CONNECT_TIMEOUT)
+                result = await wait_for(self._connect_future, CONNECT_TIMEOUT)
             except _NeedsUser as e:
                 # nothing to connect to until the user clicks: idle (no retries, no error spam) until they do
                 self.needs_user = True
@@ -163,7 +163,7 @@ class WebBleDevice(Device):
                 log.warning("connect failed: %s — retrying in %.0fs", msg, delay)
                 self._note_failure(msg, retry_in=delay)
                 try:
-                    await asyncio.wait_for(self._picked.wait(), delay)
+                    await wait_for(self._picked.wait(), delay)
                     delay = (
                         1.0  # a pick / "Reconnect now" / the panel advertising again: start the back-off over
                     )
@@ -198,7 +198,7 @@ class WebBleDevice(Device):
         self._writes[token] = fut
         try:
             self._bridge.write(packet, response, token)
-            await asyncio.wait_for(fut, WRITE_TIMEOUT)
+            await wait_for(fut, WRITE_TIMEOUT)
         except TimeoutError:
             raise ConnectionError("write timed out") from None
         finally:
