@@ -7,7 +7,6 @@ link is lost (see Device._supervise).
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 import sys
@@ -17,7 +16,7 @@ from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
 from . import protocol as P
-from .base import Device
+from .base import Device, wait_for
 
 log = logging.getLogger("deskdot.ble")
 MAC_RE = re.compile(r"^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$")
@@ -112,7 +111,7 @@ class BleDevice(Device):
         client, self._client = self._client, None
         if client is not None and client.is_connected:
             try:
-                await asyncio.wait_for(client.disconnect(), 5.0)
+                await wait_for(client.disconnect(), 5.0)
             except Exception as e:
                 log.debug("disconnect: %s", e)
 
