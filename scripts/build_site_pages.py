@@ -503,8 +503,12 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
         f'<section class="app-sec" aria-labelledby="s-glance"><h2 id="s-glance">At a glance</h2><div class="facts">{"".join(facts)}</div></section>'
     ]
     if g:
+        # A nested f-string reusing the outer f-string's own quote character inside its `{}` (PEP 701) only
+        # parses on Python 3.12+; the wear Android flavor builds on 3.11 (docs/adr/0012-wear-armv7-host.md),
+        # so the player-count label is computed first instead of nested inline — same output, 3.11-safe.
+        players_label = f"1–{g['max_players']}" if g["max_players"] > 1 else "1"
         rows = [
-            f'<div class="fact"><span>Players</span><b>{f"1–{g['max_players']}" if g["max_players"] > 1 else "1"}</b>'
+            f'<div class="fact"><span>Players</span><b>{players_label}</b>'
             + (
                 "<small>seat 1 on the keyboard or studio, the rest on phones over your Wi-Fi; empty seats are "
                 "played by the AI</small>"
@@ -521,13 +525,22 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
             rows.append(f'<div class="fact"><span>Controllers</span><div class="pills">{pills}</div></div>')
         body = f'<div class="facts">{"".join(rows)}</div>'
         if g["modes"]:
-            trs = "".join(
-                f'<tr><th scope="row" class="k">{e(m["name"])}'
-                f"{' <span class="tag">default</span>' if i == 0 else ''}</th>"
-                f'<td class="v">{m["min_players"] if m["min_players"] == m["max_players"] else f"{m['min_players']}–{m['max_players']}"}</td>'
-                f"<td>{e(TEAMS.get(m['teams'], m['teams']))}</td></tr>"
-                for i, m in enumerate(g["modes"])
-            )
+
+            def _mode_row(i: int, m: dict[str, Any]) -> str:
+                # Built outside the f-strings below (not nested inline): a nested f-string reusing its
+                # enclosing f-string's own quote character inside `{}` (PEP 701) only parses on Python
+                # 3.12+, and scripts/ must stay 3.11-safe for the wear Android flavor's test run (see
+                # docs/adr/0012-wear-armv7-host.md) — same output, just not nested.
+                default_tag = ' <span class="tag">default</span>' if i == 0 else ""
+                min_p, max_p = m["min_players"], m["max_players"]
+                players = min_p if min_p == max_p else f"{min_p}–{max_p}"
+                return (
+                    f'<tr><th scope="row" class="k">{e(m["name"])}{default_tag}</th>'
+                    f'<td class="v">{players}</td>'
+                    f"<td>{e(TEAMS.get(m['teams'], m['teams']))}</td></tr>"
+                )
+
+            trs = "".join(_mode_row(i, m) for i, m in enumerate(g["modes"]))
             body += (
                 '<h3>Modes</h3><div class="table-scroll"><table class="settings-table compact"><thead><tr>'
                 '<th scope="col">Mode</th><th scope="col">Players</th><th scope="col">Play</th></tr></thead>'
