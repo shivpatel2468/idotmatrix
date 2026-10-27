@@ -95,6 +95,11 @@ class Device(ABC):
     packet_size: int = 20
     #: a connect attempt (scan + GATT connect + setup) that takes longer than this is abandoned and retried
     connect_timeout: float = 45.0
+    #: back-off between failed connect attempts: starts at `retry_base`, doubles, never exceeds `retry_cap`.
+    #: The watch raises the cap to 10 min (android_main, `low_power`): with no panel in range a retry every 20 s
+    #: forever kept its radio scanning and its CPU awake (it re-links through a standby connect instead).
+    retry_base: float = 1.0
+    retry_cap: float = 20.0
 
     def __init__(
         self,
@@ -121,6 +126,9 @@ class Device(ABC):
         self._supervisor: asyncio.Task[None] | None = None
         self._connected = asyncio.Event()
         self._retry = asyncio.Event()  # "Reconnect now": cuts the supervisor's back-off short
+        self._link_changed = asyncio.Event()  # status / link_enabled changed: the supervisor re-evaluates
+        #: called (no arguments) whenever `info.status` changes — the engine wakes from idle on a new link
+        self.link_listeners: list[Callable[[], None]] = []
         self._stopping = False
         self._paused = (
             False  # pause_writes(): nothing more goes out (the web app hands the panel to another tab)
@@ -158,6 +166,7 @@ class Device(ABC):
         """Release / take back the panel on the user's explicit request (ADR 0013). Released, the supervisor stays
         idle — nothing reconnects until the user presses Connect, so another app can hold the panel meanwhile."""
         self.info.link_enabled = enabled
+        self._link_changed.set()
         if not enabled:
             await self._disconnect()
             self._mark_disconnected("disconnected from the studio")
@@ -201,6 +210,15 @@ class Device(ABC):
     def retry_now(self) -> None:
         """Wake the supervisor: the next connect attempt starts now instead of after the back-off."""
         self._retry.set()
+        self._link_changed.set()
+
+    def forget_visual(self) -> None:
+        """Drop what the panel should show (queued and replay copy) — the engine re-sends its current visual once
+        the link is up, so a reconnect never replays something stale (a GIF upload can't be abandoned midway)."""
+        self._frame = None
+        self._gif = None
+        self._pixels.clear()
+        self._last_visual = None
 
     # ------------------------------------------------------------ public API
     @property
@@ -299,11 +317,16 @@ class Device(ABC):
 
     # ------------------------------------------------------------- internals
     def _set(self, **kw: object) -> None:
-        changed = False
+        changed = status = False
         for k, v in kw.items():
             if getattr(self.info, k) != v:
                 setattr(self.info, k, v)
                 changed = True
+                status = status or k == "status"
+        if status:
+            self._link_changed.set()
+            for cb in list(self.link_listeners):
+                cb()
         if changed:
             self._on_change()
 
@@ -342,11 +365,17 @@ class Device(ABC):
         self._retry.clear()
         return True
 
+    def _next_delay(self, delay: float) -> float:
+        return min(delay * 2, self.retry_cap)
+
     async def _supervise(self) -> None:
-        delay = 1.0
+        delay = self.retry_base
         while not self._stopping:
             if self.connected or not self.info.link_enabled:
-                await asyncio.sleep(0.5 if not self.info.link_enabled else 1.0)
+                # Event-driven (no polling): connected or released, nothing to do until the status / link changes.
+                self._link_changed.clear()
+                if self.connected or not self.info.link_enabled:
+                    await self._link_changed.wait()
                 continue
             try:
                 self._set(status="connecting")
@@ -357,7 +386,7 @@ class Device(ABC):
                 except TimeoutError:
                     await self._disconnect()
                     raise ConnectionError(f"connect timed out after {self.connect_timeout:.0f}s") from None
-                delay = 1.0
+                delay = self.retry_base
                 now = time.time()
                 self._set(
                     status="connected",
@@ -378,9 +407,14 @@ class Device(ABC):
             except Exception as e:
                 log.warning("connect failed: %s — retrying in %.0fs", e, delay)
                 self._note_failure(str(e) or type(e).__name__, retry_in=delay)
+                self._on_connect_failed()
                 # "Reconnect now" starts the back-off over
-                delay = 1.0 if await self._wait_retry(delay) else min(delay * 2, 20.0)
+                delay = self.retry_base if await self._wait_retry(delay) else self._next_delay(delay)
                 self._set(retry_at=None)
+
+    def _on_connect_failed(self) -> None:
+        """Hook: a connect attempt failed and the back-off wait starts (the Android backend arms its standby)."""
+        return None  # optional hook (not abstract): only some backends act on it
 
     def _replay(self) -> None:
         """After (re)connecting, restore power, brightness and whatever was on screen."""

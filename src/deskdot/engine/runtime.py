@@ -14,6 +14,12 @@ Output routing per tick:
 
 Takeovers: while a call is live (On Air, full-screen style) or an eye break is due, a hidden app (`onair`,
 `eyebreak`) replaces the playlist; the playlist resumes with a fresh item timer when it ends.
+
+Idling (docs/adr/0014-engine-idles-when-unwatched.md): the loop only ticks while someone consumes its output — a
+connected panel, a frame listener (studio / TV / phone preview), or a `hold()` (an open lobby, a TV link, a LAN
+client). With none of them it hides the current app (its providers stop polling), releases the background
+providers and waits on `_wake` with no timeout: zero ticks, zero renders. Every event that can change that (the
+panel link's status, a listener joining, a hold) sets `_wake`, so it resumes on the next loop iteration.
 """
 
 from __future__ import annotations
@@ -22,8 +28,8 @@ import asyncio
 import logging
 import time
 import uuid
-from collections import deque
-from collections.abc import Callable
+from collections import Counter, deque
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any, Literal, TypeVar
 
@@ -33,6 +39,7 @@ from pydantic import BaseModel, Field, ValidationError
 from ..config import Config, Store
 from ..device import Device
 from ..device import protocol as P
+from ..device.base import wait_for
 from ..gfx import Frame, to_rgb
 from ..gfx.calib import PanelCalibration
 from ..gfx.calib import apply as apply_calibration
@@ -163,6 +170,30 @@ class Slot:
         self.error: str | None = None
 
 
+class _ListenerSet(set):  # type: ignore[type-arg]
+    """A set of callbacks that tells its owner when it gains or loses members (wakes an idle engine)."""
+
+    def __init__(self, on_change: Callable[[], None], items: Iterable[Any] = ()) -> None:
+        super().__init__(items)
+        self._on_change = on_change
+
+    def add(self, item: Any) -> None:
+        super().add(item)
+        self._on_change()
+
+    def discard(self, item: Any) -> None:
+        super().discard(item)
+        self._on_change()
+
+    def remove(self, item: Any) -> None:
+        super().remove(item)
+        self._on_change()
+
+    def clear(self) -> None:
+        super().clear()
+        self._on_change()
+
+
 class Engine:
     def __init__(self, config: Config, store: Store, device: Device, hub: Hub) -> None:
         self.config = config
@@ -182,7 +213,7 @@ class Engine:
         self._trans: tuple[Frame, float] | None = None
         self.frame = Frame()
         self._device_frame: Frame | None = None
-        self.frame_listeners: set[Callable[[Frame], None]] = set()
+        self.frame_listeners: set[Callable[[Frame], None]] = _ListenerSet(lambda: self._wake.set())
         self.state_listeners: set[Callable[[], None]] = set()
         self._wake = asyncio.Event()
         self._task: asyncio.Task[None] | None = None
@@ -223,6 +254,15 @@ class Engine:
         self.panel_theme: PageTheme = self.page_theme
         self._theme_task: asyncio.Task[None] | None = None
         self._theme_applied_at = -1e9
+        # idling (module docstring): who keeps the loop running besides the panel and the frame listeners
+        self.holds: Counter[str] = Counter()
+        self.idle = False
+        self._idle_since = 0.0
+        self.idle_count = 0  # times the loop went idle (tests, /api/state)
+        #: called with `demand()` whenever its run / wake_lock / wifi verdict changes (the Android host's locks)
+        self.power_listeners: list[Callable[[dict[str, Any]], None]] = []
+        self._power_key: tuple[bool, bool, bool] | None = None
+        device.link_listeners.append(self._wake.set)  # panel connected / lost: re-evaluate at once
         hub.listeners.append(self._on_event)
 
     # ================================================================ lifecycle
@@ -455,7 +495,16 @@ class Engine:
             self.changed()
 
     def _refresh_background(self) -> None:
-        """Keep providers alive that background features need (autopilot, score alerts)."""
+        """Keep providers alive that background features need (autopilot, score alerts). None while idle: what
+        they feed only ever reaches the panel or a screen, and nobody is there (they come back on wake)."""
+        want = set() if self.idle else self._background_wants()
+        for name in want - self._bg:
+            self.hub.get(name).acquire()
+        for name in self._bg - want:
+            self.hub.get(name).release()
+        self._bg = want
+
+    def _background_wants(self) -> set[str]:
         want: set[str] = set()
         if self.autopilot()["enabled"]:
             want.add("window")
@@ -475,11 +524,7 @@ class Engine:
 
             leagues = parse_leagues(str(sc.get("leagues") or "")) or [sc.get("league") or "nba"]
             self.hub.get("sports").want(*leagues)  # type: ignore[attr-defined]
-        for name in want - self._bg:
-            self.hub.get(name).acquire()
-        for name in self._bg - want:
-            self.hub.get(name).release()
-        self._bg = want
+        return want
 
     # ================================================================ events
     def os_notifications(self) -> dict[str, Any]:
@@ -851,6 +896,13 @@ class Engine:
     # ================================================================== loop
     async def _run(self) -> None:
         while True:
+            if not self._publish_power()["run"]:
+                self._go_idle()
+                self._wake.clear()
+                await self._wake.wait()  # no timeout: nothing ticks until an event can change the verdict
+                continue
+            if self.idle:
+                self._leave_idle()
             t0 = time.perf_counter()
             try:
                 self._tick()
@@ -860,9 +912,114 @@ class Engine:
             self.ticks += 1
             self._wake.clear()
             try:
-                await asyncio.wait_for(self._wake.wait(), timeout=self._delay())
+                # device.base.wait_for, not asyncio.wait_for: on Python 3.11 (the watch) the latter can swallow
+                # stop()'s cancel when `_wake` is set in the same tick (a listener leaving), and stop() hangs
+                await wait_for(self._wake.wait(), self._delay())
             except TimeoutError:
                 pass
+
+    # ================================================================ idling
+    def hold(self, reason: str) -> None:
+        """Keep the loop running for `reason` even with no panel: "lobby" (an open game room), "tv" (an open TV
+        link), "lan" (a client on another device). Pair every hold() with one unhold()."""
+        self.holds[reason] += 1
+        self._wake.set()
+
+    def unhold(self, reason: str) -> None:
+        if self.holds[reason] > 1:
+            self.holds[reason] -= 1
+        else:
+            self.holds.pop(reason, None)
+        self._wake.set()
+
+    def demand(self) -> dict[str, Any]:
+        """Who needs the engine right now, and what the host should hold awake for them.
+
+        `run`: the loop ticks (else it idles). `wake_lock`: the CPU must not sleep — frames are streaming to a
+        connected panel, or a client on another device talks to us. `wifi`: keep the Wi-Fi radio up (and routed
+        to) for LAN hosting — a lobby or TV link is open, or a LAN client is connected. The Android host applies
+        `wake_lock`/`wifi` on the watch (EngineService.onPowerDemand); the phone keeps its locks regardless."""
+        panel = self.device.connected
+        watchers = len(self.frame_listeners)
+        lan = self.holds.get("lan", 0)
+        hosting = bool(self.holds.get("lobby") or self.holds.get("tv"))
+        return {
+            "run": panel or watchers > 0 or bool(self.holds),
+            "panel": panel,
+            "watchers": watchers,
+            "holds": dict(self.holds),
+            "lan_clients": lan,
+            "hosting": hosting,
+            "wake_lock": panel or lan > 0,
+            "wifi": hosting or lan > 0,
+        }
+
+    def _publish_power(self) -> dict[str, Any]:
+        d = self.demand()
+        key = (d["run"], d["wake_lock"], d["wifi"])
+        if key != self._power_key:
+            self._power_key = key
+            log.info(
+                "power: %s, wake lock %s, wi-fi %s (panel=%s watchers=%d holds=%s)",
+                "running" if d["run"] else "idle",
+                "held" if d["wake_lock"] else "released",
+                "held" if d["wifi"] else "released",
+                d["panel"],
+                d["watchers"],
+                d["holds"] or "-",
+            )
+            for cb in list(self.power_listeners):
+                try:
+                    cb(d)
+                except Exception:
+                    log.exception("power listener failed")
+        return d
+
+    def _go_idle(self) -> None:
+        """Nobody consumes frames: stop the app (its providers wind down) and the background providers."""
+        if self.idle:
+            return
+        self.idle = True
+        self.idle_count += 1
+        self._idle_since = time.monotonic()
+        s = self.current
+        if s is not None:
+            self._hide(s)
+        for slot in self.slots.values():  # incl. playlist focus watchers, held while hidden
+            self._release(slot)
+        self._refresh_background()
+        self._trans = None
+        self._device_frame = None
+        self._smooth_prev = None
+        self.changed()
+
+    def _leave_idle(self) -> None:
+        self.idle = False
+        now = time.monotonic()
+        if now - self._idle_since >= IDLE_RESET_S:
+            self._active_since = now  # nobody was there: that was a break (eye-break timer)
+        self._refresh_background()
+        s = self.current
+        if s is not None and not s.visible:
+            self._show(s)  # re-acquires its providers; clips / native modes are re-sent (gif_sent reset)
+        self._device_frame = None
+        self.changed()
+
+    def fresh_frame(self) -> Frame:
+        """The frame as it would be now. While idle nothing renders, so a reader (GET /api/frame, the watch's Tile)
+        gets one on-demand render instead of whatever was on screen when the engine went idle."""
+        if self.idle and not self.released and self.pattern is None:
+            try:
+                s = self._select(time.monotonic())
+                frame = Frame()
+                if s.app.kind() == "clip" and s.clip is not None and s.clip_key is not None:
+                    frame = s.clip.frame_at(0).copy()
+                else:
+                    s.app.render(frame, 0.0)
+                self.frame = frame
+            except Exception:
+                log.exception("on-demand render failed")
+        return self.frame
 
     def fly_telemetry(self) -> dict[str, Any]:
         """The current app's fruit-fly brain activity (docs/FLY_BRAIN.md); {"active": False} when no fly plays."""
@@ -989,7 +1146,15 @@ class Engine:
 
         streaming = kind == "stream" or self.overlay is not None or self._trans is not None or drawn
         frame = self._smooth(frame, kind == "stream" and self.overlay is None and self._trans is None)
-        if streaming:
+        if not self.device.connected:
+            # No link: encoding a PNG per tick for nobody was the single biggest cost of a studio-only engine
+            # (profiled on the watch). Forget what the panel shows, so everything is re-sent once it connects —
+            # and drop the device's replay copy, which would be stale by then (the engine re-sends the current one).
+            self._device_frame = None
+            s.gif_sent = None
+            s.native_sent = None
+            self.device.forget_visual()
+        elif streaming:
             if kind == "clip":
                 s.gif_sent = None
             if kind == "native":
@@ -1433,6 +1598,8 @@ class Engine:
                 if s
                 else None,
                 "focus": self.focus_key,
+                "idle": self.idle,
+                "power": self.demand(),
                 "playlist": {
                     **self.playlist.model_dump(mode="json"),
                     "index": self.pl_index,

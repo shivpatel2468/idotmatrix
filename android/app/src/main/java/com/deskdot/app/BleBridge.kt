@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
@@ -26,9 +27,15 @@ import java.util.UUID
  * which matches the engine: it awaits each write's [BleListener.onWriteDone] before sending the next packet, and
  * it paces packets itself (docs/HARDWARE_PROTOCOL.md). Never disconnects on its own: the panel shows a pairing
  * screen when the link drops, so only the engine's shutdown calls [disconnect].
+ *
+ * Low power (the watch, [init] `lowPower`): scans are short and, when the panel's MAC is known, filtered by address
+ * in the controller; and between the engine's (long, backed-off) connect attempts [standby] parks a
+ * `connectGatt(autoConnect = true)` on the known MAC. The Bluetooth controller completes that by itself when the
+ * panel comes back - no scanning, no CPU - and the link is then set up and reported as an unsolicited
+ * [BleListener.onConnected], which the engine adopts (src/deskdot/device/android.py).
  */
 @SuppressLint("MissingPermission") // MainActivity requests the permissions before the service starts
-class BleBridge private constructor(private val context: Context) {
+class BleBridge private constructor(private val context: Context, private val lowPower: Boolean) {
     companion object {
         private const val TAG = "DeskDotBle"
         private val SERVICE_HINT = UUID.fromString("000000fa-0000-1000-8000-00805f9b34fb")
@@ -36,12 +43,15 @@ class BleBridge private constructor(private val context: Context) {
         private val NOTIFY_UUID = UUID.fromString("0000fa03-0000-1000-8000-00805f9b34fb")
         private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val SCAN_MS = 10_000L
+        private const val SCAN_MS_LOW_POWER = 5_000L
         private const val DIRECT_MS = 8_000L
 
         @Volatile private var instance: BleBridge? = null
 
-        fun init(context: Context): BleBridge =
-            instance ?: synchronized(this) { instance ?: BleBridge(context.applicationContext).also { instance = it } }
+        fun init(context: Context, lowPower: Boolean = false): BleBridge =
+            instance ?: synchronized(this) {
+                instance ?: BleBridge(context.applicationContext, lowPower).also { instance = it }
+            }
 
         /** Called from Python: `jclass("com.deskdot.app.BleBridge").getInstance()`. */
         @JvmStatic
@@ -65,6 +75,7 @@ class BleBridge private constructor(private val context: Context) {
     private var direct = false // this attempt is a direct connect by MAC (falls back to a scan)
     private var scanPrefix = "IDM-"
     private var scanAddress: String? = null
+    private var standby = false // the current gatt is a parked autoConnect, not an attempt the engine waits on
 
     // ------------------------------------------------------------------ API used by Python
 
@@ -76,10 +87,16 @@ class BleBridge private constructor(private val context: Context) {
         handler.post { startWrite(data, withResponse, token, retries = 20) }
     }
 
+    /** Low power: wait for the panel at [address] in the Bluetooth controller (autoConnect) until it comes back. */
+    fun standby(address: String) {
+        handler.post { startStandby(address) }
+    }
+
     fun disconnect() {
         handler.post {
             attempt++
             stopScan()
+            standby = false
             connected = false
             connecting = false
             gatt?.let { it.disconnect(); it.close() }
@@ -100,6 +117,7 @@ class BleBridge private constructor(private val context: Context) {
         if (!a.isEnabled) return fail("Bluetooth is off — turn it on in the phone's settings")
         gatt?.close()
         gatt = null
+        standby = false
         connected = false
         connecting = true
         val my = ++attempt
@@ -115,6 +133,20 @@ class BleBridge private constructor(private val context: Context) {
             direct = false
             scan(prefix, null, my)
         }
+    }
+
+    private fun startStandby(address: String) {
+        val a = adapter ?: return
+        val mac = address.uppercase().takeIf { BluetoothAdapter.checkBluetoothAddress(it) } ?: return
+        if (!a.isEnabled || connected) return
+        attempt++ // invalidates the timeouts of a connect attempt still winding down
+        stopScan()
+        gatt?.close()
+        connecting = false
+        standby = true
+        Log.i(TAG, "standby: the controller waits for $mac (autoConnect, no scanning)")
+        gatt = a.getRemoteDevice(mac)
+            .connectGatt(context, true, callback, BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_1M_MASK, handler)
     }
 
     private fun fallBackToScan() {
@@ -144,13 +176,15 @@ class BleBridge private constructor(private val context: Context) {
         }
         scanning = cb
         val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-        scanner.startScan(null, settings, cb)
+        // low power: match the known MAC in the controller (no callback per nearby advertiser) and scan briefly
+        val filters = if (lowPower && address != null) listOf(ScanFilter.Builder().setDeviceAddress(address).build()) else null
+        scanner.startScan(filters, settings, cb)
         handler.postDelayed({
             if (my == attempt && scanning === cb) {
                 stopScan()
                 fail("panel not found — is it powered, and not connected to the iDotMatrix phone app?")
             }
-        }, SCAN_MS)
+        }, if (lowPower) SCAN_MS_LOW_POWER else SCAN_MS)
     }
 
     private fun stopScan() {
@@ -221,6 +255,10 @@ class BleBridge private constructor(private val context: Context) {
                 if (tok >= 0) listener?.onWriteDone(tok, false, "link lost")
                 when {
                     was -> listener?.onDisconnected("link lost (GATT status $status)")
+                    standby -> {
+                        standby = false // the engine's next (backed-off) attempt connects actively again
+                        Log.i(TAG, "standby ended (GATT status $status)")
+                    }
                     connecting && direct -> fallBackToScan() // status 133 on a direct connect is common
                     connecting -> fail("connection failed (GATT status $status)")
                 }
@@ -281,6 +319,7 @@ class BleBridge private constructor(private val context: Context) {
     private fun ready(g: BluetoothGatt) {
         connecting = false
         connected = true
+        standby = false
         val dev = g.device
         val name = dev.name ?: "IDM panel"
         Log.i(TAG, "connected to $name (${dev.address}), mtu $mtu")

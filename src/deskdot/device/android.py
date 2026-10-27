@@ -14,7 +14,14 @@ Bridge contract (Kotlin `com.deskdot.app.BleBridge`, listener interface `com.des
   request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or `onConnectFailed(msg)`.
 - `write(data: byte[], withResponse: boolean, token: int)` — reports `onWriteDone(token, ok, msg)`.
 - `disconnect()` — close the GATT session (only on shutdown; the engine never disconnects voluntarily).
+- `standby(address: String)` — low-power hosts only (the watch): park a background `connectGatt(autoConnect=true)`
+  on the known MAC. The Bluetooth controller completes it whenever the panel comes back, at ~zero CPU and with no
+  scanning; the bridge then sets the link up and reports an unsolicited `onConnected`, which this backend adopts
+  on its next connect. A `connect()` or `disconnect()` cancels it.
 - unsolicited: `onNotify(data)` for every fa03 notification, `onDisconnected(msg)` when the link drops.
+
+Low power (`low_power=True`, the watch): the supervisor's back-off grows to 10 min instead of 20 s, and every
+failed attempt arms the standby above, so a panel that comes back re-links at once without periodic scans.
 """
 
 from __future__ import annotations
@@ -31,6 +38,7 @@ log = logging.getLogger("deskdot.android")
 
 CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
 WRITE_TIMEOUT = 5.0
+LOW_POWER_RETRY_CAP = 600.0  # s: the watch's longest wait between active connect attempts (standby covers it)
 
 
 class _Events:
@@ -93,8 +101,17 @@ def _java_bridge_and_listener(events: _Events) -> tuple[Any, Any]:  # pragma: no
 class AndroidBleDevice(Device):
     kind = "android"
 
-    def __init__(self, address: str | None, bridge: Any = None, **kw: object) -> None:
+    def __init__(
+        self, address: str | None, bridge: Any = None, low_power: bool = False, **kw: object
+    ) -> None:
         super().__init__(**kw)  # type: ignore[arg-type]
+        self.low_power = low_power
+        if low_power:
+            self.retry_cap = LOW_POWER_RETRY_CAP
+        self._standby_armed = False
+        self._standby_link: tuple[str, str, int] | None = (
+            None  # set up by the bridge's standby, not yet adopted
+        )
         self.info.address = address
         self._bridge = bridge  # None → the real Kotlin bridge, resolved on first connect
         self._listener: Any = None
@@ -115,28 +132,52 @@ class AndroidBleDevice(Device):
     # ------------------------------------------------------------------ Device hooks
     async def _connect(self) -> None:
         self._ensure_bridge()
-        self._set(status="scanning")
-        loop = asyncio.get_running_loop()
-        self._connect_future = loop.create_future()
-        self._bridge.connect(self.info.address, P.NAME_PREFIX, self._listener)
-        try:
-            address, name, write_size = await wait_for(self._connect_future, CONNECT_TIMEOUT)
-        except TimeoutError:
-            raise ConnectionError(
-                "panel not found — is it powered, and not connected to the iDotMatrix phone app?"
-            ) from None
-        finally:
-            self._connect_future = None
+        if (
+            self._standby_link is not None
+        ):  # the panel came back on its own: the bridge already set the link up
+            address, name, write_size = self._standby_link
+            self._standby_link = None
+            self._standby_armed = False
+            log.info("panel back in range: adopting the standby link")
+        else:
+            self._standby_armed = False  # bridge.connect() replaces any parked standby
+            self._set(status="scanning")
+            loop = asyncio.get_running_loop()
+            self._connect_future = loop.create_future()
+            self._bridge.connect(self.info.address, P.NAME_PREFIX, self._listener)
+            try:
+                address, name, write_size = await wait_for(self._connect_future, CONNECT_TIMEOUT)
+            except TimeoutError:
+                raise ConnectionError(
+                    "panel not found — is it powered, and not connected to the iDotMatrix phone app?"
+                ) from None
+            finally:
+                self._connect_future = None
         self._link_up = True
         self.packet_size = max(20, write_size)
         self.info.address = address
         self.info.name = name
         self.info.mtu = self.packet_size
 
+    def _on_connect_failed(self) -> None:
+        """Low power: between attempts, let the Bluetooth controller wait for the panel instead of scanning."""
+        addr = self.info.address
+        if not (self.low_power and addr and self.info.link_enabled and not self._stopping):
+            return
+        if self._bridge is None or not hasattr(self._bridge, "standby"):
+            return
+        try:
+            self._bridge.standby(addr)
+            self._standby_armed = True
+        except Exception as e:  # pragma: no cover — defensive: an older bridge without standby()
+            log.debug("standby: %s", e)
+
     async def _disconnect(self) -> None:
         was_up, self._link_up = self._link_up, False
+        standby, self._standby_armed = self._standby_armed or self._standby_link is not None, False
+        self._standby_link = None
         self._fail_writes("disconnected")
-        if was_up and self._bridge is not None:
+        if (was_up or standby) and self._bridge is not None:
             try:
                 self._bridge.disconnect()
             except Exception as e:  # pragma: no cover — defensive: the Java side may already be gone
@@ -160,6 +201,11 @@ class AndroidBleDevice(Device):
     def _connected_cb(self, address: str, name: str, write_size: int) -> None:
         if self._connect_future is not None and not self._connect_future.done():
             self._connect_future.set_result((address, name, write_size))
+            return
+        if not self._link_up and not self._stopping and self.info.link_enabled:
+            # unsolicited: the standby connect completed — adopt it now instead of after the back-off
+            self._standby_link = (address, name, write_size)
+            self.retry_now()
 
     def _connect_failed_cb(self, message: str) -> None:
         if self._connect_future is not None and not self._connect_future.done():
@@ -169,6 +215,7 @@ class AndroidBleDevice(Device):
         if self._connect_future is not None and not self._connect_future.done():
             self._connect_future.set_exception(ConnectionError(message))
             return
+        self._standby_link = None  # a standby link that dropped before it was adopted
         if self._link_up:
             self._link_up = False
             self._fail_writes(message)

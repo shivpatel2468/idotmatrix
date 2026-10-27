@@ -40,6 +40,11 @@ class Config(BaseModel):
     packet_gap_ms: float = Field(
         default=18.0, ge=0, le=200, description="Gap between BLE packets; the panel drops unpaced bursts"
     )
+    # the watch (android_main, wear flavor): long panel-retry back-off + a standby re-link instead of scanning
+    low_power: bool = Field(
+        default=False,
+        description="Power-saving host: panel retries back off to 10 min (a standby link covers it)",
+    )
     data_dir: Path = Path("data")
     plugins_dir: Path = Path("plugins")
     log_level: str = "INFO"

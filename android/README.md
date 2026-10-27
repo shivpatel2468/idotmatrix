@@ -174,8 +174,10 @@ companion app needed) — see [docs/adr/0012-wear-armv7-host.md](../docs/adr/001
   (`MainActivity`'s `askBatteryExemption`, shared code — wear's activity calls the same path via
   `EngineService.start`) is the same mitigation against Wear OS's own Doze/App Standby as on vendor phones.
 - **`R.bool.is_watch`**: `false` in `src/main/res/values/bools.xml`, `true` in `src/wear/res/values/bools.xml` —
-  the one runtime flag that tells shared Kotlin code which flavor it's running as (used only for the Wi-Fi
-  keep-alive above; nothing else branches on it).
+  the one runtime flag that tells shared Kotlin code which flavor it's running as. On the watch it switches the
+  engine to low power (`android_main.run(..., watch=True)`) and makes the wake lock, Wi-Fi lock and Wi-Fi network
+  request follow the engine's demand (`EngineService.onPowerDemand`) instead of being held 24/7, and BleBridge
+  re-links the panel through an autoConnect standby instead of periodic scans — see docs/adr/0014.
 - **Build**: `cd android && ./gradlew assembleWearDebug` once the wheels above exist (needs
   `deskdot.buildPython311` in `local.properties`, see **Build** above).
 - **Memory**: not yet measured on-device or on an emulator (no Wear OS emulator image and no installable APK were

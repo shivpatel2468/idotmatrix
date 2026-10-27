@@ -9,6 +9,12 @@ below. The studio stays reachable only from the phone itself unless `lan_studio 
 multiplayer controller pages are always reachable on the LAN, as on the desktop. The `wear` flavor behaves
 identically — same `lan_studio`/`host` defaults, same multiplayer-over-LAN — see android/README.md's Wear
 section for what EngineService/BleBridge do on the watch to keep Wi-Fi actually up while hosting.
+
+On the watch (`watch=True`, the wear flavor's `R.bool.is_watch`) the engine runs in low-power mode
+(docs/adr/0014-engine-idles-when-unwatched.md): panel retries back off to 10 min behind a standby re-link, and every
+change of the engine's power demand is reported to `EngineService.onPowerDemand`, which holds the wake lock and the
+Wi-Fi only while a panel is linked or something is hosted. The engine itself idles (no ticks) everywhere when
+nobody consumes its frames.
 """
 
 from __future__ import annotations
@@ -32,7 +38,13 @@ def _web_dist() -> Path | None:
     return Path(next(iter(deskdot_web.__path__))) / "dist"
 
 
-def run(files_dir: str, port: int = 8765) -> None:
+def _report_power(demand: dict[str, Any]) -> None:  # pragma: no cover — Android only
+    from java import jclass  # type: ignore[import-not-found]
+
+    jclass("com.deskdot.app.EngineService").onPowerDemand(bool(demand["wake_lock"]), bool(demand["wifi"]))
+
+
+def run(files_dir: str, port: int = 8765, watch: bool = False) -> None:
     global _server
     # The app's engine allocates almost entirely long-lived objects (the device link, providers, app state) after
     # startup, so generation-0 collections mostly re-scan the same survivors. Doubling its threshold trades a little
@@ -57,14 +69,22 @@ def run(files_dir: str, port: int = 8765) -> None:
         data_dir=base / "data",
         plugins_dir=base / "plugins",
         port=port,
+        low_power=watch or None,  # None: deskdot.toml / DESKDOT_LOW_POWER decide (default off)
     )
     logging.basicConfig(
         level=cfg.log_level, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S"
     )
-    log.info("DeskDot on Android: data in %s, studio %s", cfg.data_dir, web or "missing")
+    log.info(
+        "DeskDot on Android%s: data in %s, studio %s",
+        " (watch, low power)" if cfg.low_power else "",
+        cfg.data_dir,
+        web or "missing",
+    )
     # pure-Python protocol stacks: uvloop / httptools are not available on Android
+    app = create_app(cfg)
+    app.state.engine.power_listeners.append(_report_power)  # the host's wake / Wi-Fi locks follow the engine
     config = uvicorn.Config(
-        create_app(cfg),
+        app,
         host=cfg.host,
         port=cfg.port,
         log_level="warning",

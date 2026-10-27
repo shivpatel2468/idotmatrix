@@ -64,6 +64,7 @@ from .multiplayer import (
     avatar_table,
     clean_cid,
     game_profile,
+    is_local,
     lan_ip,
     player_pid,
 )
@@ -132,6 +133,7 @@ class Hub:
         self.engine = engine
         self.clients: set[Client] = set()
         self._state_task: asyncio.Task[None] | None = None
+        self._has_clients = asyncio.Event()
         engine.state_listeners.add(self.state_changed)
         engine.device._on_change = self.state_changed
 
@@ -156,12 +158,16 @@ class Hub:
 
     async def heartbeat(self) -> None:
         while True:
+            if not self.clients:  # nobody to beat for: sleep until a studio connects (no 2 s wake-ups)
+                self._has_clients.clear()
+                await self._has_clients.wait()
             await asyncio.sleep(2.0)
             if self.clients:
                 self.state_changed()
 
     def add(self, c: Client) -> None:
         self.clients.add(c)
+        self._has_clients.set()
         if len(self.clients) == 1:
             self.engine.frame_listeners.add(self.on_frame)
         c.frame = self.engine.frame.to_bytes()
@@ -171,6 +177,26 @@ class Hub:
         self.clients.discard(c)
         if not self.clients:
             self.engine.frame_listeners.discard(self.on_frame)
+
+
+class _LanClients:
+    """ASGI middleware: a WebSocket from another device (a LAN studio, a phone controller, a TV) holds the engine
+    awake for as long as it is open — `engine.hold("lan")`, which the watch turns into its wake / Wi-Fi locks."""
+
+    def __init__(self, app: Any, engine: Engine) -> None:
+        self.app = app
+        self.engine = engine
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        client = scope.get("client") if scope["type"] == "websocket" else None
+        if scope["type"] != "websocket" or is_local(client[0] if client else None):
+            await self.app(scope, receive, send)
+            return
+        self.engine.hold("lan")
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            self.engine.unhold("lan")
 
 
 # ================================================================ request models
@@ -283,7 +309,12 @@ def build_device(cfg: Config) -> Device:
     if cfg.device == "android":
         from .device.android import AndroidBleDevice
 
-        return AndroidBleDevice(cfg.address, min_frame_interval=interval, packet_gap=cfg.packet_gap_ms / 1000)
+        return AndroidBleDevice(
+            cfg.address,
+            low_power=cfg.low_power,
+            min_frame_interval=interval,
+            packet_gap=cfg.packet_gap_ms / 1000,
+        )
     if cfg.device == "web":
         from .device.web import WebBleDevice
 
@@ -338,6 +369,7 @@ def create_app(cfg: Config) -> FastAPI:
 
     app = FastAPI(title="DeskDot", version=__version__, lifespan=lifespan)
     app.add_middleware(LanGate, allow_all=cfg.lan_studio)
+    app.add_middleware(_LanClients, engine=engine)
     app.state.engine = engine
     app.state.library = library
     lobby = Lobby(cfg.host, cfg.port, cfg.public_url)
@@ -346,6 +378,15 @@ def create_app(cfg: Config) -> FastAPI:
     tv_link = TvLink(cfg.host, cfg.port, cfg.public_url)
     tv_hub = TvHub(engine, tv_link, lobby)
     app.state.tv = tv_hub
+
+    hosting = {"lobby": False, "tv": False}
+
+    def sync_hosting() -> None:
+        """An open lobby / TV link keeps the engine running (and, on the watch, the Wi-Fi up) until it closes."""
+        for reason, on in (("lobby", lobby.room is not None), ("tv", tv_link.code is not None)):
+            if on != hosting[reason]:
+                hosting[reason] = on
+                (engine.hold if on else engine.unhold)(reason)
 
     def game_class(app_id: str) -> Any:
         cls = REGISTRY.get(app_id)
@@ -372,6 +413,7 @@ def create_app(cfg: Config) -> FastAPI:
         cls = game_class(app_id)
         await lobby_close()
         room = lobby.open(app_id, int(cls.max_players), avoid=tv_link.code)
+        sync_hosting()
         engine.activate(app_id)
         await engine.action(app_id, "lobby", {"url": lobby.url()})
         snap = lobby.snapshot() or {}
@@ -394,6 +436,7 @@ def create_app(cfg: Config) -> FastAPI:
         with contextlib.suppress(Exception):
             await engine.action(room.app, "lobby", {"url": None})
         lobby.close()
+        sync_hosting()
         return {"ok": True}
 
     @app.post("/api/play/lobby/start")
@@ -664,12 +707,14 @@ def create_app(cfg: Config) -> FastAPI:
         if tv_link.code is None or renew:
             await tv_hub.close_all()
             tv_link.open(avoid=lobby.room.code if lobby.room else None)
+            sync_hosting()
         return {"ok": True, **(tv_info() or {})}
 
     @app.delete("/api/tv")
     async def tv_close() -> dict[str, Any]:
         await tv_hub.close_all()
         tv_link.close()
+        sync_hosting()
         return {"ok": True}
 
     @app.post("/api/tv/settings")
@@ -738,6 +783,15 @@ def create_app(cfg: Config) -> FastAPI:
             "link_enabled": info.link_enabled,
         }
         return JSONResponse(body, headers=_web_app_headers(request))
+
+    @app.get("/api/debug/profile", include_in_schema=False)
+    async def debug_profile(
+        seconds: float = Query(10.0, ge=1, le=120), hz: float = Query(50.0, ge=5, le=200)
+    ) -> dict[str, Any]:
+        """Sample every Python thread's stack for `seconds` (deskdot/profiling.py): where the engine's CPU goes."""
+        from .profiling import sample_stacks
+
+        return await asyncio.to_thread(sample_stacks, seconds, hz)
 
     @app.options("/api/health", include_in_schema=False)
     async def health_preflight(request: Request) -> Response:
@@ -833,12 +887,12 @@ def create_app(cfg: Config) -> FastAPI:
     @app.get("/api/frame.png")
     async def frame_png(scale: int = Query(1, ge=1, le=32)) -> Response:
         return Response(
-            engine.frame.to_png(scale), media_type="image/png", headers={"Cache-Control": "no-store"}
+            engine.fresh_frame().to_png(scale), media_type="image/png", headers={"Cache-Control": "no-store"}
         )
 
     @app.get("/api/frame")
     async def frame_raw() -> dict[str, Any]:
-        return {"width": 32, "height": 32, "rgb": base64.b64encode(engine.frame.to_bytes()).decode()}
+        return {"width": 32, "height": 32, "rgb": base64.b64encode(engine.fresh_frame().to_bytes()).decode()}
 
     # ------------------------------------------------------------------ apps
     @app.post("/api/apps/{app_id}/activate")
