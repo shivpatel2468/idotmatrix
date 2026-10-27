@@ -80,6 +80,11 @@ android {
         jvmTarget = "17"
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true // Robolectric needs merged resources (fonts, themes) to render Compose
+        }
+    }
 }
 
 chaquopy {
@@ -182,26 +187,66 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
 
     // Wear UI only (the DeskDot Watch native screens, android/app/src/wear) — never pulled into the mobile flavor.
-    "wearImplementation"(platform("androidx.compose:compose-bom:2024.09.00"))
+    "wearImplementation"(platform("androidx.compose:compose-bom:2024.12.01"))
     "wearImplementation"("androidx.compose.ui:ui")
     "wearImplementation"("androidx.compose.ui:ui-graphics")
     "wearImplementation"("androidx.compose.foundation:foundation")
     "wearImplementation"("androidx.activity:activity-compose:1.9.3")
     "wearImplementation"("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     "wearImplementation"("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
-    "wearImplementation"("androidx.wear.compose:compose-material:1.4.0")
-    "wearImplementation"("androidx.wear.compose:compose-foundation:1.4.0")
-    "wearImplementation"("androidx.wear.compose:compose-navigation:1.4.0")
-    "wearImplementation"("com.google.android.horologist:horologist-compose-layout:0.6.8")
-    "wearImplementation"("com.google.android.horologist:horologist-compose-material:0.6.8")
-    "wearImplementation"("androidx.wear.tiles:tiles:1.4.0")
-    "wearImplementation"("androidx.wear.tiles:tiles-material:1.4.0")
+    "wearImplementation"("androidx.wear.compose:compose-material:1.4.1")
+    "wearImplementation"("androidx.wear.compose:compose-foundation:1.4.1")
+    "wearImplementation"("androidx.wear.compose:compose-navigation:1.4.1")
+    "wearImplementation"("androidx.wear.tiles:tiles:1.4.1")
+    "wearImplementation"("androidx.wear.protolayout:protolayout:1.2.1")
+    "wearImplementation"("androidx.wear.protolayout:protolayout-material:1.2.1")
     "wearImplementation"("androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1")
     "wearImplementation"("com.google.zxing:core:3.5.3")
     "wearImplementation"("androidx.compose.ui:ui-tooling-preview")
     // Talking to the on-watch engine at 127.0.0.1:8765 (REST + the /ws WebSocket for live preview frames).
     "wearImplementation"("com.squareup.okhttp3:okhttp:4.12.0")
     "wearImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    // RemoteInputIntentHelper: the manual-MAC pairing fallback and the Apps search pill (voice/handwriting text
+    // entry — Wear OS 3 round watches have no full on-screen keyboard IME by default).
+    "wearImplementation"("androidx.wear:wear-input:1.1.0")
+    "wearImplementation"("androidx.wear:wear-remote-interactions:1.1.0")
+    "wearImplementation"("androidx.wear:wear-ongoing:1.0.0")
+    "wearImplementation"("androidx.wear:wear-phone-interactions:1.1.0")
+    "wearImplementation"("androidx.wear:wear:1.3.0")
+    // The Tile (DeskDotTileService) bridges its suspend/coroutine engine calls to the ListenableFuture API
+    // androidx.wear.tiles.TileService requires.
+    "wearImplementation"("androidx.concurrent:concurrent-futures:1.2.0")
+    "wearImplementation"("androidx.wear.watchface:watchface-complications-data-source:1.2.1")
+}
+
+// Screenshot tests (DESIGN_SPEC verification: every screen at 416x416, compared by eye against preview.html,
+// plus the R1 edge-fade bounds test) — wear-flavor unit tests only, Robolectric + Roborazzi. AGP's unit-test
+// configuration naming is `test<Flavor>Implementation` (the "test" prefix comes first), not `<flavor>Test...`.
+dependencies {
+    "testWearImplementation"("junit:junit:4.13.2")
+    "testWearImplementation"("org.robolectric:robolectric:4.13")
+    "testWearImplementation"("androidx.test:core:1.6.1")
+    "testWearImplementation"("androidx.test.ext:junit:1.2.1")
+    "testWearImplementation"("androidx.compose.ui:ui-test-junit4")
+    "testWearImplementation"("io.github.takahirom.roborazzi:roborazzi:1.26.0")
+    "testWearImplementation"("io.github.takahirom.roborazzi:roborazzi-compose:1.26.0")
+}
+
+// `ui-test-manifest`'s own AndroidManifest.xml fragment (declaring the ComponentActivity Compose's
+// `createComposeRule()` launches under the hood) must be merged into the *app* variant's manifest, not just be
+// on the unit-test compile classpath — Robolectric runs tests against the real merged `wearDebug` manifest. The
+// per-variant `wearDebugImplementation` configuration only exists after AGP finishes creating variants, hence
+// `afterEvaluate`. This is Google's own documented pattern for Compose + Robolectric screenshot tests (normally
+// written as plain `debugImplementation`; scoped to `wearDebugImplementation` here to keep it out of mobile).
+afterEvaluate {
+    dependencies.add("wearDebugImplementation", "androidx.compose.ui:ui-test-manifest:1.7.6")
+}
+
+// Roborazzi normally gets this system property from its own Gradle plugin's `recordRoborazzi<Variant>` task,
+// which isn't applied here (see the comment on the Compose compiler wiring above for why module-wide plugins
+// are avoided) — wired by hand, scoped to the wear flavor's unit test task only.
+tasks.matching { it.name == "testWearDebugUnitTest" }.configureEach {
+    (this as Test).systemProperty("roborazzi.test.record", "true")
 }
 
 // Enable Compose for the wear flavor only, without changing the phone build.

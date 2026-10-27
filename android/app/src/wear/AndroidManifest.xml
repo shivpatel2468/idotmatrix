@@ -1,16 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Wear-flavor manifest overlay (merged into src/main/AndroidManifest.xml by the manifest merger).
-  See docs/adr/0012-wear-armv7-host.md.
+  See docs/adr/0012-wear-armv7-host.md and gen6-watch/design/DESIGN_SPEC.md §5.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature android:name="android.hardware.type.watch" />
+
+    <!-- The Studio Share QR page holds a Wi-Fi lock while it is on screen (DESIGN_SPEC §5.0 / §5.10). -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <!-- The suite theme (accent, Low Energy, Thermal Calm, crown ticks) from Orbit's signature-protected provider
+         (gen6-watch/launcher/SETUP.md §5). Every gen6 APK is signed with the shared keystore. -->
+    <uses-permission android:name="com.gen6.permission.THEME" />
+
+    <queries>
+        <provider android:authorities="com.gen6.orbit.theme" />
+        <!-- WebViewCompat.getCurrentWebViewPackage: §5.10 shows "Open" only if a WebView provider exists -->
+        <package android:name="com.google.android.webview" />
+        <package android:name="com.android.webview" />
+    </queries>
 
     <application>
         <!-- Runs without a paired-phone companion app: the engine and studio are fully self-contained on-watch. -->
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
+
+        <!-- DESIGN_SPEC §5.12: the DeskDot Tile (last panel frame, app name, Prev/Next). -->
+        <service
+            android:name=".wear.tile.DeskDotTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="DeskDot"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@mipmap/ic_launcher" />
+        </service>
+
+        <!-- Watch-face complication: panel status ("Panel" with a ✓/!/× glyph state, and the app on the panel). -->
+        <service
+            android:name=".wear.complication.DeskDotComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_stat_deskdot"
+            android:label="DeskDot panel"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,MONOCHROMATIC_IMAGE,SMALL_IMAGE" />
+            <!-- 0 = push-only: the app requests an update when the panel status changes while it runs. No polling. -->
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
     </application>
 </manifest>

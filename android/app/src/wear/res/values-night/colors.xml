@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DeskDot Watch: every screen is drawn on #000000 (AMOLED pixels off, DESIGN_SPEC §1.1); the window
+         background is the only black fill, composables never paint a second one (§0 overdraw budget). -->
+    <color name="deskdot_page">#000000</color>
+    <color name="deskdot_status">#000000</color>
+    <color name="deskdot_nav">#000000</color>
+    <bool name="deskdot_light_bars">false</bool>
+</resources>
