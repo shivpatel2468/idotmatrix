@@ -11,6 +11,36 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.9.0 — 30 Oct 2026 · The casino's table themes everywhere
+
+### Better
+
+- **The studio wears the casino's table themes**
+  - Before: the studio had its own set of colour themes, and even the matching ones looked like a plain dark grey
+    page with a small dash of colour — nothing like the rich tables in the casino.
+  - Now: the studio's themes are the casino's 21 tables (Cyber grid, Classic green, Royal blue and the rest). In dark
+    mode the whole studio looks like that table's room in the casino: the panels are tinted like the casino's side
+    wings, with a lit edge and the table's pattern faintly in the background, and the table's colour shows on
+    selected tabs, switches and buttons. Light mode is the casino's bright salon in the table's colours.
+- **Cyber grid, dark, from the first start**
+  - Before: a new install started in the old orange look and followed the phone or computer's light or dark setting.
+  - Now: the desktop studio, the web app and the Android app start in Cyber grid, dark. Anything you already picked
+    stays as it was; your old theme moves to the closest table (the old default becomes Cyber grid).
+- **The web app matches the website**
+  - Before: idotmatrix.com and the web app at /app could show different colours.
+  - Now: the web app opens in the same table theme you picked on the website, and a theme you pick in the web app
+    shows on the website too.
+- **Apps on the panel follow the table too**
+  - Before: with the default theme, clocks and dashboards kept their own colours.
+  - Now: apps that follow the page theme take the table's LED colours under every theme, the default too. Turn off
+    "Follow page theme" in an app to keep its own colours.
+
+### Fixed
+
+- **The Casino button at the top looks right again**
+  - Before: with some themes the gold Casino button turned into a blurry pink-and-gold smudge.
+  - Now: it is always a clean gold button, in light and dark, and the coin still drops when you press it.
+
 ## 3.8.0 — 29 Oct 2026 · Install DeskDot like any app, and update it from inside
 
 ### New

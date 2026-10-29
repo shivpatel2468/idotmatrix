@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Before the studio loads, the window already wears the studio's colours: light here, dark in values-night
-         (the studio's default theme is "Auto"). Once it runs, MainActivity applies the theme the studio reports
-         (and remembers it for the next start) — see DeskDotAndroid.setBars. -->
+    <!-- Before the studio loads, the window already wears the studio's first-run colours (Cyber grid, dark; the
+         same in values-night). Once it runs, MainActivity applies the theme the studio reports (and remembers it
+         for the next start) — see DeskDotAndroid.setBars. -->
     <style name="Theme.DeskDot" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/deskdot_page</item>
         <item name="android:statusBarColor">@color/deskdot_status</item>
