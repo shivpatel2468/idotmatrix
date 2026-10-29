@@ -15,6 +15,11 @@ The technical log for developers. For the same updates in plain words (before �
   fails when stale); index.css § TABLE ROOM styles the dark studio's panels as casino wings. First run: Cyber grid,
   dark (studio, launcher, `webapp/host.js`, Android bars/resources); in the web app `deskdot.siteTheme` leads and is
   written back. The top bar's Casino key pins classic gold (`.cz-gold-top`; the page theme's `--gold` leaked into it).
+- **TV view**: hello / state carry `page_theme`; `src/deskdot/tv/tv-themes.js` (generated) holds every theme's TV
+  tokens; `tv.js` `applyRoom` wears the page theme outside the casino (`stage[data-room]`) and the table at a casino
+  table; the bar is a static faux-glass capsule, cards / menu are wings, accents follow. Benchmark (CPU ×6, 960×540
+  DPR 2, software compositing, 12 s): clock p50/p95 16.7/16.8 ms both, busy 25.8 → 25.9 %; roulette 16.7/33.3 ms
+  both, busy 69.5 → 66.7 %. `build_webapp.py --skip-studio` keeps `web/public` files (intro GIFs).
 
 ## 3.8.0 — 2026-10-29 · Desktop installers, a signed release APK, in-app updates
 

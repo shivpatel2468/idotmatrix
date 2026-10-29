@@ -42,13 +42,23 @@ TV browser ── GET /tv/{code} ──► tv.html ── GET /tv/static/tv.js, 
 
 ## 2. The page
 
-`src/deskdot/tv.html` (no inline script — the web app's CSP forbids it) loads, in order, `tv.js` (core), then
-`tv-games.js` and `tv-casino.js` (scenes) from `/tv/static/` (in the web app from `/app/join/tv/`).
+`src/deskdot/tv.html` (no inline script — the web app's CSP forbids it) loads, in order, `tv-themes.js` (the page
+themes, generated), `tv.js` (core), then `tv-games.js` and `tv-casino.js` (scenes) from `/tv/static/` (in the web app from `/app/join/tv/`).
 
 - `#stage` is exactly **1920×1080 CSS px**, scaled uniformly to fit the window (letterboxed on black), so every TV
   shows the same layout. `TV.scale` is the current scale; `TV.pixelRatio = TV.scale × devicePixelRatio` is how many
   device pixels one stage pixel covers (canvases size their backing store with it, so they are crisp on a 4K TV).
-- **Top bar** (`#bar`, 96 px): three columns — the app's name and category (a pill) on the left; the DeskDot LED
+- **Page theme (3.9)**: the TV always stands in a casino table's room — the table on screen at a casino table, else
+  the studio's page theme, which is itself one of the 21 tables (hello / state `page_theme`; `tv/tv-themes.js`,
+  written by `scripts/gen_page_themes.py` from `gfx/tables.py`, holds every theme's tokens under the TV's names in
+  dark and light plus the table's felt / wing / accent colours). `tv.js` `applyRoom` paints the tokens on `<html>`
+  (once per theme or light / dark change) and the table's colours and felt motif on the stage
+  (`stage[data-room]`; `stage[data-table]` only at a casino table, for its engraved name and gilded rule). So the bar,
+  the page behind the scene, cards, the generic scene's accents, the options menu (its chosen tiles, its rule) and the
+  veil follow the theme — the default Cyber grid before the first message. The LED logo keeps its own colours,
+  centred on the bar with no box. The bar is a floating Liquid Glass capsule (static faux glass, §6), cards and the
+  menu card are the casino's wings.
+- **Top bar** (`#bar`, a capsule in the top 96 px): three columns — the app's name and category (a pill) on the left; the DeskDot LED
   logo (`DeskDotLogo` in tv.js, a copy of the studio's `lib/logo.ts`: "Desk" `#ff3f78`, "Dot" `#ffcc33`) on a small
   dark LED sign **in the centre** of the stage (the side columns are equal), a small "TV" beside it; the join QR +
   room code while a multiplayer lobby is open, the clock with the date under it and the connection dot on the right.
@@ -131,12 +141,14 @@ Anything else a TV sends is ignored.
 
 | Message | When | Shape |
 | --- | --- | --- |
-| `hello` (text) | on connect and whenever the app on the panel changes | `{"type":"hello","app":id\|null,"meta":{id,name,category,icon,max_players},"avatars":{id:{name,px}},"display":{…},"server_time":t}` |
-| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"tv":{…}\|null,"display":{…},"server_time":t}` |
+| `hello` (text) | on connect and whenever the app on the panel changes | `{"type":"hello","app":id\|null,"meta":{id,name,category,icon,max_players},"avatars":{id:{name,px}},"display":{…},"page_theme":id,"server_time":t}` |
+| `state` (text) | ~5 Hz when something changed, else a 2 s heartbeat | `{"type":"state","app":id\|null,"status":{…},"lobby":{…}\|null,"tv":{…}\|null,"display":{…},"page_theme":id,"server_time":t}` |
 | frame (binary) | every new panel frame, ≤ 12 fps, latest wins | 32×32×3 RGB bytes, row-major (3072 B) |
 | `closed` (text) | the TV link closed or the code is wrong | `{"type":"closed"}` then the socket closes |
 
 - `server_time` is the engine's `time.time()` in **seconds**.
+- `page_theme` is the studio's page theme, a casino table id (`cyber` by default): the room the TV wears outside the
+  casino (§2).
 - `display` is the studio's choice for every TV (`POST /api/tv/settings`): `{"look": "pixel"|"led"|"glow"|null,
   "quality": "auto"|"hq"|"lite"|null, "rev": t|null}` — `null` leaves that choice to each TV; a TV applies it whenever
   `rev` changes (§2).
