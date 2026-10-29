@@ -691,8 +691,11 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
 /* The inspector is a size container: drag its splitter and the contents re-flow (not just the viewport). */
 .inspector-box { container-type: inline-size; container-name: inspector; }
 /* segmented choices never cut a name short: they wrap onto a second line when the panel is narrow */
-.inspector-box .seg { flex-wrap: wrap; }
-.inspector-box .seg > button { flex: 1 0 auto; }
+/* An even grid, not a wrapping flex row: every choice gets the same cell, so the glass lens covers just the picked
+   one (a flex row let a lone choice on the second line stretch the whole width), and the track's corners follow the
+   rows instead of a pill that turned into a lozenge once it wrapped. One row still reads as a capsule. */
+.inspector-box .seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 6.75rem), 1fr)); border-radius: 17px; }
+.inspector-box .seg > button { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* wide panel: label + description on the left, control on the right */
 @container inspector (min-width: 440px) {
   .field-row-stack { display: grid; grid-template-columns: minmax(118px, 34%) minmax(0, 1fr); column-gap: 14px; align-items: start; }
