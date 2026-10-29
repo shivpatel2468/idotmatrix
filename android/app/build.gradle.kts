@@ -15,6 +15,19 @@ val localProps = Properties().apply {
 }
 val studioOut = layout.buildDirectory.dir("studio")
 
+// One version for everything: src/deskdot/__init__.py. versionCode = major*10000 + minor*100 + patch (3.8.0 → 30800),
+// so it only ever goes up (Android refuses to update to a lower versionCode).
+val deskdotVersion: String = Regex("""__version__ = "([^"]+)"""")
+    .find(File(repoRoot, "src/deskdot/__init__.py").readText())!!.groupValues[1]
+val deskdotVersionCode: Int = deskdotVersion.substringBefore("-").split(".").map { it.toInt() }
+    .let { (major, minor, patch) -> major * 10000 + minor * 100 + patch }
+
+// Release signing: android/keystore.properties (git-ignored; storeFile, storePassword, keyAlias, keyPassword).
+// Never in git, never in CI. Without it, release builds fall back to the debug key (fine for testing only).
+val keystoreProps = Properties().apply {
+    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+}
+
 android {
     namespace = "com.deskdot.app"
     compileSdk = 35
@@ -23,17 +36,30 @@ android {
         applicationId = "com.deskdot.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "3.7.0-beta"
+        versionCode = deskdotVersionCode
+        versionName = deskdotVersion
         ndk {
             abiFilters += listOf("arm64-v8a") // every phone from the last ~8 years; the only ABI we vendor wheels for
+        }
+    }
+
+    signingConfigs {
+        if (keystoreProps.getProperty("storeFile") != null) {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug") // sideloaded, not published
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug").also {
+                logger.warn("android/keystore.properties not found: the release APK is signed with the DEBUG key")
+            }
         }
     }
 
@@ -96,6 +122,16 @@ val syncStudio by tasks.registering(Sync::class) {
 tasks.named("preBuild") { dependsOn(syncStudio) }
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("PythonSources") }.configureEach {
     dependsOn(syncStudio)
+}
+
+// DeskDot-<version>.apk next to the usual output (the name the in-app updater looks for on GitHub)
+android.applicationVariants.all {
+    val variant = this
+    outputs.all {
+        (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+            if (variant.buildType.name == "release") "DeskDot-${variant.versionName}.apk"
+            else "DeskDot-${variant.versionName}-${variant.buildType.name}.apk"
+    }
 }
 
 dependencies {

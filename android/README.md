@@ -73,14 +73,46 @@ cd android
 # local.properties (not committed):
 #   sdk.dir=C:/path/to/Android/sdk
 #   deskdot.buildPython=C:/path/to/python3.13.exe
-./gradlew assembleDebug             # → app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug             # → app/build/outputs/apk/debug/DeskDot-<version>-debug.apk
+./gradlew assembleRelease           # → app/build/outputs/apk/release/DeskDot-<version>.apk (the one for GitHub)
 ```
+
+The version comes from `src/deskdot/__init__.py`: `versionName` = that version, `versionCode` = `major*10000 +
+minor*100 + patch` (3.8.0 → 30800), so every release is higher than the last and Android accepts it as an update.
+
+### Release signing
+
+Release APKs are signed with the DeskDot release key, read from **`android/keystore.properties`** (git-ignored, never
+committed, never given to CI):
+
+```properties
+storeFile=C:/Users/<you>/AppData/Local/DotDeckAndroid/release/deskdot-release.jks
+storePassword=…
+keyAlias=deskdot
+keyPassword=…
+```
+
+The keystore and its password live outside the repo (`%LOCALAPPDATA%\DotDeckAndroid\release\`, with a
+README-BACKUP.txt). **Back both up.** Every future update must be signed with the same key: if it's lost, phones
+can't update in place and everyone has to uninstall and reinstall. Without `keystore.properties` a release build
+falls back to the debug key and Gradle warns — fine for testing, never for GitHub.
+
+Builds before 3.8 were signed with a debug key, so going from one of those to 3.8 needs one uninstall first.
+
+### Updates
+
+The app updates itself (Settings → Device → Updates): the engine finds the new `DeskDot-<version>.apk` on the latest
+GitHub release, downloads it into `files/data/updates/`, checks its SHA-256 against the release's `checksums.txt`,
+and `Updater.kt` opens Android's installer for it (FileProvider authority `com.deskdot.app.updates`,
+`REQUEST_INSTALL_PACKAGES`). It refuses an APK signed with another key. The first time, Android asks to allow
+DeskDot to install apps. After the update, `BootReceiver` (MY_PACKAGE_REPLACED) starts the engine again.
 
 ## Install on the phone
 
 1. On the phone: **Settings → About phone → tap "Build number" 7 times**, then **Developer options → USB debugging** on.
 2. Plug it into the laptop, accept the "Allow USB debugging?" prompt on the phone.
-3. `adb install -r app/build/outputs/apk/debug/app-debug.apk` (adb is in the SDK's `platform-tools`).
+3. `adb install -r app/build/outputs/apk/release/DeskDot-<version>.apk` (adb is in the SDK's `platform-tools`), or
+   download the APK from the [latest release](https://github.com/shivpatel2468/idotmatrix/releases/latest) on the phone.
 4. Open **DeskDot**, allow **Nearby devices** (and notifications), and allow it to **ignore battery optimisation**.
 
 Only one thing can hold the panel's Bluetooth link: **stop the engine on the laptop first**, and don't open the
