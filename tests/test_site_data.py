@@ -77,7 +77,7 @@ def test_every_app_has_a_real_preview_and_a_page() -> None:
 
 
 PAGES = [
-    "index", "setup", "guide", "apps", "features", "studio", "specs", "faq",
+    "index", "setup", "guide", "apps", "features", "studio", "specs", "faq", "whats-new",
     "download", "privacy", "terms", "license", "licenses",
 ]  # fmt: skip
 LEGAL = ("download", "privacy", "terms", "license", "licenses")  # not in the main nav
@@ -145,6 +145,8 @@ def test_site_says_deskdot_not_dotdeck() -> None:
     for f in SITE.rglob("*"):
         if f.is_relative_to(SITE / "app"):
             continue  # the web app's studio bundle still reads the old `dotdeck.*` localStorage keys (migration)
+        if f.name == "whats-new.html":
+            continue  # the 3.3.0 notes tell the story of the rename ("it was called DotDeck")
         if f.suffix in (".html", ".js", ".css", ".json", ".xml", ".txt", ".webmanifest", ".svg"):
             assert "dotdeck" not in f.read_text(encoding="utf-8").lower(), f
 
@@ -170,3 +172,18 @@ def test_netlify_config_matches_the_site() -> None:
     app = csps["/app/*"]
     assert "'wasm-unsafe-eval'" in app and "https://cdn.jsdelivr.net" in app and "worker-src 'self'" in app
     assert (SITE / "404.html").exists() and (SITE / "CNAME").read_text().strip() == "idotmatrix.com"
+
+
+def test_site_themes_mirror_the_studio() -> None:
+    """Light / dark / auto and all 21 page themes: applied before first paint, styled, and offered in the menu."""
+    pages = _load("build_site_pages")
+    assert "deskdot.theme" in pages.INLINE_JS and "deskdot.pageTheme" in pages.INLINE_JS
+    from deskdot.gfx.themes import PAGE_THEMES
+
+    css = (SITE / "styles.css").read_text(encoding="utf-8")
+    index = (SITE / "index.html").read_text(encoding="utf-8")
+    for tid in PAGE_THEMES:
+        assert f'data-page-theme-pick="{tid}"' in index, tid
+        if tid != "ember":
+            assert f':root[data-page-theme="{tid}"][data-theme="light"]' in css, tid
+    assert ':root[data-theme="light"]' in css and "prefers-reduced-transparency" in css

@@ -21,7 +21,7 @@ CONTACT_EMAIL = "{{CONTACT_EMAIL}}"
 OWNER = "Shiv Patel"
 COUNTRY = "India"
 YEAR = 2026
-UPDATED = "5 October 2026"
+UPDATED = "29 October 2026"
 
 UNOFFICIAL = (
     "Unofficial: DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. "

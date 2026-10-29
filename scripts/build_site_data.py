@@ -9,6 +9,11 @@ build_site_pages.py (every HTML page, sitemap, link check).
 The shape mirrors what the studio gets from /api/meta (src/deskdot/server.py), flattened into a list of settings
 per app so a static page can render it without a JSON-schema walker. Apps are instantiated once with default
 settings (against a simulated panel, no network) only to ask them which output kind they use.
+
+It also records the latest GitHub release (`release`: version, date, page, and one entry per installer with its size)
+for the download page. The asset names carry the version (DeskDot-Setup-3.8.0-x64.exe), so the page can't use
+stable `releases/latest/download/<name>` links: they are baked in here, at build time (no request from the page).
+Offline, the release already in site/apps.json is kept.
 """
 
 from __future__ import annotations
@@ -17,8 +22,11 @@ import argparse
 import asyncio
 import inspect
 import json
+import re
 import sys
 import tempfile
+import urllib.request
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +34,15 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 PREVIEWS = SITE / "media" / "apps"  # rendered by scripts/build_site_media.py
 DEFAULT_OUT = SITE / "apps.json"
+REPO = "shivpatel2468/idotmatrix"
+
+# The installers on a release, by file name: (pattern, key, platform, note). Anything else (checksums.txt) is not a download.
+ASSETS = [
+    (re.compile(r"^DeskDot-Setup-[\d.]+-x64\.exe$"), "windows", "windows", "Windows 10/11 (64-bit)"),
+    (re.compile(r"^DeskDot-[\d.]+-macOS-arm64\.dmg$"), "mac_arm", "mac", "Apple silicon (M1 and newer)"),
+    (re.compile(r"^DeskDot-[\d.]+-macOS-x64\.dmg$"), "mac_intel", "mac", "Intel Mac"),
+    (re.compile(r"^DeskDot-[\d.]+\.apk$"), "android", "android", "Android 8 or newer"),
+]
 
 CATEGORY_LABELS = {
     "time": "Time",
@@ -208,11 +225,74 @@ async def build() -> dict[str, Any]:
     }
 
 
+def _fetch_release() -> dict[str, Any]:
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{REPO}/releases/latest",
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "deskdot-site-build"},
+    )
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.load(r)
+
+
+def release(previous: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    """The latest GitHub release as the download page shows it, or `previous` when GitHub can't be reached."""
+    try:
+        rel = _fetch_release()
+    except Exception as exc:  # offline, rate-limited: keep what the site already has
+        print(f"latest release: {exc}; keeping the committed one", file=sys.stderr)
+        return previous
+    assets: list[dict[str, Any]] = []
+    checksums = None
+    for a in rel.get("assets", []):
+        name, url = a.get("name", ""), a.get("browser_download_url", "")
+        if not url.startswith(f"https://github.com/{REPO}/releases/download/"):
+            continue
+        if name == "checksums.txt":
+            checksums = url
+            continue
+        for pat, key, platform, note in ASSETS:
+            if pat.match(name):
+                assets.append(
+                    {
+                        "key": key,
+                        "platform": platform,
+                        "name": name,
+                        "url": url,
+                        "size": int(a.get("size") or 0),
+                        "note": note,
+                    }
+                )
+    if not assets:
+        return previous
+    published = rel.get("published_at") or ""
+    try:
+        when = datetime.fromisoformat(published.replace("Z", "+00:00"))
+        date = f"{when.day} {when:%B %Y}"
+    except ValueError:
+        date = ""
+    order = [k for _p, k, _pl, _n in ASSETS]
+    return {
+        "version": str(rel.get("tag_name", "")).removeprefix("v"),
+        "tag": rel.get("tag_name", ""),
+        "date": date,
+        "page": rel.get("html_url", f"https://github.com/{REPO}/releases/latest"),
+        "checksums": checksums,
+        "assets": sorted(assets, key=lambda x: order.index(x["key"])),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args(argv)
     data = asyncio.run(build())
+    try:
+        previous = json.loads(DEFAULT_OUT.read_text(encoding="utf-8")).get("release")
+    except (OSError, ValueError):
+        previous = None
+    rel = release(previous)
+    if rel:
+        data["release"] = rel
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {args.out}: {data['count']} apps, {data['games']} games", file=sys.stderr)

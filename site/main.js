@@ -1,6 +1,7 @@
 /* DeskDot — idotmatrix.com. Plain JS, no dependencies, shared by every page.
  * 1. the neon LED logo (canvas)   2. page chrome (notice, menu, reveal, LED hovers, tabs, copy, download)
- * 3. the Apps explorer. No third-party requests: the GitHub star count is baked in at build time. */
+ * 3. the Apps explorer   4. light / dark / auto and the page themes (the theme menu).
+ * No third-party requests: the GitHub star count and the release downloads are baked in at build time. */
 (() => {
   "use strict";
 
@@ -28,6 +29,13 @@
   const LOOSE = 5; // the "o" of Dot
   const ROWS = 7;
   const NEON = ["#ff3f78", "#ff3f78", "#ffcc33"]; // two shades: "Desk" rose, "Dot" gold
+  // Two looks, as web/src/lib/logo.ts: `neon` on dark pages (additive halos, white-hot cores) and `paper` on light ones
+  // (the same tubes as deep ink, a halo that darkens instead of glowing, a soft sheen for the core).
+  const LOOKS = {
+    neon: { tubes: NEON, grid: "rgba(255,255,255,0.05)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff", coreAlpha: 0.8, coreR: 0.45 },
+    paper: { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3, coreR: 0.3 },
+  };
+  const lookNow = () => (document.documentElement.dataset.theme === "light" ? "paper" : "neon");
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -86,15 +94,16 @@
     return { dots, cols: x };
   }
   const LOGO = layoutLogo();
-  const GLOWS = NEON.map((c) => glowSprite(c, 64));
+  const GLOWS = { neon: LOOKS.neon.tubes.map((c) => glowSprite(c, 64)), paper: LOOKS.paper.tubes.map((c) => glowSprite(c, 64)) };
 
   /** Draw the logo at (ox, oy) with dot pitch p. lt = seconds since start. */
   function drawLogo(ctx, lt, ox, oy, p, { build = 1.6, grid = false, flare = 0, still = false } = {}) {
     if (still) lt = build + 3;
     const igniteAt = build + 0.15;
     const r = p * 0.36;
+    const look = lookNow(), st = LOOKS[look];
     if (grid) {
-      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.fillStyle = st.grid;
       for (let y = -1; y <= ROWS; y++)
         for (let x = -1; x <= LOGO.cols; x++) {
           ctx.beginPath();
@@ -107,7 +116,7 @@
       const lit = lt > igniteAt + DELAY[part] + strikeLen(part);
       if (lit) level = still ? 1 : 0.93 + 0.07 * Math.sin(lt * 47 + part * 3) * Math.sin(lt * 13.3);
       level = Math.min(1.6, level + flare * 0.8);
-      const color = NEON[part], glow = GLOWS[part];
+      const color = st.tubes[part], glow = GLOWS[look][part];
       for (const d of LOGO.dots) {
         if (d.part !== part) continue;
         let x = d.x, y = d.y, k, pop = 0;
@@ -131,25 +140,26 @@
           else if (g > 0.66 && g < 0.672) lv *= 0.3;
         }
         const cx = ox + (x + 0.5) * p, cy = oy + (y + 0.5) * p;
-        ctx.globalAlpha = 0.22 * Math.min(1, k * 2);
+        ctx.globalAlpha = st.glass * Math.min(1, k * 2);
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
         ctx.fill();
         const light = Math.max(lv, pop * 0.9);
         if (light > 0.02) {
-          ctx.globalCompositeOperation = "lighter";
-          ctx.globalAlpha = Math.min(1, light * 0.5);
+          ctx.globalCompositeOperation = st.blend;
+          ctx.globalAlpha = Math.min(st.halo, light * st.halo);
           const gs = p * (3.4 + flare * 2.5);
           ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
+          ctx.globalCompositeOperation = st.fill;
           ctx.globalAlpha = Math.min(1, light);
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
-          ctx.globalAlpha = Math.min(1, light * 0.8);
-          ctx.fillStyle = "#fff";
+          ctx.globalAlpha = Math.min(1, light * st.coreAlpha);
+          ctx.fillStyle = st.core;
           ctx.beginPath();
-          ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+          ctx.arc(cx, cy, r * st.coreR, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalCompositeOperation = "source-over";
         }
@@ -197,8 +207,10 @@
     }).observe(canvas);
     document.addEventListener("visibilitychange", kick);
     if (interactive && !reduced) canvas.addEventListener("pointerenter", () => { flare = 0.6; kick(); });
+    redraws.push(() => (reduced || !raf) && frame(performance.now()));
     resize();
   }
+  const redraws = []; // a theme change repaints idle logos in the new look
 
   const seenLogo = store.get("dd-logo") === "1";
   mountLogo($("#logo"), { grid: true, interactive: true, startDelay: 150 });
@@ -216,7 +228,17 @@
     });
   }
 
-  // download page: the source links stay disabled until the Terms and Privacy box is ticked (clickwrap, unticked)
+  // download page: the downloads and source links stay disabled until the Terms and Privacy box is ticked (clickwrap,
+  // unticked by default); this computer's platform is marked as the recommended download
+  const plat = (() => {
+    const ua = navigator.userAgent || "", pf = navigator.userAgentData?.platform || navigator.platform || "";
+    if (/Android/i.test(ua)) return "android";
+    if (/iPhone|iPad|iPod/i.test(ua)) return "";
+    if (/Win/i.test(pf)) return "windows";
+    if (/Mac/i.test(pf)) return "mac";
+    return "";
+  })();
+  if (plat) $$(`.dl-card[data-platform="${plat}"]`).forEach((c) => c.classList.add("mine"));
   $$("[data-agree]").forEach((box) => {
     const targets = box.dataset.agree.split(/\s+/).map((id) => $("#" + id)).filter(Boolean);
     const sync = () => targets.forEach((t) => {
@@ -228,11 +250,6 @@
     box.addEventListener("change", sync);
     sync();
   });
-
-  const bar = $("#bar");
-  const onScroll = () => bar && bar.classList.toggle("scrolled", scrollY > 8);
-  addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
 
   // mobile menu: toggles, closes on Escape, on a link, or on a click outside
   const menuBtn = $("#menu-btn"), nav = $("#nav");
@@ -370,6 +387,18 @@
   });
   $$("[data-copy-target]").forEach((b) => b.addEventListener("click", () => copy(textOf($("#" + b.dataset.copyTarget)), b)));
 
+  // the home page's tagline: each word lights up as it crosses into the lower third of the screen, in reading order
+  const tagWords = $$(".tagline .w");
+  if (tagWords.length) {
+    if (reduced || !("IntersectionObserver" in window)) tagWords.forEach((w) => w.classList.add("on"));
+    else {
+      const wordObs = new IntersectionObserver((entries) => {
+        for (const en of entries) if (en.isIntersecting) { en.target.classList.add("on"); wordObs.unobserve(en.target); }
+      }, { rootMargin: "0px 0px -30% 0px" });
+      tagWords.forEach((w) => wordObs.observe(w));
+    }
+  }
+
   /* ===================================================================== 3. apps explorer (apps.html)
    * The cards are static HTML (generated by scripts/build_site_pages.py); this only filters them. */
   const grid = $("#app-grid");
@@ -433,4 +462,86 @@
     addEventListener("hashchange", fromHash);
     fromHash();
   }
+
+  /* ===================================================================== 4. light / dark / auto and page themes
+   * Same storage and attributes as the studio (web/src/lib/theme.ts, lib/pageTheme.ts), so the web app at /app/ opens
+   * in the theme picked here and the other way round. The inline script in <head> applied it before first paint. */
+  const THEME_KEY = "deskdot.theme", PAGE_KEY = "deskdot.pageTheme", PAGE_CSS_KEY = "deskdot.pageThemeCss";
+  const root = document.documentElement;
+  const light = matchMedia("(prefers-color-scheme: light)");
+  const local = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* private mode: this page only */ } },
+    del(k) { try { localStorage.removeItem(k); } catch { /* nothing to remove */ } },
+  };
+  const menu = $("#theme-menu"), themeBtn = $("#theme-btn");
+  const swatches = $$("[data-page-theme-pick]", menu || document);
+  const pref = () => { const v = local.get(THEME_KEY); return v === "light" || v === "dark" ? v : "system"; };
+  const resolve = (p) => (p === "system" ? (light.matches ? "light" : "dark") : p);
+  const pageTheme = () => {
+    const v = local.get(PAGE_KEY);
+    return swatches.some((b) => b.dataset.pageThemePick === v) ? v : "ember";
+  };
+  const sync = () => {
+    $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === pref())));
+    const pt = pageTheme();
+    swatches.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.pageThemePick === pt)));
+    const name = $("#theme-name");
+    const cur = swatches.find((b) => b.dataset.pageThemePick === pt);
+    if (name && cur) name.textContent = cur.title;
+    const meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", getComputedStyle(root).getPropertyValue("--theme-color").trim() || "#08070a");
+  };
+  const paint = (fn) => {
+    const go = () => { fn(); sync(); redraws.forEach((r) => r()); };
+    if (reduced) return go();
+    if (document.startViewTransition) {
+      root.classList.add("theme-vt");
+      const vt = document.startViewTransition(go);
+      const done = () => root.classList.remove("theme-vt");
+      vt.finished ? vt.finished.then(done, done) : done();
+      return;
+    }
+    root.classList.add("theme-fade");
+    setTimeout(() => root.classList.remove("theme-fade"), 450);
+    go();
+  };
+  const applyMode = (p) => paint(() => root.setAttribute("data-theme", resolve(p)));
+  const applyPage = (id) => paint(() => (id === "ember" ? root.removeAttribute("data-page-theme") : root.setAttribute("data-page-theme", id)));
+  const openMenu = (open, from) => {
+    if (!menu) return;
+    menu.hidden = !open;
+    $$("[aria-controls='theme-menu']").forEach((b) => b.setAttribute("aria-expanded", String(open)));
+    if (open) {
+      sync();
+      ($('[aria-pressed="true"]', menu) || $("button", menu))?.focus();
+      if (from && from !== themeBtn) menu.scrollIntoView?.({ block: "nearest" });
+    } else if (from) from.focus();
+  };
+  if (menu) {
+    let opener = null;
+    $$("[aria-controls='theme-menu']").forEach((b) => b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      opener = b;
+      openMenu(menu.hidden, b);
+    }));
+    $(".theme-close", menu)?.addEventListener("click", () => openMenu(false, opener || themeBtn));
+    $$("[data-theme-pick]", menu).forEach((b) => b.addEventListener("click", () => {
+      local.set(THEME_KEY, b.dataset.themePick);
+      applyMode(b.dataset.themePick);
+    }));
+    swatches.forEach((b) => b.addEventListener("click", () => {
+      local.set(PAGE_KEY, b.dataset.pageThemePick);
+      local.del(PAGE_CSS_KEY); // the web app's first-paint copy is for another theme now: it re-derives on load
+      applyPage(b.dataset.pageThemePick);
+    }));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) openMenu(false, opener || themeBtn); });
+    document.addEventListener("click", (e) => { if (!menu.hidden && !e.target.closest("#theme-menu")) openMenu(false); });
+  }
+  light.addEventListener?.("change", () => pref() === "system" && applyMode("system"));
+  addEventListener("storage", (e) => {
+    if (e.key === THEME_KEY) applyMode(pref());
+    if (e.key === PAGE_KEY) applyPage(pageTheme());
+  });
+  sync();
 })();

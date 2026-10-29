@@ -35,6 +35,7 @@ from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import site_legal as legal
+import site_theme
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
@@ -46,10 +47,17 @@ START, END = "<!-- page:start -->", "<!-- page:end -->"
 # The one inline script, run before first paint: marks the document as JS-enabled (scroll-reveal styles key off
 # it) and as supporting cross-document View Transitions (`vt`: the CSS fade-in fallback then stays off).
 # netlify.toml's Content-Security-Policy allows exactly this script by its hash (see csp_hash()).
-# It also hides the "unofficial" notice strip before paint once a visitor has dismissed it (main.js stores that).
+# It also hides the "unofficial" notice strip before paint once a visitor has dismissed it (main.js stores that),
+# and applies the theme like the studio's index.html does: light / dark / auto (`deskdot.theme`) as
+# <html data-theme>, and the page theme (`deskdot.pageTheme`) as <html data-page-theme> — so no page ever flashes
+# the wrong theme. main.js runs the theme menu.
 INLINE_JS = (
-    'var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");'
-    'try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}'
+    'var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");'
+    'try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");'
+    't=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}'
+    't==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");'
+    'd.setAttribute("data-theme",t);'
+    'p&&p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)'
 )
 
 NAV = [
@@ -122,8 +130,8 @@ PAGES: dict[str, dict[str, Any]] = {
     "download.html": {
         "nav": None,
         "title": "Get DeskDot",
-        "description": "Get DeskDot for your iDotMatrix-compatible 32×32 LED panel: open it in your browser, run "
-        "it from the source code (MIT), or wait for the Windows installer. Unofficial.",
+        "description": "Download DeskDot for Windows, Mac or Android, or open it in your browser: the companion app for "
+        "iDotMatrix-compatible 32×32 LED panels. Updates install from inside the app. Unofficial.",
     },
     "privacy.html": {
         "nav": None,
@@ -225,6 +233,8 @@ SPRITE = """<svg width="0" height="0" class="sprite" aria-hidden="true" focusabl
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></g><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18Z"/><circle cx="7.6" cy="9" r="1.5" fill="currentColor"/><circle cx="8.6" cy="14.6" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
 </svg>"""
 
@@ -262,7 +272,7 @@ def head(
     img = SITE_URL + og_image
     tags += [
         '<meta name="theme-color" content="#08070a" />',
-        '<meta name="color-scheme" content="dark" />',
+        '<meta name="color-scheme" content="dark light" />',
         '<meta name="author" content="Shiv Patel" />',
         f'<meta property="og:type" content="{og_type}" />',
         f'<meta property="og:site_name" content="{BRAND}" />',
@@ -349,8 +359,10 @@ def header(active: str | None) -> str:
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
     <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
     <a class="btn small gh" href="{REPO}" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg>{_stars_html()}</a>
+    <button class="btn small theme-btn" id="theme-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="theme-menu" aria-label="Appearance: light, dark and page theme" title="Appearance"><svg aria-hidden="true"><use href="#i-theme"/></svg></button>
   </div>
 </header>
+{site_theme.menu_html()}
 <div class="notice" id="notice" role="note" aria-label="Unofficial software">
   <div class="wrap"><p><b>Unofficial:</b> {legal.e(legal.UNOFFICIAL.removeprefix("Unofficial: "))}</p><button type="button" aria-label="Dismiss this notice">×</button></div>
 </div>"""
@@ -411,7 +423,7 @@ def footer() -> str:
     </div>
     <div class="fine">
       <span>© {legal.YEAR} {legal.OWNER}. Casino games: play money only, 18+.</span>
-      <span>1,024 pixels.</span>
+      <span><button type="button" class="theme-open" aria-controls="theme-menu" aria-expanded="false">Appearance and page theme</button> · 1,024 pixels.</span>
     </div>
   </div>
 </footer>
@@ -508,7 +520,7 @@ def app_card(app: dict[str, Any], cat_label: str, *, i: int = 0, searchable: boo
     return f"""<a class="card app-card" href="/{app["page"]}" style="--glow:{CAT_COLOR[app["category"]]};--i:{min(i, 12)}"{attrs}>
   <div class="thumb">{panel(app)}{badge(k_label, k_color)}</div>
   <div class="body">
-    <span class="tag" style="color:{CAT_COLOR[app["category"]]}">{e(cat_label)}</span>
+    <span class="tag" style="--c:{CAT_COLOR[app["category"]]}">{e(cat_label)}</span>
     <h3>{e(app["name"])}</h3>
     <p>{e(site_description(app))}</p>
     <div class="foot">{"".join(foot)}</div>
@@ -814,7 +826,8 @@ def whats_new() -> list[dict[str, Any]]:
     return out
 
 
-def whats_new_html() -> str:
+def whats_new_html(release: dict[str, Any] | None = None) -> str:
+    """The versions, newest first. The latest GitHub release (from apps.json) gets its download link."""
     rels = whats_new()
     toc = "".join(
         f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(r["date"])}</span></a></li>' for r in rels
@@ -835,15 +848,117 @@ def whats_new_html() -> str:
                 f"</h3><ul>{cards}</ul></div>"
             )
         latest = '<span class="wn-latest">Latest</span>' if i == 0 else ""
+        gh = ""
+        if release and release.get("version") == r["version"]:
+            gh = (
+                f'<p class="wn-gh"><a href="{e(release["page"])}">Version {e(r["version"])} on GitHub</a> · '
+                '<a href="/download.html">Download DeskDot</a></p>'
+            )
         summary = (
             f'<span class="wn-ver">v{e(r["version"])}</span><span class="wn-head">{e(r["headline"])}</span>'
             f'<span class="wn-date">{e(r["date"])}</span>{latest}'
         )
         parts.append(
             f'<details class="wn-rel" id="v{r["version"]}"{" open" if i < 2 else ""}><summary>{summary}</summary>'
-            f'<div class="wn-body">{"".join(groups)}</div></details>'
+            f'<div class="wn-body">{gh}{"".join(groups)}</div></details>'
         )
     return "\n".join(parts)
+
+
+# ------------------------------------------------------------------ downloads (the latest GitHub release, from apps.json)
+_PLATFORMS = [
+    (
+        "windows",
+        "Windows",
+        ["windows"],
+        [
+            "Open the file you downloaded. It's a normal setup program.",
+            "If Windows SmartScreen says it protected your PC, click <b>More info</b>, then <b>Run anyway</b>. "
+            "It says this because DeskDot is new and not yet widely downloaded.",
+            "Follow the steps. You can tick <b>Start DeskDot when I sign in</b>.",
+            "DeskDot opens the studio in your browser and sits in the tray, next to the clock.",
+        ],
+    ),
+    (
+        "mac",
+        "Mac",
+        ["mac_arm", "mac_intel"],
+        [
+            "Not sure which Mac you have? Apple menu → <b>About This Mac</b>: “Apple M1” (or M2, M3…) means Apple "
+            "silicon, “Intel” means Intel.",
+            "Open the disk image and drag DeskDot into <b>Applications</b>.",
+            "The first time, right-click (or Control-click) DeskDot and choose <b>Open</b>, then <b>Open</b> again. If "
+            "macOS still blocks it, go to System Settings → <b>Privacy &amp; Security</b> and click <b>Open Anyway</b>.",
+            "Allow Bluetooth when macOS asks, so DeskDot can reach the panel.",
+        ],
+    ),
+    (
+        "android",
+        "Android",
+        ["android"],
+        [
+            "Open the downloaded file on the phone.",
+            "If Android asks, allow your browser or file app to <b>install unknown apps</b> (Settings shows a switch), "
+            "then go back and tap <b>Install</b>.",
+            "Open DeskDot and allow <b>Nearby devices</b> so it can find the panel over Bluetooth.",
+        ],
+    ),
+]
+_BUTTON = {
+    "windows": "Download for Windows",
+    "mac_arm": "Download for Apple silicon",
+    "mac_intel": "Download for Intel Mac",
+    "android": "Download for Android",
+}
+
+
+def _mb(n: int) -> str:
+    return f"{n / 1_000_000:.0f} MB" if n else ""
+
+
+def downloads_html(release: dict[str, Any] | None) -> str:
+    """One card per platform with its installer(s), size and first-install steps; the buttons stay disabled until
+    the Terms + Privacy box above them is ticked (main.js, data-agree)."""
+    if not release:
+        return (
+            '<p class="note">The installers are on <a href="'
+            + REPO
+            + '/releases/latest">GitHub Releases</a>.</p>'
+        )
+    by_key = {a["key"]: a for a in release["assets"]}
+    cards = []
+    for pid, title, keys, steps in _PLATFORMS:
+        assets = [by_key[k] for k in keys if k in by_key]
+        if not assets:
+            continue
+        btns = "".join(
+            f'<a class="btn{" primary" if i == 0 else ""}" id="dl-{a["key"]}" href="{e(a["url"])}" '
+            f'aria-disabled="true" download><svg aria-hidden="true"><use href="#i-down"/></svg>{_BUTTON[a["key"]]}</a>'
+            for i, a in enumerate(assets)
+        )
+        meta = " · ".join(f"{e(a['note'])}, {_mb(a['size'])}" for a in assets)
+        lis = "".join(f"<li>{s_}</li>" for s_ in steps)
+        cards.append(
+            f'<article class="card dl-card" data-platform="{pid}"><span class="mine-tag">For this device</span>'
+            f'<h3>{title}</h3><p class="dl-meta">{meta}</p>'
+            f'<details><summary>First install, step by step</summary><ol class="dl-steps">{lis}</ol></details>'
+            f'<div class="dl-btns">{btns}</div></article>'
+        )
+    ids = " ".join(f"dl-{a['key']}" for a in release["assets"])
+    foot = [f'<span>Version {e(release["version"])}' + (f" · {e(release['date'])}" if release.get("date") else "") + "</span>"]
+    foot.append(f'<a href="{e(release["page"])}">Release notes on GitHub</a>')
+    if release.get("checksums"):
+        foot.append(f'<a href="{e(release["checksums"])}">SHA-256 checksums</a>')
+    foot.append('<a href="/whats-new.html">What\'s new</a>')
+    return (
+        '<div class="dl-agree"><label class="agree"><input type="checkbox" id="agree-dl" '
+        f'data-agree="{ids} dl-source dl-guide dl-agent" />'
+        '<span>I have read and agree to the DeskDot <a href="/terms.html">Terms</a> and '
+        '<a href="/privacy.html">Privacy Notice</a>.</span></label>'
+        "<p>Tick the box to turn on the download buttons.</p></div>"
+        f'<div class="dl-grid">{"".join(cards)}</div>'
+        f'<p class="dl-foot">{"".join(foot)}</p>'
+    )
 
 
 # =============================================================================================== hand pages
@@ -917,7 +1032,7 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
         card_list.append(app_card(a, cats[a["category"]], i=i))
     body = fill(body, "cards", "\n".join(card_list))
     chips = [
-        f'<button type="button" class="chip" data-cat="all" aria-pressed="true" style="--c:#f3f1ec"><i></i>All <small>{data["count"]}</small></button>'
+        f'<button type="button" class="chip" data-cat="all" aria-pressed="true" style="--c:var(--ink)"><i></i>All <small>{data["count"]}</small></button>'
     ]
     chips += [
         f'<button type="button" class="chip" data-cat="{c["id"]}" aria-pressed="false" style="--c:{CAT_COLOR[c["id"]]}"><i></i>{e(c["label"])} <small>{c["count"]}</small></button>'
@@ -944,7 +1059,9 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
         game_cards.insert(0, casino_note())
     body = fill(body, "games", "\n".join(game_cards))
     if "<!-- gen:whatsnew -->" in body:
-        body = fill(body, "whatsnew", whats_new_html())
+        body = fill(body, "whatsnew", whats_new_html(data.get("release")))
+    if "<!-- gen:downloads -->" in body:
+        body = fill(body, "downloads", downloads_html(data.get("release")))
     lic = legal.licences_html()
     if lic is not None:
         body = fill(body, "licences", lic)
@@ -959,7 +1076,12 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
     title = meta["title"].format(**nums)
     ld: list[dict[str, Any]] = []
     if name == "index.html":
-        ld.append(SOFTWARE_LD)
+        rel = data.get("release")
+        ld.append(
+            {**SOFTWARE_LD, "softwareVersion": rel["version"], "downloadUrl": f"{SITE_URL}/download.html"}
+            if rel
+            else SOFTWARE_LD
+        )
     if name == "faq.html":
         fq = faq_jsonld(body)
         if fq:
@@ -969,6 +1091,19 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
 
 
 # =============================================================================================== static extras
+def write_theme_css() -> None:
+    """The 21 page themes for the website (scripts/site_theme.py), between the gen:themes markers in styles.css."""
+    path = SITE / "styles.css"
+    css = path.read_text(encoding="utf-8")
+    start, end = "/* gen:themes */", "/* /gen:themes */"
+    if start not in css or end not in css:
+        raise SystemExit(f"{path}: missing {start} / {end}")
+    head, rest = css.split(start, 1)
+    tail = rest.split(end, 1)[1]
+    path.write_text(f"{head}{start}\n{site_theme.css()}\n{end}{tail}", encoding="utf-8", newline="\n")
+
+
+
 # The DeskDot mark: an LED "D" (rose → tangerine by column) and the gold "dot" beside it, on the panel's black.
 _D = ["###.", "#..#", "#..#", "#..#", "###."]
 _D_COLS = ["#ff3f78", "#ff3f78", "#ff3f78", "#ff3f78"]  # two shades: the "D" rose, the dot gold
@@ -1118,6 +1253,7 @@ def build() -> list[str]:
     for stale in out.glob("*.html"):
         if stale.name not in keep:
             stale.unlink()
+    write_theme_css()
     write_icons()
     write_sitemap([p for p in written if p != "404.html"])
     return written

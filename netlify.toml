@@ -53,27 +53,27 @@
 
 # Content-Security-Policy for the website's pages. Kept off /app/* on purpose: Netlify combines matching rules, and
 # two policies would both apply (the web app's needs wasm and the Pyodide CDN). The one inline script (marks
-# <html class="js">) is allowed by its hash; build_site_pages.py prints it (csp_hash()) and
+# <html class="js"> and applies the light/dark and page theme before first paint) is allowed by its hash; build_site_pages.py prints it (csp_hash()) and
 # tests/test_site_data.py checks that these headers still match.
 [[headers]]
   for = "/"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-r+8k6bO2Dt4ZnR254rOprj3NctUswD22Z7eiABgXyIE='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/:page"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-r+8k6bO2Dt4ZnR254rOprj3NctUswD22Z7eiABgXyIE='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/apps/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-r+8k6bO2Dt4ZnR254rOprj3NctUswD22Z7eiABgXyIE='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/media/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-DXSQMSy/cGe0pkL0hHR5TzUtfeibVZbZM04pCdl8pvY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-r+8k6bO2Dt4ZnR254rOprj3NctUswD22Z7eiABgXyIE='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 
 # The web app (docs/WEB_APP.md): Pyodide from the pinned jsDelivr CDN ('wasm-unsafe-eval' compiles its WebAssembly),

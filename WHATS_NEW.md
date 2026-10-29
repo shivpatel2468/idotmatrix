@@ -146,10 +146,10 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: the logo has its own light version — the same letters, built and lit the same way, in deep rose and gold
     dots, straight on the header like the glowing one in dark mode. The phone pages, the web app and the TV show it
     too when they are in light mode.
-- **Liquid Glass everywhere**
+- **Glass everywhere**
   - Before: bars, menus, sheets and buttons were solid painted surfaces.
   - Now: the top bar, the phone's tab bar (now a floating capsule), sheets, menus, pop-ups, the playback dock and the
-    panels around the LED panel are made of glass in the style of Apple's Liquid Glass — they blur and gently bend
+    panels around the LED panel are made of a clear glass material — they blur and gently bend
     what's behind them, catch the light along their edges (the highlight follows your mouse, or the tilt of your
     phone), and buttons, switches, sliders and tabs squash and spring back when you press them. It works in light
     and dark and in every page theme, on the phone pages, the web app and the launcher too; the TV gets a calm,

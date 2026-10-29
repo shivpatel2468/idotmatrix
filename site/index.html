@@ -4,23 +4,23 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)</title>
-<meta name="description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
+<meta name="description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 116 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <link rel="canonical" href="https://idotmatrix.com/" />
 <meta name="theme-color" content="#08070a" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="dark light" />
 <meta name="author" content="Shiv Patel" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/" />
 <meta property="og:title" content="DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)" />
-<meta property="og:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
+<meta property="og:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 116 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="DeskDot: live apps and games for iDotMatrix 32×32 panels (unofficial)" />
-<meta name="twitter:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 102 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
+<meta name="twitter:description" content="DeskDot is an independent companion app for iDotMatrix-compatible 32×32 LED panels: 116 apps, multiplayer games, live data, a studio for browser and phone, and an MCP server so AI agents can drive it. Unofficial; free web app." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -29,9 +29,9 @@
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
+<script>var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");t=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}t==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");d.setAttribute("data-theme",t);p&&p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)</script>
 <script src="/main.js" defer></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeskDot","url":"https://idotmatrix.com/","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows, Linux, macOS, Android (beta)","description":"An independent (unofficial) companion app, studio and MCP server for iDotMatrix-compatible 32×32 LED panels. Versions up to v3.2 are MIT-licensed; future versions will be licensed under the DeskDot EULA.","license":"https://idotmatrix.com/license.html","author":{"@type":"Person","name":"Shiv Patel","url":"https://github.com/shivpatel2468"},"codeRepository":"https://github.com/shivpatel2468/idotmatrix","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeskDot","url":"https://idotmatrix.com/","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows, Linux, macOS, Android (beta)","description":"An independent (unofficial) companion app, studio and MCP server for iDotMatrix-compatible 32×32 LED panels. Versions up to v3.2 are MIT-licensed; future versions will be licensed under the DeskDot EULA.","license":"https://idotmatrix.com/license.html","author":{"@type":"Person","name":"Shiv Patel","url":"https://github.com/shivpatel2468"},"codeRepository":"https://github.com/shivpatel2468/idotmatrix","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"softwareVersion":"3.8.0","downloadUrl":"https://idotmatrix.com/download.html"}</script>
 </head>
 <body class="page-index">
 <a class="skip" href="#main">Skip to content</a>
@@ -42,6 +42,8 @@
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></g><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18Z"/><circle cx="7.6" cy="9" r="1.5" fill="currentColor"/><circle cx="8.6" cy="14.6" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
 </svg>
 <header class="bar" id="bar">
@@ -60,9 +62,17 @@
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
     <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="1" aria-label="1 stars">★ 1</span></a>
+    <button class="btn small theme-btn" id="theme-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="theme-menu" aria-label="Appearance: light, dark and page theme" title="Appearance"><svg aria-hidden="true"><use href="#i-theme"/></svg></button>
   </div>
 </header>
+<div class="theme-menu" id="theme-menu" role="dialog" aria-modal="false" aria-labelledby="theme-menu-h" hidden>
+  <div class="theme-menu-head"><h2 id="theme-menu-h">Appearance</h2><button type="button" class="theme-close" aria-label="Close">×</button></div>
+  <div class="seg" role="group" aria-label="Light or dark"><button type="button" data-theme-pick="light" aria-pressed="false">Light</button><button type="button" data-theme-pick="dark" aria-pressed="false">Dark</button><button type="button" data-theme-pick="system" aria-pressed="false">Auto</button></div>
+  <h3>Page theme <small id="theme-name"></small></h3>
+  <div class="swatches" role="group" aria-label="Page theme"><button type="button" class="sw sw-ember" data-page-theme-pick="ember" aria-pressed="false" title="DeskDot"><i aria-hidden="true"></i><span>DeskDot</span></button><button type="button" class="sw sw-graphite" data-page-theme-pick="graphite" aria-pressed="false" title="Graphite &amp; ice"><i aria-hidden="true"></i><span>Graphite &amp; ice</span></button><button type="button" class="sw sw-sunset" data-page-theme-pick="sunset" aria-pressed="false" title="Sunset coral"><i aria-hidden="true"></i><span>Sunset coral</span></button><button type="button" class="sw sw-citrus" data-page-theme-pick="citrus" aria-pressed="false" title="Citrus"><i aria-hidden="true"></i><span>Citrus</span></button><button type="button" class="sw sw-royal" data-page-theme-pick="royal" aria-pressed="false" title="Royal blue"><i aria-hidden="true"></i><span>Royal blue</span></button><button type="button" class="sw sw-crimson" data-page-theme-pick="crimson" aria-pressed="false" title="Crimson velvet"><i aria-hidden="true"></i><span>Crimson velvet</span></button><button type="button" class="sw sw-midnight" data-page-theme-pick="midnight" aria-pressed="false" title="Midnight neon"><i aria-hidden="true"></i><span>Midnight neon</span></button><button type="button" class="sw sw-strip" data-page-theme-pick="strip" aria-pressed="false" title="Neon strip"><i aria-hidden="true"></i><span>Neon strip</span></button><button type="button" class="sw sw-emerald" data-page-theme-pick="emerald" aria-pressed="false" title="Emerald &amp; champagne"><i aria-hidden="true"></i><span>Emerald &amp; champagne</span></button><button type="button" class="sw sw-noir" data-page-theme-pick="noir" aria-pressed="false" title="Riviera noir"><i aria-hidden="true"></i><span>Riviera noir</span></button><button type="button" class="sw sw-jade" data-page-theme-pick="jade" aria-pressed="false" title="Imperial jade"><i aria-hidden="true"></i><span>Imperial jade</span></button><button type="button" class="sw sw-deco" data-page-theme-pick="deco" aria-pressed="false" title="Gilded deco"><i aria-hidden="true"></i><span>Gilded deco</span></button><button type="button" class="sw sw-marigold" data-page-theme-pick="marigold" aria-pressed="false" title="Marigold masala"><i aria-hidden="true"></i><span>Marigold masala</span></button><button type="button" class="sw sw-cyber" data-page-theme-pick="cyber" aria-pressed="false" title="Cyber grid"><i aria-hidden="true"></i><span>Cyber grid</span></button><button type="button" class="sw sw-arcade" data-page-theme-pick="arcade" aria-pressed="false" title="Pixel arcade"><i aria-hidden="true"></i><span>Pixel arcade</span></button><button type="button" class="sw sw-sakura" data-page-theme-pick="sakura" aria-pressed="false" title="Sakura night"><i aria-hidden="true"></i><span>Sakura night</span></button><button type="button" class="sw sw-glacier" data-page-theme-pick="glacier" aria-pressed="false" title="Glacier"><i aria-hidden="true"></i><span>Glacier</span></button><button type="button" class="sw sw-oasis" data-page-theme-pick="oasis" aria-pressed="false" title="Desert oasis"><i aria-hidden="true"></i><span>Desert oasis</span></button><button type="button" class="sw sw-abyss" data-page-theme-pick="abyss" aria-pressed="false" title="Ocean abyss"><i aria-hidden="true"></i><span>Ocean abyss</span></button><button type="button" class="sw sw-volcano" data-page-theme-pick="volcano" aria-pressed="false" title="Volcano"><i aria-hidden="true"></i><span>Volcano</span></button><button type="button" class="sw sw-galaxy" data-page-theme-pick="galaxy" aria-pressed="false" title="Galaxy"><i aria-hidden="true"></i><span>Galaxy</span></button></div>
+  <p class="theme-note">The same 21 themes as the DeskDot studio. Saved in this browser; the web app opens in it too.</p>
+</div>
 <div class="notice" id="notice" role="note" aria-label="Unofficial software">
   <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
 </div>
@@ -78,18 +88,18 @@
         <p class="logo-sub">for iDotMatrix-compatible 32×32 panels · unofficial</p>
       </div>
       <h1>Turn your 32×32 LED panel into a <span class="hl">live desktop companion</span>.</h1>
-      <p class="lede"><b>DeskDot is an independent companion app for iDotMatrix-compatible 32×32 panels:</b> <span data-count="apps">102</span> apps,
+      <p class="lede"><b>DeskDot is an independent companion app for iDotMatrix-compatible 32×32 panels:</b> <span data-count="apps">116</span> apps,
         <span data-count="multiplayer">32</span> multiplayer games, live data from 45+ free sources, a studio for your
         browser and phone, and an MCP server so AI agents can see the panel and drive it.</p>
       <div class="cta">
         <a class="btn primary" href="/app/">Open in your browser <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <a class="btn" href="/download.html#agent">Set it up with your AI agent</a>
-        <a class="btn" href="/download.html">Run it yourself</a>
-        <a class="btn" href="/apps.html">Browse the apps</a>
+        <a class="btn" href="/download.html"><svg aria-hidden="true"><use href="#i-down"/></svg>Download for Windows, Mac or Android</a>
       </div>
+      <p class="hero-links"><a href="/apps.html">Browse all <span data-count="apps">116</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a href="/setup.html">Set it up with your AI agent <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
       <p class="hero-note">No install: the full engine runs in the tab and talks to the panel over Web Bluetooth (Chrome, Edge or
         Opera on Windows, macOS, ChromeOS, Linux and Android; on iPhone use the Bluefy browser).</p>
-      <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>runs on your device</span><span>free web app</span><span>MIT up to v3.2</span></div>
+      <div class="hero-meta"><span>1,024 pixels</span><span>no account</span><span>runs on your device</span><span>free, no account</span><span>updates inside the app</span><span>MIT up to v3.2</span></div>
     </div>
     <div class="device" id="device">
       <div class="device-frame">
@@ -100,9 +110,9 @@
   </div>
   <div class="wrap">
     <ul class="stats reveal" aria-label="DeskDot in numbers">
-      <li><b data-count="apps">102</b><span>apps</span></li>
+      <li><b data-count="apps">116</b><span>apps</span></li>
       <li><b data-count="games">27</b><span>games</span></li>
-      <li><b data-count="settings">995</b><span>settings, all documented</span></li>
+      <li><b data-count="settings">1,080</b><span>settings, all documented</span></li>
       <li><b>45+</b><span>free live sources</span></li>
       <li><b>7</b><span>phone controllers</span></li>
       <li><b>21</b><span>MCP tools</span></li>
@@ -138,6 +148,14 @@
   </div>
 </section>
 
+<section class="tagline" aria-label="Why DeskDot">
+  <div class="wrap">
+    <p><span class="w">Your</span> <span class="w">desk</span> <span class="w">already</span> <span class="w">has</span> <span class="w">a</span> <span class="w">screen</span> <span class="w">for</span> <span class="w">work.</span> <span class="w">Give</span> <span class="w">the</span> <span class="w hl">1,024</span> <span class="w hl">pixels</span> <span class="w">beside</span> <span class="w">it</span> <span class="w">something</span> <span class="w">to</span> <span class="w">say.</span></p>
+    <p class="sub">Clocks, the weather, your music, flights overhead, a game with friends: DeskDot keeps a small LED panel on
+      your desk showing what matters right now, and switches by itself when your music starts or a meeting begins.</p>
+  </div>
+</section>
+
 <div class="divider amber wrap" aria-hidden="true"></div>
 
 <section aria-labelledby="featured-h">
@@ -145,13 +163,13 @@
     <p class="kicker">Real renders, not mock-ups</p>
     <h2 id="featured-h" class="reveal">Every app, exactly as the LEDs show it</h2>
     <p class="sub reveal">Each preview on this site is rendered by DeskDot's own engine at 32×32, the same frames your panel gets.
-      Here are a few; the explorer has all <span data-count="apps">102</span>.</p>
+      Here are a few; the explorer has all <span data-count="apps">116</span>.</p>
     <div class="app-grid">
 <!-- gen:featured -->
 <a class="card app-card" href="/apps/synthwave.html" style="--glow:#c39bff;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/synthwave.png" /><img src="/media/apps/synthwave.gif" width="32" height="32" loading="lazy" decoding="async" alt="Synthwave Horizon running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Synthwave Horizon</h3>
     <p>80s cyberpunk outrun horizon with 3D perspective grid, blazing sun, and sports car.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -160,7 +178,7 @@
 <a class="card app-card" href="/apps/petworld.html" style="--glow:#5cf2a0;--i:1">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/petworld.png" /><img src="/media/apps/petworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#5cf2a0">Pets</span>
+    <span class="tag" style="--c:#5cf2a0">Pets</span>
     <h3>Pet World</h3>
     <p>Lofi pets living in a scrolling little world — working, snacking, football, naps, dancing.</p>
     <div class="foot"><span>14 settings</span></div>
@@ -169,7 +187,7 @@
 <a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:2">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neon Trails running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Neon Trails</h3>
     <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -178,25 +196,25 @@
 <a class="card app-card" href="/apps/weather.html" style="--glow:#45d9ff;--i:3">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/weather.png" /><img src="/media/apps/weather.gif" width="32" height="32" loading="lazy" decoding="async" alt="Weather running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Weather</h3>
     <p>Animated conditions, temperature, high/low and a 24-hour trend. Location in Settings.</p>
-    <div class="foot"><span>2 settings</span></div>
+    <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/nowplaying.html" style="--glow:#ff3f78;--i:4">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/nowplaying.png" /><img src="/media/apps/nowplaying.gif" width="32" height="32" loading="lazy" decoding="async" alt="Now Playing running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Now Playing</h3>
-    <p>Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, spectrum and more.</p>
-    <div class="foot"><span>19 settings</span></div>
+    <p>Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, cassette, CD, VU meters, radio dial and more.</p>
+    <div class="foot"><span>44 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/radar.html" style="--glow:#45d9ff;--i:5">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/radar.png" /><img src="/media/apps/radar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flight Radar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Flight Radar</h3>
     <p>A phosphor radar scope of live aircraft around you (free ADS-B). Click a blip to inspect it.</p>
     <div class="foot"><span>10 settings</span></div>
@@ -205,7 +223,7 @@
 <a class="card app-card" href="/apps/wireframe.html" style="--glow:#c39bff;--i:6">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/wireframe.png" /><img src="/media/apps/wireframe.gif" width="32" height="32" loading="lazy" decoding="async" alt="3D Wireframe Vector running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>3D Wireframe Vector</h3>
     <p>Retro 80s 3D vector graphics and 4D tesseract holo-display with depth cueing.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -214,7 +232,7 @@
 <a class="card app-card" href="/apps/flybrain.html" style="--glow:#c39bff;--i:7">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flybrain.png" /><img src="/media/apps/flybrain.gif" width="32" height="32" loading="lazy" decoding="async" alt="Fly Brain running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Fly Brain</h3>
     <p>A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
     <div class="foot"><span>3 settings</span></div>
@@ -222,7 +240,7 @@
 </a>
 <!-- /gen:featured -->
     </div>
-    <p class="more-link"><a class="btn" href="/apps.html">See all <span data-count="apps">102</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+    <p class="more-link"><a class="btn" href="/apps.html">See all <span data-count="apps">116</span> apps <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
   </div>
 </section>
 
@@ -312,7 +330,7 @@
     </div>
     <div class="fine">
       <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
-      <span>1,024 pixels.</span>
+      <span><button type="button" class="theme-open" aria-controls="theme-menu" aria-expanded="false">Appearance and page theme</button> · 1,024 pixels.</span>
     </div>
   </div>
 </footer>
