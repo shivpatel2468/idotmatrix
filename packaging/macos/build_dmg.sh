@@ -29,7 +29,15 @@ codesign --verify --deep --strict "$APP"
 cp -R "$APP" "$STAGE/DeskDot.app"
 ln -s /Applications "$STAGE/Applications"
 rm -f "$DMG"
-hdiutil create -volname "DeskDot $VERSION" -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"
+# hdiutil on CI runners sometimes fails with "Resource busy" while macOS is still scanning the fresh files: retry.
+for attempt in 1 2 3 4 5; do
+  if hdiutil create -volname "DeskDot $VERSION" -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG"; then
+    break
+  fi
+  if [ "$attempt" = 5 ]; then echo "hdiutil failed 5 times" >&2; exit 1; fi
+  echo "hdiutil busy (attempt $attempt), retrying in $((attempt * 10)) s" >&2
+  sleep $((attempt * 10))
+done
 rm -rf "$STAGE"
 
 if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
