@@ -361,6 +361,24 @@ Connection sheet, the MCP server and scripts can say the same thing:
 | POST | `/api/nowplaying/{toggle|play|pause|next|prev}` | media controls: Windows (GSMTC), macOS (Spotify / Music via AppleScript, others via `nowplaying-cli`), Linux (`playerctl`). The Now Playing app's `status.actions` is empty where the player can't be controlled (the studio hides its buttons) |
 | GET | `/api/nowplaying/layouts/{layout}.png?scale=4` | a Now Playing layout drawn for a built-in demo song (the studio's visual layout picker); 404 for an unknown layout |
 
+## Updates (src/deskdot/updates.py)
+
+DeskDot asks GitHub (`GET https://api.github.com/repos/shivpatel2468/idotmatrix/releases/latest`) at most every
+6 h while `auto_check` is on (default), and whenever `POST /api/updates/check` is called. Nothing but that request
+is sent. Installing only accepts HTTPS assets of that repository's release whose SHA-256 matches the release's
+`checksums.txt` (or `<asset>.sha256`). Local only, like the rest of the studio API.
+
+| Method | Path | Returns / body |
+| --- | --- | --- |
+| GET | `/api/updates` | `{current, latest, available, notes, name, published_at, url, assets: [{name, size, url}], checked_at, auto_check, kind, can_install, source_hint, status, progress, error, message}` — `notes` is the release body (WHATS_NEW-style markdown); `assets` is the one installer for this system; `kind` = `windows` / `macos` / `android` (installed apps) / `source` (a checkout or `uv run`: `source_hint` says to `git pull` and rebuild) / `web` |
+| POST | `/api/updates/check` | asks GitHub now; same reply |
+| PUT | `/api/updates` | `{auto_check: bool}`; same reply |
+| POST | `/api/updates/install` | downloads, verifies and hands off; reply adds `result`: `restart` (Windows/macOS: the installer takes over and the engine exits ~1.5 s later, DeskDot starts again), `opened` (macOS: the dmg was opened because the app's folder isn't writable), `started` / `permission` / `signature` (Android: installer open / allow DeskDot to install apps first / the APK is signed with another key). `409 {detail}` with a message when it refuses: running from source, already up to date, no installer for this system, checksum missing or wrong, download failed |
+
+Progress rides on the WebSocket: `state.updates = {current, latest, available, status, progress, error}` with
+`status` = `idle` · `checking` · `downloading` (`progress` 0–1) · `verifying` · `installing` · `error`.
+`DESKDOT_UPDATE_CHECK=0` turns the background check off (tests set it).
+
 ## WebSocket `/ws`
 
 Server → client:
