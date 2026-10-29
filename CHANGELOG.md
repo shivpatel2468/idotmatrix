@@ -3,6 +3,19 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.9.0 — 2026-10-30 · Page themes are the casino's table themes
+
+- **Page themes = `TABLE_THEMES`**: the table data moved to `src/deskdot/gfx/tables.py` (re-exported by
+  `apps/_casino.py`); `gfx/themes.py` builds the 21 page themes from it (same ids / names) with `screen_tokens()` (dark =
+  the dark casino's room, surfaces, inks, accent, felt glow + motif; light = the porcelain salon, AA-pushed) and LED
+  palettes whose hero is the table's LED accent. Default `cyber`; `LEGACY` maps `ember`/`graphite`/`sunset`/`citrus`/
+  `glacier` → `cyber`/`noir`/`volcano`/`arcade`/`arctic` (stored state, `POST /api/theme`, the browser). Theme-aware apps
+  follow every theme, the default included; `deskdot preview` without `--theme` draws own colours.
+  `scripts/gen_page_themes.py` writes `web/src/lib/pageThemes.gen.ts` + `web/src/pageTheme.default.gen.css` (a test
+  fails when stale); index.css § TABLE ROOM styles the dark studio's panels as casino wings. First run: Cyber grid,
+  dark (studio, launcher, `webapp/host.js`, Android bars/resources); in the web app `deskdot.siteTheme` leads and is
+  written back. The top bar's Casino key pins classic gold (`.cz-gold-top`; the page theme's `--gold` leaked into it).
+
 ## 3.8.0 — 2026-10-29 · Desktop installers, a signed release APK, in-app updates
 
 - **Installers** (`packaging/`): PyInstaller onedir spec (`deskdot.spec`; bundles `web/dist`, `deskdot.example.toml`,

@@ -1972,3 +1972,39 @@ body { overscroll-behavior: none; }
    makes the panel a backdrop root, and its blur would then see nothing behind it */
 :is(.surface, .glass, .glass-thick, .glass-capsule).animate-rise { animation: lg-rise 0.5s var(--ease-snap); }
 @keyframes lg-rise { from { transform: translateY(10px) scale(0.97); } }
+
+/* =====================================================================================================================
+ * TABLE ROOM — the page theme in dark (docs/STUDIO_UI.md § Page themes). Every page theme is a casino table, and in
+ * the dark the studio is that table's room, exactly as the casino view draws it (casino.css .cz-wing, .cz-tabs): the
+ * panels are the casino's wings (the table's wing gradient lit from the top by the accent, a hairline of the accent
+ * round the edge, the felt's motif faint inside), selected tabs and chips are lit accent keys with the accent's glow.
+ * The tokens (--pt-wing*, --pt-acc-rgb, --pt-motif*) come from pageThemes.gen.ts. The casino view (html[data-cz]) and
+ * light mode (the porcelain salon) keep their own rules.
+ * ===================================================================================================================== */
+:root:not([data-theme="light"]):not([data-cz]) {
+  --pt-wing-bg:
+    radial-gradient(120% 80% at 50% 0%, rgba(var(--pt-acc-rgb, 255, 72, 24), 0.06), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--pt-wing, var(--color-chassis-2)) 88%, transparent),
+      color-mix(in srgb, var(--pt-wing-2, var(--color-chassis-1)) 90%, transparent) 55%,
+      color-mix(in srgb, var(--pt-wing-3, var(--color-chassis-1)) 92%, transparent));
+}
+/* the floating panels (library, inspector, now-showing, playback dock, the fly's bar, menus, sheets): wings */
+:root:not([data-theme="light"]):not([data-cz]) :is(.surface, .sheet, .mini-now):not(:is(.surface, .glass, .glass-thick, .sheet) *) {
+  border-color: rgba(var(--pt-acc-rgb, 255, 72, 24), 0.16);
+  box-shadow: inset 0 1px 0 rgba(var(--pt-acc-rgb, 255, 72, 24), 0.07), var(--lg-shadow), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+}
+:root:not([data-theme="light"]):not([data-cz]) :is(.surface, .sheet, .mini-now):not(:is(.surface, .glass, .glass-thick, .sheet) *)::before {
+  background: var(--pt-motif, none), linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--pt-wing-bg);
+  background-size: var(--pt-motif-size, auto), auto, auto, auto;
+}
+/* the bars and capsules (top bar keys, tab bar): the accent's hairline */
+:root:not([data-theme="light"]):not([data-cz]) :is(.glass-capsule, .tabbar, .phone-head) { border-color: rgba(var(--pt-acc-rgb, 255, 72, 24), 0.16); }
+/* segmented controls are the casino's tab rails; the picked one is a lit accent key */
+:root:not([data-theme="light"]):not([data-cz]) .seg { background: rgba(0, 0, 0, 0.35); border-color: rgba(var(--pt-acc-rgb, 255, 72, 24), 0.12); }
+:root:not([data-theme="light"]):not([data-cz]) :is(.seg > button[data-active="true"], .lib-chip[aria-selected="true"]) {
+  color: var(--color-on-ember); border-color: var(--color-ember-2);
+  background: linear-gradient(180deg, var(--color-ember-2), var(--color-ember));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 18px -6px rgba(var(--pt-acc-rgb, 255, 72, 24), 0.8);
+}
+/* section rules and hairlines inside the wings take the accent, like the casino's sections */
+:root:not([data-theme="light"]):not([data-cz]) .surface .border-line { border-color: rgba(var(--pt-acc-rgb, 255, 72, 24), 0.1); }

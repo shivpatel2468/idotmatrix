@@ -1,9 +1,10 @@
-"""Page themes (docs/STUDIO_UI.md § Page themes, docs/APP_SDK.md § Page theme): the LED palette contract, apps
-following the theme, the engine / API, and the studio's mirror of the table."""
+"""Page themes (docs/STUDIO_UI.md § Page themes, docs/APP_SDK.md § Page theme): the casino's table themes as the
+studio's themes, the LED palette contract, apps following the theme, the engine / API, old ids, and the studio's
+generated copy."""
 
 from __future__ import annotations
 
-import json
+import importlib.util
 import re
 from pathlib import Path
 from typing import Any
@@ -15,7 +16,8 @@ from deskdot.config import Config
 from deskdot.engine import REGISTRY
 from deskdot.engine.app import themed_settings
 from deskdot.gfx import Frame, to_rgb
-from deskdot.gfx.themes import DEFAULT_THEME, PAGE_THEMES, ROLES, page_theme
+from deskdot.gfx.tables import TABLE_THEMES, contrast
+from deskdot.gfx.themes import DEFAULT_THEME, LEGACY, PAGE_THEMES, ROLES, SURFACES, TEXT_TOKENS, page_theme
 from deskdot.server import create_app
 
 ROOT = Path(__file__).parents[1]
@@ -39,27 +41,82 @@ def test_panel_palette_is_led_safe(tid: str) -> None:
     assert set(p.public()) == set(ROLES)
 
 
-def test_the_default_theme_is_the_original_look() -> None:
-    th = PAGE_THEMES[DEFAULT_THEME]
-    assert th.panel.accent == (255, 72, 24) and th.accent == "#ff4818" and th.accent_light == "#b81f4b"
-    assert not th.tint and not th.pattern  # untinted chassis, the dot grid: nothing to override
-    assert page_theme("nope") is th and page_theme(None) is th
+def test_page_themes_are_the_casino_tables() -> None:
+    assert [(t.id, t.name, t.description) for t in PAGE_THEMES.values()] == [
+        (t.id, t.name, t.description) for t in TABLE_THEMES.values()
+    ]
+    assert DEFAULT_THEME == "cyber" and PAGE_THEMES[DEFAULT_THEME].name == "Cyber grid"
+    assert page_theme("nope") is PAGE_THEMES["cyber"] and page_theme(None) is PAGE_THEMES["cyber"]
+
+
+def test_old_ids_map_to_the_nearest_table() -> None:
+    assert LEGACY["ember"] == "cyber" and page_theme("ember").id == "cyber"
+    assert page_theme("glacier").id == "arctic"
+    for old, new in LEGACY.items():
+        assert new in PAGE_THEMES and old not in PAGE_THEMES, old
+    # every pre-3.9 id is either a table id already or mapped
+    before = [
+        "ember",
+        "graphite",
+        "sunset",
+        "citrus",
+        "royal",
+        "crimson",
+        "midnight",
+        "strip",
+        "emerald",
+        "noir",
+    ]
+    before += [
+        "jade",
+        "deco",
+        "marigold",
+        "cyber",
+        "arcade",
+        "sakura",
+        "glacier",
+        "oasis",
+        "abyss",
+        "volcano",
+        "galaxy",
+    ]
+    assert all(old in PAGE_THEMES or old in LEGACY for old in before)
 
 
 @pytest.mark.parametrize("tid", list(PAGE_THEMES))
-def test_screen_seeds_are_valid(tid: str) -> None:
+def test_screen_tokens_read_like_the_casino(tid: str) -> None:
     th = PAGE_THEMES[tid]
-    assert th.name and th.description and len(th.description) < 120
-    for k in ("accent", "metal"):
-        assert HEX.match(getattr(th, k)), (tid, k)
-    for k in ("accent_light", "tint"):
-        assert getattr(th, k) == "" or HEX.match(getattr(th, k)), (tid, k)
-    if th.pattern:  # a gradient-only texture (no images), one background-size entry per layer, faint
-        assert "url(" not in th.pattern
-        layers = re.split(r",\s*(?=(?:repeating-)?(?:linear|radial|conic)-gradient)", th.pattern)
-        assert all(re.match(r"^(repeating-)?(linear|radial|conic)-gradient\(", x) for x in layers), tid
-        assert len(th.pattern_size.split(",")) == len(layers), tid
-        assert all(float(a) <= 0.12 for a in re.findall(r"rgba\([^)]*,\s*([0-9.]+)\)", th.pattern)), tid
+    tok = th.tokens()
+    c = th.table.css
+    assert tok["dark"].keys() == tok["light"].keys()  # the light block overrides every dark token
+    # dark: exactly the casino's room around the table (casino.css html[data-cz], state.ts pageVars)
+    d = tok["dark"]
+    assert [d[f"color-chassis-{i}"] for i in range(5)] == [
+        c["bg"],
+        c["surface"],
+        c["surface2"],
+        c["surface3"],
+        c["surface4"],
+    ]
+    assert d["color-ember-2"] == c["accent_hi"] and d["color-ember-deep"] == c["accent_deep"]
+    for mode, t in tok.items():
+        for k in (*TEXT_TOKENS,):
+            low = min(contrast(t[k], t[s]) for s in SURFACES)
+            assert low >= 4.5, f"{tid}.{mode} {k} {t[k]}: {low:.2f}:1 on the page"
+        assert contrast(t["color-on-ember"], t["color-ember"]) >= 4.5, (
+            tid,
+            mode,
+            "lettering on an accent key",
+        )
+        for k in ("m-texture",):  # gradients only (no images), one background-size entry per layer
+            assert "url(" not in t[k]
+            layers = re.split(r",\s*(?=(?:repeating-)?(?:linear|radial|conic)-gradient)", t[k])
+            assert all(re.match(r"^(repeating-)?(linear|radial|conic)-gradient\(", x) for x in layers), (
+                tid,
+                mode,
+            )
+            assert len(t["m-texture-size"].split(",")) == len(layers), (tid, mode)
+    assert min(contrast(tok["dark"]["color-ink-1"], tok["dark"][s]) for s in SURFACES) >= 7
 
 
 # ------------------------------------------------------------------ apps follow the theme
@@ -89,7 +146,9 @@ def test_themed_settings_only_touch_untouched_colours() -> None:
     cls = REGISTRY["clock"]
     galaxy = PAGE_THEMES["galaxy"]
     s = cls.Settings()
-    assert themed_settings(cls, s, PAGE_THEMES[DEFAULT_THEME]) is s  # the default theme: own colours
+    assert themed_settings(cls, s, None) is s  # no theme (bare previews): own colours
+    cyber = themed_settings(cls, s, PAGE_THEMES[DEFAULT_THEME])  # the default theme recolours too
+    assert to_rgb(cyber.accent) == PAGE_THEMES[DEFAULT_THEME].panel.accent
     t = themed_settings(cls, s, galaxy)
     assert to_rgb(t.accent) == galaxy.panel.accent and t.color == s.color  # only the mapped field
     mine = cls.Settings(accent="#123456")
@@ -156,18 +215,22 @@ def test_theme_api(tmp_path: Path) -> None:
         assert set(r["themes"][0]) >= {"id", "name", "description", "screen", "panel"}
         assert c.post("/api/theme", json={"id": "arcade"}).json()["id"] == "arcade"
         assert c.get("/api/state").json()["settings"]["page_theme"] == "arcade"
+        assert c.post("/api/theme", json={"id": "ember"}).json()["id"] == "cyber"  # an old studio's id
         assert c.post("/api/theme", json={"id": "nope"}).status_code == 422
         assert c.post("/api/theme", json={"id": "Bad Id!"}).status_code == 422
 
 
-# ------------------------------------------------------------------ the studio mirror
-def test_studio_mirror_matches_the_engine() -> None:
-    """web/src/lib/pageTheme.ts PAGE_THEMES paints before the engine answers (and offline): keep it in sync."""
-    ts = (ROOT / "web/src/lib/pageTheme.ts").read_text(encoding="utf-8")
-    m = re.search(r"export const PAGE_THEMES: PageThemeSeed\[\] = (\[.*?\n\]);", ts, re.S)
-    assert m, "PAGE_THEMES table not found"
-    studio = json.loads(m.group(1))
-    engine = [
-        {"id": t.id, "name": t.name, "description": t.description, **t.screen()} for t in PAGE_THEMES.values()
-    ]
-    assert studio == engine
+# ------------------------------------------------------------------ the studio's generated copy
+def test_generated_studio_themes_are_current() -> None:
+    """web/src/lib/pageThemes.gen.ts and web/src/pageTheme.default.gen.css come from TABLE_THEMES: regenerate them
+    (uv run python scripts/gen_page_themes.py) after changing a table or the token derivation."""
+    spec = importlib.util.spec_from_file_location("gen_page_themes", ROOT / "scripts" / "gen_page_themes.py")
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for path, text in mod.outputs().items():
+        assert path.read_text(encoding="utf-8") == text, (
+            f"{path.name} is stale: run scripts/gen_page_themes.py"
+        )
+    ts = (ROOT / "web/src/lib/pageThemes.gen.ts").read_text(encoding="utf-8")
+    assert all(f'"id": "{t}"' in ts for t in PAGE_THEMES)

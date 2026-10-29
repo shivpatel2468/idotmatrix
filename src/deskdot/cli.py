@@ -97,12 +97,12 @@ def _preview(a: argparse.Namespace) -> None:
     from .engine import REGISTRY
     from .engine.app import themed_settings
     from .gfx import Frame
-    from .gfx.themes import PAGE_THEMES
+    from .gfx.themes import LEGACY, PAGE_THEMES
 
     cls = REGISTRY[a.app]
-    if a.theme not in PAGE_THEMES:
+    if a.theme and LEGACY.get(a.theme, a.theme) not in PAGE_THEMES:
         raise SystemExit(f"unknown theme {a.theme!r}; one of: {', '.join(PAGE_THEMES)}")
-    theme = PAGE_THEMES[a.theme]
+    theme = PAGE_THEMES[LEGACY.get(a.theme, a.theme)] if a.theme else None  # none: the app's own colours
 
     class _Ctx:
         data: ClassVar[dict] = {}  # type: ignore[type-arg]
@@ -171,7 +171,11 @@ def main(argv: list[str] | None = None) -> None:
     pv.add_argument("--t", type=float, default=0.0)
     pv.add_argument("--scale", type=int, default=10)
     pv.add_argument("--out", default="preview.png")
-    pv.add_argument("--theme", default="ember", help="page theme id (docs/STUDIO_UI.md § Page themes)")
+    pv.add_argument(
+        "--theme",
+        default="",
+        help="page theme id (docs/STUDIO_UI.md § Page themes); default: the app's own colours",
+    )
     pv.set_defaults(fn=_preview)
     ln = sub.add_parser(
         "launcher", help="system-wide command bar with a global hotkey (needs --extra launcher)"

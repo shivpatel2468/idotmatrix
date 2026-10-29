@@ -33,7 +33,7 @@ scenes (renders, like a video) and the games' own colours (black roulette pocket
 
 ## Themes (`lib/theme.ts`, `web/index.html`)
 
-- **One switch:** `light` · `dark` · `system` (default). Stored in `localStorage["deskdot.theme"]`; applied as
+- **One switch:** `light` · `dark` (the first-run default, 3.9) · `system` (Auto). Stored in `localStorage["deskdot.theme"]`; applied as
   `<html data-theme="light|dark">` + `color-scheme` **before first paint** by the inline script in `web/index.html`
   (and `launcher.html`; on the website's `/app/`, whose CSP blocks inline scripts, `webapp/host.js` does it first).
   `installTheme()` (main.tsx) keeps it live: the OS flipping light/dark while on `system`, and other tabs changing it.
@@ -47,7 +47,7 @@ scenes (renders, like a video) and the games' own colours (black roulette pocket
   `DeskDotAndroid.setBars(status, nav, page, lightIcons)` on every theme change: the status bar takes the header
   colour (`chassis-1`), the navigation bar the tab bar's (`--m-glass`), the window background the page
   (`chassis-0`), and the bar icons turn dark on light. The app remembers it, so the next cold start opens in the same
-  colours (first start: the phone's light / dark, like the studio's Auto) — no black flash. android/README.md.
+  colours (first start: Cyber grid, dark — the studio's first-run look) — no black flash. android/README.md.
 - **Every page shares the key** — casino.html, controller.html, the join pages and the TV read `deskdot.theme`
   (same origin as the studio when served by the engine), else `prefers-color-scheme`; the TV defaults to dark.
 - **Components never hardcode colour.** Use the tokens below (Tailwind utilities resolve per theme), the `--m-*`
@@ -61,34 +61,42 @@ scenes (renders, like a video) and the games' own colours (black roulette pocket
 
 ## Page themes (`lib/pageTheme.ts`, `gfx/themes.py`)
 
-Light / dark is *how bright* the studio is; the **page theme** is *its colours*. 21 curated themes — `ember` (DeskDot,
-the default and exactly the original look), studio originals `graphite` (Graphite & ice), `sunset` (Sunset coral),
-`citrus`, and 17 adapted from the casino's table concepts: `royal`, `crimson`, `midnight`, `strip`, `emerald`, `noir`,
-`jade`, `deco`, `marigold`, `cyber`, `arcade`, `sakura`, `glacier`, `oasis`, `abyss`, `volcano`, `galaxy`. Each has a
-light and a dark variant; the Light · Dark · Auto switch keeps working on top.
+Light / dark is *how bright* the studio is; the **page theme** is *its colours*. Since 3.9 the page themes **are the
+casino's 21 table themes** (`gfx/tables.py` `TABLE_THEMES`: same ids, names and descriptions — `classic` Classic green,
+`royal`, `crimson`, `midnight`, `strip`, `emerald`, `burgundy`, `noir`, `jade`, `deco`, `marigold`, `diwali`, `cyber`
+Cyber grid — **the default** —, `arcade`, `sakura`, `arctic` Glacier, `oasis`, `abyss`, `volcano`, `galaxy`,
+`riverboat`), so the studio, the casino and the website (its copy's `scripts/site_theme.py`, `deskdot.siteTheme`) can't
+drift. First run: Cyber grid, **Dark** (studio, web app, Android app); saved choices are kept. Ids from before 3.9 map to
+the nearest table (`gfx/themes.py` `LEGACY`: `ember` → `cyber`, `graphite` → `noir`, `sunset` → `volcano`, `citrus` →
+`arcade`, `glacier` → `arctic`) on the engine and in the browser.
 
-- **One table, two halves** (`src/deskdot/gfx/themes.py` `PAGE_THEMES`): *screen seeds* — `accent` (on graphite),
-  `accent_light` (on ivory; empty = derived), `metal` (the second accent: gold, silver, brass, neon…), `tint` (the hue
-  the chassis and washes lean to) and `pattern` / `pattern_size` (the page's texture motif: gradients only, ≤ 12 %
-  alpha, one size per layer) — and a *panel palette* for the LED apps (see APP_SDK.md § Page theme). The studio mirrors
-  the seeds in `lib/pageTheme.ts` `PAGE_THEMES`; `tests/test_page_themes.py` keeps them equal.
-- **Derived, not hand-tuned:** `derive()` turns the seeds into every token per mode — `ember` / `ember-2` /
-  `ember-deep` / `ember-line` / `on-ember` (the accent nudged until it reads AA as text on graphite, and on porcelain
-  for light), `gold` / `gold-2` / `gold-text` (the metal; antique in light), the chassis and hairlines tinted 6–14 %
-  toward `tint`, `--m-page-glow` / `--m-wash-a` / `--m-wash-b`, `--m-texture` (the motif; re-inked in the ivory
-  accent for light), `--m-gold-leaf` / `--m-brass` / `--m-champagne` / `--m-rule-gold`, plus the plain pages' short
-  names (`--ember`, `--c0`, `--line`, `--gold`, the launcher's `--rose` / `--tangerine` / `--tan-*`, the web app's
-  `--landing-bg`). Every MATERIALS v2 accent mix (`--m-accent-wash`, halos, focus rings) follows because it is
-  computed from `--color-ember` where it is declared. The few literal accent colours that were left in `index.css`
-  are `color-mix()`es of the tokens now (identical under `ember`).
-- **Scoped and separate from the casino:** the CSS is one stylesheet scoped to
-  `:root[data-page-theme="<id>"]:not([data-cz])` (+ `[data-theme="light"]`, + the `.theme-dark` / `.bezel` subtrees,
-  which keep the dark accent in light). While the casino view is open (`html[data-cz]`) the table theme owns the page,
-  as before; casino.html and the TV never load a page theme. `ember` emits nothing.
+- **Dark is the table's dark casino, exactly** (`themes.py` `_dark`, the values casino.css uses for `html[data-cz]` and
+  the wings): the chassis is the table's room and surfaces (`bg`, `surface` … `surface4`), lines are the surfaces lit
+  14 / 24 % by the accent, the inks are the casino's felt-tinted inks (AA-checked), `ember` / `ember-2` /
+  `ember-deep` are the table's accent / highlight / deep, the page glows with the felt and carries the felt's motif
+  (`--m-texture`) over the dot grid. **§ TABLE ROOM** in index.css then makes the floating panels the casino's
+  wings (the wing gradient lit from the top, an accent hairline, the motif faint inside — tokens `--pt-wing*`,
+  `--pt-acc-rgb`, `--pt-motif*`), the bars' capsules take the accent hairline, and segmented controls and the
+  library's chips are the casino's tab rails with lit accent keys.
+- **Light is the casino's porcelain salon** (`_light`, casino.css `:root[data-theme="light"][data-cz]`): porcelain
+  washed in the table's colour (the accent when the felt is a graphite), the accent deepened to bronze until it reads
+  AA on every surface and under white lettering, gold leaf in the accent, the motif inked faintly.
+- **Generated, not mirrored:** `scripts/gen_page_themes.py` writes `web/src/lib/pageThemes.gen.ts` (names, swatch
+  colours, bar colours and each theme's stylesheet) and `web/src/pageTheme.default.gen.css` (Cyber grid, also for a
+  page with no `data-page-theme` yet — a first visit paints it before any script). `tests/test_page_themes.py` fails
+  when they are stale, checks the tokens (casino-exact dark chassis, AA text, gradient-only textures, light overrides
+  every dark token) and the LED rules.
+- **Scoped and separate from the casino:** the CSS is scoped to `:root[data-page-theme="<id>"]:not([data-cz])`
+  (+ `[data-theme="light"]`, + the `.theme-dark` / `.bezel` subtrees, which keep the dark accent in light). While the
+  casino view is open (`html[data-cz]`) the table on screen owns the page, as before; casino.html and the TV never load
+  a page theme. The top bar's gold **Casino** key is always classic gold (`.cz-gold-top` pins its gold tokens, so a page
+  theme's `--gold` can't leak into its gradient).
 - **Stored on the engine** (`POST /api/theme`, `state.settings.page_theme`), so every device, phone and the Android app
   show the same theme; `main.tsx` follows the state push (`syncPageTheme`; a push older than this tab's own pick is
   ignored for 4 s). This browser keeps a fallback copy: `localStorage deskdot.pageTheme` + the generated CSS in
-  `deskdot.pageThemeCss`. An engine that doesn't know themes keeps the pick local (the picker says so).
+  `deskdot.pageThemeCss`. An engine that doesn't know themes keeps the pick local (the picker says so). In the web app
+  (idotmatrix.com/app/) the website's pick (`deskdot.siteTheme`, same origin) leads: /app opens in the table the site
+  was showing (the browser engine is told), and a pick in /app is written back for the site.
 - **No flash, no jump:** `index.html` and `launcher.html` paint the cached CSS before the first frame (a `<style
   id="dd-page-theme">`); `webapp/host.js` and `controller.html` do the same with a constructed stylesheet (CSP-proof).
   At run time the CSS lives in one `document.adoptedStyleSheets` sheet (a `<style>` where unsupported). A change

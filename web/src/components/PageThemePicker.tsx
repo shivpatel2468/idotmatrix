@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DEFAULT_PAGE_THEME, PAGE_THEMES, type PageThemeSeed, derive, pageThemeSeed, setPageTheme, usePageTheme } from "../lib/pageTheme";
+import { DEFAULT_PAGE_THEME, PAGE_THEMES, type PageThemeDef, pageThemeDef, setPageTheme, usePageTheme } from "../lib/pageTheme";
 import { toast } from "../lib/store";
 import { useTheme } from "../lib/theme";
 
@@ -32,16 +32,16 @@ const pick = async (id: string) => {
   if (!(await setPageTheme(id))) toast("Page theme saved on this device only — the engine didn't take it (restart it to share it)", "info");
 };
 
-/** A tiny picture of the studio in a page theme, in the light / dark mode on screen. */
-function Swatch({ t, mode }: { t: PageThemeSeed; mode: "light" | "dark" }) {
-  const c = derive(t)[mode];
-  const pat = t.pattern ? t.pattern : `radial-gradient(circle at 1px 1px, ${mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(64,48,24,0.12)"} 1px, transparent 0)`;
+/** A tiny picture of the studio in a page theme (its table's room, felt motif, card, accent bar and key), in the
+ *  light / dark mode on screen. */
+function Swatch({ t, mode }: { t: PageThemeDef; mode: "light" | "dark" }) {
+  const c = t[mode];
   return (
     <span className="pt-art" aria-hidden
       style={{
-        ["--pt-bg" as string]: c.c0, ["--pt-card" as string]: c.c2, ["--pt-line" as string]: c.lineB,
-        ["--pt-acc" as string]: c.accent, ["--pt-metal" as string]: c.metal, ["--pt-pat" as string]: pat,
-        ["--pt-pat-size" as string]: t.pattern ? t.pattern_size || "auto" : "8px 8px",
+        ["--pt-bg" as string]: c.c0, ["--pt-card" as string]: c.c2, ["--pt-line" as string]: c.line,
+        ["--pt-acc" as string]: c.accent, ["--pt-metal" as string]: c.metal, ["--pt-pat" as string]: c.texture,
+        ["--pt-pat-size" as string]: c.textureSize, ["--pt-felt" as string]: t.felt,
       }}>
       <i className="pt-card" />
       <i className="pt-bar" />
@@ -59,7 +59,7 @@ export function PageThemeGrid() {
   const mode = useTheme();
   const led = useLedPalettes();
   const [peek, setPeek] = useState<string | null>(null);
-  const shown = pageThemeSeed(peek ?? cur);
+  const shown = pageThemeDef(peek ?? cur);
   return (
     <div className="flex flex-col gap-2.5">
       <div className="pt-grid" role="radiogroup" aria-label="Page theme" onMouseLeave={() => setPeek(null)}>
@@ -88,14 +88,15 @@ export function PageThemeGrid() {
   );
 }
 
-/** A compact row of round swatches (Display menu, phone Quick controls): accent over metal, a ring on the current one. */
+/** A compact row of round swatches (Display menu, phone Quick controls): the table's accent over its room, a ring on
+ *  the current one. */
 export function PageThemeDots({ className = "" }: { className?: string }) {
   const cur = usePageTheme();
   const mode = useTheme();
   return (
     <div className={`pt-dots ${className}`} role="radiogroup" aria-label="Page theme">
       {PAGE_THEMES.map((t) => {
-        const c = derive(t)[mode];
+        const c = t[mode];
         return (
           <button key={t.id} role="radio" aria-checked={t.id === cur} data-on={t.id === cur || undefined} title={t.name} aria-label={t.name}
             className="pt-dot" onClick={() => pick(t.id)}

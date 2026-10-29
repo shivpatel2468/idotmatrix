@@ -30,8 +30,8 @@ and keeps playing with the laptop off. Why and how: [docs/adr/0011-android-host-
   | `version()` | `1` |
 
   The studio calls `setBars` on every theme change (light / dark / Auto), so status bar, navigation bar and the
-  window behind the page always match. Before the studio loads, `values/` (light) and `values-night/` (dark)
-  colour the window like the studio's Auto default; after the first run the remembered theme is used. Android 15+
+  window behind the page always match. Before the studio loads, `values/` and `values-night/` colour the window in
+  the studio's first-run look (Cyber grid, dark); after the first run the remembered theme is used. Android 15+
   draws apps edge to edge: there the root view is padded by the bar insets and the window background (the theme's
   page colour) shows behind the bars.
 

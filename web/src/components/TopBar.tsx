@@ -135,7 +135,7 @@ function CasinoKey() {
   }, [app]);
   if (inCasino || !hasCasino) return null; // in the casino already / no casino
   return (
-    <button className="cz-gold shrink-0" onClick={() => void openCasino()} title={app ? "Back to the casino table: house, players and the room" : "Open the casino: the last table goes on the panel"}>
+    <button className="cz-gold cz-gold-top shrink-0" onClick={() => void openCasino()} title={app ? "Back to the casino table: house, players and the room" : "Open the casino: the last table goes on the panel"}>
       <Dices size={14} /> Casino
     </button>
   );
