@@ -19,6 +19,7 @@ import { CONTACT_EMAIL, LEGAL_LINKS, LICENCE_LINE, UNOFFICIAL_LINE } from "../li
 import { Picker } from "./Picker";
 import { AppIconPicker } from "./AppIconPicker";
 import { inAndroidApp } from "../lib/android";
+import { UpdatesBlock } from "./Updates";
 
 type St = EngineState;
 
@@ -30,7 +31,7 @@ const SECTIONS: [SettingsSection, string, string, string][] = [
   ["display", "Display & colour", "monitor", "Page theme, light or dark, brightness, night mode, sounds, colours, smooth motion"],
   ["alerts", "Notifications & integrations", "bell-ring", "Computer alerts, On Air, eye breaks, phone pushes, smart home"],
   ["playlist", "Playlist & hand-off", "list-music", "Transitions, presets, following your apps, running without the computer"],
-  ["device", "Device", "bluetooth", "Connection, location, sound input, data sources"],
+  ["device", "Device", "bluetooth", "Connection, location, sound input, data sources, updates"],
   ["about", "About", "info", "Version, privacy, terms and licences"],
 ];
 
@@ -38,7 +39,7 @@ const BLOCK_SECTION: Record<SettingsTab, SettingsSection> = {
   display: "display", transfer: "display", calibrate: "display",
   alerts: "alerts", notifications: "alerts", integrations: "alerts",
   playlist: "playlist", autopilot: "playlist", handoff: "playlist",
-  device: "device", panel: "device", weather: "device", audio: "device",
+  device: "device", panel: "device", weather: "device", audio: "device", updates: "device",
   about: "about",
 };
 
@@ -75,6 +76,7 @@ const INDEX: [string, string, SettingsTab | string][] = [
   ["Data sources", "providers status health", "sources"],
   ["Link statistics", "frames sent dropped telemetry latency", "sources"],
   ["About DeskDot", "version privacy terms licence license open source contact unofficial", "about"],
+  ["Updates", "update upgrade new version install download release check automatically what's new", "updates"],
 ];
 const INDEX_SECTION: Record<string, SettingsSection> = {
   "display-basics": "display", theme: "display", appicon: "display", sound: "display", onair: "alerts", eyebreak: "alerts", indicators: "alerts", ntfy: "alerts",
@@ -539,6 +541,7 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
       <Block id="weather" title="Location & units" icon="map-pin"><LocationTab st={st} /></Block>
       <Block id="audio" title="Sound input" icon="audio-lines"><AudioTab st={st} /></Block>
       <Block id="sources" title="Data sources" icon="activity" hint="Where live data comes from, and whether it's healthy."><SourcesBlock st={st} /></Block>
+      <Block id="updates" title="Updates" icon="download"><UpdatesBlock /></Block>
     </div>
   );
 }
