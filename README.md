@@ -17,9 +17,9 @@ _1,024 pixels. Zero subscriptions._
 [![React + Vite](https://img.shields.io/badge/studio-React%20%2B%20Vite-61dafb.svg?logo=react&logoColor=white)](web)
 [![MCP](https://img.shields.io/badge/MCP-21%20tools-8a2be2.svg)](docs/MCP.md)
 [![Website](https://img.shields.io/badge/web-idotmatrix.com-111.svg)](https://idotmatrix.com)
-[![Version 3.7.0](https://img.shields.io/badge/version-3.7.0-ffcc33.svg)](WHATS_NEW.md)
+[![Version 3.8.0](https://img.shields.io/badge/version-3.8.0-ffcc33.svg)](WHATS_NEW.md)
 
-**[Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next) · [What's New](WHATS_NEW.md)**
+**[Download](#-download) · [Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next) · [What's New](WHATS_NEW.md)**
 
 </div>
 
@@ -144,6 +144,71 @@ that anyone, including an AI agent, can make a new app in one Python file.
 </table>
 
 <sub>All media in this README is rendered by DeskDot itself from the simulated panel, drawn with an LED-panel look.</sub>
+
+* * *
+
+## 📥 Download
+
+The easy way: install DeskDot like any other app. No Python, no terminal.
+
+| Your device | Download (latest release) |
+| --- | --- |
+| **Windows** 10 / 11 (64-bit) | [DeskDot-Setup-…-x64.exe](https://github.com/shivpatel2468/idotmatrix/releases/latest) |
+| **Mac** with Apple silicon (M1 and newer) | [DeskDot-…-macOS-arm64.dmg](https://github.com/shivpatel2468/idotmatrix/releases/latest) |
+| **Mac** with an Intel chip | [DeskDot-…-macOS-x64.dmg](https://github.com/shivpatel2468/idotmatrix/releases/latest) |
+| **Android** phone (8.0+, runs the panel all day) | [DeskDot-….apk](https://github.com/shivpatel2468/idotmatrix/releases/latest) |
+
+All files are on the [latest release page](https://github.com/shivpatel2468/idotmatrix/releases/latest), with
+`checksums.txt` so you can check a download. **Close the iDotMatrix phone app first**: the panel talks to one app at a time.
+
+**After that, DeskDot updates itself.** When there's a new version a small "Update available" sign appears at the
+top. Open **Settings → Device → Updates**, read what's new, and press **Install & restart**. It downloads the new
+version, checks that it's genuine and installs it. Your settings stay. (You can turn the automatic check off there.)
+
+<details>
+<summary><b>Windows: "Windows protected your PC"</b></summary>
+
+The installer isn't signed with a paid certificate yet, so Windows doesn't know it.
+
+1. Double-click `DeskDot-Setup-…-x64.exe`.
+2. If a blue box says **Windows protected your PC**, click **More info**, then **Run anyway**.
+3. Click through the installer. It installs just for you (no admin password). Tick "Start DeskDot when I sign in"
+   if you want it always on.
+4. DeskDot opens the studio in your browser and puts a small icon in the tray (bottom right). If Windows asks
+   whether DeskDot may use the network, choose **Private networks** (only needed for friends' phones in games).
+
+Your settings live in `%LOCALAPPDATA%\DeskDot` (they stay when you update or uninstall). Uninstall from
+Settings → Apps.
+</details>
+
+<details>
+<summary><b>Mac: "DeskDot can't be opened" / "unidentified developer"</b></summary>
+
+The app isn't notarized by Apple yet, so the first start needs one extra step.
+
+1. Open the `.dmg` and drag **DeskDot** into **Applications**.
+2. In Applications, **right-click DeskDot → Open**, then click **Open** in the box that appears. (On macOS 15 and
+   newer: if there's no Open button, go to **System Settings → Privacy & Security**, scroll down and click
+   **Open Anyway** next to DeskDot.)
+3. Allow **Bluetooth** when macOS asks. DeskDot opens the studio in your browser.
+
+You only do this once. Your settings live in `~/Library/Application Support/DeskDot`.
+</details>
+
+<details>
+<summary><b>Android: "install unknown apps"</b></summary>
+
+1. On the phone, open the release page and download `DeskDot-….apk`.
+2. Tap the download. Android asks to allow your browser to **install unknown apps**: turn it on, go back, tap
+   **Install**.
+3. Open DeskDot and allow **Nearby devices** (Bluetooth) and notifications. More tips (battery settings, keeping it
+   running) are in [android/README.md](android/README.md).
+
+Updating from inside the app asks once more, this time to let **DeskDot** install apps. Had a test build of DeskDot
+before 3.8? Uninstall it once first: the new app is signed with a different key.
+</details>
+
+Want the latest code, or to change DeskDot itself? Run it from source with the Quick Start below.
 
 * * *
 

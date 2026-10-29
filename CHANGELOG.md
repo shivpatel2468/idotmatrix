@@ -3,6 +3,47 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.8.0 — 2026-10-29 · Desktop installers, a signed release APK, in-app updates
+
+- **Installers** (`packaging/`): PyInstaller onedir spec (`deskdot.spec`; bundles `web/dist`, `deskdot.example.toml`,
+  the package's html/js/fonts; excludes tests, legacy, mcp, Android/browser-only modules). Windows: `DeskDot.exe`
+  (windowed) + `deskdot-cli.exe` (console), Inno Setup script `windows/DeskDot.iss` → `DeskDot-Setup-<v>-x64.exe`
+  (per-user, no UAC; Start menu, optional desktop icon and start-with-login under the launcher's
+  `HKCU\…\Run\DeskDot Launcher` value; uninstaller; waits for a running DeskDot on silent updates and relaunches it).
+  macOS: `.app` with Info.plist usage strings (Bluetooth, microphone, camera, Apple events, local network) and
+  `macos/build_dmg.sh` → `DeskDot-<v>-macOS-{arm64,x64}.dmg` (ad-hoc signed; Developer ID + notarization when the
+  optional secrets exist). `packaging/prepare.py` draws the icons and the Windows version resource.
+- **`src/deskdot/desktop.py`**: the frozen app's entry. Per-user home (`%LOCALAPPDATA%\DeskDot`,
+  `~/Library/Application Support/DeskDot`, `$XDG_DATA_HOME/deskdot`; `DESKDOT_HOME` overrides), first run copies
+  `deskdot.example.toml` → `deskdot.toml` there, `chdir`s to it, points `DESKDOT_WEB_DIST` at the bundle, routes
+  stdout/stderr of the windowed exe to `data/deskdot.log`; no arguments = start the engine (detached), open the
+  studio, run the launcher (tray + hotkey); any CLI subcommand runs as usual. `launcher.engine_command()` /
+  `autostart_command()` know the frozen exe.
+- **In-app updates** (`src/deskdot/updates.py`): `GET https://api.github.com/repos/shivpatel2468/idotmatrix/releases/latest`
+  with a 6 h cache persisted in `state.json` (`updates.release`, `updates.checked_at`), opt-out `updates.auto_check`
+  (default on; `DESKDOT_UPDATE_CHECK=0` disables the background loop); semver comparison incl. pre-releases;
+  asset per install kind (`windows` / `macos` arm64|x64 / `android`; `source` and `web` never install); only
+  `https://github.com/<repo>/releases/download/…` URLs, HTTPS enforced on every redirect hop, 600 MB cap;
+  SHA-256 checked against `checksums.txt` (or `<asset>.sha256`), refused and deleted on mismatch or when missing.
+  Hand-off: Windows runs the installer `/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS`, quits the launcher and
+  exits the engine (SIGINT → normal hand-off, hard exit after 20 s); macOS swaps the `.app` in place after the engine
+  exits (or opens the dmg when the folder isn't writable); Android calls `Updater.install()`. API:
+  `GET /api/updates`, `POST /api/updates/check`, `PUT /api/updates`, `POST /api/updates/install` (409 with a
+  message on refusal); `state.updates` on the websocket (status, progress). Tests: `tests/test_updates.py`,
+  `tests/test_desktop.py`.
+- **Studio**: `components/Updates.tsx` — Settings → Device → Updates (version, Check now, auto-check, release
+  notes rendered from WHATS_NEW-style markdown without HTML injection, Install & restart with progress) and the
+  "Update available" pill in both top bars (dismissable per version; one toast per version). `#settings/updates`.
+- **Android**: versionName/versionCode come from `src/deskdot/__init__.py` (`major*10000+minor*100+patch` → 30800);
+  release signing from the git-ignored `android/keystore.properties` (debug key only as a fallback, with a warning);
+  APK named `DeskDot-<v>.apk`; `Updater.kt` (FileProvider `<pkg>.updates` over `files/data/updates/`,
+  `REQUEST_INSTALL_PACKAGES`, same-signer check before opening the installer).
+- **CI**: `.github/workflows/release.yml` on `v*` tags — version/WHATS_NEW check, ruff + fast tests, studio build,
+  Windows installer (+ frozen-engine smoke test on :8799), macOS arm64 + x64 dmgs (+ smoke test), `checksums.txt`,
+  a draft release with that version's WHATS_NEW section. Optional signing secrets documented in docs/DEPLOY.md.
+- Dependency group `packaging` (`pyinstaller`); `.gitignore`: `.claude/`, `android/keystore.properties`,
+  `packaging/build/`.
+
 ## 3.7.0 — 2026-10-12 · Page themes; apps follow the theme; luxury TV casino, win moment, dollies, chip sets, odometer credits
 
 - **Now Playing** (`apps/nowplaying.py`, drawing kit `apps/_npdraw.py`): 8 new layouts — `wordpop`, `big_title`

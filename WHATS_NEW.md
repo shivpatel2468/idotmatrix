@@ -11,6 +11,33 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.8.0 — 29 Oct 2026 · Install DeskDot like any app, and update it from inside
+
+### New
+
+- **Installers for Windows, Mac and Android**
+  - Before: to use DeskDot you had to download the code, install Python tools and type commands in a terminal.
+  - Now: download one file from GitHub — a setup program for Windows, a disk image for Mac, an app for Android —
+    and install it like any other app. DeskDot opens the studio in your browser and sits in the tray, ready to go.
+- **Updates from inside DeskDot**
+  - Before: to get a new version you had to go to GitHub, download it and set it up again yourself.
+  - Now: when a new version is out, a small "Update available" sign appears at the top. Settings → Device →
+    Updates shows what's new in plain words, and one button downloads it, checks it's genuine and installs it.
+    On a computer DeskDot restarts by itself; on Android the phone asks you to confirm. Your settings stay.
+- **You choose whether DeskDot looks for updates**
+  - Before: there was nothing to check.
+  - Now: about every 6 hours DeskDot asks GitHub if there's a new version. Nothing about you is sent. Turn it off
+    in Settings → Device → Updates, or press Check now whenever you like.
+- **Start DeskDot when you sign in (Windows)**
+  - Before: you had to start DeskDot yourself every time.
+  - Now: tick one box in the installer (or "Start with login" in the tray menu) and it starts with Windows.
+
+### Better
+
+- **Your settings live in one safe place**
+  - Before: settings and data sat inside the DeskDot folder, next to the program.
+  - Now: the installed app keeps them in your own user folder, so updating or reinstalling never touches them.
+
 ## 3.7.0 — 12 Oct 2026 · Page themes everywhere and a luxury casino on the TV
 
 ### New
