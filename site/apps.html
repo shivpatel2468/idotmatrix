@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>All 102 DeskDot apps for 32×32 LED panels</title>
+<title>All 116 DeskDot apps for 32×32 LED panels</title>
 <meta name="description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <link rel="canonical" href="https://idotmatrix.com/apps.html" />
 <meta name="theme-color" content="#08070a" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="dark light" />
 <meta name="author" content="Shiv Patel" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/apps.html" />
-<meta property="og:title" content="All 102 DeskDot apps for 32×32 LED panels" />
+<meta property="og:title" content="All 116 DeskDot apps for 32×32 LED panels" />
 <meta property="og:description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <meta property="og:image" content="https://idotmatrix.com/media/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="All 102 DeskDot apps for 32×32 LED panels" />
+<meta name="twitter:title" content="All 116 DeskDot apps for 32×32 LED panels" />
 <meta name="twitter:description" content="Browse every DeskDot app with its real animated preview: clocks, live data, media, pets, ambient loops and 27 games. Search apps, settings and options." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/og.png" />
 <meta name="twitter:image:alt" content="DeskDot apps rendered on simulated 32×32 LED panels" />
@@ -29,7 +29,7 @@
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>var d=document.documentElement;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice")}catch(e){}</script>
+<script>var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");t=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}t==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");d.setAttribute("data-theme",t);p&&p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)</script>
 <script src="/main.js" defer></script>
 </head>
 <body class="page-apps">
@@ -41,6 +41,8 @@
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></g><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18Z"/><circle cx="7.6" cy="9" r="1.5" fill="currentColor"/><circle cx="8.6" cy="14.6" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
 </svg>
 <header class="bar" id="bar">
@@ -59,9 +61,17 @@
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
     <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="0"></span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="1" aria-label="1 stars">★ 1</span></a>
+    <button class="btn small theme-btn" id="theme-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="theme-menu" aria-label="Appearance: light, dark and page theme" title="Appearance"><svg aria-hidden="true"><use href="#i-theme"/></svg></button>
   </div>
 </header>
+<div class="theme-menu" id="theme-menu" role="dialog" aria-modal="false" aria-labelledby="theme-menu-h" hidden>
+  <div class="theme-menu-head"><h2 id="theme-menu-h">Appearance</h2><button type="button" class="theme-close" aria-label="Close">×</button></div>
+  <div class="seg" role="group" aria-label="Light or dark"><button type="button" data-theme-pick="light" aria-pressed="false">Light</button><button type="button" data-theme-pick="dark" aria-pressed="false">Dark</button><button type="button" data-theme-pick="system" aria-pressed="false">Auto</button></div>
+  <h3>Page theme <small id="theme-name"></small></h3>
+  <div class="swatches" role="group" aria-label="Page theme"><button type="button" class="sw sw-ember" data-page-theme-pick="ember" aria-pressed="false" title="DeskDot"><i aria-hidden="true"></i><span>DeskDot</span></button><button type="button" class="sw sw-graphite" data-page-theme-pick="graphite" aria-pressed="false" title="Graphite &amp; ice"><i aria-hidden="true"></i><span>Graphite &amp; ice</span></button><button type="button" class="sw sw-sunset" data-page-theme-pick="sunset" aria-pressed="false" title="Sunset coral"><i aria-hidden="true"></i><span>Sunset coral</span></button><button type="button" class="sw sw-citrus" data-page-theme-pick="citrus" aria-pressed="false" title="Citrus"><i aria-hidden="true"></i><span>Citrus</span></button><button type="button" class="sw sw-royal" data-page-theme-pick="royal" aria-pressed="false" title="Royal blue"><i aria-hidden="true"></i><span>Royal blue</span></button><button type="button" class="sw sw-crimson" data-page-theme-pick="crimson" aria-pressed="false" title="Crimson velvet"><i aria-hidden="true"></i><span>Crimson velvet</span></button><button type="button" class="sw sw-midnight" data-page-theme-pick="midnight" aria-pressed="false" title="Midnight neon"><i aria-hidden="true"></i><span>Midnight neon</span></button><button type="button" class="sw sw-strip" data-page-theme-pick="strip" aria-pressed="false" title="Neon strip"><i aria-hidden="true"></i><span>Neon strip</span></button><button type="button" class="sw sw-emerald" data-page-theme-pick="emerald" aria-pressed="false" title="Emerald &amp; champagne"><i aria-hidden="true"></i><span>Emerald &amp; champagne</span></button><button type="button" class="sw sw-noir" data-page-theme-pick="noir" aria-pressed="false" title="Riviera noir"><i aria-hidden="true"></i><span>Riviera noir</span></button><button type="button" class="sw sw-jade" data-page-theme-pick="jade" aria-pressed="false" title="Imperial jade"><i aria-hidden="true"></i><span>Imperial jade</span></button><button type="button" class="sw sw-deco" data-page-theme-pick="deco" aria-pressed="false" title="Gilded deco"><i aria-hidden="true"></i><span>Gilded deco</span></button><button type="button" class="sw sw-marigold" data-page-theme-pick="marigold" aria-pressed="false" title="Marigold masala"><i aria-hidden="true"></i><span>Marigold masala</span></button><button type="button" class="sw sw-cyber" data-page-theme-pick="cyber" aria-pressed="false" title="Cyber grid"><i aria-hidden="true"></i><span>Cyber grid</span></button><button type="button" class="sw sw-arcade" data-page-theme-pick="arcade" aria-pressed="false" title="Pixel arcade"><i aria-hidden="true"></i><span>Pixel arcade</span></button><button type="button" class="sw sw-sakura" data-page-theme-pick="sakura" aria-pressed="false" title="Sakura night"><i aria-hidden="true"></i><span>Sakura night</span></button><button type="button" class="sw sw-glacier" data-page-theme-pick="glacier" aria-pressed="false" title="Glacier"><i aria-hidden="true"></i><span>Glacier</span></button><button type="button" class="sw sw-oasis" data-page-theme-pick="oasis" aria-pressed="false" title="Desert oasis"><i aria-hidden="true"></i><span>Desert oasis</span></button><button type="button" class="sw sw-abyss" data-page-theme-pick="abyss" aria-pressed="false" title="Ocean abyss"><i aria-hidden="true"></i><span>Ocean abyss</span></button><button type="button" class="sw sw-volcano" data-page-theme-pick="volcano" aria-pressed="false" title="Volcano"><i aria-hidden="true"></i><span>Volcano</span></button><button type="button" class="sw sw-galaxy" data-page-theme-pick="galaxy" aria-pressed="false" title="Galaxy"><i aria-hidden="true"></i><span>Galaxy</span></button></div>
+  <p class="theme-note">The same 21 themes as the DeskDot studio. Saved in this browser; the web app opens in it too.</p>
+</div>
 <div class="notice" id="notice" role="note" aria-label="Unofficial software">
   <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
 </div>
@@ -72,7 +82,7 @@
   <div class="wrap">
     <p class="kicker">The library</p>
     <h1 id="apps-h" class="page-title reveal">Every app, every setting</h1>
-    <p class="sub reveal">All <span data-count="apps">102</span> apps with their real previews, rendered by DeskDot's engine
+    <p class="sub reveal">All <span data-count="apps">116</span> apps with their real previews, rendered by DeskDot's engine
       at 32×32. Open any app for its settings, defaults, ranges and choices, and for games the modes, maps, themes and
       controllers.</p>
 
@@ -85,9 +95,9 @@
       </label>
       <div class="chips" id="cat-chips" role="group" aria-label="Filter by category">
 <!-- gen:chips -->
-<button type="button" class="chip" data-cat="all" aria-pressed="true" style="--c:#f3f1ec"><i></i>All <small>102</small></button>
-<button type="button" class="chip" data-cat="time" aria-pressed="false" style="--c:#ffcc33"><i></i>Time <small>7</small></button>
-<button type="button" class="chip" data-cat="data" aria-pressed="false" style="--c:#45d9ff"><i></i>Live data <small>17</small></button>
+<button type="button" class="chip" data-cat="all" aria-pressed="true" style="--c:var(--ink)"><i></i>All <small>116</small></button>
+<button type="button" class="chip" data-cat="time" aria-pressed="false" style="--c:#ffcc33"><i></i>Time <small>8</small></button>
+<button type="button" class="chip" data-cat="data" aria-pressed="false" style="--c:#45d9ff"><i></i>Live data <small>30</small></button>
 <button type="button" class="chip" data-cat="media" aria-pressed="false" style="--c:#ff3f78"><i></i>Media <small>7</small></button>
 <button type="button" class="chip" data-cat="creative" aria-pressed="false" style="--c:#c39bff"><i></i>Creative <small>14</small></button>
 <button type="button" class="chip" data-cat="pets" aria-pressed="false" style="--c:#5cf2a0"><i></i>Pets <small>3</small></button>
@@ -102,113 +112,113 @@
 <!-- /gen:chips -->
       </div>
     </div>
-    <p class="result-count" id="result-count" aria-live="polite">Showing all <span data-count="apps">102</span> apps</p>
+    <p class="result-count" id="result-count" aria-live="polite">Showing all <span data-count="apps">116</span> apps</p>
     <div class="app-grid" id="app-grid">
 <!-- gen:cards -->
 <a class="card app-card" href="/apps/ambient.html" style="--glow:#4fe3c8;--i:0" data-cat="ambient" data-flags="clip" data-search="ambient plasma, aurora, lava, zen, embers, fire, rain, stars, ripples, fireworks, snow, life. baked loop effect plasma aurora lava lamp zen ripples campfire embers fire digital rain starfield ripple game of life fireworks snowfall tunnel bounce palette rainbow ocean sunset forest ember neon speed intensity brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/ambient.png" /><img src="/media/apps/ambient.gif" width="32" height="32" loading="lazy" decoding="async" alt="Ambient running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#4fe3c8">Ambient</span>
+    <span class="tag" style="--c:#4fe3c8">Ambient</span>
     <h3>Ambient</h3>
     <p>Plasma, aurora, lava, zen, embers, fire, rain, stars, ripples, fireworks, snow, Life.</p>
     <div class="foot"><span>4 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/loops.html" style="--glow:#4fe3c8;--i:1" data-cat="ambient" data-flags="clip" data-search="loops novelty loops: pixel cat on a rainbow trail, glyph rain, warp speed, game of life, bouncing logo. ambient baked loop effect rain speed life logo colour tint color brightness">
+<a class="card app-card" href="/apps/loops.html" style="--glow:#4fe3c8;--i:1" data-cat="ambient" data-flags="clip" data-search="loops novelty loops: pixel cat on a rainbow trail, glyph rain, warp speed, game of life, bouncing logo. ambient baked loop effect rain speed life logo colour tint color brightness follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/loops.png" /><img src="/media/apps/loops.gif" width="32" height="32" loading="lazy" decoding="async" alt="Loops running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#4fe3c8">Ambient</span>
+    <span class="tag" style="--c:#4fe3c8">Ambient</span>
     <h3>Loops</h3>
     <p>Novelty loops: pixel cat on a rainbow trail, glyph rain, warp speed, Game of Life, bouncing logo.</p>
-    <div class="foot"><span>5 settings</span></div>
+    <div class="foot"><span>6 settings</span></div>
   </div>
 </a>
 <div class="casino-note" role="note"><span class="chip-ico" aria-hidden="true"></span><div><p><b>Play money only.</b> No purchases, no cash-out, no prizes, no real-money betting. 18+. Credits reset with the session.</p><p>Casino games are free in every plan. Paid plans never add, refill or change casino chips. House-edge and RTP figures are shown as educational statistics (play chips; for learning how house edge works).</p></div></div>
-<a class="card app-card" href="/apps/casino_sevens.html" style="--glow:#ffcc33;--i:2" data-cat="casino" data-flags="multiplayer" data-search="7 up down casino_sevens the dice party game: bet under 7, over or lucky from your phone; panel rolls. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory pays (to 1) seven 9 players game">
+<a class="card app-card" href="/apps/casino_sevens.html" style="--glow:#ffcc33;--i:2" data-cat="casino" data-flags="multiplayer" data-search="7 up down casino_sevens the dice party game: bet under 7, over or lucky from your phone; panel rolls. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany pays (to 1) seven 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_sevens.png" /><img src="/media/apps/casino_sevens.gif" width="32" height="32" loading="lazy" decoding="async" alt="7 Up 7 Down running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>7 Up 7 Down</h3>
     <p>The dice party game: place chips on under 7, over 7 or lucky 7 from your phone; the panel rolls.</p>
     <div class="foot"><span>3 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_andarbahar.html" style="--glow:#ffcc33;--i:3" data-cat="casino" data-flags="multiplayer" data-search="andar bahar casino_andarbahar the indian card game: joker is turned, bet or bahar, watch cards fall. casino live panel view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory first goes to (the standard table) card-count side 9 players game">
+<a class="card app-card" href="/apps/casino_andarbahar.html" style="--glow:#ffcc33;--i:3" data-cat="casino" data-flags="multiplayer" data-search="andar bahar casino_andarbahar the indian card game: joker is turned, bet or bahar, watch cards fall. casino live panel view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany first goes to (the standard table) card-count side 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_andarbahar.png" /><img src="/media/apps/casino_andarbahar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Andar Bahar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Andar Bahar</h3>
     <p>The Indian card game: the joker is turned, place chips on Andar or Bahar, watch the cards fall.</p>
     <div class="foot"><span>4 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_baccarat.html" style="--glow:#ffcc33;--i:4" data-cat="casino" data-flags="multiplayer" data-search="baccarat casino_baccarat punto banco for parties: bet player, banker or tie from your phone; the panel deals coup. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory commission pays 0.95:1 (5 % commission) (banker 6 1:2) (to 1) decks 9 players game">
+<a class="card app-card" href="/apps/casino_baccarat.html" style="--glow:#ffcc33;--i:4" data-cat="casino" data-flags="multiplayer" data-search="baccarat casino_baccarat punto banco for parties: bet player, banker or tie from your phone; the panel deals coup. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany commission pays 0.95:1 (5 % commission) (banker 6 1:2) (to 1) decks 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_baccarat.png" /><img src="/media/apps/casino_baccarat.gif" width="32" height="32" loading="lazy" decoding="async" alt="Baccarat running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Baccarat</h3>
     <p>Punto Banco for parties: place chips on Player, Banker or Tie from your phone; the panel deals the coup.</p>
     <div class="foot"><span>5 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_bigsix.html" style="--glow:#ffcc33;--i:5" data-cat="casino" data-flags="multiplayer" data-search="big six casino_bigsix the money wheel: bet on 1, 2, 5, 10, 20, joker or logo; panel spins wheel. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory 9 players game">
+<a class="card app-card" href="/apps/casino_bigsix.html" style="--glow:#ffcc33;--i:5" data-cat="casino" data-flags="multiplayer" data-search="big six casino_bigsix the money wheel: bet on 1, 2, 5, 10, 20, joker or logo; panel spins wheel. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_bigsix.png" /><img src="/media/apps/casino_bigsix.gif" width="32" height="32" loading="lazy" decoding="async" alt="Big Six running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Big Six</h3>
     <p>The big wheel: place chips on 1, 2, 5, 10, 20, joker or logo; the panel spins the big wheel.</p>
     <div class="foot"><span>2 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_blackjack.html" style="--glow:#ffcc33;--i:6" data-cat="casino" data-flags="multiplayer" data-search="blackjack casino_blackjack for parties: everyone plays the dealer from their phone; panel deals hands. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory decks in shoe cut card at (% of shoe) penetration on soft 17 soft17 stands (s17) hits (h17, +0.22 %) pays 3:2 6:5 (+1.4 % edge) double any first two cards hard 9, 10, 11 only after split splits per hand max surrender late offer insurance (pays 2:1) peeks peek 9 players game">
+<a class="card app-card" href="/apps/casino_blackjack.html" style="--glow:#ffcc33;--i:6" data-cat="casino" data-flags="multiplayer" data-search="blackjack casino_blackjack for parties: everyone plays the dealer from their phone; panel deals hands. casino live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany decks in shoe cut card at (% shoe) penetration on soft 17 soft17 stands (s17) hits (h17, +0.22 %) pays 3:2 6:5 (+1.4 % edge) double any first two cards hard 9, 10, 11 only after split splits per hand max surrender late offer insurance (pays 2:1) peeks peek 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_blackjack.png" /><img src="/media/apps/casino_blackjack.gif" width="32" height="32" loading="lazy" decoding="async" alt="Blackjack running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Blackjack</h3>
     <p>Blackjack for parties: everyone plays the dealer from their phone; the panel deals the hands.</p>
     <div class="foot"><span>12 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_housie.html" style="--glow:#ffcc33;--i:7" data-cat="casino" data-flags="multiplayer" data-search="housie casino_housie tambola / bingo, the indian way: pick tickets with play chips, caller draws 1-90, claim lines and full house. casino live panel view preview table demo game preview: ticket dealt calling a house winners board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory chips per price max player time buy seconds between calls call false (bogey) bogey just rejected that can't win prize is out for everyone automatically auto early five early5 share (%) top line middle bottom four corners 9 players">
+<a class="card app-card" href="/apps/casino_housie.html" style="--glow:#ffcc33;--i:7" data-cat="casino" data-flags="multiplayer" data-search="housie casino_housie tambola / bingo, the indian way: pick tickets with play chips, caller draws 1-90, claim lines and full house. casino live panel view preview table demo game preview: ticket dealt calling a house winners board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany chips per price max player time buy seconds between calls call false (bogey) bogey just rejected that can't win prize is out for everyone automatically auto early five early5 share (%) top line middle bottom four corners 9 players">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_housie.png" /><img src="/media/apps/casino_housie.gif" width="32" height="32" loading="lazy" decoding="async" alt="Housie running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Housie</h3>
     <p>Tambola / bingo, the Indian way: pick tickets with play chips, the caller draws 1-90, claim lines and Full House.</p>
     <div class="foot"><span>20 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_roulette.html" style="--glow:#ffcc33;--i:8" data-cat="casino" data-flags="multiplayer" data-search="roulette casino_roulette casino for parties: friends bet from their phones, the panel spins wheel. live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory wheel european (single 0) american (0 and 00) la partage 9 players game">
+<a class="card app-card" href="/apps/casino_roulette.html" style="--glow:#ffcc33;--i:8" data-cat="casino" data-flags="multiplayer" data-search="roulette casino_roulette casino for parties: friends bet from their phones, the panel spins wheel. live view preview table demo loop preview: betting no more bets spin / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany wheel european (single 0) american (0 and 00) la partage 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_roulette.png" /><img src="/media/apps/casino_roulette.gif" width="32" height="32" loading="lazy" decoding="async" alt="Roulette running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Roulette</h3>
     <p>Play-money roulette for parties: friends place chips from their phones, the panel spins the wheel.</p>
     <div class="foot"><span>4 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_slots.html" style="--glow:#ffcc33;--i:9" data-cat="casino" data-flags="multiplayer" data-search="slots casino_slots a slot machine for every phone: pull the lever, watch your reels spin on panel. casino live panel view preview table demo loop preview: betting no more bets / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory fruits 7s space volatility low: frequent small wins medium high: rarer, bigger paylines lines 1 line (middle row) 3 (the rows) 5 (rows + diagonals) default bet per 2 10 25 9 players game">
+<a class="card app-card" href="/apps/casino_slots.html" style="--glow:#ffcc33;--i:9" data-cat="casino" data-flags="multiplayer" data-search="slots casino_slots a slot machine for every phone: pull the lever, watch your reels spin on panel. casino live panel view preview table demo loop preview: betting no more bets / roll result board join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany fruits 7s space volatility low: frequent small wins medium high: rarer, bigger paylines lines 1 line (middle row) 3 (the rows) 5 (rows + diagonals) default bet per 2 10 25 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_slots.png" /><img src="/media/apps/casino_slots.gif" width="32" height="32" loading="lazy" decoding="async" alt="Slots running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Slots</h3>
     <p>A slot machine for every phone: pull the lever, watch your reels spin on the panel.</p>
     <div class="foot"><span>6 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_teenpatti.html" style="--glow:#ffcc33;--i:10" data-cat="casino" data-flags="multiplayer" data-search="teen patti casino_teenpatti three-card indian poker: play blind or seen, chaal, raise, sideshow and show from your phone. casino live panel view preview table demo hand (bots) preview: next shuffle dealing a turn showdown winner join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory boot (ante) chaal limit pot bets before you must see max rounds 9 players game">
+<a class="card app-card" href="/apps/casino_teenpatti.html" style="--glow:#ffcc33;--i:10" data-cat="casino" data-flags="multiplayer" data-search="teen patti casino_teenpatti three-card indian poker: play blind or seen, chaal, raise, sideshow and show from your phone. casino live panel view preview table demo hand (bots) preview: next shuffle dealing a turn showdown winner join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany boot (ante) chaal limit pot bets before you must see max rounds 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_teenpatti.png" /><img src="/media/apps/casino_teenpatti.gif" width="32" height="32" loading="lazy" decoding="async" alt="Teen Patti running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Teen Patti</h3>
     <p>Three-card Indian poker: play blind or seen, chaal, raise, sideshow and show from your phone.</p>
     <div class="foot"><span>6 settings</span><span>9 players</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/casino_holdem.html" style="--glow:#ffcc33;--i:11" data-cat="casino" data-flags="multiplayer" data-search="texas hold'em casino_holdem no-limit poker for the party: phones hold cards, panel shows board, pot and turns. casino live view preview table demo hand (bots) preview: next shuffle dealing a turn showdown winner join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory small blind big double blinds every n hands up 9 players game">
+<a class="card app-card" href="/apps/casino_holdem.html" style="--glow:#ffcc33;--i:11" data-cat="casino" data-flags="multiplayer" data-search="texas hold'em casino_holdem no-limit poker for the party: phones hold cards, panel shows board, pot and turns. casino live view preview table demo hand (bots) preview: next shuffle dealing a turn showdown winner join qr paused theme look classic green royal blue crimson velvet midnight neon strip emerald &amp; champagne burgundy ivory riviera noir imperial jade gilded deco marigold masala festival of lights cyber grid pixel arcade sakura night glacier desert oasis ocean abyss volcano galaxy riverboat mahogany small blind big double blinds every n hands up 9 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/casino_holdem.png" /><img src="/media/apps/casino_holdem.gif" width="32" height="32" loading="lazy" decoding="async" alt="Texas Hold'em running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Casino</span>
+    <span class="tag" style="--c:#ffcc33">Casino</span>
     <h3>Texas Hold'em</h3>
     <p>No-limit poker for the party: phones hold the cards, the panel shows the board, pot and turns.</p>
     <div class="foot"><span>5 settings</span><span>9 players</span></div>
@@ -217,7 +227,7 @@
 <a class="card app-card" href="/apps/wireframe.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="3d wireframe vector retro 80s graphics and 4d tesseract holo-display with depth cueing. creative baked loop geometric shape hypercube geodesic icosahedron torus faceted diamond gem starfighter holo palette electric cyan laser green neon magenta solar amber gold rotation speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/wireframe.png" /><img src="/media/apps/wireframe.gif" width="32" height="32" loading="lazy" decoding="async" alt="3D Wireframe Vector running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>3D Wireframe Vector</h3>
     <p>Retro 80s 3D vector graphics and 4D tesseract holo-display with depth cueing.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -226,7 +236,7 @@
 <a class="card app-card" href="/apps/canvas.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="" data-search="canvas pixel-paint straight onto the leds. your drawing is saved. creative live">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/canvas.png" /><img src="/media/apps/canvas.gif" width="32" height="32" loading="lazy" decoding="async" alt="Canvas running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Canvas</h3>
     <p>Pixel-paint straight onto the LEDs. Your drawing is saved.</p>
     <div class="foot"><span>0 settings</span></div>
@@ -235,7 +245,7 @@
 <a class="card app-card" href="/apps/emotes.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="emotes full-screen animated emotes: laughing jester, crying, gg, fire, 100, rage quit… creative baked loop emote crying angry thumbs up heart eyes wow cool wink sleepy thinking skull on fire gg party clap 100 quit face style smiley jester goblin cat cycle through all background black sun rays burst hearts skin use custom speed">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/emotes.png" /><img src="/media/apps/emotes.gif" width="32" height="32" loading="lazy" decoding="async" alt="Emotes running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Emotes</h3>
     <p>Full-screen animated emotes: laughing jester, crying, GG, fire, 100, rage quit…</p>
     <div class="foot"><span>7 settings</span></div>
@@ -244,7 +254,7 @@
 <a class="card app-card" href="/apps/sand.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="falling sand powder toy cellular automaton with sand, water, fire, lava, plants, and acid. creative baked loop simulation scenario hourglass lava volcano waterfall oasis acid laboratory elemental crucible color palette vibrant retro 8-bit cyber neon soft pastel speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/sand.png" /><img src="/media/apps/sand.gif" width="32" height="32" loading="lazy" decoding="async" alt="Falling Sand running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Falling Sand</h3>
     <p>Powder Toy cellular automaton with sand, water, fire, lava, plants, and acid.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -253,7 +263,7 @@
 <a class="card app-card" href="/apps/boids.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="flocking boids craig reynolds swarm simulation and bioluminescent particle life. creative baked loop visual theme abyss twilight murmuration summer fireflies cyberpunk nanobots predator mode peaceful flock apex chasing speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/boids.png" /><img src="/media/apps/boids.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flocking Boids running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Flocking Boids</h3>
     <p>Craig Reynolds flocking swarm simulation and bioluminescent particle life.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -262,25 +272,25 @@
 <a class="card app-card" href="/apps/flybrain.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="fly brain flybrain a fruit whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by neuroscience (flywire). it hunts and dodges looming swatter. neurons firing keys presses play in studio's 3d view. creative baked loop swatter danger calm (no swatter) normal hectic arena seed">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flybrain.png" /><img src="/media/apps/flybrain.gif" width="32" height="32" loading="lazy" decoding="async" alt="Fly Brain running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Fly Brain</h3>
     <p>A fruit fly whose hand-tuned neural model follows the cell types of its visual-to-motor pathway, as mapped by fly neuroscience (FlyWire). It hunts fruit and dodges a looming swatter. Its neurons firing and the keys it presses play in the studio's 3D Fly view.</p>
     <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/fontlab.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="font lab fontlab every (built-in and your own pixel fonts), styles, fills text animations. creative baked loop live built-in tiny (5px) small (7px) big digits (10px) ttf size (px) letter spacing uppercase style plain bold outline shadow italic double (2x) neon glow align left centre right vertical valign top middle bottom colour color second color2 fill solid gradient rainbow stripes fire animation none scroll typewriter wave bounce flicker pulse speed background">
+<a class="card app-card" href="/apps/fontlab.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="font lab fontlab every (built-in and your own pixel fonts), styles, fills text animations. creative baked loop live built-in tiny (5px) small (7px) big digits (10px) ttf size (px) letter spacing uppercase style plain bold outline shadow italic double (2x) neon glow align left centre right vertical valign top middle bottom colour color second color2 fill solid gradient rainbow stripes fire animation none scroll typewriter wave bounce flicker pulse speed background follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/fontlab.png" /><img src="/media/apps/fontlab.gif" width="32" height="32" loading="lazy" decoding="async" alt="Font Lab running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Font Lab</h3>
     <p>Every font (built-in and your own pixel fonts), styles, fills and text animations.</p>
-    <div class="foot"><span>14 settings</span></div>
+    <div class="foot"><span>15 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/brain.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="neuromorphic cortex brain 1,024-neuron biological spiking neural network simulation with traveling waves. creative baked loop dynamics mode resting waves cortical spiral vortex synchronized gamma burst axonal signal cascade spike palette bioluminescent cyan synaptic gold infrared thermal matrix oscillation speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/brain.png" /><img src="/media/apps/brain.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neuromorphic Cortex running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Neuromorphic Cortex</h3>
     <p>1,024-neuron biological spiking neural network simulation with traveling waves.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -289,7 +299,7 @@
 <a class="card app-card" href="/apps/pixabots.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="pixabots animated 32x32 pixel art robot avatars with idle bounce, blinking, and accessories. creative baked loop character sparky (retro bot) visor (cyberpunk) crt monitor (smiley) nyan cat (cosmic) party parrot (dance) astro bot (explorer) color palette scheme default cyberpunk pico8 gameboy neon accessory none beacon antenna dj headphones royal crown hat speed sparkles &amp; effects">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pixabots.png" /><img src="/media/apps/pixabots.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pixabots running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Pixabots</h3>
     <p>Animated 32x32 pixel art robot avatars with idle bounce, blinking, and accessories.</p>
     <div class="foot"><span>5 settings</span></div>
@@ -298,7 +308,7 @@
 <a class="card app-card" href="/apps/avatar.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="" data-search="pixel avatar block-game player heads (by username), github identicons and dicebear characters — pixel-exact, with a name tag. creative live names default source head identicon art layout face + tag full screen off flash on change always animation none bob blink seconds per background black tint grid">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/avatar.png" /><img src="/media/apps/avatar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pixel Avatar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Pixel Avatar</h3>
     <p>Block-game player heads (by username), GitHub identicons and DiceBear pixel characters — pixel-exact, with a name tag.</p>
     <div class="foot"><span>7 settings</span></div>
@@ -307,7 +317,7 @@
 <a class="card app-card" href="/apps/playercard.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="player card playercard your own football — portrait, flag, name, six skills, shine and a flip. creative baked loop name overall rating position gk cb lb rb cdm cm cam lw rw cf st tier gold silver bronze legend night neon special speed pac stats shooting sho passing pas skill dri defending strength phy skin look hair colour style short buzz curly long mohawk bald man bun kit flag stripe 1 nation 2 3 sweep flip to skills page seconds per side">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/playercard.png" /><img src="/media/apps/playercard.gif" width="32" height="32" loading="lazy" decoding="async" alt="Player Card running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Player Card</h3>
     <p>Your own football player card — portrait, flag, name, six skills, shine and a flip.</p>
     <div class="foot"><span>20 settings</span></div>
@@ -316,106 +326,169 @@
 <a class="card app-card" href="/apps/synthwave.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="synthwave horizon 80s cyberpunk outrun with 3d perspective grid, blazing sun, and sports car. creative baked loop visual theme neon miami sunset blood cyber matrix emerald cruiser vehicle retro car hover empty highway speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/synthwave.png" /><img src="/media/apps/synthwave.gif" width="32" height="32" loading="lazy" decoding="async" alt="Synthwave Horizon running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Synthwave Horizon</h3>
     <p>80s cyberpunk outrun horizon with 3D perspective grid, blazing sun, and sports car.</p>
     <div class="foot"><span>4 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/text.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="text messages, auto-fitted, smoothly scrolling, or flowing like spotify lyrics. creative baked loop live font auto fit small (7px) tiny (5px) mode (lyrics) lyrics (vertical) marquee (horizontal) static (wrap) colour color effect solid rainbow gradient end color2 frame none underline border glow bar scroll speed (px/s)">
+<a class="card app-card" href="/apps/text.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="clip" data-search="text messages, auto-fitted, smoothly scrolling, or flowing like spotify lyrics. creative baked loop live font auto fit small (7px) tiny (5px) mode (lyrics) lyrics (vertical) marquee (horizontal) static (wrap) colour color effect solid rainbow gradient end color2 frame none underline border glow bar scroll speed (px/s) follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/text.png" /><img src="/media/apps/text.gif" width="32" height="32" loading="lazy" decoding="async" alt="Text running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Text</h3>
     <p>Messages, auto-fitted, smoothly scrolling, or flowing like Spotify lyrics.</p>
-    <div class="foot"><span>8 settings</span></div>
+    <div class="foot"><span>9 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/composer.html" style="--glow:#c39bff;--i:12" data-cat="creative" data-flags="" data-search="text studio composer click the preview to place and live values — drag, restyle, animate. your own layout. creative layers background black solid gradient border twinkle bg 2 bg2">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/composer.png" /><img src="/media/apps/composer.gif" width="32" height="32" loading="lazy" decoding="async" alt="Text Studio running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#c39bff">Creative</span>
+    <span class="tag" style="--c:#c39bff">Creative</span>
     <h3>Text Studio</h3>
     <p>Click the preview to place text and live values — drag, restyle, animate. Your own layout.</p>
     <div class="foot"><span>4 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/airquality.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="air quality airquality aqi gauge, pm2.5/pm10/o3/no2 bars, uv index advice, pollen (europe) and a 24 h forecast. live data us european layout gauge pollutants forecast cycle all style arc edge ring seconds per page rotate label colour color colours alert when rises past alerts threshold">
+<a class="card app-card" href="/apps/airquality.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="air quality airquality aqi gauge, pm2.5/pm10/o3/no2 bars, uv index advice, pollen (europe) and a 24 h forecast. live data us european layout gauge pollutants forecast cycle all style arc edge ring seconds per page rotate label colour color colours alert when rises past alerts threshold follow theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/airquality.png" /><img src="/media/apps/airquality.gif" width="32" height="32" loading="lazy" decoding="async" alt="Air Quality running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Air Quality</h3>
     <p>AQI gauge, PM2.5/PM10/O3/NO2 bars, UV index advice, pollen (Europe) and a 24 h forecast.</p>
-    <div class="foot"><span>7 settings</span></div>
+    <div class="foot"><span>8 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/asteroidflyby.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="asteroid flyby asteroidflyby the next to pass earth within 10 moon distances: when, how close, big, fast. live data show pick closest in 60 days (lunar distances) max ld">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroidflyby.png" /><img src="/media/apps/asteroidflyby.gif" width="32" height="32" loading="lazy" decoding="async" alt="Asteroid Flyby running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Asteroid Flyby</h3>
+    <p>The next asteroid to pass Earth within 10 Moon distances: when, how close, how big, how fast.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/aurora.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="aurora watch kp index, noaa's 3-day forecast and the live oval — with your chance of seeing it. data layout cycle all now chart map seconds per page rotate alert when reaches threshold at">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/aurora.png" /><img src="/media/apps/aurora.gif" width="32" height="32" loading="lazy" decoding="async" alt="Aurora Watch running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Aurora Watch</h3>
+    <p>Kp index, NOAA's 3-day forecast and the live aurora oval — with your chance of seeing it.</p>
+    <div class="foot"><span>4 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/bikeshare.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="bike share bikeshare bikes and free docks at the bike-share stations nearest you, in 700+ cities. live data layout station three network id name contains">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/bikeshare.png" /><img src="/media/apps/bikeshare.gif" width="32" height="32" loading="lazy" decoding="async" alt="Bike Share running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Bike Share</h3>
+    <p>Bikes and free docks at the bike-share stations nearest you, in 700+ cities.</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/btcnet.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="bitcoin network btcnet fees (sat/vb), minutes since the last block and countdown to next halving. live data layout cycle all latest halving seconds per page rotate">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/btcnet.png" /><img src="/media/apps/btcnet.gif" width="32" height="32" loading="lazy" decoding="async" alt="Bitcoin Network running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Bitcoin Network</h3>
+    <p>Network fees (sat/vB), minutes since the last block and the countdown to the next halving.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/cryptomarket.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="crypto market cryptomarket total cap and btc dominance, the day's top movers fear &amp; greed index. live data layout cycle all seconds per page rotate">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cryptomarket.png" /><img src="/media/apps/cryptomarket.gif" width="32" height="32" loading="lazy" decoding="async" alt="Crypto Market running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Crypto Market</h3>
+    <p>Total crypto market cap and BTC dominance, the day's top movers and the Fear &amp; Greed index.</p>
+    <div class="foot"><span>2 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/markets.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="crypto ticker markets binance prices with 24-hour change and trend line. live data symbols seconds per symbol rotate currency sign">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/markets.png" /><img src="/media/apps/markets.gif" width="32" height="32" loading="lazy" decoding="async" alt="Crypto Ticker running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Crypto Ticker</h3>
     <p>Binance prices with 24-hour change and trend line.</p>
     <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/currency.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="currency exchange rates for your home currency: big pair with a sparkline, board, converter, heat grid. live data base currencies quotes show direction 1 usd = ₹95.7 inr $0.0104 converter amount layout board grid chart range 7d 30d 90d 1y change since yesterday over the seconds per page rotate up colour colours down accent view full-scale % scale">
+<a class="card app-card" href="/apps/currency.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="currency exchange rates for your home currency: big pair with a sparkline, board, converter, heat grid. live data base currencies quotes show direction 1 usd = ₹95.7 inr $0.0104 converter amount layout board grid chart range 7d 30d 90d 1y change since yesterday over the seconds per page rotate up colour colours down accent view full-scale % scale follow theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/currency.png" /><img src="/media/apps/currency.gif" width="32" height="32" loading="lazy" decoding="async" alt="Currency running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Currency</h3>
     <p>Exchange rates for your home currency: big pair with a sparkline, board, converter, heat grid.</p>
-    <div class="foot"><span>13 settings</span></div>
+    <div class="foot"><span>14 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/quakes.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="earthquakes quakes live usgs earthquakes: world map with pulsing rings, regional zoom, nearest/latest card, list. data feed all · past hour day m2.5+ week m4.5+ 30 days significant minimum magnitude min mag near-me radius (km) km layout card list highlight focus latest nearest strongest centre center my longitude pacific (150°e) greenwich (0°) featured highlights colour by color colours depth age land you are here home rings pulse alert on nearby alerts">
+<a class="card app-card" href="/apps/earthevents.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="earth events earthevents wildfires, storms, volcanoes and sea ice happening now, as dots on a world map (nasa eonet). live data layout counts by kind show all wildfires storms &amp; lake started within (days) days">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/earthevents.png" /><img src="/media/apps/earthevents.gif" width="32" height="32" loading="lazy" decoding="async" alt="Earth Events running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Earth Events</h3>
+    <p>Wildfires, storms, volcanoes and sea ice happening now, as dots on a world map (NASA EONET).</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/quakes.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="earthquakes quakes live usgs earthquakes: world map with pulsing rings, regional zoom, nearest/latest card, list. data feed all · past hour day m2.5+ week m4.5+ 30 days significant minimum magnitude min mag near-me radius (km) km layout card list highlight focus latest nearest strongest centre center my longitude pacific (150°e) greenwich (0°) featured highlights colour by color colours depth age land you are here home rings pulse alert on nearby alerts follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/quakes.png" /><img src="/media/apps/quakes.gif" width="32" height="32" loading="lazy" decoding="async" alt="Earthquakes running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Earthquakes</h3>
     <p>Live USGS earthquakes: world map with pulsing rings, regional zoom, nearest/latest card, list.</p>
-    <div class="foot"><span>13 settings</span></div>
+    <div class="foot"><span>14 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/radar.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="clip" data-search="flight radar a phosphor scope of live aircraft around you (free ads-b). click blip to inspect it. data baked loop layout departures list theme green amber cyan military grid range (nm) nm sweep speed (rpm) heading trails show callsign labels highlight none nearest fastest highest cycle rotate min altitude (ft) ft filters hide on the ground">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/radar.png" /><img src="/media/apps/radar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Flight Radar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Flight Radar</h3>
     <p>A phosphor radar scope of live aircraft around you (free ADS-B). Click a blip to inspect it.</p>
     <div class="foot"><span>10 settings</span></div>
   </div>
 </a>
+<a class="card app-card" href="/apps/gameserver.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="game server gameserver players online on your java or bedrock block-game server, with its icon and message of the day. live data address edition">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/gameserver.png" /><img src="/media/apps/gameserver.gif" width="32" height="32" loading="lazy" decoding="async" alt="Game Server running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Game Server</h3>
+    <p>Players online on your Java or Bedrock block-game server, with its icon and message of the day.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
 <a class="card app-card" href="/apps/github.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="github graph your contribution graph, total and streak — straight from public profile. live data username user weeks 16 (wide cells) 32 palette green ember ice">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/github.png" /><img src="/media/apps/github.gif" width="32" height="32" loading="lazy" decoding="async" alt="GitHub Graph running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>GitHub Graph</h3>
     <p>Your contribution graph, total and streak — straight from your public profile.</p>
     <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/headlines.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="headlines hacker news, spaceflight dev and lobsters: story cards, big points or a vertical ticker. live data source news community lobsters feed top best new ask show stories count minimum min layout card number ticker title style marquee word-wrapped pages seconds per rotate scroll speed (px/s) accent colors colours colour custom text color">
+<a class="card app-card" href="/apps/headlines.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="headlines hacker news, spaceflight dev and lobsters: story cards, big points or a vertical ticker. live data source news community lobsters feed top best new ask show stories count minimum min layout card number ticker title style marquee word-wrapped pages seconds per rotate scroll speed (px/s) accent colors colours colour custom text color follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/headlines.png" /><img src="/media/apps/headlines.gif" width="32" height="32" loading="lazy" decoding="async" alt="Headlines running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Headlines</h3>
     <p>Hacker News, Spaceflight News, DEV and Lobsters: story cards, big points or a vertical ticker.</p>
-    <div class="foot"><span>11 settings</span></div>
+    <div class="foot"><span>12 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/hassentity.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="home assistant hassentity any entity: state, icon, unit, thresholds and a history sparkline. live data entity id label icon automatic thermometer drop bolt sun bulb battery door lock person flame none unit decimals colour color amber at warn red alert trigger direction or above below refresh every (s) poll (hours) h">
+<a class="card app-card" href="/apps/hassentity.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="home assistant hassentity any entity: state, icon, unit, thresholds and a history sparkline. live data entity id label icon automatic thermometer drop bolt sun bulb battery door lock person flame none unit decimals colour color amber at warn red alert trigger direction or above below refresh every (s) poll (hours) h follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/hassentity.png" /><img src="/media/apps/hassentity.gif" width="32" height="32" loading="lazy" decoding="async" alt="Home Assistant running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Home Assistant</h3>
     <p>Any Home Assistant entity: state, icon, unit, thresholds and a history sparkline.</p>
-    <div class="foot"><span>11 settings</span></div>
+    <div class="foot"><span>12 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/scores.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="live scores nba, nfl, mlb, nhl, soccer, cricket, tennis, golf, f1 and ufc — live, in team colours. data league leagues nba wnba ncaab nfl ncaaf mlb nhl epl liga serie a bundes ligue 1 ucl uel world cup mls isl ipl bbl psl cricket atp wta pga lpga favourite teams mode display one game at time all games (scroll) only favourites table layout classic split hero big score compact (2 games) ticker (all seconds per rotate upcoming format 7:30p 19:30 2h colours show logos colors clock records sport icons scroll direction vertical horizontal speed take over when is alerts goal / off">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/scores.png" /><img src="/media/apps/scores.gif" width="32" height="32" loading="lazy" decoding="async" alt="Live Scores running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Live Scores</h3>
     <p>NBA, NFL, MLB, NHL, soccer, cricket, tennis, golf, F1 and UFC — live, in team colours.</p>
     <div class="foot"><span>15 settings</span></div>
@@ -424,97 +497,151 @@
 <a class="card app-card" href="/apps/planets.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="planets tonight which naked-eye are up now or tonight, on a sky dome list with rise/set times. live data layout at when right show the moon below horizon 24-hour times hour24 seconds per label page">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/planets.png" /><img src="/media/apps/planets.gif" width="32" height="32" loading="lazy" decoding="async" alt="Planets Tonight running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Planets Tonight</h3>
     <p>Which naked-eye planets are up now or tonight, on a sky dome or a list with rise/set times.</p>
     <div class="foot"><span>6 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/rainradar.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="rain radar rainradar animated around you (past 2 hours), with a home marker and coastline. live data area (width) zoom map 300 km 600 1 200 400 4 800 basemap coastline terrain land fill none mark areas without coverage colour scheme colours classic blue heat mono color minimum intensity (dbz) threshold loop speed slow normal fast cross-fade frames smooth frame time label clock minutes ago off 24-hour hour24">
-  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/rainradar.png" /><img src="/media/apps/rainradar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rain Radar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+<a class="card app-card" href="/apps/racecountdown.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="race countdown racecountdown to the next grand prix with its session times, live during race, then podium. data layout (podium after a race) last podium">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/racecountdown.png" /><img src="/media/apps/racecountdown.gif" width="32" height="32" loading="lazy" decoding="async" alt="Race Countdown running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
-    <h3>Rain Radar</h3>
-    <p>Animated rain radar around you (past 2 hours), with a home marker and coastline.</p>
-    <div class="foot"><span>12 settings</span></div>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Race Countdown</h3>
+    <p>Countdown to the next Grand Prix with its session times, LIVE during the race, then the podium.</p>
+    <div class="foot"><span>1 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/space.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="space next rocket launch countdown, live iss tracker, people in orbit and spaceflight news. data screen mode tracker news rotate all seconds per accent provider filter launches any spacex lab isro nasa china (casc) roscosmos ula blue origin arianespace japan (mhi) 24-hour times hour24 take over for view follow-cam half globe whole world + readout ground track behind predicted ahead day / night shading units kilometres miles headline page">
+<a class="card app-card" href="/apps/rainchance.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="rain chance rainchance the of for each next 12 hours, and when it peaks — umbrella or not. live data hours ahead call dry below (%)">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/rainchance.png" /><img src="/media/apps/rainchance.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rain Chance running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Rain Chance</h3>
+    <p>The chance of rain for each of the next 12 hours, and when it peaks — umbrella or not.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/rainradar.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="rain radar rainradar animated around you (past 2 hours), with a home marker and coastline. live data area (width) zoom map 300 km 600 1 200 400 4 800 basemap coastline terrain land fill none mark areas without coverage colour scheme colours classic blue heat mono color minimum intensity (dbz) threshold loop speed slow normal fast cross-fade frames smooth frame time label clock minutes ago off 24-hour hour24 follow page theme">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/rainradar.png" /><img src="/media/apps/rainradar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rain Radar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Rain Radar</h3>
+    <p>Animated rain radar around you (past 2 hours), with a home marker and coastline.</p>
+    <div class="foot"><span>13 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/space.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="space next rocket launch countdown, live iss tracker, people in orbit and spaceflight news. data screen mode tracker news rotate all seconds per accent provider filter launches any spacex lab isro nasa china (casc) roscosmos ula blue origin arianespace japan (mhi) 24-hour times hour24 take over for view follow-cam half globe whole world + readout ground track behind predicted ahead day / night shading units kilometres miles headline page follow theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/space.png" /><img src="/media/apps/space.gif" width="32" height="32" loading="lazy" decoding="async" alt="Space running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Space</h3>
     <p>Next rocket launch countdown, live ISS tracker, people in orbit and spaceflight news.</p>
-    <div class="foot"><span>12 settings</span></div>
+    <div class="foot"><span>13 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/stocks.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="stocks stocks, indices, forex and futures: cards, ticker tape, watchlist, charts heatmap. live data symbols labels label short name layout card tape watchlist chart heatmap range 1d 5d 1mo 6mo 1y 5y style line area candles bars dots change show percent absolute both seconds per symbol rotate speed (px/s) theme colours classic vivid mono inverse (red up) up colour down neutral full-scale % heat scale market state dot details currency sign compact numbers decimals alert above alerts below">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/stocks.png" /><img src="/media/apps/stocks.gif" width="32" height="32" loading="lazy" decoding="async" alt="Stocks running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Stocks</h3>
     <p>Stocks, indices, forex and futures: cards, ticker tape, watchlist, charts and heatmap.</p>
     <div class="foot"><span>19 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/sysmon.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="system monitor sysmon live cpu, memory, storage and network from this pc. data layout bars cpu graph color ram disk">
+<a class="card app-card" href="/apps/sysmon.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="system monitor sysmon live cpu, memory, storage and network from this pc. data layout bars cpu graph color ram disk follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/sysmon.png" /><img src="/media/apps/sysmon.gif" width="32" height="32" loading="lazy" decoding="async" alt="System Monitor running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>System Monitor</h3>
     <p>Live CPU, memory, storage and network from this PC.</p>
-    <div class="foot"><span>4 settings</span></div>
+    <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/tides.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="tides &amp; surf tide curve with a now marker and next high/low, plus wave height, period direction. live data layout both (alternate) hours before on the back after ahead seconds per page (both) coast latitude lat longitude lon 24-hour times hour24">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tides.png" /><img src="/media/apps/tides.gif" width="32" height="32" loading="lazy" decoding="async" alt="Tides &amp; Surf running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Tides &amp; Surf</h3>
     <p>Tide curve with a now marker and next high/low, plus wave height, period and direction.</p>
     <div class="foot"><span>7 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/weather.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="weather animated conditions, temperature, high/low and a 24-hour trend. location in settings. live data layout icon + condition 24h trend accent">
+<a class="card app-card" href="/apps/tvtonight.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="tv tonight tvtonight what's on broadcast now and later in your country, three shows at a time. live data country prime time only (from 18:00) seconds per page">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tvtonight.png" /><img src="/media/apps/tvtonight.gif" width="32" height="32" loading="lazy" decoding="async" alt="TV Tonight running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>TV Tonight</h3>
+    <p>What's on broadcast TV now and later tonight in your country, three shows at a time.</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/weather.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="weather animated conditions, temperature, high/low and a 24-hour trend. location in settings. live data layout icon + condition 24h trend accent follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/weather.png" /><img src="/media/apps/weather.gif" width="32" height="32" loading="lazy" decoding="async" alt="Weather running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Weather</h3>
     <p>Animated conditions, temperature, high/low and a 24-hour trend. Location in Settings.</p>
-    <div class="foot"><span>2 settings</span></div>
+    <div class="foot"><span>3 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/wear.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="clip" data-search="what to wear one big icon for the next hours — umbrella, jacket, shades, t-shirt, scarf or snow boots. live data baked loop from forecast umbrella jacket sunglasses t-shirt boots look ahead (hours) thresholds rain chance (%) below (feels-like °c) uv index">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/wear.png" /><img src="/media/apps/wear.gif" width="32" height="32" loading="lazy" decoding="async" alt="What to Wear running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>What to Wear</h3>
     <p>One big icon for the next hours — umbrella, jacket, shades, T-shirt, scarf or snow boots.</p>
     <div class="foot"><span>6 settings</span></div>
   </div>
 </a>
+<a class="card app-card" href="/apps/wikitrending.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="wiki trending wikitrending yesterday's most-read wikipedia articles with their views and a 5-day spike chart. live data count seconds per article scroll the short description show">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/wikitrending.png" /><img src="/media/apps/wikitrending.gif" width="32" height="32" loading="lazy" decoding="async" alt="Wiki Trending running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Wiki Trending</h3>
+    <p>Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart.</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/windcompass.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="wind compass windcompass speed, gusts and direction on a with its beaufort name, the next 12 hours. live data layout hours arrow points where it blows to comes from ahead">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/windcompass.png" /><img src="/media/apps/windcompass.gif" width="32" height="32" loading="lazy" decoding="async" alt="Wind Compass running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>Wind Compass</h3>
+    <p>Wind speed, gusts and direction on a compass with its Beaufort name, and the next 12 hours.</p>
+    <div class="foot"><span>3 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/worldflags.html" style="--glow:#45d9ff;--i:12" data-cat="data" data-flags="" data-search="world flags worldflags a flag of the day, shuffle every country's flag, or guess-the-flag quiz. live data mode day quiz seconds per">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/worldflags.png" /><img src="/media/apps/worldflags.gif" width="32" height="32" loading="lazy" decoding="async" alt="World Flags running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#45d9ff">Live data</span>
+    <h3>World Flags</h3>
+    <p>A flag of the day, a shuffle of every country's flag, or a guess-the-flag quiz.</p>
+    <div class="foot"><span>2 settings</span></div>
+  </div>
+</a>
 <a class="card app-card" href="/apps/printer.html" style="--glow:#a6adff;--i:12" data-cat="device" data-flags="" data-search="3d printer print progress ring, eta, nozzle and bed temperatures from octoprint or moonraker. device live server kind connection moonraker / klipper host port api key layout display ring rows celebrate for (min) min notify when done failed alerts take over the playlist while printing takeover">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/printer.png" /><img src="/media/apps/printer.gif" width="32" height="32" loading="lazy" decoding="async" alt="3D Printer running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#a6adff">Device</span>
+    <span class="tag" style="--c:#a6adff">Device</span>
     <h3>3D Printer</h3>
     <p>Print progress ring, ETA, nozzle and bed temperatures from OctoPrint or Moonraker.</p>
     <div class="foot"><span>8 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/native.html" style="--glow:#a6adff;--i:12" data-cat="device" data-flags="" data-search="firmware modes native the panel's own clock designs, effects, scoreboard and timers — no streaming. device feature effect solid colour countdown stopwatch design (0-7) style show date 24-hour hour24 color (0-6) left score right minutes seconds">
+<a class="card app-card" href="/apps/native.html" style="--glow:#a6adff;--i:12" data-cat="device" data-flags="" data-search="firmware modes native the panel's own clock designs, effects, scoreboard and timers — no streaming. device feature effect solid colour countdown stopwatch design (0-7) style show date 24-hour hour24 color (0-6) left score right minutes seconds follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/native.png" /><img src="/media/apps/native.gif" width="32" height="32" loading="lazy" decoding="async" alt="Firmware Modes running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#ffcc33"><i></i>Firmware</span></div>
   <div class="body">
-    <span class="tag" style="color:#a6adff">Device</span>
+    <span class="tag" style="--c:#a6adff">Device</span>
     <h3>Firmware Modes</h3>
     <p>The panel's own clock designs, effects, scoreboard and timers — no streaming.</p>
-    <div class="foot"><span>10 settings</span></div>
+    <div class="foot"><span>11 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/g2048.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="2048 g2048 slide and merge tiles towards 2048; colour tells the value. ai hugs a corner. arrows slide. b in demo opens menu: race on 2–4 small boards, or relay (take turns one board). games live speed theme classic neon retro mono ice ember skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) numbers to tile target 128 256 512 1024 junk attacks mode solo map stones players 4 free-for-all co-op swipe d-pad keyboard gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/g2048.png" /><img src="/media/apps/g2048.gif" width="32" height="32" loading="lazy" decoding="async" alt="2048 running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>2048</h3>
     <p>Slide and merge tiles towards 2048; colour tells the value. The AI hugs a corner. Arrows slide. B in the demo opens the menu: Race on 2–4 small boards, or Relay (take turns on one board).</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>2 maps</span></div>
@@ -523,7 +650,7 @@
 <a class="card app-card" href="/apps/raycaster.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="clip" data-search="3d dungeon raycaster first-person raycasting crawler with textured walls and radar. games baked loop visual theme medieval cyber grid infernal basalt minimap radar hud on off exploration speed led brightness 1 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/raycaster.png" /><img src="/media/apps/raycaster.gif" width="32" height="32" loading="lazy" decoding="async" alt="3D Dungeon Raycaster running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>3D Dungeon Raycaster</h3>
     <p>First-person 3D raycasting dungeon crawler with textured walls and radar.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -532,7 +659,7 @@
 <a class="card app-card" href="/apps/invaders.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="alien wave invaders hold the line against a marching fleet behind crumbling shields. ←/→ move, fires. games live speed theme classic neon retro mono deep space sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) rows shields lives fire duel waves mode solo co-op map bunkers long wall open sky players 4 free-for-all d-pad analog stick gamepad keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/invaders.png" /><img src="/media/apps/invaders.gif" width="32" height="32" loading="lazy" decoding="async" alt="Alien Wave running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Alien Wave</h3>
     <p>Hold the line against a marching alien fleet behind crumbling shields. ←/→ move, A fires.</p>
     <div class="foot"><span>16 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -541,7 +668,7 @@
 <a class="card app-card" href="/apps/tetris.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="block drop tetris stack falling blocks in a narrow well; the glows warmer as it climbs. ai stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, hard b rotate back. demo opens menu: versus (clear lines to send garbage) co-op (one wide well). games live speed theme classic neon retro mono sunset candy deep sea skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) start level garbage sent attack (2 → 1) mirror (every line) rising floor every (s) rise mode solo map empty mound players 2 teams d-pad gamepad keyboard analog stick">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tetris.png" /><img src="/media/apps/tetris.gif" width="32" height="32" loading="lazy" decoding="async" alt="Block Drop running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Block Drop</h3>
     <p>Stack falling blocks in a narrow well; the stack glows warmer as it climbs. The AI stacks by holes, height and bumpiness. ←/→ move, ↑ rotate, ↓ soft drop, A hard drop, B rotate back. B in the demo opens the menu: Versus (clear lines to send garbage) and Co-op (one wide well).</p>
     <div class="foot"><span>14 settings</span><span>2 players</span><span>3 maps</span></div>
@@ -550,7 +677,7 @@
 <a class="card app-card" href="/apps/breakout.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="brick smash breakout a colourful wall; new patterns every level. left/right moves the paddle. co-op: two paddles and balls on one wall. versus: split field, first to clear their half wins. games live speed theme classic neon retro mono arcade candy lava ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives rows paddle width wall drop (s) mode solo co-op versus map fortress descend players 2 teams analog stick d-pad tilt gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/breakout.png" /><img src="/media/apps/breakout.gif" width="32" height="32" loading="lazy" decoding="async" alt="Brick Smash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Brick Smash</h3>
     <p>Smash a colourful brick wall; new patterns every level. Left/right moves the paddle. Co-op: two paddles and two balls on one wall. Versus: a split field, first to clear their half wins.</p>
     <div class="foot"><span>15 settings</span><span>2 players</span><span>3 maps</span></div>
@@ -559,7 +686,7 @@
 <a class="card app-card" href="/apps/chess.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="chess puzzle chess.com's daily on a 32×32 board, then the solution plays out move by move. games live source random new every (min) think time (s) seconds per board theme night (led) wood green blue orientation side to at bottom white intro card (title, move) highlight last 1 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/chess.png" /><img src="/media/apps/chess.gif" width="32" height="32" loading="lazy" decoding="async" alt="Chess Puzzle running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Chess Puzzle</h3>
     <p>Chess.com's daily puzzle on a 32×32 board, then the solution plays out move by move.</p>
     <div class="foot"><span>8 settings</span></div>
@@ -568,7 +695,7 @@
 <a class="card app-card" href="/apps/dino.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="desert dash dino an endless with a long-eared hopper: jump cacti, duck birds, day turns to night. up/a jumps, down ducks. race: up four runners on one track, last running wins. games live speed theme classic neon retro mono tundra volcano ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays pilot built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) birds length (s) cycle start mode solo race map canyon rush players 4 free-for-all tap zones d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/dino.png" /><img src="/media/apps/dino.gif" width="32" height="32" loading="lazy" decoding="async" alt="Desert Dash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Desert Dash</h3>
     <p>An endless desert dash with a long-eared hopper: jump cacti, duck birds, day turns to night. Up/A jumps, down ducks. Race: up to four runners on one track, last one running wins.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -577,7 +704,7 @@
 <a class="card app-card" href="/apps/digworld.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="dig world digworld a block-world sandbox: the miner digs for ore, builds house at dusk and hides from night creatures. arrows walk/dig, jumps (or places in build mode), b toggles dig/build. two miners play co-op, up to four race ore. games live speed theme classic neon retro mono overworld frost dune ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) creatures day length (s) hearts match (days) days mode solo co-op ore rush map meadow caverns peaks lakes players 4 free-for-all d-pad gamepad analog stick keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/digworld.png" /><img src="/media/apps/digworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dig World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Dig World</h3>
     <p>A block-world sandbox: the miner digs for ore, builds a house at dusk and hides from night creatures. Arrows walk/dig, A jumps (or places in build mode), B toggles dig/build. Two miners play co-op, up to four race for ore.</p>
     <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -586,7 +713,7 @@
 <a class="card app-card" href="/apps/maze.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="dot dash maze collect every in a fresh wrap-around while robots give chase; charge orbs turn the tables. games live speed theme classic neon retro mono circuit hedge ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) ghosts lives hunt round (s) time orb fright mode solo co-op map random mirror open boxed players 4 free-for-all d-pad swipe analog stick gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/maze.png" /><img src="/media/apps/maze.gif" width="32" height="32" loading="lazy" decoding="async" alt="Dot Dash running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Dot Dash</h3>
     <p>Collect every dot in a fresh wrap-around maze while robots give chase; charge orbs turn the tables.</p>
     <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -595,7 +722,7 @@
 <a class="card app-card" href="/apps/fourup.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="four up fourup four-in-a-row. two ais play until someone takes a seat: left/right aim, or down drops your disc. phone can join as the second player. variants: pop out (up pops bottom disc) and stones. games live speed theme classic neon retro mono tavern ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) match: first to stones (stones map) mode vs friend map players 2 solo free-for-all d-pad tap zones gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/fourup.png" /><img src="/media/apps/fourup.gif" width="32" height="32" loading="lazy" decoding="async" alt="Four Up running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Four Up</h3>
     <p>Four-in-a-row. Two AIs play until someone takes a seat: left/right aim, A or down drops your disc. A phone can join as the second player. Variants: Pop Out (up pops your bottom disc) and Stones.</p>
     <div class="foot"><span>13 settings</span><span>2 players</span><span>3 maps</span></div>
@@ -604,7 +731,7 @@
 <a class="card app-card" href="/apps/gamedeals.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="game deals gamedeals free-game giveaways and the best pc discounts, with store tags countdowns. games live show source free discounts both giveaways: platform filters (all stores) steam epic gog itch.io ubisoft playstation xbox switch android ios order sort most popular newest highest value discounts: any humble fanatical greenmangaming gamesplanet gamebillet max price ($) min savings % in rotation count seconds per rotate display notify on new 1 players">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/gamedeals.png" /><img src="/media/apps/gamedeals.gif" width="32" height="32" loading="lazy" decoding="async" alt="Game Deals running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Game Deals</h3>
     <p>Free-game giveaways and the best PC game discounts, with store tags and countdowns.</p>
     <div class="foot"><span>9 settings</span></div>
@@ -613,7 +740,7 @@
 <a class="card app-card" href="/apps/infinity.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="infinity a tiny ship flying forever through procedurally generated neon cave. up/down to steer. games live speed theme classic retro mono lava cave ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) rainbow trail star field stars stalactites spikes speed-up accel convoy respawns lives mode solo survival map tunnel canyon players 4 free-for-all co-op tap zones d-pad tilt analog stick">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/infinity.png" /><img src="/media/apps/infinity.gif" width="32" height="32" loading="lazy" decoding="async" alt="Infinity running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Infinity</h3>
     <p>A tiny ship flying forever through a procedurally generated neon cave. Up/down to steer.</p>
     <div class="foot"><span>16 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -622,7 +749,7 @@
 <a class="card app-card" href="/apps/leafleap.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="leaf leap leafleap a flip-screen platformer: sprig runs, jumps pits, stomps beetles and grabs coins on the way to flag. left/right run, up/a jumps. two sprouts play co-op (shared lives) or race games live speed theme classic neon retro mono meadow autumn crystal cave ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) enemies lives length (levels) levels mode solo map caves sky isles castle players 2 free-for-all d-pad gamepad analog stick keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/leafleap.png" /><img src="/media/apps/leafleap.gif" width="32" height="32" loading="lazy" decoding="async" alt="Leaf Leap running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Leaf Leap</h3>
     <p>A flip-screen platformer: Sprig runs, jumps pits, stomps beetles and grabs coins on the way to the flag. Left/right run, up/A jumps. Two sprouts play co-op (shared lives) or race to the flag.</p>
     <div class="foot"><span>14 settings</span><span>2 players</span><span>4 maps</span></div>
@@ -631,7 +758,7 @@
 <a class="card app-card" href="/apps/mines.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="mines a mine-field puzzle that solves itself with logic (and the odd guess). arrows move cursor, reveals, b flags. up to four players sweep one field together (co-op) or race for cells. games live speed theme classic neon retro mono frost ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play when idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) co-op lives race: stun after mine (s) mode solo map square donut cross 4 free-for-all d-pad gamepad keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/mines.png" /><img src="/media/apps/mines.gif" width="32" height="32" loading="lazy" decoding="async" alt="Mines running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Mines</h3>
     <p>A mine-field puzzle that solves itself with logic (and the odd guess). Arrows move the cursor, A reveals, B flags. Up to four players sweep one field together (co-op) or race for cells.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -640,7 +767,7 @@
 <a class="card app-card" href="/apps/neonheat.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="neon heat neonheat top-down city getaway: grab packages, deliver them and shake the police. arrows turn at next junction, opposite arrow u-turns. up to four couriers race for package steal it by ramming, or play cops &amp; robbers. games live speed theme classic retro mono synthwave noir toxic ai skill show score effects graphics full (particles, shake, flashes) calm (no minimal intro results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) traffic police cars lives match length (s) time mode solo rush robbers map downtown old town suburbs players 4 free-for-all teams swipe d-pad analog stick gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/neonheat.png" /><img src="/media/apps/neonheat.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neon Heat running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Neon Heat</h3>
     <p>Top-down neon city getaway: grab packages, deliver them and shake the police. Arrows turn at the next junction, the opposite arrow U-turns. Up to four couriers race for the package and steal it by ramming, or play Cops &amp; Robbers.</p>
     <div class="foot"><span>15 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -649,7 +776,7 @@
 <a class="card app-card" href="/apps/cycles.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="neon trails cycles up to four glowing bikes, walls behind them — box the others in, don't crash. plays itself; arrows steer blue bike, and three friends can join from their phones on your wi-fi. party, 2v2 teams arenas. games live speed theme classic retro mono grid sunset ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) bikes in arena riders steps per second pace match: first mode solo party map open pillars core wrap players 4 free-for-all swipe d-pad analog stick gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/cycles.png" /><img src="/media/apps/cycles.gif" width="32" height="32" loading="lazy" decoding="async" alt="Neon Trails running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Neon Trails</h3>
     <p>Up to four glowing bikes, walls behind them — box the others in, don't crash. Plays itself; arrows steer the blue bike, and up to three friends can join from their phones on your Wi-Fi. Party, 2v2 teams and four arenas.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -658,7 +785,7 @@
 <a class="card app-card" href="/apps/pong.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="paddle duel pong two paddles, one ball that speeds up every hit. plays itself; up/down steers the left paddle. modes: 1 v 1, doubles (2 2, front and back paddles) 4 way (a on wall). friends join from their phones (local wi-fi). games live speed theme classic neon retro mono arcade court ice ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) size points to win lives (4 way) mode map open block portals players teams free-for-all analog stick d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pong.png" /><img src="/media/apps/pong.gif" width="32" height="32" loading="lazy" decoding="async" alt="Paddle Duel running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Paddle Duel</h3>
     <p>Two paddles, one ball that speeds up every hit. Plays itself; up/down steers the left paddle. Modes: 1 v 1, Doubles (2 v 2, front and back paddles) and 4 Way (a paddle on every wall). Friends join from their phones (local Wi-Fi).</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -667,7 +794,7 @@
 <a class="card app-card" href="/apps/penguin.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="penguin escape a sliding-ice puzzle: guide out of the zoo through 16 levels. ice slides you until something stops you; shove blocks (into water to bridge it), grab keys for doors and three fish stars, stay keepers' torch beams. arrows move, undoes, b restarts / picks level. games live speed theme classic neon retro mono night aurora ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) starting level start 1 players solo d-pad swipe gamepad analog stick">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/penguin.png" /><img src="/media/apps/penguin.gif" width="32" height="32" loading="lazy" decoding="async" alt="Penguin Escape running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Penguin Escape</h3>
     <p>A sliding-ice puzzle: guide a penguin out of the zoo through 16 levels. Ice slides you until something stops you; shove ice blocks (into water to bridge it), grab keys for doors and three fish for stars, and stay out of the keepers' torch beams. Arrows move, A undoes, B restarts / picks a level.</p>
     <div class="foot"><span>9 settings</span></div>
@@ -676,7 +803,7 @@
 <a class="card app-card" href="/apps/flappy.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="pipe hopper flappy a little bird threading between pipes. plays itself; up or flaps. race: to four birds through the same pipes, last one flying wins. games live speed theme classic neon retro mono meadow dusk abyss ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself when idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) gap size gravity gaps shrink (sudden death) mode solo race map pipes moving cave players 4 free-for-all tap zones d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/flappy.png" /><img src="/media/apps/flappy.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pipe Hopper running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Pipe Hopper</h3>
     <p>A little bird threading between pipes. Plays itself; up or A flaps. Race: up to four birds through the same pipes, last one flying wins.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -685,7 +812,7 @@
 <a class="card app-card" href="/apps/racer.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="racer top-down three-lane highway dash through traffic. left/right changes lanes. race: 2-4 cars on one road, last car running wins. games live speed theme classic neon retro mono asphalt midnight dunes ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) traffic lives mode solo race map roadworks rush hour players 4 free-for-all tilt swipe d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/racer.png" /><img src="/media/apps/racer.gif" width="32" height="32" loading="lazy" decoding="async" alt="Racer running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Racer</h3>
     <p>Top-down three-lane highway dash through traffic. Left/right changes lanes. Race: 2-4 cars on one road, last car running wins.</p>
     <div class="foot"><span>13 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -694,7 +821,7 @@
 <a class="card app-card" href="/apps/asteroids.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="rock field asteroids pilot a tiny ship through of splitting space rocks. ←/→ turn, ↑ thrust, fire, b warp. games live speed theme classic neon retro mono nebula red planet ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play itself when idle attract plays with built-in fruit-fly brain (sees only the pixels; docs/fly_brain.md) rocks per wave solid filled lives battle time (s) limit mode solo co-op dogfight squads map dense belt gravity well open players 4 free-for-all teams gamepad d-pad analog stick keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroids.png" /><img src="/media/apps/asteroids.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rock Field running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Rock Field</h3>
     <p>Pilot a tiny ship through a field of splitting space rocks. ←/→ turn, ↑ thrust, A fire, B warp.</p>
     <div class="foot"><span>15 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -703,7 +830,7 @@
 <a class="card app-card" href="/apps/rps.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="rock paper scissors rps the party classic, 1 v 1: two pixel hands pump rock… paper… scissors… shoot! play ai, a friend (keyboard + phone, or phones) run 3–8 player tournament — friends join by scanning panel's qr code and pick their hand on big buttons. plays ai vs when idle. games live speed theme classic neon retro mono arena skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself idle attract with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) match length best of 3 5 7 seconds to round timer style random (truly uniform unbeatable in long run) pattern hunter (punishes your habits) cheeky (gives away tells… mostly honest) reveal rock, paper, scissors, 3-2-1 countdown instant mode you map knockout robin players 8 solo free-for-all d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/rps.png" /><img src="/media/apps/rps.gif" width="32" height="32" loading="lazy" decoding="async" alt="Rock Paper Scissors running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Rock Paper Scissors</h3>
     <p>The party classic, 1 v 1: two pixel hands pump ROCK… PAPER… SCISSORS… SHOOT! Play the AI, a friend (keyboard + phone, or two phones) or run a 3–8 player tournament — friends join by scanning the panel's QR code and pick their hand on big buttons. Plays AI vs AI when idle.</p>
     <div class="foot"><span>15 settings</span><span>8 players</span><span>2 maps</span></div>
@@ -712,7 +839,7 @@
 <a class="card app-card" href="/apps/arcade.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="snake arcade on the leds. plays itself as a screensaver; press arrow keys to play. b opens menu: battle and teams for 2–4 snakes, co-op with shared apples, four arenas. games live speed (moves/s) theme classic neon retro mono night jungle circuit desert ai skill show score effects graphics full (particles, shake, flashes) calm (no shake or minimal intro &amp; results screens outro game flow play when idle attract pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) colour color food solid walls growth per apple grow match time (s) lives mode solo map open pillars maze tunnels players 4 free-for-all swipe d-pad analog stick gamepad keyboard">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/arcade.png" /><img src="/media/apps/arcade.gif" width="32" height="32" loading="lazy" decoding="async" alt="Snake running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Snake</h3>
     <p>Snake on the LEDs. Plays itself as a screensaver; press the arrow keys to play. B opens the menu: Battle and Teams for 2–4 snakes, Co-op with shared apples, and four arenas.</p>
     <div class="foot"><span>17 settings</span><span>4 players</span><span>4 maps</span></div>
@@ -721,7 +848,7 @@
 <a class="card app-card" href="/apps/starship.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="starship a vertical space shooter: weave through swooping enemy waves. ←/→ move, auto-fire, bomb. fly with up to three wingmen (co-op, downed ship is revived when the wave cleared) or dogfight for points (ace). arenas: deep space, an asteroid belt and narrow canyon. games live speed theme classic neon retro mono void solar ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself idle attract plays pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) lives ace duel length (s) time mode solo map rock canyon players 4 co-op free-for-all analog stick d-pad tilt gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/starship.png" /><img src="/media/apps/starship.gif" width="32" height="32" loading="lazy" decoding="async" alt="Starship running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Starship</h3>
     <p>A vertical space shooter: weave through swooping enemy waves. ←/→ move, auto-fire, A bomb. Fly with up to three wingmen (co-op, a downed ship is revived when the wave is cleared) or dogfight for points (Ace). Arenas: deep space, an asteroid belt and a narrow canyon.</p>
     <div class="foot"><span>13 settings</span><span>4 players</span><span>3 maps</span></div>
@@ -730,25 +857,25 @@
 <a class="card app-card" href="/apps/streetsurge.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="street surge streetsurge pseudo-3d night race: laps of curves and hills against rival cars on four tracks. left/right steer, a fires nitro, down/b brakes. up to players race each other or in two teams; the camera follows whoever is behind. games live speed theme classic neon retro mono midnight dusk frost ai skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow play itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) rivals mode grand prix versus team map city coast road mountain pass speedway 4 solo free-for-all teams tap zones tilt analog stick gamepad d-pad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/streetsurge.png" /><img src="/media/apps/streetsurge.gif" width="32" height="32" loading="lazy" decoding="async" alt="Street Surge running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Street Surge</h3>
     <p>Pseudo-3D night street race: laps of curves and hills against rival cars on four tracks. Left/right steer, A fires nitro, down/B brakes. Up to four players race each other or in two teams; the camera follows whoever is behind.</p>
     <div class="foot"><span>14 settings</span><span>4 players</span><span>4 maps</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/trivia.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="trivia open db quiz: question, options a–d, countdown ring, reveal. play with the arrow keys. games live category questions any general knowledge books film music musicals &amp; theatre television video board science nature computers mathematics mythology sports geography history politics art celebrities animals vehicles comics gadgets anime manga cartoons difficulty easy medium hard type qtype multiple choice true / false mixed seconds to answer reveal read out preview auto-play auto reading pace slow normal fast score card after answers show accent colours correct wrong 1 players game">
+<a class="card app-card" href="/apps/trivia.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="" data-search="trivia open db quiz: question, options a–d, countdown ring, reveal. play with the arrow keys. games live category questions any general knowledge books film music musicals &amp; theatre television video board science nature computers mathematics mythology sports geography history politics art celebrities animals vehicles comics gadgets anime manga cartoons difficulty easy medium hard type qtype multiple choice true / false mixed seconds to answer reveal read out preview auto-play auto reading pace slow normal fast score card after answers show accent colours correct wrong follow page theme 1 players game">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/trivia.png" /><img src="/media/apps/trivia.gif" width="32" height="32" loading="lazy" decoding="async" alt="Trivia running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>Trivia</h3>
     <p>Open Trivia DB quiz: question, options A–D, countdown ring, reveal. Play with the arrow keys.</p>
-    <div class="foot"><span>12 settings</span></div>
+    <div class="foot"><span>13 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/tictactoe.html" style="--glow:#ff7419;--i:12" data-cat="games" data-flags="multiplayer" data-search="x and 0 tictactoe tic-tac-toe for 1 or 2 players. play against the ai (arrows move, a places), let friend join from their phone on your wi-fi as o by scanning panel's qr code. variants: vanishing marks misère. games live speed theme classic neon retro mono chalkboard arcade skill show score effects graphics full (particles, shake, flashes) calm (no shake minimal intro &amp; results screens outro game flow itself when idle attract plays with pilot built-in fruit-fly brain (sees only pixels; docs/fly_brain.md) match: first to mode vs map misere players solo free-for-all d-pad gamepad">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/tictactoe.png" /><img src="/media/apps/tictactoe.gif" width="32" height="32" loading="lazy" decoding="async" alt="X and 0 running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff7419">Games</span>
+    <span class="tag" style="--c:#ff7419">Games</span>
     <h3>X and 0</h3>
     <p>Tic-tac-toe for 1 or 2 players. Play X against the AI (arrows move, A places), or let a friend join from their phone on your Wi-Fi as O by scanning the panel's QR code. Variants: vanishing marks and misère.</p>
     <div class="foot"><span>12 settings</span><span>2 players</span><span>3 maps</span></div>
@@ -757,7 +884,7 @@
 <a class="card app-card" href="/apps/camera.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="camera mirror your webcam on the leds — follows face, with pop-art, neon, thermal and 1-bit looks. media live auto exposure (ev) black point % white brightness contrast gamma saturation colour hue shift (°) balance temperature tint sharpness detail &amp; effects posterise levels posterize invert (selfie view) flip h framing vertical v rotate 0° 90° 180° 270° zoom pan ←→ x ↑↓ y look style natural pop art neon edges ember follow my face track index hardware hw gain (iso) wb (k) kelvin autofocus manual focus">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/camera.png" /><img src="/media/apps/camera.gif" width="32" height="32" loading="lazy" decoding="async" alt="Camera Mirror running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Camera Mirror</h3>
     <p>Your webcam on the LEDs — follows your face, with pop-art, neon, thermal and 1-bit looks.</p>
     <div class="foot"><span>30 settings</span></div>
@@ -766,7 +893,7 @@
 <a class="card app-card" href="/apps/gallery.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="gallery your uploads — photos are led-calibrated, pixel art stays crisp. media live fit fill (crop) stretch led colour profile auto vibrant natural raw 1:1 animation speed">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/gallery.png" /><img src="/media/apps/gallery.gif" width="32" height="32" loading="lazy" decoding="async" alt="Gallery running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Gallery</h3>
     <p>Your uploads — photos are LED-calibrated, pixel art stays crisp.</p>
     <div class="foot"><span>4 settings</span></div>
@@ -775,52 +902,52 @@
 <a class="card app-card" href="/apps/mediaserver.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="media server mediaserver latest plex or jellyfin additions as posters, plus who's streaming now. live connection host port token / api key user layout display poster shelf now seconds per item rotate show now-streaming count sessions">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/mediaserver.png" /><img src="/media/apps/mediaserver.gif" width="32" height="32" loading="lazy" decoding="async" alt="Media Server running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Media Server</h3>
     <p>Latest Plex or Jellyfin additions as posters, plus who's streaming now.</p>
     <div class="foot"><span>8 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/nowplaying.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="now playing nowplaying spotify / youtube music any player: album art, karaoke lyrics, vinyl, spectrum and more. media live layout synced lyrics over art + title living vinyl info minimal colour wash take while plays lyric offset (s) color accent show when no fallback cover sung unsung dim size font auto (big it fits) big 7 px compact 5 alignment align centre left progress bar display time mode elapsed remaining scroll speed (px/s) nothing idle screen clock last brightness behind colours from theme pulse with the beat sync">
+<a class="card app-card" href="/apps/nowplaying.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="now playing nowplaying spotify / youtube music any player: album art, karaoke lyrics, vinyl, cassette, cd, vu meters, radio dial and more. media live layout synced lyrics over art word pop + title living vinyl cd cassette mosaic info minimal big colour wash spectrum meters waveform take while plays lyric color accent show when no fallback cover track where it source long text scroll style marquee (loops) bounce pages of words speed (px/s) offset (s) sung unsung dim size font auto (big fits) 7 px compact 5 alignment align centre left highlight sweep through whole underline line spacing tight normal loose translation progress bar display time mode elapsed remaining between songs transition song change cut slide dissolve zoom rotate layouts off every few seconds set best retro gear paused pause &amp; idle layout's own sign freeze screen after 20 s nothing clock last recent covers calm waves silence wall 4 16 brightness behind colours from theme smooth pixelated posterised dithered dither ordered (crosshatch) error diffusion none colors contrast saturation pulse with the beat sync options huge (14 px) tall (10 shell black chrome red twin needles led ladders rainbow sheen shine band fm am grid tiles (8 × 8) small (16 16) wave mirrored bars trace follow page">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/nowplaying.png" /><img src="/media/apps/nowplaying.gif" width="32" height="32" loading="lazy" decoding="async" alt="Now Playing running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Now Playing</h3>
-    <p>Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, spectrum and more.</p>
-    <div class="foot"><span>19 settings</span></div>
+    <p>Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, cassette, CD, VU meters, radio dial and more.</p>
+    <div class="foot"><span>44 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/photoframe.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="photo frame photoframe a slideshow of public-domain art, nature photos, dogs, cats, foxes and ducks. media live art: the met art sources cleveland museum &amp; random photos picsum dogs cats ducks search query dog breed seconds per interval show motion still ken burns crossfade caption (title · artist) off scroll once always framing image smart crop centre fit (letterbox) led colour profile vibrant natural">
+<a class="card app-card" href="/apps/photoframe.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="photo frame photoframe a slideshow of public-domain art, nature photos, wikimedia's picture the day, dogs, cats, foxes and ducks. media live art: met art sources cleveland museum &amp; random photos picsum dogs cats ducks day (wikimedia) potd search query dog breed seconds per interval show motion still ken burns crossfade caption (title · artist) off scroll once always framing image smart crop centre fit (letterbox) led colour profile vibrant natural">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/photoframe.png" /><img src="/media/apps/photoframe.gif" width="32" height="32" loading="lazy" decoding="async" alt="Photo Frame running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Photo Frame</h3>
-    <p>A slideshow of public-domain art, nature photos, dogs, cats, foxes and ducks.</p>
-    <div class="foot"><span>15 settings</span></div>
+    <p>A slideshow of public-domain art, nature photos, Wikimedia's picture of the day, dogs, cats, foxes and ducks.</p>
+    <div class="foot"><span>16 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/mirror.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="screen mirror your screen, a window, the area under cursor, or ambient colours — live on panel. media auto exposure (ev) black point % white brightness contrast gamma saturation colour hue shift (°) balance temperature tint sharpness detail &amp; effects posterise levels posterize invert flip horizontal h framing vertical v rotate 0° 90° 180° 270° zoom pan ←→ x ↑↓ y source mode whole active window around cursor ambilight fit fill (crop) box (px)">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/mirror.png" /><img src="/media/apps/mirror.gif" width="32" height="32" loading="lazy" decoding="async" alt="Screen Mirror running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Screen Mirror</h3>
     <p>Your screen, a window, the area under the cursor, or ambient colours — live on the panel.</p>
     <div class="foot"><span>23 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/visualizer.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="visualizer reacts to whatever your pc is playing — spotify, youtube, games. no mic needed. media live style spectrum bars mirrored radial burst waveform fire pulse rings palette rainbow heat single colour (single-colour palette) color peak dots peaks sensitivity gain">
+<a class="card app-card" href="/apps/visualizer.html" style="--glow:#ff3f78;--i:12" data-cat="media" data-flags="" data-search="visualizer reacts to whatever your pc is playing — spotify, youtube, games. no mic needed. media live style spectrum bars mirrored radial burst waveform fire pulse rings palette rainbow heat single colour page theme (single-colour palette) color peak dots peaks sensitivity gain follow">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/visualizer.png" /><img src="/media/apps/visualizer.gif" width="32" height="32" loading="lazy" decoding="async" alt="Visualizer running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ff3f78">Media</span>
+    <span class="tag" style="--c:#ff3f78">Media</span>
     <h3>Visualizer</h3>
     <p>Reacts to whatever your PC is playing — Spotify, YouTube, games. No mic needed.</p>
-    <div class="foot"><span>5 settings</span></div>
+    <div class="foot"><span>6 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/pet.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet a pixel or character that lives on the panel: wanders, naps, snacks and dances to music. pets baked loop clawd mini shiba pug husky dachshund golden retriever corgi orange tabby black cat calico siamese grey kitten bunny hamster panda penguin frog duckling axolotl fox capybara volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake knight archer barbarian giant goblin wizard skeleton iron king princess br soldier tac operator raider neon duelist sniper lab coat inventor sidekick kid little prankster science teacher partner night detective city driver footballer goalkeeper animation alive (auto behaviour) idle walk run jump dance sleep sit eat happy sad wave kick work think shoot reload crouch attack cast size scale small large (2x) scene none meadow cosy room sky beach space stage snow accessory cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa speed face left flip music sync name tag custom colours use colors primary secondary accent">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pet.png" /><img src="/media/apps/pet.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#5cf2a0">Pets</span>
+    <span class="tag" style="--c:#5cf2a0">Pets</span>
     <h3>Pet</h3>
     <p>A pixel pet or character that lives on the panel: wanders, naps, snacks and dances to music.</p>
     <div class="foot"><span>13 settings</span></div>
@@ -829,7 +956,7 @@
 <a class="card app-card" href="/apps/petworld.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="clip" data-search="pet world petworld lofi pets living in a scrolling little — working, snacking, football, naps, dancing. baked loop character claude · clawd mini dogs shiba pug husky dachshund golden retriever corgi cats orange tabby black cat calico siamese grey kitten critters bunny hamster panda penguin frog duckling axolotl fox capybara monsters volt mouse ember lizard bubble turtle sprout toad grin ghost puff drake troops knight archer barbarian giant goblin wizard skeleton iron king princess shooters br soldier tac operator raider neon duelist sniper everyday folks lab coat inventor sidekick kid prankster science teacher partner night detective city driver sports footballer goalkeeper buddy nobody cosy room park &amp; pitch beach space station street café accessory none cap beanie crown party hat headphones sunglasses halo bow scarf helmet santa pace speed time of day mood follow the clock always sunset sleep at weather live clear rain snow warmth dance to music sync show wall colour outline characters camera screens (scenery stays still) (scrolls)">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/petworld.png" /><img src="/media/apps/petworld.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pet World running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#5cf2a0">Pets</span>
+    <span class="tag" style="--c:#5cf2a0">Pets</span>
     <h3>Pet World</h3>
     <p>Lofi pets living in a scrolling little world — working, snacking, football, naps, dancing.</p>
     <div class="foot"><span>14 settings</span></div>
@@ -838,7 +965,7 @@
 <a class="card app-card" href="/apps/pokedex.html" style="--glow:#5cf2a0;--i:12" data-cat="pets" data-flags="" data-search="pokédex pokedex pokémon of the day or a random one: crisp sprite, types, stats and who's that pokémon. pets live which mode specific name number pokemon generation all generations gen 1 2 3 4 5 6 7 8 9 new every (s) colours shiny normal rare (1 in 16) show view display card → info portrait pokémon? seconds per page that: to guess units metric imperial">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/pokedex.png" /><img src="/media/apps/pokedex.gif" width="32" height="32" loading="lazy" decoding="async" alt="Pokédex running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#5cf2a0">Pets</span>
+    <span class="tag" style="--c:#5cf2a0">Pets</span>
     <h3>Pokédex</h3>
     <p>Pokémon of the day or a random one: crisp sprite, types, stats and Who's that Pokémon.</p>
     <div class="foot"><span>9 settings</span></div>
@@ -847,7 +974,7 @@
 <a class="card app-card" href="/apps/activeapp.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="active app activeapp the you're using right now — its real icon, a matching animation and today's focus time. productivity live layout icon title pop up when you switch apps take over pop-up seconds popup">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/activeapp.png" /><img src="/media/apps/activeapp.gif" width="32" height="32" loading="lazy" decoding="async" alt="Active App running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Active App</h3>
     <p>The app you're using right now — its real icon, a matching animation and today's focus time.</p>
     <div class="foot"><span>3 settings</span></div>
@@ -856,34 +983,34 @@
 <a class="card app-card" href="/apps/anki.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="anki cards due today (new, learning, review) with progress, and a word of the day. productivity live host ankiconnect port api key (optional) deck display layout day">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/anki.png" /><img src="/media/apps/anki.gif" width="32" height="32" loading="lazy" decoding="async" alt="Anki running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Anki</h3>
     <p>Anki cards due today (new, learning, review) with progress, and a word of the day.</p>
     <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/calendar.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="calendar next meeting from your ics calendars: countdown ring, scrolling title and today's timeline. productivity live links urls layout agenda look ahead (hours) lookahead include all-day events all day take over before a focus minutes 24-hour times hour24">
+<a class="card app-card" href="/apps/calendar.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="calendar next meeting from your ics calendars: countdown ring, scrolling title and today's timeline. productivity live links urls layout agenda look ahead (hours) lookahead include all-day events all day take over before a focus minutes 24-hour times hour24 follow page theme colours">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/calendar.png" /><img src="/media/apps/calendar.gif" width="32" height="32" loading="lazy" decoding="async" alt="Calendar running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Calendar</h3>
     <p>Next meeting from your ICS calendars: countdown ring, scrolling title and today's timeline.</p>
-    <div class="foot"><span>7 settings</span></div>
+    <div class="foot"><span>8 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/ci.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="ci radiator github actions status tiles for your repos, and a should-i-deploy verdict. productivity live repositories repos token (optional) branch runs to watch events pushes any event layout big deploy? list seconds per repo rotate deploy window rule verdict time not friday afternoon fri pm or weekend cut-off (hour) hour refresh (s) alerts alert when build breaks">
+<a class="card app-card" href="/apps/ci.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="ci radiator github actions status tiles for your repos, and a should-i-deploy verdict. productivity live repositories repos token (optional) branch runs to watch events pushes any event layout big deploy? list seconds per repo rotate deploy window rule verdict time not friday afternoon fri pm or weekend cut-off (hour) hour refresh (s) alerts alert when build breaks follow page theme colours">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/ci.png" /><img src="/media/apps/ci.gif" width="32" height="32" loading="lazy" decoding="async" alt="CI Radiator running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>CI Radiator</h3>
     <p>GitHub Actions status tiles for your repos, and a should-I-deploy verdict.</p>
-    <div class="foot"><span>10 settings</span></div>
+    <div class="foot"><span>11 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/agent.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="clip" data-search="claude mascot agent animated sprite for status: thinking, working, waiting, done. productivity baked loop state idle thinking working needs input done error sleeping show label body colour color">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/agent.png" /><img src="/media/apps/agent.gif" width="32" height="32" loading="lazy" decoding="async" alt="Claude Mascot running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Claude Mascot</h3>
     <p>Animated Claude sprite for agent status: thinking, working, waiting, done.</p>
     <div class="foot"><span>3 settings</span></div>
@@ -892,52 +1019,52 @@
 <a class="card app-card" href="/apps/custom.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="custom screens pushed by other tools (home assistant, scripts) via post /api/custom/{name}. productivity live app name">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/custom.png" /><img src="/media/apps/custom.gif" width="32" height="32" loading="lazy" decoding="async" alt="Custom running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Custom</h3>
     <p>Screens pushed by other tools (Home Assistant, scripts) via POST /api/custom/{name}.</p>
     <div class="foot"><span>1 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/daily.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="daily dose quotes, dad jokes, useless facts, advice, cat pun jokes and on-this-day, in rotation. productivity live random quote sources of the day qotd joke fact today advice programming &amp; tough-guy chuck celebrity quotes kanye on this history order turn shuffle style layout pages spotify lyrics marquee font auto fit small tiny seconds per item rotate reading pace slow normal fast speed (px/s) source icon show author line tag colours colors custom accent text color punchline punch">
+<a class="card app-card" href="/apps/daily.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="daily dose quotes, dad jokes, useless facts, advice, cat pun jokes and on-this-day, in rotation. productivity live random quote sources of the day qotd joke fact today advice programming &amp; tough-guy chuck celebrity quotes kanye on this history order turn shuffle style layout pages spotify lyrics marquee font auto fit small tiny seconds per item rotate reading pace slow normal fast speed (px/s) source icon show author line tag colours colors custom accent text color punchline punch follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/daily.png" /><img src="/media/apps/daily.gif" width="32" height="32" loading="lazy" decoding="async" alt="Daily Dose running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Daily Dose</h3>
     <p>Quotes, dad jokes, useless facts, advice, cat facts, pun jokes and on-this-day, in rotation.</p>
-    <div class="foot"><span>23 settings</span></div>
+    <div class="foot"><span>24 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/focuspet.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="clip" data-search="focus companion focuspet lofi animated productivity pet that studies, takes breaks, and rests with you. baked loop state activity / deep work coffee stretch break night cozy rest character species mochi bunny ginger cat shiba dog kitsune fox byte bot head accessory no study glasses headphones crown room style theme warm nordic minimal cyberpunk neon autumn hearth top progress hud timer bar show hide animation speed led brightness">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/focuspet.png" /><img src="/media/apps/focuspet.gif" width="32" height="32" loading="lazy" decoding="async" alt="Focus Companion running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Focus Companion</h3>
     <p>Lofi animated productivity pet that studies, takes breaks, and rests with you.</p>
     <div class="foot"><span>7 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/timer.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="focus timer pomodoro cycles, countdowns and a stopwatch. notifies when phase ends. productivity live mode countdown stopwatch (min) break short long rounds before colour color">
+<a class="card app-card" href="/apps/timer.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="focus timer pomodoro cycles, countdowns and a stopwatch. notifies when phase ends. productivity live mode countdown stopwatch (min) break short long rounds before colour color follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/timer.png" /><img src="/media/apps/timer.gif" width="32" height="32" loading="lazy" decoding="async" alt="Focus Timer running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Focus Timer</h3>
     <p>Pomodoro cycles, countdowns and a stopwatch. Notifies when a phase ends.</p>
-    <div class="foot"><span>8 settings</span></div>
+    <div class="foot"><span>9 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/habits.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="clip" data-search="habits up to three daily with a 7-day dot row, today's tick and streak flame. productivity baked loop habit 1 habit1 2 habit2 3 habit3 colour color1 look color2 color3 style flame + days only day starts at (hour)">
+<a class="card app-card" href="/apps/habits.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="clip" data-search="habits up to three daily with a 7-day dot row, today's tick and streak flame. productivity baked loop habit 1 habit1 2 habit2 3 habit3 colour color1 look color2 color3 style flame + days only day starts at (hour) follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/habits.png" /><img src="/media/apps/habits.gif" width="32" height="32" loading="lazy" decoding="async" alt="Habits running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Habits</h3>
     <p>Up to three daily habits with a 7-day dot row, today's tick and a streak flame.</p>
-    <div class="foot"><span>8 settings</span></div>
+    <div class="foot"><span>9 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/obs.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="obs status live/rec badges with elapsed time, current scene and dropped frames from studio. productivity live host connection port password layout display timer hero show drops take over the playlist while or recording takeover">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/obs.png" /><img src="/media/apps/obs.gif" width="32" height="32" loading="lazy" decoding="async" alt="OBS Status running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>OBS Status</h3>
     <p>LIVE/REC badges with elapsed time, current scene and dropped frames from OBS Studio.</p>
     <div class="foot"><span>6 settings</span></div>
@@ -946,70 +1073,79 @@
 <a class="card app-card" href="/apps/qr.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="qr code share your wi-fi, a link or note as scannable (encoder written from scratch). productivity live content mode url wi-fi join text / name (ssid) ssid password security wpa/wpa2/wpa3 wep open hidden network error correction ecc look l (7 %, more room) m (15 sturdier) module colour dark background light">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/qr.png" /><img src="/media/apps/qr.gif" width="32" height="32" loading="lazy" decoding="async" alt="QR Code running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>QR Code</h3>
     <p>Share your Wi-Fi, a link or a note as a scannable QR code (encoder written from scratch).</p>
     <div class="foot"><span>9 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/uptime.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="uptime monitor http and tcp checks with latency sparklines, a status grid outage alerts. productivity live targets check every (s) timeout counts as up when expect &lt; 400 2xx only any reply 500 layout list focus seconds per page rotate slow above (ms) ms failures before down confirm alerts notify on / flash take over the playlist while takeover">
+<a class="card app-card" href="/apps/uptime.html" style="--glow:#ffe27a;--i:12" data-cat="productivity" data-flags="" data-search="uptime monitor http and tcp checks with latency sparklines, a status grid outage alerts. productivity live targets check every (s) timeout counts as up when expect &lt; 400 2xx only any reply 500 layout list focus seconds per page rotate slow above (ms) ms failures before down confirm alerts notify on / flash take over the playlist while takeover follow theme colours">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/uptime.png" /><img src="/media/apps/uptime.gif" width="32" height="32" loading="lazy" decoding="async" alt="Uptime Monitor running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffe27a">Productivity</span>
+    <span class="tag" style="--c:#ffe27a">Productivity</span>
     <h3>Uptime Monitor</h3>
     <p>HTTP and TCP checks with latency sparklines, a status grid and outage alerts.</p>
-    <div class="foot"><span>11 settings</span></div>
+    <div class="foot"><span>12 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/clock.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="clock hero, stacked, minimal and analog faces with a seconds ring. time live style hero stacked nixie tubes 7-segment lcd split-flap binary word rings sun &amp; moon digital rain 24-hour hour24 edge ring hidden blink colon colour color accent">
+<a class="card app-card" href="/apps/clock.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="clock hero, stacked, minimal and analog faces with a seconds ring. time live style hero stacked nixie tubes 7-segment lcd split-flap binary word rings sun &amp; moon digital rain 24-hour hour24 edge ring hidden blink colon colour color accent follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/clock.png" /><img src="/media/apps/clock.gif" width="32" height="32" loading="lazy" decoding="async" alt="Clock running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Clock</h3>
     <p>Hero, stacked, minimal and analog faces with a seconds ring.</p>
-    <div class="foot"><span>6 settings</span></div>
+    <div class="foot"><span>7 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/countdown.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="countdown counts down to any moment — days, then hours, a live seconds clock. time label date &amp; target colour color style auto (days → clock) days only">
+<a class="card app-card" href="/apps/countdown.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="countdown counts down to any moment — days, then hours, a live seconds clock. time label date &amp; target colour color style auto (days → clock) days only follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/countdown.png" /><img src="/media/apps/countdown.gif" width="32" height="32" loading="lazy" decoding="async" alt="Countdown running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Countdown</h3>
     <p>Counts down to any moment — days, then hours, then a live seconds clock.</p>
-    <div class="foot"><span>4 settings</span></div>
+    <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/daynight.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="clip" data-search="day &amp; night daynight world map with the live day/night terminator, twinkling city lights, you, sun and moon. time baked loop layout + times half globe centre on my location center home longitude lon lights show cities markers marker moon 24-hour hour24 land (day) colours sea (night)">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/daynight.png" /><img src="/media/apps/daynight.gif" width="32" height="32" loading="lazy" decoding="async" alt="Day &amp; Night running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Day &amp; Night</h3>
     <p>World map with the live day/night terminator, twinkling city lights, you, the sun and the moon.</p>
     <div class="foot"><span>12 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/fiveoclock.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="clip" data-search="five o'clock somewhere fiveoclock a city where it's 17:xx right now (from local time-zone data), toasted with clinking glasses. time baked loop drink mixed beer wine cocktail cities per count show country code accent colour">
+<a class="card app-card" href="/apps/fiveoclock.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="clip" data-search="five o'clock somewhere fiveoclock a city where it's 17:xx right now (from local time-zone data), toasted with clinking glasses. time baked loop drink mixed beer wine cocktail cities per count show country code accent colour follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/fiveoclock.png" /><img src="/media/apps/fiveoclock.gif" width="32" height="32" loading="lazy" decoding="async" alt="Five O'Clock Somewhere running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#5cf2a0"><i></i>Baked loop</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Five O'Clock Somewhere</h3>
     <p>A city where it's 17:xx right now (from local time-zone data), toasted with clinking glasses.</p>
-    <div class="foot"><span>4 settings</span></div>
+    <div class="foot"><span>5 settings</span></div>
   </div>
 </a>
-<a class="card app-card" href="/apps/holidays.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="holidays countdown to the next public holiday, a list, month calendar and celebration on day. time live country code data include observances layout list in count celebrate day festive icon colours auto (by holiday) fireworks confetti lamp star none accent name colour text color">
+<a class="card app-card" href="/apps/holidays.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="holidays countdown to the next public holiday, a list, month calendar and celebration on day. time live country code data include observances layout list in count celebrate day festive icon colours auto (by holiday) fireworks confetti lamp star none accent name colour text color follow page theme">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/holidays.png" /><img src="/media/apps/holidays.gif" width="32" height="32" loading="lazy" decoding="async" alt="Holidays running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Holidays</h3>
     <p>Countdown to the next public holiday, a list, a month calendar and a celebration on the day.</p>
-    <div class="foot"><span>8 settings</span></div>
+    <div class="foot"><span>9 settings</span></div>
+  </div>
+</a>
+<a class="card app-card" href="/apps/longweekend.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="long weekend longweekend days until the next from public holidays — and when one day off makes it longer. time live country include ones that need a of leave bridges">
+  <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/longweekend.png" /><img src="/media/apps/longweekend.gif" width="32" height="32" loading="lazy" decoding="async" alt="Long Weekend running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
+  <div class="body">
+    <span class="tag" style="--c:#ffcc33">Time</span>
+    <h3>Long Weekend</h3>
+    <p>Days until the next long weekend from public holidays — and when one day off makes it longer.</p>
+    <div class="foot"><span>2 settings</span></div>
   </div>
 </a>
 <a class="card app-card" href="/apps/progress.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="progress day, week, month, year, life and custom-event as bars, a big ring or dots grid. time live layout stacked bars grid / show focus day week month year event 1 2 decimals seconds per page custom events starts start monday sunday birth date expectancy (years) years on event1 label end event2">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/progress.png" /><img src="/media/apps/progress.gif" width="32" height="32" loading="lazy" decoding="async" alt="Progress running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Progress</h3>
     <p>Day, week, month, year, life and custom-event progress as bars, a big ring or a dots grid.</p>
     <div class="foot"><span>21 settings</span></div>
@@ -1018,7 +1154,7 @@
 <a class="card app-card" href="/apps/sky.html" style="--glow:#ffcc33;--i:12" data-cat="time" data-flags="" data-search="sun &amp; moon sky sunrise, sunset and the sun's path today, golden blue hour, moon's phase. time live layout arc times combined 24-hour hour24 stars after dark seconds per page orientation hemisphere from location northern southern">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/sky.png" /><img src="/media/apps/sky.gif" width="32" height="32" loading="lazy" decoding="async" alt="Sun &amp; Moon running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#ffcc33">Time</span>
+    <span class="tag" style="--c:#ffcc33">Time</span>
     <h3>Sun &amp; Moon</h3>
     <p>Sunrise, sunset and the sun's path today, golden and blue hour, and the moon's phase.</p>
     <div class="foot"><span>5 settings</span></div>
@@ -1089,7 +1225,7 @@
     </div>
     <div class="fine">
       <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
-      <span>1,024 pixels.</span>
+      <span><button type="button" class="theme-open" aria-controls="theme-menu" aria-expanded="false">Appearance and page theme</button> · 1,024 pixels.</span>
     </div>
   </div>
 </footer>

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#08080a"><meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#08080a"><meta name="color-scheme" content="dark light">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <title>DeskDot controller</title>
 <style>
@@ -44,6 +44,85 @@ canvas.av{display:block;image-rendering:pixelated}
 .scr.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .18s var(--ease),transform .24s var(--ease),visibility 0s}
 .scr.back{transform:translateY(-14px) scale(.985)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.scr,.scr.back{transform:none}}
+/* ---------- light mode: the studio's switch (localStorage deskdot.theme: light | dark | system) sets
+   html[data-theme=light|dark]; without a pick the phone's preference decides (the media query covers the first paint).
+   Porcelain and ivory screens with the studio's light tokens (docs/STUDIO_UI.md); the pad becomes a white console
+   controller with soft shadows; LED things (avatars, the seat badge) sit in porcelain wells — nothing dark (§ LIQUID GLASS). Your colour
+   as text is deepened (--ct, same hue) so it reads on white. */
+.app{--ct:var(--c)}
+:root[data-theme=light]{--bg:#f4f0e8;--s1:#fbf9f5;--s2:#ffffff;--s3:#f0ebe2;--s4:#e6e0d5;--line:#e7e1d6;--line2:#d8d0c2;
+  --ink:#1c1a22;--dim:#4a4652;--mute:#6b6673;--ok:#18794e;--bad:#c8203e;--amber:#9a5b00;--ember:#b81f4b;--cyan:#0b6f9e;
+  --key-floor:#d3cabb;--sh1:0 1px 2px rgba(64,48,24,.06),0 12px 26px -16px rgba(64,48,24,.3);--sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
+  color-scheme:light}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f4f0e8;--s1:#fbf9f5;--s2:#ffffff;--s3:#f0ebe2;--s4:#e6e0d5;
+  --line:#e7e1d6;--line2:#d8d0c2;--ink:#1c1a22;--dim:#4a4652;--mute:#6b6673;color-scheme:light}}
+[data-theme=light] .app{--ct:color-mix(in srgb,var(--c) 52%,#000);
+  background:radial-gradient(120% 55% at 50% -14%,var(--ca20),transparent 60%),radial-gradient(circle,rgba(64,48,24,.06) 1px,transparent 1.4px) 0 0/14px 14px,var(--bg)}
+[data-theme=light] .net{background:rgba(255,255,255,.88);box-shadow:var(--sh1)}
+[data-theme=light] :is(.who b,.rdy,.fb.a,.lay button[aria-checked=true],.wheel.go,.sw-glyph,.fx,.tzh.on svg,.last,.rps-msg.hot,.mc svg,.rbk h3,.rbk b){color:var(--ct)}
+[data-theme=light] .rbk ol li::before{color:var(--ct)}
+[data-theme=light] :is(.rdy,.rps-msg.hot){text-shadow:none}
+[data-theme=light] :is(.panel,.pl,.gear,.card,.mcard,.rps-vs,.bm,.code,.tapnext,.ghost,.pillb,.act){box-shadow:var(--sh1)}
+[data-theme=light] :is(.name,.tile,.pl){background:#fff}
+[data-theme=light] .pl.me{background:linear-gradient(90deg,var(--ca10),transparent 70%),#fff}
+[data-theme=light] :is(.seg,.lay){background:var(--s3)}
+[data-theme=light] .seg button[aria-checked=true]{background:#fff;box-shadow:inset 0 0 0 1.5px var(--tc,var(--c)),0 1px 3px rgba(64,48,24,.18)}
+[data-theme=light] .lay button[aria-checked=true]{background:#fff}
+[data-theme=light] .foot{background:rgba(251,249,245,.94)}
+[data-theme=light] .go{box-shadow:0 6px 0 color-mix(in srgb,var(--c) 55%,#000),0 14px 26px -10px var(--ca55),inset 0 1px 0 rgba(255,255,255,.4)}
+[data-theme=light] .go:active{box-shadow:0 2px 0 color-mix(in srgb,var(--c) 55%,#000)}
+[data-theme=light] .chip-c[aria-checked=true]{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--sc),0 6px 16px -4px rgba(64,48,24,.4)}
+/* the pad: a white console controller */
+[data-theme=light] :is(.k,.rps-b){border-color:#d8d0c2;background:linear-gradient(180deg,#ffffff,#efe9df);color:var(--ink);
+  box-shadow:inset 0 1px 0 #fff,0 6px 0 var(--key-floor),0 14px 22px -8px rgba(64,48,24,.4)}
+[data-theme=light] .rps-b{color:var(--dim)}
+[data-theme=light] .k.on{background:var(--c);color:#050507;border-color:transparent;box-shadow:0 1px 0 var(--key-floor),0 0 30px var(--ca55),inset 0 2px 8px rgba(0,0,0,.18)}
+[data-theme=light] .fb.a.on{color:#050507}
+[data-theme=light] .rps-b.on{box-shadow:0 1px 0 var(--key-floor),0 0 30px var(--ca55)}
+[data-theme=light] .rps-b.sel{color:var(--ink);background:linear-gradient(180deg,var(--ca35),var(--ca10)),#fff}
+[data-theme=light] .cross{filter:drop-shadow(0 6px 0 var(--key-floor)) drop-shadow(0 14px 14px rgba(64,48,24,.28))}
+[data-theme=light] :is(.arm,.hub){background:#fbf9f5;color:#8a8494}
+[data-theme=light] .hub{background:radial-gradient(circle,#ece6dc 0 36%,#fbf9f5 38%)}
+[data-theme=light] .arm.on{background:var(--c);color:#050507}
+[data-theme=light] .stick-zone{border-color:rgba(64,48,24,.16);background:radial-gradient(circle at 50% 60%,rgba(64,48,24,.035),transparent 70%)}
+[data-theme=light] .stick-base{background:radial-gradient(circle,#f5f1ea 0 56%,#e9e3d8 57%);border-color:#d8d0c2;box-shadow:inset 0 6px 20px rgba(64,48,24,.16),0 0 0 7px rgba(64,48,24,.03)}
+[data-theme=light] .stick-base::before{border-color:rgba(64,48,24,.16)}
+[data-theme=light] .stick-knob{background:radial-gradient(circle at 36% 30%,#ffffff,#e2dbcf 68%);border-color:#cfc6b7;box-shadow:0 8px 16px rgba(64,48,24,.32),inset 0 1px 0 #fff}
+[data-theme=light] .swipe{background:radial-gradient(circle,rgba(64,48,24,.09) 1.2px,transparent 1.8px) 0 0/22px 22px,radial-gradient(circle at 50% 45%,var(--ca10),transparent 65%),var(--s1)}
+[data-theme=light] .sw-glyph{opacity:.2}
+[data-theme=light] :is(.cap,.gpd .g){border-color:#d8d0c2}
+[data-theme=light] .cap{background:#fff;box-shadow:0 3px 0 var(--key-floor)}
+[data-theme=light] .cap.on{background:var(--c);box-shadow:0 1px 0 var(--key-floor),0 0 18px var(--ca55)}
+[data-theme=light] .rps-side b{filter:brightness(.5) saturate(1.4)}
+[data-theme=light] .bm.cur{box-shadow:0 0 0 1px rgba(154,91,0,.25),var(--sh1)}
+/* toasts, sheets, the end screen */
+[data-theme=light] .toast{background:#fff;box-shadow:var(--sh2)}
+[data-theme=light] .recon{background:#fff7e6;border-color:rgba(154,91,0,.4);color:#6e4c00;box-shadow:var(--sh2)}
+[data-theme=light] .end{background:rgba(244,240,232,.94)}
+[data-theme=light] :is(.scrim,.rbk){background:rgba(42,34,24,.38)}
+[data-theme=light] :is(.sheet,.rbk .in){background:var(--s1);border-color:var(--line2);box-shadow:0 -24px 60px -22px rgba(64,48,24,.45)}
+[data-theme=light] .row{border-bottom-color:var(--line)}
+[data-theme=light] .tg{background:#e6e0d5}
+[data-theme=light] .tg i,[data-theme=light] [aria-checked=true]>.tg i{background:#fff;box-shadow:0 1px 3px rgba(64,48,24,.35)}
+[data-theme=light] .why{background:#fff7e6;border-color:#ecd9a8;color:#6e4c00}
+/* light, round 2 (the studio's materials): the room washed with your colour from the top and under the pad, a fine dot
+   grid and linen weave with a warm vignette; an engraved rule under the header; the keys get a glossy cap and a soft
+   halo in your colour instead of a glow */
+[data-theme=light]{
+  /* MATERIALS v2, mirrored by name from web/src/index.css (docs/STUDIO_UI.md § Materials) */
+  --m-vignette:rgba(92,70,40,.15);--m-texture:radial-gradient(circle,rgba(64,48,24,.07) 1px,transparent 1.4px);
+  --m-linen:repeating-linear-gradient(0deg,rgba(64,48,24,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(64,48,24,.013) 0 1px,transparent 1px 4px);
+  --m-bevel:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(64,48,24,.07);
+  --m-rule-gold:linear-gradient(90deg,transparent,rgba(184,137,42,.5) 22%,rgba(214,180,98,.85) 50%,rgba(184,137,42,.5) 78%,transparent)}
+[data-theme=light] .app{background:
+  radial-gradient(120% 55% at 50% -14%,var(--ca20),transparent 62%),radial-gradient(90% 40% at 50% 108%,var(--ca10),transparent 70%),
+  radial-gradient(150% 110% at 50% 45%,transparent 60%,var(--m-vignette)),
+  var(--m-texture) 0 0/14px 14px,var(--m-linen),var(--bg)}
+[data-theme=light] .top::after{content:"";position:absolute;left:calc(var(--sl) + 16px);right:calc(var(--sr) + 16px);bottom:0;height:1px;pointer-events:none;
+  background:var(--m-rule-gold);box-shadow:0 1px 0 rgba(255,255,255,.9);opacity:.8}
+[data-theme=light] :is(.k,.rps-b){background:radial-gradient(120% 70% at 50% 0%,#fff 40%,transparent 72%),linear-gradient(180deg,#ffffff,#ece5da)}
+[data-theme=light] :is(.k.a,.k.b):not(.on){box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px rgba(255,255,255,.6),0 6px 0 var(--key-floor),0 14px 22px -8px rgba(64,48,24,.38),0 18px 34px -16px var(--ca55)}
+[data-theme=light] :is(.gear,.pillb,.ghost){background:linear-gradient(180deg,#fff,#f6f2ec);box-shadow:var(--m-bevel),0 2px 0 var(--key-floor),0 8px 16px -10px rgba(64,48,24,.35)}
 
 /* ---------- connection pill (every screen) ---------- */
 .net{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(17,17,21,.85);border:1px solid var(--line2);
@@ -417,6 +496,115 @@ canvas.av{display:block;image-rendering:pixelated}
 .rbk b{color:var(--c)}
 .rbk .bt{display:flex;gap:8px;padding:0 16px 16px}.rbk .bt button{flex:1;min-height:48px;border-radius:14px;border:1px solid var(--line2);background:var(--s2);color:var(--ink);font-weight:800}
 .rbk .bt button.hot{background:var(--c);color:#050507;border-color:transparent}
+/* ================= LIQUID GLASS (mirrors web/src/index.css § LIQUID GLASS by name; docs/STUDIO_UI.md § Liquid Glass) =================
+   Our own CSS after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets. Glass is
+   the chrome floating above the controller (the connection pill, toasts, the reconnect pill, the settings sheet, the
+   rulebook, the end card) and the controls (keys, pills, segmented); the pad and the LED avatars are content. The element
+   stays transparent and isolated; ::before is the glass body, ::after the 1 px specular rim. <html data-glass> is set
+   first thing in the page script: liquid · frosted (no blur support / the Android app: near-opaque) · solid (reduced
+   transparency). Touch screens: real blur only on the small pills; the sheets and the end card are frosted. */
+:root{
+  --lg-blur:20px;--lg-blur-thick:28px;--lg-sat:1.8;
+  --lg-tint:color-mix(in srgb,var(--s2) 52%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 76%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,transparent);--lg-solid:var(--s2);
+  --lg-glare:rgba(255,255,255,.06);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.04),inset 0 14px 22px -18px rgba(255,255,255,.16),inset 0 -14px 24px -20px rgba(0,0,0,.55);
+  --lg-edge:rgba(255,255,255,.1);
+  --lg-rim-a:rgba(255,255,255,.36);--lg-rim-b:rgba(255,255,255,.03);--lg-rim-c:rgba(255,255,255,.14);
+  --lg-shadow:0 1px 1px rgba(0,0,0,.3),0 12px 32px -14px rgba(0,0,0,.7);
+  --lg-shadow-lift:0 2px 4px rgba(0,0,0,.35),0 28px 70px -20px rgba(0,0,0,.8);
+  --lg-control:rgba(255,255,255,.07);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 55%);
+  --lg-control-rim:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.03);
+  --lg-control-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px -6px rgba(0,0,0,.5);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.06) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(255,255,255,.08);--lg-track-shade:rgba(0,0,0,.45);
+  --lg-lens:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+  --lg-lens-rim:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 .5px rgba(255,255,255,.12);
+  --lg-lens-shadow:0 2px 8px -2px rgba(0,0,0,.5);
+  --lg-spring:cubic-bezier(.34,1.56,.5,1)}
+[data-theme=light]{
+  --lg-tint:color-mix(in srgb,var(--s2) 58%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 80%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,var(--bg));
+  --lg-glare:rgba(255,255,255,.55);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.7),inset 0 16px 24px -18px rgba(255,255,255,.95),inset 0 -14px 26px -20px rgba(64,48,24,.16);
+  --lg-edge:rgba(64,48,24,.13);
+  --lg-rim-a:#fff;--lg-rim-b:rgba(255,255,255,.4);--lg-rim-c:rgba(255,255,255,.85);
+  --lg-shadow:0 .5px 1px rgba(64,48,24,.08),0 4px 10px -4px rgba(64,48,24,.1),0 18px 40px -20px rgba(64,48,24,.3);
+  --lg-shadow-lift:0 1px 3px rgba(64,48,24,.08),0 10px 24px -10px rgba(64,48,24,.16),0 34px 70px -28px rgba(64,48,24,.42);
+  --lg-control:rgba(255,255,255,.62);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 60%);
+  --lg-control-rim:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.6);
+  --lg-control-shadow:0 .5px 1px rgba(64,48,24,.1),0 3px 10px -4px rgba(64,48,24,.22);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(64,48,24,.07);--lg-track-shade:rgba(64,48,24,.14);
+  --lg-lens:linear-gradient(180deg,#fff,rgba(255,255,255,.86));
+  --lg-lens-rim:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(64,48,24,.06);
+  --lg-lens-shadow:0 1px 2px rgba(64,48,24,.12),0 4px 12px -4px rgba(64,48,24,.22)}
+@keyframes lg-morph{0%{transform:scale(.72,.84);opacity:.4}55%{transform:scale(1.08,.94);opacity:1}100%{transform:none}}
+
+/* the glass surfaces */
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard){isolation:isolate;background:transparent;border-color:var(--lg-edge);box-shadow:var(--lg-shadow)}
+html[data-theme] :is(.net:not(.corner),.endcard,.rbk .in){position:relative}
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{
+  content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,var(--lg-glare),transparent 46%),var(--lg-tint);box-shadow:var(--lg-inner);
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat))}
+html[data-theme] :is(.toast,.sheet,.rbk .in,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-tint-thick);
+  -webkit-backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat))}
+html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::after{
+  content:"";position:absolute;inset:-1px;z-index:1;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(150px circle at 24% -40%,var(--lg-rim-a),transparent 70%),linear-gradient(155deg,var(--lg-rim-a),var(--lg-rim-b) 34%,var(--lg-rim-b) 66%,var(--lg-rim-c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+html[data-glass=frosted] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost)}}
+@media (pointer:coarse){
+  html[data-theme] :is(.sheet,.rbk .in,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}}
+html[data-glass=solid] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:var(--lg-solid);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-glass=solid] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::after{opacity:.4}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme] :is(.net,.toast,.recon,.sheet,.rbk .in,.endcard)::before{background:var(--lg-solid)!important;box-shadow:none;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+/* shapes: capsules for the pills, larger concentric radii for the sheets and the end card */
+html[data-theme] .toast{border-radius:999px;border:1px solid var(--c)}
+html[data-theme] :is(.sheet,.rbk .in){border-radius:30px 30px 0 0;border:1px solid var(--lg-edge);border-bottom:0}
+html[data-theme] .land .sheet{border-radius:30px 0 0 30px;border:1px solid var(--lg-edge);border-right:0}
+html[data-theme] .endcard{padding:24px 22px 22px;border:1px solid var(--lg-edge);border-radius:30px}
+html[data-theme] .recon{border:1px solid color-mix(in srgb,var(--amber) 45%,transparent)}
+
+/* controls: clear glass capsules that squash and spring back; the player's colour is the prominent (tinted) glass */
+html[data-theme] :is(.gear,.pillb,.ghost,.act,.rps-help,.tapnext,.code,.rbk .bt button){
+  background:var(--lg-control-sheen),var(--lg-control);border:1px solid var(--lg-edge);box-shadow:var(--lg-control-rim),var(--lg-control-shadow);
+  transition:transform .42s var(--lg-spring),background-color .2s,border-color .2s}
+html[data-theme] :is(.pillb,.ghost,.act,.rps-help,.tapnext,.code,.rbk .bt button,.done,.go){border-radius:999px}
+html[data-theme] .gear{border-radius:50%}
+html[data-theme] :is(.gear,.pillb,.ghost,.act,.rps-help,.tapnext,.rbk .bt button,.done,.go,.mcard,.tile,.meb):active{transform:scale(.95,.93);transition-duration:.12s}
+html[data-theme] :is(.pillb.hot,.rbk .bt button.hot,.done){background:var(--lg-prominent-sheen),var(--c);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px -8px var(--ca55)}
+html[data-theme] .go{background:var(--lg-prominent-sheen),var(--c);transition:transform .42s var(--lg-spring)}
+/* segmented: a glass track, the chosen option a lens that morphs in */
+html[data-theme] :is(.seg,.lay,.rbk .tabs){border-radius:999px;background:var(--lg-track);border:1px solid var(--lg-edge);box-shadow:inset 0 1px 2px var(--lg-track-shade)}
+html[data-theme] :is(.seg,.lay,.rbk .tabs) button{border-radius:999px}
+html[data-theme] :is(.seg button[aria-checked=true],.lay button[aria-checked=true],.rbk .tabs button[aria-selected=true]){animation:lg-morph .5s var(--lg-spring) both}
+html[data-theme] :is(.lay button[aria-checked=true]){background:var(--lg-lens);box-shadow:var(--lg-lens-rim),var(--lg-lens-shadow)}
+@media (prefers-reduced-motion:reduce){html[data-theme] :is(.seg button,.lay button,.rbk .tabs button){animation:none!important}}
+
+/* ---------- light without dark: no black plates behind the LED avatars, no umber scrims ---------- */
+/* the LED avatars sit in porcelain wells (drawAvatar draws their unlit LEDs as faint dimples in light) */
+[data-theme=light] .well{background:#ebe6dc;border-color:var(--line2);box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 34px var(--ca20)}
+[data-theme=light] .info.turn .well{box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 50px var(--ca55)}
+[data-theme=light] .ready .well{animation-name:breathe-l}
+@keyframes breathe-l{50%{box-shadow:inset 0 3px 10px rgba(64,48,24,.18),0 0 0 4px #fff,0 0 60px var(--ca55)}}
+[data-theme=light] :is(.meb,.pl .av,.chip canvas,.rps-side canvas){background:#ebe6dc;box-shadow:inset 0 1px 3px rgba(64,48,24,.2)}
+[data-theme=light] .meb{box-shadow:inset 0 1px 3px rgba(64,48,24,.2),0 0 14px var(--ca35)}
+[data-theme=light] .chip-c[aria-checked=true]::after{background:#fff;box-shadow:0 0 0 1.5px rgba(64,48,24,.35)}
+[data-theme=light] .badge{background:radial-gradient(circle,var(--ca20) 1.4px,transparent 2px) 0 0/12px 12px,radial-gradient(circle at 50% 40%,var(--ca10),transparent 70%),#fff;
+  color:var(--ct);text-shadow:none;box-shadow:0 0 0 6px rgba(255,255,255,.7),0 0 50px var(--ca35),var(--sh2)}
+[data-theme=light] :is(.scrim,.rbk){background:color-mix(in srgb,var(--bg) 62%,transparent)}
+[data-theme=light] .end{background:color-mix(in srgb,var(--bg) 92%,transparent)}
+[data-theme=light] .toast{color:var(--ink)}
+[data-theme=light] .recon{color:#6e4c00}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -620,5 +808,5 @@ canvas.av{display:block;image-rendering:pixelated}
   <button class="k fb b" data-k="b" aria-label="B button">B</button><button class="k fb a" data-k="a" aria-label="A button">A</button></div></template>
 <template id="tpl-info"><div class="info"><div class="well"><canvas class="av" data-s="88" aria-hidden="true"></canvas></div><div class="lineup"></div><div class="mhint"></div></div></template>
 
-<script src="/app/join/controller.js?v=2eb917713d17"></script>
+<script src="/app/join/controller.js?v=7259fd3fe8f4"></script>
 </body></html>

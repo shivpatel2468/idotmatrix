@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#063823"><meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#063823"><meta name="color-scheme" content="dark light">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <title>DeskDot casino</title>
 <style>
@@ -9,12 +9,17 @@
    LAN may be offline, so no CDNs, no fonts, no crypto.subtle (plain http) — SHA-256 lives below.
    Screens: join → seat (name, colour, avatar) → table. Games plug in through registerGame() (see the script). */
 :root{
+  --brass:#d9a63a;--brass-hi:#e9c25a;--brass-lt:#fff0b8;--jade-gold:#d9b45a; /* dolly + chip-set metals (not the theme's accent) */
+  --m-gold1:#ffe08a;--m-gold2:#d9a032;--m-jack1:#ffd84a;--m-jack2:#e08a14;--m-coin1:#ffd54a;--m-coin2:#c98a14;--m-coin3:#7a4a04;--m-rose:#d98e74;--m-brass2:#c99a3a;--m-coin0:#fffbe0;--m-rose2:#e7a58c;--m-rose3:#ffe6da; /* the win moment's tier golds and coins (fixed, like the TV's) */
   /* the theme (status.table_theme.css, set by applyTheme; these are classic): accent = --gold*, felt, page surfaces */
   --gold:#ffcc33;--gold2:#e2a400;--gold-hi:#ffe08a;--gold-deep:#3a2c08;--gold-ink:#1a1200;--gold-rgb:255,204,51;--gold-text:#ffcc33;
   --felt:#0d6b45;--felt2:#0a5236;--felt3:#063823;--felt-ink:#e7f0ec;
   --bg:#060c0a;--s1:#0f1a17;--s2:#172722;--s3:#1c352b;--s4:#2a4139;
   /* the felt's motif (css.pattern / pattern_size: pure CSS gradients, one size per layer; set for every theme) */
   --pat:none;--pat-size:auto;
+  /* light mode only (applyTheme, as the studio's state.ts lightSwitches): the colour the porcelain room is washed with
+     (the felt, or the accent when the felt is a graphite / black) and 1 when the accent is too pale to be a key on ivory */
+  --tint:var(--felt);--pale:0;
   /* derived once from the theme — use these, never a literal accent */
   --accent-soft:rgba(var(--gold-rgb),.14);--glow:rgba(var(--gold-rgb),.35);--well:color-mix(in srgb,var(--bg) 70%,#000);
   --veil:color-mix(in srgb,var(--bg) 94%,transparent);--toastbg:color-mix(in srgb,var(--s2) 96%,transparent);
@@ -25,6 +30,8 @@
   --c:#ffcc33;--ca:rgba(255,204,51,.35);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --disp:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* engraved display type for headings (system serifs only: phones on the LAN may be offline) */
+  --serif:"Didot","Bodoni 72","Bodoni MT","Playfair Display",Georgia,"Noto Serif","Times New Roman",serif;
   --st:env(safe-area-inset-top,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:dark;
@@ -48,6 +55,141 @@
 :root{transition:--felt .7s ease,--felt2 .7s ease,--felt3 .7s ease,--gold .7s ease,--gold2 .7s ease,--gold-hi .7s ease,--gold-deep .7s ease,--gold-ink .7s ease,
   --gold-text .7s ease,--felt-ink .7s ease,--bg .7s ease,--s1 .7s ease,--s2 .7s ease,--s3 .7s ease,--s4 .7s ease}
 @media (prefers-reduced-motion:reduce){:root{transition:none}}
+/* ---------- light mode (docs/CASINO.md §5): the studio's switch (localStorage deskdot.theme: light | dark | system)
+   puts html[data-theme=light|dark]; without a pick the phone's own preference decides (the media query below covers
+   the first paint). The felt, the chips, the cards and the game tiles never change: the ROOM around the table turns
+   to porcelain, ivory and champagne, with clear glass (§ LIQUID GLASS below) and gold-leaf details — nothing dark. The room tokens beat the
+   inline values applyTheme sets (!important): every table theme gets the same ivory room, faintly tinted by its
+   felt, and its accent deepened to bronze for text (AA on every light surface for all 21 themes). */
+:root[data-theme=light]{
+  --room:color-mix(in srgb,var(--felt) 70%,var(--tint));
+  --bg:color-mix(in srgb,#f4f0e8 86%,var(--room))!important;--s1:color-mix(in srgb,#fbf9f5 93%,var(--room))!important;
+  --s2:color-mix(in srgb,#ffffff 97%,var(--room))!important;--s3:color-mix(in srgb,#f0ebe2 89%,var(--room))!important;
+  --s4:color-mix(in srgb,#e6e0d5 90%,var(--room))!important;
+  --gold-text:color-mix(in srgb,color-mix(in srgb,var(--felt) 72%,#000) calc(var(--pale) * 100%),color-mix(in srgb,var(--gold) 30%,#1a1206))!important;
+  --well:color-mix(in srgb,var(--s3) 60%,#fff);--veil:color-mix(in srgb,var(--s1) 95%,transparent);--toastbg:color-mix(in srgb,var(--s2) 97%,transparent);
+  --accent-soft:rgba(var(--gold-rgb),.16);--glow:rgba(var(--gold-rgb),.3);
+  --line:color-mix(in srgb,var(--room) 12%,rgba(64,48,24,.13));--line2:color-mix(in srgb,var(--room) 16%,rgba(64,48,24,.22));--ink:#1c1a22;--dim:#46424e;--mute:#57525f;--ok:#18794e;--bad:#c8203e;
+  --sh1:0 1px 2px rgba(64,48,24,.07),0 12px 28px -16px rgba(64,48,24,.32);
+  --sh2:0 2px 6px rgba(64,48,24,.08),0 30px 70px -26px rgba(64,48,24,.42);
+  color-scheme:light}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --room:color-mix(in srgb,var(--felt) 70%,var(--tint));
+  --bg:color-mix(in srgb,#f4f0e8 86%,var(--room))!important;--s1:color-mix(in srgb,#fbf9f5 93%,var(--room))!important;
+  --s2:color-mix(in srgb,#ffffff 97%,var(--room))!important;--s3:color-mix(in srgb,#f0ebe2 89%,var(--room))!important;
+  --s4:color-mix(in srgb,#e6e0d5 90%,var(--room))!important;
+  --gold-text:color-mix(in srgb,color-mix(in srgb,var(--felt) 72%,#000) calc(var(--pale) * 100%),color-mix(in srgb,var(--gold) 30%,#1a1206))!important;
+  --ink:#1c1a22;--dim:#46424e;--mute:#57525f;--line:rgba(64,48,24,.13);--line2:rgba(64,48,24,.22);color-scheme:light}}
+[data-theme=light] .app{background:radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--felt) 14%,transparent),transparent 62%),
+  radial-gradient(90% 40% at 50% 110%,rgba(var(--gold-rgb),.14),transparent 70%),var(--bg)}
+[data-theme=light] .h1 em{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 46%,#1a1206),color-mix(in srgb,var(--gold) 62%,#000),color-mix(in srgb,var(--gold) 40%,#1a1206));
+  -webkit-background-clip:text;background-clip:text}
+[data-theme=light] .stack i{box-shadow:0 10px 22px -6px rgba(64,48,24,.5),inset 0 0 0 9px rgba(0,0,0,.14)}
+[data-theme=light] :is(.panel,.phase,.ib,.hb,.act,.pv-hand,.hs-now,.hs-box,.pv-slide){box-shadow:var(--sh1)}
+[data-theme=light] .panel{background:linear-gradient(180deg,var(--s2),var(--s1))}
+[data-theme=light] .phase{background:linear-gradient(180deg,var(--s2),var(--s1));border-color:color-mix(in srgb,var(--gold) 34%,var(--s4))}
+[data-theme=light] .ring .tr{stroke:rgba(64,48,24,.12)}
+[data-theme=light] .ring.hurry span{color:var(--bad)}
+[data-theme=light] .act.on{background:rgba(24,121,78,.1);border-color:rgba(24,121,78,.42)}
+[data-theme=light] .rack .chip{box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 55%,#000),0 9px 14px -6px rgba(64,48,24,.5)}
+[data-theme=light] .rack .chip[aria-checked=true]{box-shadow:0 11px 0 color-mix(in srgb,var(--cc) 55%,#000),0 18px 22px -8px rgba(64,48,24,.5),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.5)}
+[data-theme=light] .lockb{color:#9c1830;box-shadow:var(--sh2)}
+[data-theme=light] :is(.toast,.howto .card,.tour-card,.win.lose .card){box-shadow:var(--sh2)}
+[data-theme=light] .al-card{box-shadow:0 0 0 6px rgba(var(--gold-rgb),.16),0 0 50px rgba(var(--gold-rgb),.28),var(--sh2)}
+[data-theme=light] .win.lose .card{border-color:var(--line2)}
+[data-theme=light] .sheet{border-top-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 -24px 60px -22px rgba(64,48,24,.45)}
+[data-theme=light] :is(.howto .card,.tour-card){background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--gold) 13%,var(--s2)),var(--s2) 70%)}
+[data-theme=light] .steps li::before{color:var(--gold-hi)}
+[data-theme=light] .tour-dots i{background:rgba(64,48,24,.2)}
+[data-theme=light] .neg{color:var(--bad)!important}
+/* on the felt: felt ink; on the game tiles: white (the tiles are semantic colours) */
+[data-theme=light] :is(.tray,.pv-felt,.hz-top,.hg-felt,.bj-spot){color:var(--felt-ink)}
+[data-theme=light] :is(.zone,.hz-z){color:#fff}
+[data-theme=light] :is(.rt .felt,.tray,.pv-felt,.hg-felt){box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.4),inset 0 0 30px rgba(0,0,0,.45),0 0 0 4px color-mix(in srgb,var(--gold) 22%,var(--s3)),0 18px 40px -18px rgba(64,48,24,.6)}
+[data-theme=light] :is(.zone,.hz-z,.bc-z){box-shadow:inset 0 0 0 2px rgba(255,255,255,.22),0 10px 22px -10px rgba(64,48,24,.55)}
+[data-theme=light] .rt .tip{color:var(--ink);box-shadow:var(--sh2)}
+[data-theme=light] .pv-btn.fold{background:#fbeaee;border-color:rgba(194,38,74,.35);color:#9c1830}
+[data-theme=light] .pv-btn.call{background:#e8f1fb;border-color:rgba(30,100,190,.35);color:#14508a}
+[data-theme=light] .pv-btn.show{background:#f2eafb;border-color:rgba(120,60,190,.35);color:#5b2a8f}
+[data-theme=light] .pv-btn.see{background:#e3f4f6;border-color:rgba(10,120,140,.35);color:#0b5a66}
+[data-theme=light] :is(.pv-wait,.bj-badge,.hs-bd i){background:rgba(64,48,24,.05)}
+[data-theme=light] :is(.pv-timer,.hg-clock,.hs-meta .bar){background:rgba(64,48,24,.1)}
+[data-theme=light] .bj-badge.push{background:rgba(64,48,24,.1)}
+[data-theme=light] :is(.bj-badge.lose,.bj-badge.bust){color:var(--bad)}
+[data-theme=light] .hs-nm{color:var(--gold-text)}
+[data-theme=light] .hs-cl.mine{box-shadow:0 0 0 2px var(--ink),0 0 14px rgba(64,48,24,.3)}
+[data-theme=light] .hs-bd i.last{box-shadow:0 0 0 2px var(--ink)}
+[data-theme=light] .hs-t{box-shadow:inset 0 3px 0 var(--felt),0 0 0 1px rgba(64,48,24,.12),0 8px 18px -8px rgba(64,48,24,.45)}
+[data-theme=light] .livep{background:radial-gradient(80% 70% at 50% 45%,color-mix(in srgb,var(--felt) 22%,transparent),color-mix(in srgb,var(--bg) 88%,transparent))}
+/* players' colours are made for the dark: as text on ivory they are deepened (same hue) */
+[data-theme=light] :is(.pv-seat b,.row b,.pv-res .r b,.hs-buyers span,.lbl b){filter:brightness(.5) saturate(1.4)}
+[data-theme=light] .pv-seat .tag{box-shadow:0 0 0 1px var(--line2),0 2px 4px rgba(64,48,24,.2)}
+/* the gold as a metal: pale accents (ivory, champagne, silver) would vanish on ivory, so rings use it deepened */
+[data-theme=light] .ring .pr{stroke:color-mix(in srgb,var(--gold) 74%,#4a4438)}
+[data-theme=light] .hud::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gold) 70%,#4a4438) 30%,color-mix(in srgb,var(--gold) 70%,#4a4438) 70%,transparent)}
+/* gold keys: pale accents (ivory, champagne, silver, ice) need an engraved metal edge to stand off the ivory */
+[data-theme=light] :is(.go,.act.hot,.pill.hot,.sl-go,.pv-btn.raise,.htabs button[aria-selected=true],.sl-bet[aria-checked=true],.hs-mini[aria-pressed="true"]){border:1px solid color-mix(in srgb,var(--gold) 55%,#4a4438)}
+/* light, the salon's materials (as the studio's casino.css light block): the room washed with the felt and lit by the
+   accent from above, a fine felt-tinted dot grid and linen weave with a warm vignette; raised porcelain keys with a
+   white top highlight and a key floor; gold-leaf keys with a glossy sheen and an accent halo (light's glow); the felt
+   on a champagne plinth standing in a soft halo of its own colour; a recessed rail under the chips */
+[data-theme=light]{
+  /* MATERIALS v2, mirrored by name from web/src/index.css (docs/STUDIO_UI.md § Materials) */
+  --m-key-floor:#ddd5c8;--m-vignette:rgba(92,70,40,.15);
+  --m-linen:repeating-linear-gradient(0deg,rgba(64,48,24,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(64,48,24,.013) 0 1px,transparent 1px 4px);
+  --m-bevel:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(64,48,24,.07);
+  --m-raised-shadow:0 2px 0 var(--m-key-floor),0 1px 2px rgba(64,48,24,.08),0 6px 12px -6px rgba(64,48,24,.26);
+  --m-sheen:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.08) 48%,rgba(255,255,255,0) 52%);
+  /* … re-tinted by the table: the accent as gold leaf and antique metal, the felt as the halo */
+  --leaf:linear-gradient(180deg,var(--gold-hi),var(--gold) 52%,var(--gold2));--metal:color-mix(in srgb,var(--gold) 74%,#4a4438);
+  --halo:color-mix(in srgb,var(--tint) 46%,transparent);--glow:rgba(var(--gold-rgb),.5);--wash:color-mix(in srgb,var(--tint) 9%,#fff);
+  --m-key-floor:color-mix(in srgb,var(--room) 26%,#ddd5c8);
+  --m-texture:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--room) 26%,transparent) 1px,transparent 0);
+  --key:linear-gradient(180deg,#fff,color-mix(in srgb,var(--tint) 8%,#f7f4ee));--keysh:var(--m-bevel),var(--m-raised-shadow);
+  /* primary keys: gold leaf in the accent, or (pale accent: ivory, champagne, ice) the table's felt with accent lettering */
+  --go1:color-mix(in srgb,var(--felt) calc(var(--pale) * 100%),var(--gold-hi));--go2:color-mix(in srgb,var(--felt2) calc(var(--pale) * 100%),var(--gold));
+  --go3:color-mix(in srgb,var(--felt3) calc(var(--pale) * 100%),var(--gold2));--go-ink:color-mix(in srgb,var(--gold-hi) calc(var(--pale) * 100%),var(--gold-ink));
+  --gokey:linear-gradient(180deg,var(--go1),var(--go2) 52%,var(--go3))}
+[data-theme=light] .app{background:
+  radial-gradient(120% 50% at 50% -8%,color-mix(in srgb,var(--tint) 30%,transparent),transparent 64%),
+  radial-gradient(70% 30% at 0% 0%,rgba(var(--gold-rgb),.22),transparent 70%),radial-gradient(70% 30% at 100% 0%,rgba(var(--gold-rgb),.22),transparent 70%),
+  radial-gradient(90% 40% at 50% 112%,color-mix(in srgb,var(--tint) 18%,transparent),transparent 70%),
+  radial-gradient(140% 100% at 50% 45%,transparent 62%,var(--m-vignette)),
+  var(--m-texture) 0 0/18px 18px,var(--m-linen),var(--bg)}
+[data-theme=light] .hud::after{height:2px;background:linear-gradient(90deg,transparent,var(--metal) 20%,var(--gold-hi) 50%,var(--metal) 80%,transparent);
+  box-shadow:0 1px 0 rgba(255,255,255,.9)}
+[data-theme=light] :is(.ib,.hb){background:var(--key);border-color:color-mix(in srgb,var(--metal) 26%,var(--line2));box-shadow:var(--keysh)}
+[data-theme=light] :is(.ib,.hb):active{transform:translateY(2px);box-shadow:inset 0 1px 2px rgba(64,48,24,.15),0 0 0 var(--m-key-floor)}
+[data-theme=light] .ib .n{background:var(--leaf);box-shadow:0 0 0 2px #fff,0 3px 6px -2px rgba(var(--gold-rgb),.7)}
+[data-theme=light] .meb{box-shadow:0 0 0 2px #fff,0 6px 14px -6px var(--c)}
+[data-theme=light] .phase{background:linear-gradient(90deg,color-mix(in srgb,var(--tint) 16%,transparent),transparent 50%,rgba(var(--gold-rgb),.14)),linear-gradient(180deg,#fff,var(--s1));
+  border-color:color-mix(in srgb,var(--metal) 55%,var(--line));
+  box-shadow:inset 0 2px 0 -.5px var(--gold),inset 0 3px 8px -4px var(--glow),0 1px 2px rgba(64,48,24,.07),0 0 0 3px rgba(var(--gold-rgb),.08),0 16px 30px -18px var(--halo)}
+[data-theme=light] .ring .tr{stroke:color-mix(in srgb,var(--metal) 22%,#e4ddd1)}
+[data-theme=light] .ring svg{filter:drop-shadow(0 1px 1px rgba(64,48,24,.2))}
+[data-theme=light] .ph-t b{text-shadow:0 1px 0 #fff}
+[data-theme=light] .hist i:first-child{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--metal)}
+[data-theme=light] :is(.rt .felt,.tray,.pv-felt,.hg-felt){box-shadow:inset 0 0 0 2px rgba(var(--gold-rgb),.5),inset 0 0 0 5px rgba(0,0,0,.18),inset 0 0 30px rgba(0,0,0,.45),
+  0 0 0 1px color-mix(in srgb,var(--metal) 70%,#000),0 0 0 5px color-mix(in srgb,var(--gold-hi) 42%,#f6f1e6),0 0 0 6px color-mix(in srgb,var(--metal) 50%,transparent),
+  0 22px 40px -20px rgba(40,30,16,.55),0 26px 60px -24px var(--halo)}
+[data-theme=light] .rack{position:relative}
+[data-theme=light] .rack::before{content:"";position:absolute;left:2px;right:2px;bottom:-5px;height:30px;border-radius:16px;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--s3) 80%,var(--felt)),var(--s2));border:1px solid color-mix(in srgb,var(--metal) 30%,var(--line));
+  box-shadow:inset 0 3px 6px rgba(64,48,24,.2),0 1px 0 #fff}
+[data-theme=light] .act{background:var(--key);border-color:color-mix(in srgb,var(--metal) 26%,var(--line2));box-shadow:var(--keysh)}
+[data-theme=light] .act:active{background:var(--s3);transform:translateY(2px);box-shadow:inset 0 1px 2px rgba(64,48,24,.15)}
+[data-theme=light] :is(.go,.act.hot){background:var(--m-sheen),var(--gokey);color:var(--go-ink);border-color:color-mix(in srgb,var(--go2) 55%,#4a4438);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(0,0,0,.12),0 4px 0 color-mix(in srgb,var(--go3) 50%,#000),0 0 0 3px rgba(var(--gold-rgb),.14),0 14px 24px -10px var(--glow),0 14px 24px -12px var(--halo)}
+[data-theme=light] .act.hot:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--go3) 50%,#000)}
+[data-theme=light] .panel{background:linear-gradient(180deg,#fff 40%,var(--wash));border-color:color-mix(in srgb,var(--tint) 20%,var(--line));
+  box-shadow:inset 0 1px 0 #fff,0 0 0 4px color-mix(in srgb,var(--s1) 50%,transparent) inset,inset 0 -2px 0 color-mix(in srgb,var(--tint) 12%,transparent),var(--sh1),0 18px 30px -22px var(--halo)}
+/* lit by the table (as the studio): the chip rail is washed in the table's colour, the chosen chip rings in the metal
+   with the accent's glow, the keys keep a tinted edge, the footer carries a rule of the metal */
+[data-theme=light] .rack::before{background:linear-gradient(180deg,color-mix(in srgb,var(--tint) 18%,#fff),color-mix(in srgb,var(--tint) 6%,#fff));border-color:color-mix(in srgb,var(--metal) 45%,transparent)}
+[data-theme=light] .rack .chip[aria-checked=true]{box-shadow:0 11px 0 color-mix(in srgb,var(--cc) 55%,#000),0 18px 22px -8px rgba(64,48,24,.5),0 0 0 2px #fff,0 0 0 4px var(--metal),0 0 26px var(--glow)}
+[data-theme=light] :is(.ib,.hb,.act){border-color:color-mix(in srgb,var(--metal) 38%,var(--line2))}
+[data-theme=light] .foot{box-shadow:inset 0 2px 0 -1px color-mix(in srgb,var(--metal) 60%,transparent),0 -10px 24px -16px var(--halo)}
+[data-theme=light] .foot{background:linear-gradient(180deg,color-mix(in srgb,var(--s1) 92%,transparent),var(--s1));border-top:1px solid color-mix(in srgb,var(--metal) 35%,var(--line))}
 [hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 html{scrollbar-color:rgba(var(--gold-rgb),.4) transparent;accent-color:var(--gold);caret-color:var(--gold)}
@@ -86,13 +228,13 @@ canvas.av{display:block;image-rendering:pixelated}
 @keyframes flip{0%,70%,100%{filter:none}35%{filter:brightness(1.35) drop-shadow(0 0 14px var(--gold))}}
 .h1{margin:0;font:900 clamp(26px,8vw,36px)/1.05 var(--disp);letter-spacing:-.01em}
 .ddlogo{display:block;margin:-12px auto -10px;max-width:100%}/* the DeskDot logo in LEDs (DeskDotLogo); the canvas has glow room */
-.h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold-hi),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.h1 em{display:block;margin-top:2px;font:600 clamp(22px,6.6vw,30px)/1.1 var(--serif);letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;font-style:normal;background:linear-gradient(90deg,var(--gold-hi),var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{margin:0;color:var(--dim);max-width:32ch}
 .code{font:800 15px/1 var(--mono);letter-spacing:.3em;padding:8px 14px;border-radius:10px;background:var(--s2);border:1px solid rgba(var(--gold-rgb),.35);color:var(--gold-text)}
 
 /* ---------- seat (profile) ---------- */
 .bar{display:flex;align-items:center;gap:12px;padding:calc(var(--st) + 14px) calc(var(--sr) + 16px) 8px calc(var(--sl) + 16px)}
-.bar h2{margin:0;font:850 21px/1.15 var(--disp)}
+.bar h2{margin:0;font:700 23px/1.15 var(--serif);letter-spacing:.01em}
 .scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px calc(var(--sr) + 14px) 16px calc(var(--sl) + 14px);touch-action:pan-y}
 .cs{display:grid;gap:12px;max-width:640px;margin:0 auto}
 .panel{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--line);border-radius:18px;padding:14px}
@@ -111,18 +253,20 @@ canvas.av{display:block;image-rendering:pixelated}
 .sw button[aria-disabled=true]{opacity:.2}
 .foot{padding:10px calc(var(--sr) + 14px) calc(var(--sb) + 12px) calc(var(--sl) + 14px);border-top:1px solid var(--line);background:var(--veil)}
 .go{width:100%;min-height:58px;border-radius:18px;background:linear-gradient(180deg,var(--gold-hi),var(--gold) 45%,var(--gold2));color:var(--gold-ink);
-  font:900 19px/1 var(--disp);box-shadow:0 6px 0 var(--gold-deep),0 0 34px var(--glow);transition:transform .1s,box-shadow .1s}
+  font:900 19px/1 var(--disp);letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.12),0 6px 0 var(--gold-deep),0 0 34px var(--glow);transition:transform .1s,box-shadow .1s}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--gold-deep)}
 .go:disabled{filter:grayscale(.8) brightness(.6)}
 
 /* ---------- table: HUD — avatar · the bank plaque (name, credits) · icon buttons; nothing overlaps from 320 px up ---------- */
-.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
+.hud{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
   padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 8px calc(var(--sl) + 10px)}
 .meb{position:relative;width:46px;height:46px;border-radius:14px;border:2px solid var(--c);background:var(--well);padding:4px;box-shadow:0 0 16px var(--ca)}
 .meb .dot{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border:2px solid var(--bg)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);flex:none}
 .dot.off{background:var(--warn);box-shadow:0 0 8px var(--warn);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
+.hud::after{content:"";position:absolute;left:calc(var(--sl) + 18px);right:calc(var(--sr) + 18px);bottom:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(var(--gold-rgb),.5) 20%,rgba(var(--gold-rgb),.75) 50%,rgba(var(--gold-rgb),.5) 80%,transparent)}
 /* the bank plaque: who you are on top, your credits big underneath (abbreviated when they don't fit: 1.25M) */
 .bank{min-width:0;max-width:380px;height:50px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 12px 5px 10px;border-radius:14px;
   background:linear-gradient(180deg,rgba(var(--gold-rgb),.11),rgba(var(--gold-rgb),.02)),var(--well);border:1px solid rgba(var(--gold-rgb),.34);
@@ -181,9 +325,10 @@ canvas.av{display:block;image-rendering:pixelated}
 .dock{padding:8px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:8px}
 .rack{display:flex;gap:5px;justify-content:center;align-items:flex-end;min-height:62px}
 .chip{--cc:#d9d9d9;--ct:#111;position:relative;flex:none;width:var(--cw,54px);height:var(--cw,54px);border-radius:50%;
-  background:repeating-conic-gradient(var(--cc) 0 20deg,var(--ce,#fff) 0 30deg,var(--cc) 0 45deg);
+  background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.3),transparent 55%),repeating-conic-gradient(var(--cc) 0 20deg,var(--ce,#fff) 0 30deg,var(--cc) 0 45deg);
   box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 0 2px rgba(0,0,0,.25);transition:transform .15s var(--ease),box-shadow .15s;display:grid;place-items:center}
-.chip::before{content:"";position:absolute;inset:15%;border-radius:50%;background:var(--cc);box-shadow:inset 0 0 0 2px var(--ce,rgba(255,255,255,.6))}
+.chip::before{content:"";position:absolute;inset:15%;border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),transparent 62%),var(--cc);
+  box-shadow:inset 0 0 0 2px var(--ce,rgba(255,255,255,.6)),inset 0 0 0 3.5px rgba(0,0,0,.14),inset 0 3px 5px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.25)}
 .chip span{position:relative;font:900 calc(var(--cw,54px) * .25)/1 var(--mono);color:var(--ct);letter-spacing:-.03em;text-align:center}
 .chip.call span{font-size:calc(var(--cw,54px) * .21)}
 .chip[aria-checked=true]{transform:translateY(-8px) scale(1.06);box-shadow:0 13px 0 rgba(0,0,0,.35),0 0 0 3px var(--gold),0 0 26px rgba(var(--gold-rgb),.55)}
@@ -251,7 +396,7 @@ canvas.av{display:block;image-rendering:pixelated}
 @media (min-width:700px){.sheet{left:50%;right:auto;width:560px;margin-left:-280px}}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 .sh-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
-.sh-h h2{flex:1;margin:0;font:850 19px/1.2 var(--disp)}
+.sh-h h2{flex:1;margin:0;font:700 21px/1.2 var(--serif);letter-spacing:.01em}
 .sh-h button{min-height:44px;padding:0 14px;border-radius:12px;background:var(--s3);border:1px solid rgba(var(--gold-rgb),.25);color:var(--gold-text);font-weight:800}
 .sh-b{overflow-y:auto;padding:0 calc(var(--sr) + 16px) calc(var(--sb) + 16px) calc(var(--sl) + 16px);touch-action:pan-y;-webkit-overflow-scrolling:touch}
 /* how to play / rulebook / payouts (casino/rulebook.py, sent once in hello) */
@@ -271,7 +416,7 @@ canvas.av{display:block;image-rendering:pixelated}
 .howto{position:absolute;inset:0;z-index:80;display:grid;place-items:end center;padding:16px calc(var(--sr) + 12px) calc(var(--sb) + 16px) calc(var(--sl) + 12px);background:rgba(0,0,0,.6);animation:fade .2s}
 .howto .card{width:100%;max-width:440px;max-height:calc(100% - var(--st) - 16px);overflow-y:auto;padding:18px 16px 16px;border-radius:22px;
   background:radial-gradient(120% 70% at 50% 0%,var(--felt2),var(--s1) 70%);border:1px solid rgba(var(--gold-rgb),.45);box-shadow:0 20px 70px rgba(0,0,0,.7);animation:up .3s var(--ease)}
-.howto h2{margin:0 0 2px;font:900 22px/1.15 var(--disp)}
+.howto h2{margin:0 0 2px;font:700 24px/1.15 var(--serif)}
 .howto .eng{color:var(--gold-text)}
 .howto .bt{display:flex;gap:8px;margin-top:14px}.howto .bt button{flex:1}
 .row{display:grid;grid-template-columns:28px 38px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -299,23 +444,23 @@ canvas.av{display:block;image-rendering:pixelated}
 .end{position:absolute;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:var(--veil)}
 .endcard{max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .hud .pm{grid-column:1/-1;margin:-2px 0 0;font:700 10.5px/1.2 var(--mono);letter-spacing:.04em;color:var(--dim);text-align:center}
-.gate{position:absolute;inset:0;z-index:95;display:grid;place-items:center;padding:calc(var(--st) + 20px) 20px calc(var(--sb) + 20px);background:rgba(7,11,9,.97);overflow-y:auto}
+.gate{color-scheme:dark;position:absolute;inset:0;z-index:95;display:grid;place-items:center;padding:calc(var(--st) + 20px) 20px calc(var(--sb) + 20px);background:rgba(7,11,9,.97);overflow-y:auto}
 .gatecard{width:min(420px,100%);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:26px 20px 18px;border-radius:22px;background:radial-gradient(ellipse at 50% 0%,var(--felt) 0%,var(--felt2) 45%,var(--felt3) 100%);border:1px solid rgba(var(--gold-rgb),.55);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08)}
-.gatecard h2{margin:0;font:900 21px/1.2 var(--disp);color:#fff7dc}.gatecard p{margin:0;color:var(--ink);font-size:14px;line-height:1.5}
+.gatecard h2{margin:0;font:900 21px/1.2 var(--disp);color:#fff7dc}.gatecard p{margin:0;color:#f3efe4;font-size:14px;line-height:1.5}
 .gate-chip{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:repeating-conic-gradient(var(--gold) 0 15deg,#fff3cc 15deg 30deg);box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 30px -6px rgba(var(--gold-rgb),.8)}
 .gate-chip span{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#2a1d05,#120c02);border:2px solid var(--gold);color:var(--gold);font:900 18px/1 var(--mono)}
 .gate-pts{list-style:none;margin:0;padding:0;display:grid;gap:6px;width:100%;text-align:left}
-.gate-pts li{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13.5px}
-.gate-pts .y{color:var(--ok);font-weight:900}.gate-pts .n{color:var(--bad);font-weight:900}
+.gate-pts li{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13.5px;color:#f3efe4}
+.gate-pts .y{color:#4dff8a;font-weight:900}.gate-pts .n{color:#ff8098;font-weight:900}
 .gatecard p.gate-x{font-size:11.5px;line-height:1.55;color:rgba(243,239,228,.62);text-align:left}.gatecard p.gate-x b{color:#fff7dc}
 .gatecard .gate-b{display:flex;flex-direction:column;gap:6px;width:100%}
 .gate-yes{width:100%;min-height:52px;border-radius:14px;border:1px solid #ffe7a3;font:900 13px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,var(--gold2));box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 var(--gold-deep),0 0 26px -8px rgba(var(--gold-rgb),.85)}
 .gate-yes:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 1px 0 var(--gold-deep)}
 .gate-no{min-height:44px;border-radius:12px;background:transparent;border:0;color:rgba(243,239,228,.72);font-weight:700;font-size:13.5px}
 .gate-no:active{background:rgba(0,0,0,.25)}
-.gatecard .gate-l{color:var(--dim);font-size:12px}.gatecard .gate-l a{color:inherit;text-decoration:underline}
+.gatecard .gate-l{color:rgba(243,239,228,.7);font-size:12px}.gatecard .gate-l a{color:inherit;text-decoration:underline}
 .pill:focus-visible{outline:3px solid #fff;outline-offset:2px}
-.endcard h2{margin:0;font:900 26px/1.1 var(--disp)}.endcard p{margin:0;color:var(--dim)}
+.endcard h2{margin:0;font:700 28px/1.1 var(--serif)}.endcard p{margin:0;color:var(--dim)}
 .paused{position:absolute;left:50%;top:50%;z-index:20;transform:translate(-50%,-50%);padding:12px 22px;border-radius:14px;background:rgba(0,0,0,.8);border:1px solid var(--gold);color:var(--gold-text);font:900 18px/1 var(--mono);letter-spacing:.2em;pointer-events:none}
 
 /* ---------- chip flights, drag & drop, who is on a spot, the tour ---------- */
@@ -347,7 +492,7 @@ html,body,.board,.dock{touch-action:manipulation}
 .tour-card{position:absolute;left:12px;right:12px;top:40%;max-width:420px;margin:0 auto;padding:14px 14px 12px;border-radius:18px;
   background:radial-gradient(120% 80% at 50% 0,var(--felt2),var(--s1) 75%);border:1px solid rgba(var(--gold-rgb),.5);box-shadow:0 18px 50px rgba(0,0,0,.7);transition:top .3s var(--ease)}
 .tour-card .eng{color:var(--gold-text)}
-.tour-card h3{margin:4px 0 4px;font:900 19px/1.15 var(--disp)}
+.tour-card h3{margin:4px 0 4px;font:700 21px/1.15 var(--serif)}
 .tour-card p{margin:0;color:var(--ink);font-size:14.5px;line-height:1.4}
 .tour-card p b{color:var(--gold-text)}
 .tour-bt{display:flex;gap:8px;align-items:center;margin-top:12px}
@@ -719,6 +864,225 @@ html,body,.board,.dock{touch-action:manipulation}
 .phase{position:relative}
 .phase.has-live{padding-right:60px}
 .lthumb{position:absolute;right:8px;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:7px;background:#030303;box-shadow:0 0 0 1.5px rgba(var(--gold-rgb),.45);pointer-events:none}
+
+/* ------------------------------------------------ the win moment (shared with the TV: tiers, count-up, coins) */
+.win .card{position:relative;overflow:visible}
+.win .rays{position:absolute;left:50%;top:50%;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;pointer-events:none;opacity:0;
+  background:repeating-conic-gradient(rgba(var(--tc,255,204,51),.34) 0 9deg,transparent 9deg 20deg);
+  -webkit-mask:radial-gradient(circle,#000 18%,transparent 68%);mask:radial-gradient(circle,#000 18%,transparent 68%)}
+.win:not(.lose) .rays{animation:raysin .5s ease-out .15s forwards,rayspin 7s linear infinite}
+@keyframes raysin{to{opacity:1}}@keyframes rayspin{to{transform:rotate(360deg)}}
+.win .tier{display:block;margin:2px 0 0;font:italic 900 clamp(30px,10vw,44px)/1 var(--disp);letter-spacing:.02em;
+  background:linear-gradient(180deg,#fffcf5,var(--t1,var(--m-gold1)) 45%,var(--t2,var(--m-gold2)) 55%,var(--t1,var(--m-gold1)));-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:1px rgba(0,0,0,.35);filter:drop-shadow(0 3px 0 rgba(0,0,0,.5));animation:slam .45s cubic-bezier(.2,1.6,.4,1) both}
+.win.lose .tier{display:none}
+@keyframes slam{0%{opacity:0;transform:scale(2.2) rotate(-4deg)}60%{opacity:1}100%{transform:none}}
+.win[data-tier=big]{--tc:61,220,151;--t1:#7dffc4;--t2:#18b878}
+.win[data-tier=mega]{--tc:255,79,216;--t1:#ff9ae8;--t2:#b23cff}
+.win[data-tier=jackpot]{--tc:255,176,46;--t1:var(--m-jack1);--t2:var(--m-jack2)}
+.win.shake .card{animation:winpop .55s var(--ease) both,shake .5s .25s linear}
+@keyframes shake{0%,100%{translate:0 0}15%{translate:-9px 4px}30%{translate:8px -5px}45%{translate:-6px 3px}60%{translate:5px -2px}75%{translate:-3px 1px}}
+.win.lose .card b{animation:losefade 2s ease-in .4s both}
+@keyframes losefade{to{opacity:.35;transform:translateY(10px)}}
+.confetti i.coin{width:24px;height:24px;top:auto;background:radial-gradient(circle at 35% 30%,var(--m-coin0),var(--m-coin1) 40%,var(--m-coin2) 85%,var(--m-coin3));
+  box-shadow:inset 0 0 0 3px rgba(122,74,4,.55);animation:coin 1.25s cubic-bezier(.25,.6,.4,1) forwards}
+@keyframes coin{0%{transform:translate(0,0) scale(.4)}35%{transform:translate(calc(var(--dx) * .6),var(--up)) scale(1.1) rotateY(360deg)}100%{transform:translate(var(--dx),110vh) scale(.9) rotateY(900deg)}}
+
+/* ------------------------------------------------ odometer credits (the TV's and the studio's counter) */
+#credits.odo{display:inline-flex;overflow:hidden}
+#credits .ro{position:relative;display:inline-block;overflow:hidden;width:.62em;height:1.1em;line-height:1.1em;text-align:center}
+#credits .ro i{position:absolute;left:0;right:0;top:0;font-style:normal;white-space:pre;will-change:transform}
+#credits .ro i+i{opacity:0;text-shadow:0 -.22em 0 currentColor,0 .22em 0 currentColor}
+
+/* ------------------------------------------------ the roulette dolly (status.house.dolly) on the winning number */
+.rt .dolly{position:absolute;left:50%;bottom:6%;width:22px;height:38px;margin-left:-11px;pointer-events:none;z-index:4;
+  --db:var(--brass);--ds:var(--brass-hi);--dt:var(--brass-lt);filter:drop-shadow(0 3px 2px rgba(0,0,0,.6));animation:dollyin .55s cubic-bezier(.3,1.4,.5,1) both}
+.rt .dolly::before{content:"";position:absolute;left:9px;top:8px;width:4px;height:24px;border-radius:2px;background:linear-gradient(90deg,rgba(0,0,0,.35),var(--ds) 35%,#fff 50%,var(--ds) 65%,rgba(0,0,0,.4))}
+.rt .dolly::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;border-radius:50% 50% 45% 45%/70% 70% 30% 30%;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.7),transparent 40%),linear-gradient(90deg,rgba(0,0,0,.35),var(--db) 30%,var(--db) 70%,rgba(0,0,0,.4))}
+.rt .dolly b{position:absolute;left:4px;top:0;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--dt) 30%,var(--ds) 75%,rgba(0,0,0,.5))}
+.rt .dolly[data-dolly=crystal]{--db:var(--brass);--ds:rgba(210,232,255,.7);--dt:#eef6ff}
+.rt .dolly[data-dolly=chrome]{--db:#a9afbd;--ds:#d6dbe4;--dt:#ffffff}
+.rt .dolly[data-dolly=onyx_gold]{--db:#1c1c22;--ds:#2a2a32;--dt:var(--brass-hi)}
+.rt .dolly[data-dolly=rose_gold]{--db:var(--m-rose);--ds:var(--m-rose2);--dt:var(--m-rose3)}
+.rt .dolly[data-dolly=diamond]{--dt:#cfeaff}.rt .dolly[data-dolly=diamond] b{border-radius:2px 2px 50% 50%;transform:rotate(45deg) scale(.85)}
+.rt .dolly[data-dolly=marble_brass]{--db:#ece8de;--ds:var(--m-brass2);--dt:#f6e2a0}
+.rt .dolly[data-dolly=neon]{--db:#1d1430;--ds:#18d8ff;--dt:#ff7ad0;filter:drop-shadow(0 0 4px #ff2fa0)}
+.rt .dolly[data-dolly=classic_gold]{--db:var(--brass);--ds:var(--brass-hi);--dt:var(--brass-lt)}
+@keyframes dollyin{0%{opacity:0;transform:translate(14px,-26px) scale(1.25)}70%{opacity:1;transform:translateY(-6px)}100%{transform:none}}
+
+/* ------------------------------------------------ chip sets (status.chip_set): the TV's and the studio's sets */
+[data-chips=ceramic] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.45),transparent 50%),repeating-conic-gradient(var(--cc) 0 24deg,var(--ce,#fff) 24deg 30deg)}
+[data-chips=gold_rim] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){background:repeating-conic-gradient(var(--cc) 0 60deg,var(--ce,#fff) 60deg 90deg);outline:2px solid var(--brass);outline-offset:-3px}
+[data-chips=neon] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){background:repeating-conic-gradient(color-mix(in srgb,var(--cc) 18%,#000) 0 36deg,var(--ce,#fff) 36deg 45deg);outline:2px solid var(--cc);outline-offset:-2px}
+[data-chips=neon] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp)::before{background:#0b0b12;box-shadow:inset 0 0 0 1.5px var(--cc)}
+[data-chips=neon] :is(.chip span,.fly b,.rt .chp b){color:color-mix(in srgb,var(--cc) 55%,#fff);text-shadow:0 0 6px var(--cc)}
+[data-chips=jade] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){background:linear-gradient(135deg,rgba(160,255,200,.2),transparent 40%,rgba(255,255,255,.12) 60%,transparent),repeating-conic-gradient(var(--cc) 0 46deg,var(--ce,#fff) 46deg 60deg);outline:2px solid var(--jade-gold);outline-offset:-2px}
+[data-chips=pixel] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){border-radius:22%;background:conic-gradient(from 45deg,var(--cc) 0 15deg,var(--ce,#fff) 15deg 30deg,var(--cc) 30deg 105deg,var(--ce,#fff) 105deg 120deg,var(--cc) 120deg 195deg,var(--ce,#fff) 195deg 210deg,var(--cc) 210deg 285deg,var(--ce,#fff) 285deg 300deg,var(--cc) 300deg)}
+[data-chips=pixel] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp)::before{border-radius:3px}
+[data-chips=ivory] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp){background:radial-gradient(circle,transparent 54%,var(--cc) 55% 66%,transparent 67%),repeating-conic-gradient(#efe6cf 0 40deg,color-mix(in srgb,var(--cc) 70%,#000) 40deg 52deg,#efe6cf 52deg 60deg)}
+[data-chips=ivory] :is(.chip,.fly,.rt .chp,.sv .chp,.hz .chp)::before{background:#f6efdc;box-shadow:inset 0 0 0 1.5px var(--cc)}
+[data-chips=ivory] :is(.chip span,.fly b,.rt .chp b){color:color-mix(in srgb,var(--cc) 65%,#000)}
+@media (prefers-reduced-motion:reduce){.win .rays,.win .tier,.win.shake .card,.rt .dolly{animation:none!important}.win:not(.lose) .rays{opacity:1}}
+/* ================= LIQUID GLASS (mirrors web/src/index.css § LIQUID GLASS by name; docs/STUDIO_UI.md § Liquid Glass) =================
+   Our own CSS after Apple's published principles (WWDC25 "Meet Liquid Glass", HIG → Materials) — no Apple assets. Glass is
+   the chrome that floats above the table (the bank, the phase strip, the seat footer, toasts, sheets, cards, the alert)
+   and the controls (keys, chips of the help tabs, pills); the felt, the cards, the chips and the pockets are content and
+   never glass. The element stays transparent and isolated; ::before is the glass body (tint + top sheen + inner light and
+   shade + backdrop blur/saturate), ::after the 1 px specular rim. <html data-glass> is set first thing in the page
+   script: liquid (real blur) · frosted (no blur support or the Android app: a near-opaque fill — text never sits on raw
+   content) · solid (reduced transparency). Touch screens: real blur only on the small bars (bank, phase, footer, toasts,
+   pills); sheets and the big cards are frosted. */
+:root{
+  --lg-blur:20px;--lg-blur-thick:28px;--lg-sat:1.8;
+  --lg-tint:color-mix(in srgb,var(--s2) 52%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 76%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,transparent);--lg-solid:var(--s2);
+  --lg-glare:rgba(255,255,255,.06);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.04),inset 0 14px 22px -18px rgba(255,255,255,.16),inset 0 -14px 24px -20px rgba(0,0,0,.55);
+  --lg-edge:rgba(255,255,255,.1);--lg-edge-strong:rgba(255,255,255,.2);
+  --lg-rim-a:rgba(255,255,255,.36);--lg-rim-b:rgba(255,255,255,.03);--lg-rim-c:rgba(255,255,255,.14);
+  --lg-shadow:0 1px 1px rgba(0,0,0,.3),0 12px 32px -14px rgba(0,0,0,.7);
+  --lg-shadow-lift:0 2px 4px rgba(0,0,0,.35),0 28px 70px -20px rgba(0,0,0,.8);
+  --lg-control:rgba(255,255,255,.07);--lg-control-hover:rgba(255,255,255,.12);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 55%);
+  --lg-control-rim:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.03);
+  --lg-control-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px -6px rgba(0,0,0,.5);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.06) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(255,255,255,.08);--lg-track-shade:rgba(0,0,0,.45);
+  --lg-lens:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));
+  --lg-lens-rim:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 .5px rgba(255,255,255,.12);
+  --lg-lens-shadow:0 2px 8px -2px rgba(0,0,0,.5);
+  --lg-spring:cubic-bezier(.34,1.56,.5,1)}
+[data-theme=light]{
+  --lg-tint:color-mix(in srgb,var(--s2) 58%,transparent);--lg-tint-thick:color-mix(in srgb,var(--s2) 80%,transparent);
+  --lg-frost:color-mix(in srgb,var(--s2) 95%,var(--bg));
+  --lg-glare:rgba(255,255,255,.55);
+  --lg-inner:inset 0 0 0 .5px rgba(255,255,255,.7),inset 0 16px 24px -18px rgba(255,255,255,.95),inset 0 -14px 26px -20px rgba(64,48,24,.16);
+  --lg-edge:rgba(64,48,24,.13);--lg-edge-strong:color-mix(in srgb,var(--metal) 40%,rgba(64,48,24,.2));
+  --lg-rim-a:#fff;--lg-rim-b:rgba(255,255,255,.4);--lg-rim-c:rgba(255,255,255,.85);
+  --lg-shadow:0 .5px 1px rgba(64,48,24,.08),0 4px 10px -4px rgba(64,48,24,.1),0 18px 40px -20px rgba(64,48,24,.3);
+  --lg-shadow-lift:0 1px 3px rgba(64,48,24,.08),0 10px 24px -10px rgba(64,48,24,.16),0 34px 70px -28px rgba(64,48,24,.42);
+  --lg-control:rgba(255,255,255,.62);--lg-control-hover:rgba(255,255,255,.86);
+  --lg-control-sheen:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 60%);
+  --lg-control-rim:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.6);
+  --lg-control-shadow:0 .5px 1px rgba(64,48,24,.1),0 3px 10px -4px rgba(64,48,24,.22);
+  --lg-prominent-sheen:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1) 50%,rgba(255,255,255,0) 52%);
+  --lg-track:rgba(64,48,24,.07);--lg-track-shade:rgba(64,48,24,.14);
+  --lg-lens:linear-gradient(180deg,#fff,rgba(255,255,255,.86));
+  --lg-lens-rim:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(64,48,24,.06);
+  --lg-lens-shadow:0 1px 2px rgba(64,48,24,.12),0 4px 12px -4px rgba(64,48,24,.22)}
+@keyframes lg-morph{0%{transform:scale(.72,.84);opacity:.4}55%{transform:scale(1.08,.94);opacity:1}100%{transform:none}}
+
+/* the glass surfaces */
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard){
+  isolation:isolate;background:transparent;border-color:var(--lg-edge);box-shadow:var(--lg-shadow)}
+html[data-theme] :is(.bank,.foot,.endcard){position:relative}
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,var(--lg-glare),transparent 46%),var(--lg-tint);box-shadow:var(--lg-inner);
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur)) saturate(var(--lg-sat))}
+html[data-theme] :is(.toast,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-tint-thick);
+  -webkit-backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat));backdrop-filter:blur(var(--lg-blur-thick)) saturate(var(--lg-sat))}
+html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::after{
+  content:"";position:absolute;inset:-1px;z-index:1;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(150px circle at 24% -40%,var(--lg-rim-a),transparent 70%),linear-gradient(155deg,var(--lg-rim-a),var(--lg-rim-b) 34%,var(--lg-rim-b) 66%,var(--lg-rim-c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+/* fallbacks: frosted (no blur — a near-opaque fill), solid (reduced transparency); touch: big panels frosted */
+html[data-glass=frosted] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{background:linear-gradient(180deg,var(--lg-glare),transparent 44%),var(--lg-frost)}}
+@media (pointer:coarse){
+  html[data-theme] :is(.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+    background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);-webkit-backdrop-filter:none;backdrop-filter:none}}
+html[data-glass=solid] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+  background:var(--lg-solid);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-glass=solid] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::after{opacity:.4}
+@media (prefers-reduced-transparency:reduce){
+  html[data-theme] :is(.bank,.phase,.foot,.toast,.paused,.lockb,.al-card,.win .card,.sheet,.tour-card,.endcard)::before{
+    background:var(--lg-solid)!important;box-shadow:none;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+
+/* shapes: capsules for controls and small bars, larger concentric radii for sheets and cards */
+html[data-theme] :is(.bank,.paused,.lockb,.toast){border-radius:999px}
+html[data-theme] .bank{padding-left:16px;padding-right:18px}
+html[data-theme] .phase{border-radius:24px}
+html[data-theme] :is(.sheet){border-radius:30px 30px 0 0;border:1px solid var(--lg-edge);border-bottom:0}
+html[data-theme] :is(.tour-card,.al-card){border-radius:30px}
+/* the how-to card scrolls itself (pseudo layers would scroll away): a frosted fill and the rim as an inset highlight */
+html[data-theme] .howto .card{border-radius:30px;border-color:var(--lg-edge);background:linear-gradient(180deg,var(--lg-glare),transparent 40%),var(--lg-frost);
+  box-shadow:inset 0 1px 0 var(--lg-rim-a),var(--lg-inner),var(--lg-shadow-lift)}
+html[data-glass=solid] .howto .card{background:var(--lg-solid)}
+html[data-theme] .win .card{border-radius:32px}
+html[data-theme] .endcard{padding:22px 22px 20px;border:1px solid var(--lg-edge);border-radius:30px}
+html[data-theme] .foot{border-top:1px solid var(--lg-edge)}
+/* the win card keeps its accent ring outside the glass */
+html[data-theme] .win:not(.lose) .card{border:2px solid var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 26%,transparent),0 0 70px rgba(var(--gold-rgb),.35),var(--lg-shadow-lift)}
+html[data-theme] .al-card{border:2px solid var(--gold);box-shadow:0 0 0 6px rgba(var(--gold-rgb),.14),0 0 50px rgba(var(--gold-rgb),.28),var(--lg-shadow-lift)}
+html[data-theme] .lockb{border:1.5px solid var(--red);box-shadow:var(--lg-shadow)}
+
+/* controls: clear glass capsules / circles that squash and spring back when pressed; the gold keys are the prominent
+   (tinted) glass */
+html[data-theme] :is(.ib,.hb,.act,.pill,.sh-h button,.tz button,.code,.sl-bet,.tapnext){
+  background:var(--lg-control-sheen),var(--lg-control);border:1px solid var(--lg-edge);box-shadow:var(--lg-control-rim),var(--lg-control-shadow);
+  transition:transform .42s var(--lg-spring),background-color .2s,border-color .2s}
+html[data-theme] :is(.ib,.hb){width:46px;height:46px;border-radius:50%}
+html[data-theme] :is(.act,.pill,.sh-h button,.tz button,.code,.sl-bet){border-radius:999px}
+html[data-theme] :is(.ib,.hb,.act,.pill,.sh-h button,.tz button,.sl-bet,.go,.sl-go,.meb):active{transform:scale(.95,.93);transition-duration:.12s}
+html[data-theme] :is(.act.hot,.pill.hot,.sl-bet[aria-checked=true],.tz .tour-go){background:var(--lg-prominent-sheen),linear-gradient(180deg,var(--gold-hi),var(--gold));color:var(--gold-ink);border-color:color-mix(in srgb,var(--gold) 60%,#fff);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px -8px rgba(var(--gold-rgb),.8),0 1px 2px rgba(0,0,0,.18)}
+html[data-theme] .act.on{background:var(--lg-control-sheen),color-mix(in srgb,var(--ok) 16%,transparent);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+html[data-theme] :is(.go,.sl-go){border-radius:999px;background:var(--lg-prominent-sheen),linear-gradient(180deg,var(--gold-hi),var(--gold) 45%,var(--gold2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 22px -8px var(--glow),0 2px 4px rgba(0,0,0,.2);transition:transform .42s var(--lg-spring)}
+html[data-theme] :is(.go,.sl-go):active{box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px -4px var(--glow)}
+html[data-theme] .meb{border-radius:50%;transition:transform .42s var(--lg-spring)}
+html[data-theme] .meb canvas{border-radius:50%}
+/* segmented (the help tabs): a glass track, the chosen tab a lens in the accent that morphs in */
+html[data-theme] .htabs{border-radius:999px;background:var(--lg-track);border:1px solid var(--lg-edge);box-shadow:inset 0 1px 2px var(--lg-track-shade)}
+html[data-theme] .htabs button{border-radius:999px}
+html[data-theme] .htabs button[aria-selected=true]{box-shadow:var(--lg-lens-rim),var(--lg-lens-shadow);animation:lg-morph .5s var(--lg-spring) both}
+@media (prefers-reduced-motion:reduce){html[data-theme] .htabs button[aria-selected=true]{animation:none}}
+
+/* ---------- light without dark: no black lacquer, umber scrims or black plates anywhere around the table ---------- */
+/* the bank: clear glass with the credits in the table's text-safe gold */
+[data-theme=light] .bk-who span{color:var(--dim)}
+[data-theme=light] .bk-who span.staked{color:var(--gold-text)}
+[data-theme=light] #credits{color:var(--gold-text);text-shadow:none}
+[data-theme=light] #credits.up{color:var(--ok);text-shadow:none}[data-theme=light] #credits.down{color:var(--bad)}
+[data-theme=light] .bk-coin{box-shadow:inset 0 0 0 3.5px var(--gold),0 0 0 1px color-mix(in srgb,var(--metal) 60%,transparent)}
+/* the win card: white glass on a gold ring, the amount in text-safe gold */
+[data-theme=light] .win .card b{color:var(--gold-text);text-shadow:none}
+[data-theme=light] .win .card :is(small,span){color:var(--dim)}
+[data-theme=light] .win .tier{-webkit-text-stroke:1px rgba(64,48,24,.35);filter:drop-shadow(0 2px 0 rgba(64,48,24,.3))}
+/* scrims: a pale veil, never a dark wash */
+[data-theme=light] :is(.scrim,.howto){background:color-mix(in srgb,var(--bg) 62%,transparent)}
+[data-theme=light] .end{background:color-mix(in srgb,var(--bg) 94%,transparent)}
+[data-theme=light] .paused{color:var(--gold-text)}
+[data-theme=light] .lockb{color:#9c1830}
+[data-theme=light] .al-t{text-shadow:none}
+/* who sits on a spot / other players' stakes: white glass chips with ink lettering */
+[data-theme=light] :is(.wd,.rt .oth){background:rgba(255,255,255,.88);border-color:rgba(64,48,24,.16);color:#2a2630;box-shadow:0 1px 3px rgba(64,48,24,.25)}
+[data-theme=light] .wd i{box-shadow:0 0 0 1px rgba(64,48,24,.35)}
+[data-theme=light] .wd i.me{box-shadow:0 0 0 1.5px #1c1a22}
+/* the live panel: drawn as ink on porcelain in light (Live.draw), in a white-enamel bezel with the metal ring */
+[data-theme=light] .livep-bz{background:linear-gradient(145deg,#fff,#f4efe6 50%,#e9e2d5);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(64,48,24,.14),0 0 0 1px rgba(64,48,24,.14),0 0 0 5px rgba(255,255,255,.85),0 0 0 6px color-mix(in srgb,var(--metal) 55%,transparent),0 30px 60px -20px rgba(64,48,24,.5)}
+[data-theme=light] .livep-bz canvas,[data-theme=light] .lthumb{background:#ebe6dc;box-shadow:inset 0 2px 6px rgba(64,48,24,.22)}
+[data-theme=light] .lthumb{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--metal) 60%,transparent),inset 0 1px 3px rgba(64,48,24,.2)}
+/* the slot machine: a porcelain cabinet with its own colour as the rim (classic gold, neon pink, space cyan), ivory reels */
+[data-theme=light] .sl-mach{background:linear-gradient(180deg,#fff,#f3eee5);box-shadow:inset 0 0 0 2px var(--gold2),inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px color-mix(in srgb,var(--metal) 50%,transparent),var(--sh1)}
+[data-theme=light] .sl-mach.neon{box-shadow:inset 0 0 0 2px #d42aa8,inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px rgba(212,42,168,.35),var(--sh1)}
+[data-theme=light] .sl-mach.space{box-shadow:inset 0 0 0 2px #128e9a,inset 0 0 0 5px #fbf7ee,inset 0 0 0 6px rgba(18,142,154,.35),var(--sh1)}
+[data-theme=light] .sl-name{color:var(--gold-text)}
+[data-theme=light] .sl-name small{color:var(--dim)}
+[data-theme=light] .sl-reel{background:linear-gradient(180deg,#e9e3d7,#fbf9f5 30%,#fbf9f5 70%,#e9e3d7);box-shadow:inset 0 0 0 1px rgba(64,48,24,.14),inset 0 3px 8px -3px rgba(64,48,24,.25)}
+[data-theme=light] .sl-pay b{text-shadow:none}
+[data-theme=light] .sl-lever{background:linear-gradient(90deg,#efe6d2,#fffbf2 50%,#efe6d2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--metal) 55%,transparent),var(--sh1)}
+[data-theme=light] .sl-lever .slot{background:#d9cfbd;box-shadow:inset 0 2px 4px rgba(64,48,24,.35)}
+[data-theme=light] .sl-lever .hint{color:var(--gold-text)}
+[data-theme=light] .sl-knob{box-shadow:0 6px 12px rgba(64,48,24,.4),inset 0 -4px 0 rgba(0,0,0,.18)}
+/* soft umber shadows in place of black drop shadows on the keys */
+[data-theme=light] .lockb{box-shadow:var(--lg-shadow)}
 </style></head>
 <body>
 <div class="app" id="app">
@@ -788,7 +1152,7 @@ html,body,.board,.dock{touch-action:manipulation}
 
 <div class="toast" id="toast" role="status" hidden></div>
 <div class="alert" id="alert" role="alert" hidden><div class="al-card"><div class="al-ic" aria-hidden="true">!</div><b class="al-t" id="al-t"></b><small class="al-k">Tap to close</small></div></div>
-<div class="win" id="win" hidden><div class="card"><small id="win-k">You won</small><b class="num" id="win-v"></b><span id="win-s"></span></div></div>
+<div class="win" id="win" hidden><div class="rays" aria-hidden="true"></div><div class="card"><small id="win-k">You won</small><i class="tier" id="win-t" aria-hidden="true"></i><b class="num" id="win-v"></b><span id="win-s"></span></div></div>
 <div class="confetti" id="confetti"></div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" hidden>
@@ -817,5 +1181,5 @@ html,body,.board,.dock{touch-action:manipulation}
 <div class="end" id="end" hidden><div class="endcard"><canvas class="ddlogo" id="end-logo" role="img" aria-label="DeskDot"></canvas><h2 id="end-t"></h2><p id="end-p"></p><button class="pill hot" id="end-b">Try again</button></div></div>
 </div>
 
-<script src="/app/join/casino.js?v=2eb917713d17"></script>
+<script src="/app/join/casino.js?v=7259fd3fe8f4"></script>
 </body></html>

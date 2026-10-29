@@ -1,10 +1,38 @@
 "use strict";
+// Liquid Glass, first thing (as web/index.html; docs/STUDIO_UI.md § Liquid Glass): solid for reduced transparency;
+// frosted (near opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
+(function () { try {
+  var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && CSS.supports && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+  var rt = window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+} catch (e) {} })();
+// Light / dark (docs/CASINO.md §5): the studio's switch, localStorage deskdot.theme = light | dark | system (same
+// origin as the studio on this device), else the phone's own preference. html[data-theme] = light | dark; first so
+// the page never paints in the wrong one (the stylesheet's media query covers the instant before this runs).
+const UiMode = (() => {
+  const root = document.documentElement;
+  let mq = null;
+  try { mq = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null; } catch (_) {}
+  const pick = () => { let v = ""; try { v = String(localStorage.getItem("deskdot.theme") || "").replace(/"/g, ""); } catch (_) {} return v === "light" || v === "dark" ? v : mq && mq.matches ? "light" : "dark"; };
+  const api = { mode: "dark", onChange: null };
+  const apply = () => {
+    const m = pick(); if (m === api.mode && root.dataset.theme === m) return;
+    api.mode = m; try { root.dataset.theme = m; } catch (_) {}
+    if (typeof api.onChange === "function") api.onChange(m);
+  };
+  apply();
+  try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.theme") apply(); }); } catch (_) {}
+  return api;
+})();
 
-// <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
-// timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
-// in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The canvas
-// redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between and
-// stops while the page is hidden; reduced motion draws it lit once. DeskDotLogo.mount(canvas, { pitch, grid, dpr }).
+// <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours,
+// styles and timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the
+// D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
+// canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
+// and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
+// neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+// behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
 const DeskDotLogo = (() => {
   const GLYPHS = {
     D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -16,6 +44,8 @@ const DeskDotLogo = (() => {
   };
   const TUBES = ["D", "esk", "Dot"];
   const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
+  const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
+  const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -67,7 +97,7 @@ const DeskDotLogo = (() => {
     if (k < 2.5 / d) return n * (k -= 2.25 / d) * k + 0.9375;
     return n * (k -= 2.625 / d) * k + 0.984375;
   };
-  let glows = null;
+  const glows = {};
   const glowSprite = (color) => {
     const c = document.createElement("canvas");
     c.width = c.height = 64;
@@ -88,13 +118,15 @@ const DeskDotLogo = (() => {
   const offAt = tl.build + 1.4 + tl.hold;
   const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...[0, 1, 2].map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
 
-  /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop. */
-  function draw(ctx, lt, ox, oy, p, grid, still) {
-    if (!glows) glows = LOGO.map(glowSprite);
+  /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop; look = "neon" | "paper". */
+  function draw(ctx, lt, ox, oy, p, grid, still, look) {
+    const st = look === "paper" ? PAPER_STYLE : NEON_STYLE;
+    const tubes = look === "paper" ? PAPER_STYLE.tubes : LOGO;
+    const gl = glows[look] || (glows[look] = tubes.map((c) => glowSprite(c)));
     if (still) lt = tl.build + 3;
     const r = p * 0.36;
     if (grid) {
-      ctx.fillStyle = "rgba(255,255,255,0.045)";
+      ctx.fillStyle = st.grid;
       for (let y = 0; y < ROWS; y++)
         for (let x = 0; x < cols; x++) {
           ctx.beginPath();
@@ -112,7 +144,7 @@ const DeskDotLogo = (() => {
         const sputter = dying < 0.35 ? (Math.sin(lt * 90) > 0.2 ? 1 : 0.25) : 0;
         level = Math.max(0, 1 - dying * 2.4) * (0.5 + sputter * 0.5);
       }
-      const color = LOGO[part], glow = glows[part];
+      const color = tubes[part], glow = gl[part];
       for (const d of dots) {
         if (d.part !== part) continue;
         let x = d.x, y = d.y, k, pop = 0;
@@ -143,23 +175,24 @@ const DeskDotLogo = (() => {
           else if (g > 0.66 && g < 0.672) lv *= 0.3;
         }
         const cx = ox + (x + 0.5) * p, cy = oy + (y + 0.5) * p;
-        ctx.globalAlpha = 0.22 * fade * Math.min(1, k * 2);
+        ctx.globalAlpha = st.glass * fade * Math.min(1, k * 2);
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
         ctx.fill();
         const light = Math.max(lv, pop * 0.9) * fade;
         if (light > 0.02) {
-          ctx.globalCompositeOperation = "lighter";
-          ctx.globalAlpha = Math.min(0.5, light * 0.5);
+          ctx.globalCompositeOperation = st.blend;
+          ctx.globalAlpha = Math.min(st.halo, light * st.halo);
           const gs = p * 3.4;
           ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
+          ctx.globalCompositeOperation = st.fill;
           ctx.globalAlpha = Math.min(1, light);
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
-          ctx.globalAlpha = Math.min(1, light * 0.5);
-          ctx.fillStyle = "#fff4e0";
+          ctx.globalAlpha = Math.min(1, light * st.coreAlpha);
+          ctx.fillStyle = st.core;
           ctx.beginPath();
           ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
           ctx.fill();
@@ -179,12 +212,36 @@ const DeskDotLogo = (() => {
   }
 
   /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
-   *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+   *  giving device px per CSS px (default devicePixelRatio, capped at 2); once = build in once, then hold it lit;
+   *  light = a function answering "is this page light?" (default: a shadow host's or <html>'s data-theme, else the
+   *  system preference — followed live). Returns { resize, restart, restyle }. */
   function mount(canvas, opts) {
     const o = opts || {};
     const ctx = canvas && canvas.getContext && canvas.getContext("2d");
-    if (!ctx) return { resize() {}, restart() {} };
+    if (!ctx) return { resize() {}, restart() {}, restyle() {} };
+    const media = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null;
+    const watched = [];
+    const isLight = o.light || (() => {
+      const root = canvas.getRootNode ? canvas.getRootNode() : null;
+      const host = root && root.host;
+      if (host && watched.indexOf(host) < 0 && mo) watched.push(host), mo.observe(host, { attributes: true, attributeFilter: ["data-theme"] });
+      const t = (host && host.getAttribute("data-theme")) || document.documentElement.getAttribute("data-theme");
+      return t ? t === "light" : !!(media && media.matches);
+    });
+    let look = "";
+    /** The page's light / dark changed? Re-pick the style. True when it changed. */
+    const restyle = () => {
+      const next = isLight() ? "paper" : "neon";
+      if (next === look) return false;
+      look = next;
+      return true;
+    };
+    const watch = () => restyle() && now();
+    const mo = window.MutationObserver ? new MutationObserver(watch) : null;
+    if (mo) mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    if (media && media.addEventListener) media.addEventListener("change", watch);
     const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const once = !!o.once; // play the intro once, then stay lit: steady, no hum, no power-down
     const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
     let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
     const size = () => {
@@ -208,12 +265,15 @@ const DeskDotLogo = (() => {
       if (document.hidden) return; // visibilitychange wakes it
       if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
       if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
+      restyle();
       drawn = true;
-      const lt = ((performance.now() - t0) / 1000) % cycle;
+      const age = (performance.now() - t0) / 1000;
+      const done = once && age >= litAt;
+      const lt = done ? 0 : age % cycle;
       ctx.setTransform(k, 0, 0, k, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
-      if (still) return;
+      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still || done, look);
+      if (still || done) return;
       const s = wake(lt);
       if (s > 0) later(s);
       else raf = requestAnimationFrame(tick);
@@ -240,6 +300,7 @@ const DeskDotLogo = (() => {
         t0 = performance.now();
         now();
       },
+      restyle: watch,
     };
   }
 
@@ -349,7 +410,7 @@ function drawAvatar(cv, id, color) {
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     const ch = px[y][x], fill = ch === "." || ch === " " ? null : col[ch];
     g.beginPath(); g.arc(x * cell + cell / 2, y * cell + cell / 2, r, 0, Math.PI * 2);
-    if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; } else { g.shadowBlur = 0; g.fillStyle = "rgba(255,255,255,.06)"; }
+    if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; } else { g.shadowBlur = 0; g.fillStyle = document.documentElement.dataset.theme === "light" ? "rgba(64,48,24,.09)" : "rgba(255,255,255,.06)"; }
     g.fill();
   }
 }
@@ -836,25 +897,60 @@ function measureCredits() {
   const el = $("#credits"), box = el.parentElement, w = box.clientWidth; if (!w) return;
   const fs = parseFloat(getComputedStyle(el).fontSize) || 22, coin = 22;
   credFit.chars = Math.max(4, Math.floor((w - coin) / (fs * 0.62)));
-  if (S.credits !== null) el.textContent = credText(S.credits);
+  if (S.credits !== null) odoSet(el, credText(S.credits), true, true);
 }
 /** 1,250,000 when it fits, else 1.25M (the full number is in the title / players sheet) */
 function credText(v) { const s = fmt(v); return s.length <= credFit.chars ? s : short(Math.round(v)); }
 if (typeof ResizeObserver === "function") new ResizeObserver(() => measureCredits()).observe($(".bk-bal"));
+/**
+ * The balance as a slot-machine counter (the TV's and the studio's odometer): each digit a reel that spins to the new
+ * digit with a little overshoot, the units turning a lap or two further, stopping left to right; a smeared copy fades
+ * in at speed. Transforms only; instant with reduced motion; works with the K / M short form (credText).
+ */
+const ODO_D = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0";
+const odoPos = new Map(); // right-aligned reel index → shown position
+function odoShow(r, pos, speed) {
+  const [a, b] = r.children, tf = `translateY(${(-pos * 1.1).toFixed(3)}em)`;
+  a.style.transform = b.style.transform = tf;
+  const bo = clamp((speed - 6) / 14, 0, 0.85); b.style.opacity = bo.toFixed(2); a.style.opacity = (1 - 0.5 * bo).toFixed(2);
+}
+function odoSet(el, text, up, instant) {
+  const shape = text.replace(/\d/g, "0");
+  if (el._shape !== shape) {
+    el._shape = shape; el.classList.add("odo");
+    el.innerHTML = [...text].map((c) => (/\d/.test(c) ? `<span class="ro"><i>${ODO_D}</i><i>${ODO_D}</i></span>` : `<span>${esc(c)}</span>`)).join("");
+  }
+  const reels = [...el.querySelectorAll(".ro")], digits = text.replace(/\D/g, ""), n = reels.length;
+  const plan = reels.map((r, i) => {
+    const ri = n - 1 - i, to = +digits[i], from = odoPos.has(ri) ? odoPos.get(ri) : to, turns = ri === 0 ? 2 : ri === 1 ? 1 : 0;
+    const d = instant || from === to ? 0 : up ? ((to - from + 10) % 10) + 10 * turns : -(((from - to + 10) % 10) + 10 * turns);
+    return { r, ri, from, to, d, dur: 550 + 90 * i };
+  });
+  cancelAnimationFrame(credAnim);
+  if (instant || REDUCED || plan.every((x) => !x.d)) { for (const x of plan) { odoShow(x.r, x.to, 0); odoPos.set(x.ri, x.to); } return; }
+  const back = (u) => { const c = 1.9, x = Math.min(1, u) - 1; return 1 + (c + 1) * x * x * x + c * x * x; };
+  const t0 = now();
+  const step = () => {
+    const t = now() - t0; let moving = false;
+    for (const x of plan) {
+      const u = Math.min(1, t / x.dur), pos = (((x.from + x.d * back(u)) % 10) + 10) % 10;
+      const pos2 = (((x.from + x.d * back(Math.min(1, (t + 16) / x.dur))) % 10) + 10) % 10;
+      odoShow(x.r, u >= 1 ? x.to : pos, u >= 1 ? 0 : Math.abs(((pos2 - pos + 15) % 10) - 5) * 60);
+      odoPos.set(x.ri, u >= 1 ? x.to : pos); if (u < 1) moving = true;
+    }
+    if (moving) credAnim = requestAnimationFrame(step); else setTimeout(() => el.classList.remove("up", "down"), 500);
+  };
+  step();
+}
 function setCredits(v) {
   const el = $("#credits");
   el.title = fmt(v) + " credits"; el.setAttribute("aria-label", fmt(v) + " credits");
-  if (S.credits === null) { S.credits = v; el.textContent = credText(v); return; }
+  if (S.credits === null) { S.credits = v; odoSet(el, credText(v), true, true); return; }
   if (v === S.credits) return;
-  const from = S.credits, to = v, t0 = now(), dur = REDUCED ? 0 : clamp(Math.abs(to - from) * 2, 350, 1100);
-  S.credits = v; cancelAnimationFrame(credAnim);
+  const from = S.credits, to = v;
+  S.credits = v;
   el.classList.toggle("up", to > from); el.classList.toggle("down", to < from);
-  const step = () => {
-    const k = dur ? clamp((now() - t0) / dur, 0, 1) : 1, e = 1 - Math.pow(1 - k, 3);
-    el.textContent = credText(from + (to - from) * e);
-    if (k < 1) credAnim = requestAnimationFrame(step); else setTimeout(() => el.classList.remove("up", "down"), 500);
-  };
-  step();
+  odoSet(el, credText(to), to > from, false);
 }
 const TONE = (t) => "t-" + (t || "white");
 const PHASES = {
@@ -956,6 +1052,7 @@ function onState(m) {
   const prevPhase = S.pub.phase, prevRound = S.pub.round;
   S.pub = m.status || {}; S.priv = m.private || {};
   applyTheme(S.pub.table_theme);
+  document.documentElement.dataset.chips = S.pub.chip_set || "clay"; // the table's chip set (TV, studio: the same)
   // shared clock: a "betting" state that crossed the lock on the wire doesn't flip this phone back
   if (S.pub.phase === "betting" && S.lockSaid === S.pub.round && SYNC.until((S.pub.clock || {}).ends_at) === 0) S.pub = { ...S.pub, phase: "locked", ends_in: null };
   Live.update();
@@ -1008,16 +1105,69 @@ function hideAlert() {
   a.classList.add("out"); alertT = setTimeout(() => { a.hidden = true; a.classList.remove("go", "out"); }, 200);
 }
 $("#alert").addEventListener("click", hideAlert);
-let winT = 0;
+/* ===== BEGIN shared win moment — the same tiers and count-up as the TV (tv/tv-casino.js winTier / tickerAt);
+   docs/TV_VIEW.md §7. tests/js/tv_casino.test.mjs runs this block and checks both agree. ===== */
+const WIN_SKIP = 2.6; // a screen that sees the result later than this shows it settled (no replay)
+/** A win's tier by its payout multiple (net ÷ stake): ≥ 30 jackpot, ≥ 10 mega, ≥ 3 big, else win; lose / push. */
+function winTier(net, stake) {
+  net = Number(net) || 0; stake = Number(stake) || 0;
+  if (!(net > 0)) return net < 0 ? "lose" : "push";
+  const m = stake > 0 ? net / stake : 1;
+  return m >= 30 ? "jackpot" : m >= 10 ? "mega" : m >= 3 ? "big" : "win";
+}
+/** The "+12,500" count-up `age` s into the moment: 0 before `start`, then easeOutExpo to exactly `net` after `dur`. */
+function tickerAt(age, net, start, dur) {
+  const u = Math.max(0, Math.min(1, (age - start) / dur));
+  if (u >= 1) return net;
+  return Math.round(net * (1 - Math.pow(2, -10 * u)) * (1 / (1 - Math.pow(2, -10))));
+}
+/* ===== END shared win moment ===== */
+const TIER_WORD = { jackpot: "JACKPOT!", mega: "MEGA WIN!", big: "BIG WIN!", win: "WINNER!" };
+let winT = 0, winRaf = 0;
 function showResult(mine, pubRes) {
-  const w = $("#win"), net = mine.net;
+  const w = $("#win"), net = mine.net, tier = winTier(net, mine.stake);
+  // the moment's anchor on the shared clock: the result phase's start (every screen plays it together)
+  const at = (S.pub.clock || {}).phase_at, age0 = at != null && SYNC.ready ? SYNC.now() - at : 0;
+  const late = age0 > WIN_SKIP;
   w.classList.toggle("lose", net <= 0);
+  w.dataset.tier = tier;
+  w.classList.toggle("shake", !late && (tier === "big" || tier === "mega" || tier === "jackpot"));
   $("#win-k").textContent = net > 0 ? "You won" : net < 0 ? "Not this time" : "Push";
-  $("#win-v").textContent = net > 0 ? "+" + fmt(net) : net < 0 ? "−" + fmt(-net) : "±0";
+  $("#win-t").textContent = TIER_WORD[tier] || "";
   const what = pubRes ? (S.mod && S.mod.resultTitle ? S.mod.resultTitle(pubRes) : pubRes.label) : "";
   $("#win-s").textContent = `${what}${what ? " · " : ""}tap ⓘ to verify`;
-  w.hidden = false; clearTimeout(winT); winT = setTimeout(() => { w.hidden = true; }, net > 0 ? 3200 : 2200);
-  if (net > 0) { buzz([30, 50, 30, 50, 80]); confetti(Math.min(36, 8 + Math.round(Math.log2(1 + net) * 3))); SFX.win(net >= 5 * (mine.stake || 1)); } else { buzz(net < 0 ? 40 : 15); if (net < 0) SFX.lose(); else SFX.push(); }
+  const v = $("#win-v");
+  cancelAnimationFrame(winRaf);
+  if (net > 0 && !late && !REDUCED) {
+    const t0 = SYNC.ready && at != null ? null : now();
+    const step = () => {
+      const age = t0 == null ? SYNC.now() - at : (now() - t0) / 1000;
+      v.textContent = "+" + fmt(tickerAt(age, net, 0.35, 1.25));
+      if (age < 1.7) winRaf = requestAnimationFrame(step);
+    };
+    step();
+  } else v.textContent = net > 0 ? "+" + fmt(net) : net < 0 ? "−" + fmt(-net) : "±0";
+  w.hidden = false; clearTimeout(winT); winT = setTimeout(() => { w.hidden = true; }, net > 0 ? (tier === "win" ? 3200 : 4200) : 2400);
+  if (late) return;
+  if (net > 0) {
+    buzz(tier === "jackpot" ? [40, 40, 40, 40, 40, 40, 160] : tier === "win" ? [30, 50, 30, 50, 80] : [30, 40, 30, 40, 30, 40, 120]);
+    coins(tier === "jackpot" ? 30 : tier === "mega" ? 24 : tier === "big" ? 18 : 10);
+    confetti(Math.min(36, 8 + Math.round(Math.log2(1 + net) * 3)));
+    SFX.win(tier !== "win");
+  } else { buzz(net < 0 ? 40 : 15); if (net < 0) SFX.lose(); else SFX.push(); }
+}
+/** A coin fountain from the win card: gold coins leap up, spin and fall (CSS transforms only). */
+function coins(n) {
+  if (REDUCED) return;
+  const box = $("#confetti"), r = $("#win .card").getBoundingClientRect(), b = box.getBoundingClientRect();
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement("i"); c.className = "coin";
+    c.style.left = (r.left - b.left + r.width / 2 - 12 + (Math.random() - 0.5) * 60) + "px";
+    c.style.top = (r.top - b.top + r.height / 2 - 12) + "px";
+    c.style.setProperty("--dx", (Math.random() - 0.5) * 340 + "px"); c.style.setProperty("--up", -(120 + Math.random() * 220) + "px");
+    c.style.animationDelay = (0.2 + i * 0.03) + "s"; box.append(c);
+    setTimeout(() => c.remove(), 2200);
+  }
 }
 function confetti(n) {
   if (REDUCED) return;
@@ -1052,13 +1202,28 @@ function applyTheme(t) {
   themeId = id;
   const st = document.documentElement.style, css = (t && t.css) || {};
   for (const [k, v] of Object.entries(THEME_VARS)) { const x = css[v]; if (id !== "classic" && x) st.setProperty(k, x); else st.removeProperty(k); } // classic = the stylesheet's own look
+  // light mode's switches (state.ts lightSwitches): the room's wash (the felt, or the accent on a graphite / black
+  // felt) and whether the accent is too pale to be a key on ivory
+  const rgb = (h) => (/^#[0-9a-f]{6}$/i.test(h || "") ? [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) : null);
+  const f = rgb(css.felt), a = rgb(css.accent);
+  if (id !== "classic" && f && a) {
+    st.setProperty("--tint", Math.max(...f) - Math.min(...f) < 40 ? css.accent : css.felt);
+    st.setProperty("--pale", (Math.max(...a) - Math.min(...a)) / Math.max(...a) < 0.36 ? "1" : "0");
+  } else { st.removeProperty("--tint"); st.removeProperty("--pale"); }
   // the felt's motif: every theme has one (classic too); an older engine sends none
   if (css.pattern) { st.setProperty("--pat", css.pattern); st.setProperty("--pat-size", css.pattern_size || "auto"); }
   else { st.removeProperty("--pat"); st.removeProperty("--pat-size"); }
-  document.documentElement.dataset.theme = id;
-  const meta = document.querySelector('meta[name="theme-color"]'); // the phone's browser bar follows the felt
-  if (meta) meta.setAttribute("content", (id !== "classic" && css.felt3) || "#063823");
+  document.documentElement.dataset.table = id; // (data-theme is light / dark: UiMode)
+  paintBrowserBar();
 }
+/** The phone's browser bar: the felt in the dark room, the porcelain in the light one. */
+function paintBrowserBar() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const css = (S.pub && S.pub.table_theme && S.pub.table_theme.css) || {};
+  if (meta) meta.setAttribute("content", UiMode.mode === "light" ? "#f4f0e8" : (themeId !== "classic" && css.felt3) || "#063823");
+}
+UiMode.onChange = () => { try { paintBrowserBar(); } catch (_) {} try { if (S.hello) paintMe(); } catch (_) {} }; // avatars redraw their unlit LEDs
+try { paintBrowserBar(); } catch (_) {}
 
 /* ------------------------------------------------ the live panel: the engine's frames (binary 32×32×3, opt-in, ≤ 10 fps)
    Big and glowing over the board while the table plays (no more bets, spinning, dealing, the result); back to the
@@ -1090,17 +1255,36 @@ const Live = (() => {
     if (!off) off = document.createElement("canvas");
     if (off.width !== W) { off.width = W; off.height = W; }
     const o = off.getContext("2d"); o.clearRect(0, 0, W, W);
-    o.fillStyle = "rgba(255,255,255,.06)"; o.beginPath();
+    // light: the panel drawn as ink on porcelain (as the studio's paper panel, simplified): unlit LEDs are faint dimples,
+    // a lit LED is its colour darkened until it reads on ivory, dim ones fade toward the ground; no glow
+    const paper = document.documentElement.dataset.theme === "light";
+    o.fillStyle = paper ? "rgba(64,48,24,.1)" : "rgba(255,255,255,.06)"; o.beginPath();
     for (let i = 0; i < 1024; i++) { const k = i * 3; if (px[k] + px[k + 1] + px[k + 2] < 24) { const x = (i % 32 + 0.5) * c, y = ((i >> 5) + 0.5) * c; o.moveTo(x + r * 0.5, y); o.arc(x, y, r * 0.5, 0, 6.2832); } }
     o.fill();
     for (let i = 0; i < 1024; i++) {
       const k = i * 3, R = px[k], G = px[k + 1], B = px[k + 2];
       if (R + G + B < 24) continue;
-      o.fillStyle = `rgb(${R},${G},${B})`; o.beginPath(); o.arc((i % 32 + 0.5) * c, ((i >> 5) + 0.5) * c, r, 0, 6.2832); o.fill();
+      o.fillStyle = paper ? inkOf(R, G, B) : `rgb(${R},${G},${B})`; o.beginPath(); o.arc((i % 32 + 0.5) * c, ((i >> 5) + 0.5) * c, r, 0, 6.2832); o.fill();
     }
     g.clearRect(0, 0, W, W);
-    if (glow && "filter" in g) { g.save(); g.filter = `blur(${Math.max(1, c * 0.6).toFixed(1)}px)`; g.globalAlpha = 0.85; g.drawImage(off, 0, 0); g.restore(); }
+    if (glow && !paper && "filter" in g) { g.save(); g.filter = `blur(${Math.max(1, c * 0.6).toFixed(1)}px)`; g.globalAlpha = 0.85; g.drawImage(off, 0, 0); g.restore(); }
     g.drawImage(off, 0, 0);
+  }
+  /** an LED colour as ink on the porcelain ground (#ebe6dc): full drive → the colour darkened to ≤ 30 % luminance,
+   *  dim → mixed toward the ground (brighter on the panel = darker on paper). Cached per colour. */
+  const inks = new Map();
+  function inkOf(R, G, B) {
+    const key = (R << 16) | (G << 8) | B;
+    let v = inks.get(key);
+    if (v) return v;
+    const m = Math.max(R, G, B) / 255, a = 1 - (1 - m) * (1 - m);
+    let r = R / (m || 1), gg = G / (m || 1), b = B / (m || 1);
+    const y = (0.2126 * r + 0.7152 * gg + 0.0722 * b) / 255, k = y > 0.3 ? 0.3 / y : 1;
+    r *= k; gg *= k; b *= k;
+    v = `rgb(${Math.round(235 + (r - 235) * a)},${Math.round(230 + (gg - 230) * a)},${Math.round(220 + (b - 220) * a)})`;
+    if (inks.size > 4096) inks.clear();
+    inks.set(key, v);
+    return v;
   }
   function kick() { if (!raf) raf = requestAnimationFrame(paint); }
   function paint() { raf = 0; if (!dirty) return; dirty = false; if (on) draw(big, true); if (!thumb.hidden) draw(thumb, false); }
@@ -1445,7 +1629,15 @@ registerGame("roulette", (() => {
     }
     if (html !== chipsEl._h) { chipsEl._h = html; chipsEl.innerHTML = html; } // unchanged chips stay put (no re-animation)
     for (const e of $$(".won", root)) e.classList.remove("won");
-    if (res && res.outcome) { const c = cells["n:" + res.outcome.label]; if (c) c.classList.add("won"); }
+    for (const e of $$(".dolly", root)) e.remove();
+    if (res && res.outcome) {
+      const c = cells["n:" + res.outcome.label];
+      if (c) {
+        c.classList.add("won");
+        // the dealer's dolly in the house's style (status.house.dolly), as on the TV
+        const d = document.createElement("i"); d.className = "dolly"; d.dataset.dolly = (ctxr.pub.house || {}).dolly || "classic_gold"; d.innerHTML = "<b></b>"; c.append(d);
+      }
+    }
     const hist = (ctxr.pub.history || []).slice(-1)[0], last = cells.last;
     if (last) last.innerHTML = hist ? `<span>LAST</span><i class="t-${hist.tone}">${esc(hist.label)}</i>` : "";
   }

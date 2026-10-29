@@ -6,16 +6,51 @@
  *      worker routes <img src="/api/…"> the same way), so the studio code is unchanged,
  *   3. owns the panel's GATT session through Web Bluetooth (the bridge device/web.py drives),
  *   4. shows the landing card (what works here, browser support, the "Connect panel" button) and a small
- *      connection pill once the studio is up.
+ *      connection pill until the studio's own pill takes over (window.deskdotWeb.attachStudio),
+ *   5. hands the panel between tabs of this browser without a reload ("Use it here" / "Take it back"), and tells the
+ *      studio's Connection sheet what it knows (window.deskdotWeb + "deskdot-web" events). docs/WEB_APP.md.
  */
 (function () {
   "use strict";
 
-  // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
-  // timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
-  // in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The canvas
-  // redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between and
-  // stops while the page is hidden; reduced motion draws it lit once. DeskDotLogo.mount(canvas, { pitch, grid, dpr }).
+  // The studio theme before first paint (the website's CSP blocks index.html's inline copy of this): localStorage
+  // deskdot.theme = light | dark | system (default) → <html data-theme>, as web/src/lib/theme.ts does.
+  try {
+    let pref = "system";
+    try { pref = localStorage.getItem("deskdot.theme") || "system"; } catch { /* storage blocked */ }
+    const t = pref === "light" || pref === "dark" ? pref : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.style.colorScheme = t;
+  } catch { /* never block the host */ }
+  // Liquid Glass before first paint (web/src/lib/glass.ts refines it once the studio loads; the same rules as the inline
+  // script in web/index.html): solid for reduced transparency; frosted — near opaque, no blur — without backdrop-filter
+  // or inside the Android app (its WebView let content show through translucent bars); clear glass otherwise.
+  try {
+    let g = "auto";
+    try { g = localStorage.getItem("deskdot.glass") || "auto"; } catch { /* storage blocked */ }
+    const blur = !!(window.CSS && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)")));
+    const rt = !!(window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches);
+    document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !blur || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+  } catch { /* never block the host */ }
+  // The page theme (web/src/lib/pageTheme.ts) the studio cached on the last visit, before first paint. A constructed
+  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads.
+  try {
+    const id = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
+    if (id && id !== "ember" && css && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+      document.documentElement.setAttribute("data-page-theme", id);
+    }
+  } catch { /* the default look */ }
+
+  // <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours,
+  // styles and timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the
+  // D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
+  // canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
+  // and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
+  // neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+  // behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
   const DeskDotLogo = (() => {
     const GLYPHS = {
       D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -27,6 +62,8 @@
     };
     const TUBES = ["D", "esk", "Dot"];
     const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
+    const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
+    const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
     const STRIKE = [
       [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
       [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -78,7 +115,7 @@
       if (k < 2.5 / d) return n * (k -= 2.25 / d) * k + 0.9375;
       return n * (k -= 2.625 / d) * k + 0.984375;
     };
-    let glows = null;
+    const glows = {};
     const glowSprite = (color) => {
       const c = document.createElement("canvas");
       c.width = c.height = 64;
@@ -99,13 +136,15 @@
     const offAt = tl.build + 1.4 + tl.hold;
     const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...[0, 1, 2].map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
 
-    /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop. */
-    function draw(ctx, lt, ox, oy, p, grid, still) {
-      if (!glows) glows = LOGO.map(glowSprite);
+    /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop; look = "neon" | "paper". */
+    function draw(ctx, lt, ox, oy, p, grid, still, look) {
+      const st = look === "paper" ? PAPER_STYLE : NEON_STYLE;
+      const tubes = look === "paper" ? PAPER_STYLE.tubes : LOGO;
+      const gl = glows[look] || (glows[look] = tubes.map((c) => glowSprite(c)));
       if (still) lt = tl.build + 3;
       const r = p * 0.36;
       if (grid) {
-        ctx.fillStyle = "rgba(255,255,255,0.045)";
+        ctx.fillStyle = st.grid;
         for (let y = 0; y < ROWS; y++)
           for (let x = 0; x < cols; x++) {
             ctx.beginPath();
@@ -123,7 +162,7 @@
           const sputter = dying < 0.35 ? (Math.sin(lt * 90) > 0.2 ? 1 : 0.25) : 0;
           level = Math.max(0, 1 - dying * 2.4) * (0.5 + sputter * 0.5);
         }
-        const color = LOGO[part], glow = glows[part];
+        const color = tubes[part], glow = gl[part];
         for (const d of dots) {
           if (d.part !== part) continue;
           let x = d.x, y = d.y, k, pop = 0;
@@ -154,23 +193,24 @@
             else if (g > 0.66 && g < 0.672) lv *= 0.3;
           }
           const cx = ox + (x + 0.5) * p, cy = oy + (y + 0.5) * p;
-          ctx.globalAlpha = 0.22 * fade * Math.min(1, k * 2);
+          ctx.globalAlpha = st.glass * fade * Math.min(1, k * 2);
           ctx.fillStyle = color;
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
           ctx.fill();
           const light = Math.max(lv, pop * 0.9) * fade;
           if (light > 0.02) {
-            ctx.globalCompositeOperation = "lighter";
-            ctx.globalAlpha = Math.min(0.5, light * 0.5);
+            ctx.globalCompositeOperation = st.blend;
+            ctx.globalAlpha = Math.min(st.halo, light * st.halo);
             const gs = p * 3.4;
             ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
+            ctx.globalCompositeOperation = st.fill;
             ctx.globalAlpha = Math.min(1, light);
             ctx.beginPath();
             ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
             ctx.fill();
-            ctx.globalAlpha = Math.min(1, light * 0.5);
-            ctx.fillStyle = "#fff4e0";
+            ctx.globalAlpha = Math.min(1, light * st.coreAlpha);
+            ctx.fillStyle = st.core;
             ctx.beginPath();
             ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
             ctx.fill();
@@ -190,12 +230,36 @@
     }
 
     /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
-     *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+     *  giving device px per CSS px (default devicePixelRatio, capped at 2); once = build in once, then hold it lit;
+     *  light = a function answering "is this page light?" (default: a shadow host's or <html>'s data-theme, else the
+     *  system preference — followed live). Returns { resize, restart, restyle }. */
     function mount(canvas, opts) {
       const o = opts || {};
       const ctx = canvas && canvas.getContext && canvas.getContext("2d");
-      if (!ctx) return { resize() {}, restart() {} };
+      if (!ctx) return { resize() {}, restart() {}, restyle() {} };
+      const media = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null;
+      const watched = [];
+      const isLight = o.light || (() => {
+        const root = canvas.getRootNode ? canvas.getRootNode() : null;
+        const host = root && root.host;
+        if (host && watched.indexOf(host) < 0 && mo) watched.push(host), mo.observe(host, { attributes: true, attributeFilter: ["data-theme"] });
+        const t = (host && host.getAttribute("data-theme")) || document.documentElement.getAttribute("data-theme");
+        return t ? t === "light" : !!(media && media.matches);
+      });
+      let look = "";
+      /** The page's light / dark changed? Re-pick the style. True when it changed. */
+      const restyle = () => {
+        const next = isLight() ? "paper" : "neon";
+        if (next === look) return false;
+        look = next;
+        return true;
+      };
+      const watch = () => restyle() && now();
+      const mo = window.MutationObserver ? new MutationObserver(watch) : null;
+      if (mo) mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      if (media && media.addEventListener) media.addEventListener("change", watch);
       const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+      const once = !!o.once; // play the intro once, then stay lit: steady, no hum, no power-down
       const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
       let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
       const size = () => {
@@ -219,12 +283,15 @@
         if (document.hidden) return; // visibilitychange wakes it
         if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
         if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
+        restyle();
         drawn = true;
-        const lt = ((performance.now() - t0) / 1000) % cycle;
+        const age = (performance.now() - t0) / 1000;
+        const done = once && age >= litAt;
+        const lt = done ? 0 : age % cycle;
         ctx.setTransform(k, 0, 0, k, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
-        if (still) return;
+        draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still || done, look);
+        if (still || done) return;
         const s = wake(lt);
         if (s > 0) later(s);
         else raf = requestAnimationFrame(tick);
@@ -251,6 +318,7 @@
           t0 = performance.now();
           now();
         },
+        restyle: watch,
       };
     }
 
@@ -320,18 +388,53 @@
   const sockets = new Map(); // sid -> EngineSocket
   let seq = 0;
   let readyResolve;
-  const engineReady = new Promise((r) => (readyResolve = r));
+  let engineReady = new Promise((r) => (readyResolve = r));
   let worker = null;
-  let engineState = "booting"; // booting | ready | fatal | busy-tab | unsupported-runtime
+  let engineState = "booting"; // booting | ready | fatal | busy-tab | moved | unsupported-runtime
+  let handedOff = null; // resolves when the worker confirms a hand-off ({t:"handed-off"})
 
   function startWorker() {
+    engineState = "booting";
     worker = new Worker(new URL("engine/worker.js", APP));
     worker.onmessage = (e) => onWorker(e.data);
     worker.onerror = (e) => ui.fatal(e.message || "the engine worker crashed");
   }
 
+  /** Another tab takes the panel: let the engine finish the write in flight and save, then stop it (no reload).
+   * The studio's sockets close (it shows "connecting" and comes back by itself when this tab takes the panel back). */
+  async function stopWorker(graceful) {
+    if (!worker) return;
+    if (graceful && engineState === "ready") {
+      await new Promise((res) => {
+        const t = setTimeout(res, 7000);
+        handedOff = () => (clearTimeout(t), res());
+        worker.postMessage({ t: "handoff" });
+      });
+    }
+    handedOff = null;
+    for (const fn of addonListeners) for (const kind of ["camera", "screen", "audio"]) {
+      try {
+        fn({ t: "media", op: "stop", kind }); // camera light off: nothing reads the frames any more
+      } catch {
+        /* an add-on that doesn't care */
+      }
+    }
+    worker.terminate();
+    worker = null;
+    engineState = "moved";
+    ble.write = ble.notify = null; // the GATT handle itself stays open until the new tab has the panel
+    for (const [id, p] of pending) {
+      pending.delete(id);
+      p.resolve({ status: 503, headers: [["content-type", "text/plain"]], body: null });
+    }
+    for (const s of [...sockets.values()]) s._event("close", 1001);
+    engineReady = new Promise((r) => (readyResolve = r));
+  }
+
   function onWorker(m) {
     switch (m.t) {
+      case "handed-off":
+        return handedOff && handedOff();
       case "status":
         return ui.progress(m.phase, m.detail, m.pct);
       case "ready":
@@ -472,7 +575,9 @@
    */
   const addonListeners = [];
   window.DeskDotHost = {
-    ready: engineReady,
+    get ready() {
+      return engineReady; // a new promise after the engine moved to another tab and came back
+    },
     request: engineRequest,
     socket: (path, client) => new EngineSocket(new URL(path, location.href).href, client),
     post: (msg, transfer) => engineReady.then(() => worker.postMessage(msg, transfer || [])),
@@ -498,6 +603,12 @@
   }
 
   // ======================================================================================= Web Bluetooth
+  // DeskDot on this computer (the desktop engine) answers here; the web app asks it whether it holds the panel.
+  const DESKTOP = "http://127.0.0.1:8765";
+  const changed = () => window.dispatchEvent(new CustomEvent("deskdot-web")); // the studio's Connection sheet listens
+  const desktopHolds = (d) =>
+    `Your panel${d.panel ? ` (${d.panel})` : ""} is connected to DeskDot on this computer. Open it there and press Release the panel (or quit DeskDot), then Reconnect now here.`;
+
   const ble = {
     device: null, // the BluetoothDevice the user picked (or the browser remembered)
     write: null,
@@ -505,22 +616,38 @@
     size: packetSize(),
     state: "idle", // idle | needs-user | connecting | connected | error
     detail: "",
+    step: "", // what a connect attempt is doing right now ("Waiting for IDM-… to show up")
+    needsPick: false, // the browser has no panel it may use: only a click on "Pick panel" helps
+    desktop: null, // the last check of DeskDot on this computer: {running, holding, panel, url, at}
     connecting: false,
+    watching: null, // AbortController while we wait for the panel's advertisements (it came back → retry at once)
+    letGoTimer: 0,
+    closing: null, // the device we disconnected on purpose (its gattserverdisconnected is not a link loss)
     chain: Promise.resolve(),
 
     toWorker(ev, ...args) {
       if (worker) worker.postMessage({ t: "ble-ev", ev, args });
     },
-    set(state, detail) {
+    set(state, detail, step) {
       this.state = state;
       this.detail = detail || "";
+      this.step = step || "";
       ui.link(state, this.detail, this.device && this.device.name);
+      changed();
+    },
+    progress(step) {
+      this.set(this.state, step, step);
     },
 
     request(m) {
       if (m.op === "connect") return this.connect();
       if (m.op === "write") return this.enqueue(m.data, m.withResponse, m.token);
       if (m.op === "disconnect") return this.disconnect();
+    },
+
+    /** Nudge the engine to try now instead of after its back-off (the panel advertised, Bluetooth came on…). */
+    retry() {
+      if (worker && engineState === "ready" && this.state !== "connected" && !this.connecting) worker.postMessage({ t: "ble-retry" });
     },
 
     async remembered() {
@@ -535,26 +662,50 @@
     },
 
     async connect() {
+      if (tabs.role !== "owner") return; // a tab that handed the panel over never touches it
       if (this.connecting) return; // the running attempt reports for this request too
       if (!hasBluetooth) {
         this.set("needs-user", "This browser can't use Bluetooth");
         return this.toWorker("onNeedsUser", "This browser can't reach the panel (no Web Bluetooth). The studio works; the panel needs Chrome, Edge or the desktop app.");
       }
+      try {
+        if (navigator.bluetooth.getAvailability && !(await navigator.bluetooth.getAvailability())) {
+          this.set("error", "Bluetooth is off");
+          return this.toWorker("onConnectFailed", "Bluetooth is turned off on this computer (or it has no Bluetooth adapter).");
+        }
+      } catch {
+        /* not implemented: the connect attempt will say */
+      }
       if (!this.device) this.device = await this.remembered();
       if (!this.device) {
-        this.set("needs-user", "Pick your panel to connect");
-        return this.toWorker("onNeedsUser", "Click “Connect panel” and pick your IDM-… panel");
+        // Chrome forgets a granted panel when site data is cleared or the permission is revoked
+        const forgot = !!LS.get("deskdot.web.panel") && !!navigator.bluetooth.getDevices;
+        this.needsPick = true;
+        this.set("needs-user", forgot ? "Permission needed — pick your panel again" : "Pick your panel to connect");
+        return this.toWorker(
+          "onNeedsUser",
+          forgot ? "Bluetooth permission for your panel has expired — press Pick panel and choose it again." : "Click “Connect panel” and pick your IDM-… panel",
+        );
       }
+      this.needsPick = false;
       this.connecting = true;
+      this.unwatch();
       const dev = this.device;
-      this.set("connecting", `Connecting to ${dev.name || "the panel"}…`);
+      const name = dev.name || "the panel";
+      this.set("connecting", `Connecting to ${name}…`, `Looking for ${name}`);
       try {
         if (!dev._ddWatched) {
           dev._ddWatched = true;
           dev.addEventListener("gattserverdisconnected", () => this.lost(dev));
         }
-        await this.wake(dev);
+        // a panel another tab of this browser still holds doesn't advertise: Chrome shares that link, skip the wait
+        if (!tabs.otherTabHolds) {
+          this.progress(`Waiting for ${name} to show up…`);
+          await this.wake(dev);
+        }
+        this.progress(`Connecting to ${name}…`);
         const server = await dev.gatt.connect();
+        this.progress("Setting up the link…");
         const service = await server.getPrimaryService(SERVICE);
         this.write = await service.getCharacteristic(WRITE);
         try {
@@ -569,12 +720,25 @@
         }
         this.size = packetSize();
         LS.set("deskdot.web.panel", dev.id);
+        tabs.otherTabHolds = false;
+        this.desktop = null;
+        this.closing = null;
         this.set("connected", `${dev.name || "Panel"} · ${this.size}-byte packets`);
+        tabs.say({ t: "connected", panel: dev.name || null }); // a tab that handed the panel over lets go of it now
         this.toWorker("onConnected", "web:" + dev.id, dev.name || "IDM-panel", this.size);
       } catch (e) {
-        const msg = explain(e);
+        if (tabs.otherTabHolds) {
+          // sharing the other tab's link didn't work: ask it to let go now, and wait for adverts next time
+          tabs.otherTabHolds = false;
+          tabs.say({ t: "let-go" });
+        }
+        let msg = explain(e);
+        // the usual cause on a computer: DeskDot itself holds the panel — say so instead of a GATT error
+        const d = await this.probeDesktop(true);
+        if (d && d.holding) msg = desktopHolds(d);
         this.set("error", msg);
         this.toWorker("onConnectFailed", msg);
+        this.watch(dev);
       } finally {
         this.connecting = false;
       }
@@ -592,19 +756,63 @@
       ctl.abort();
     },
 
+    /** While the panel is away, listen for it: the first advertisement starts a connect at once (no back-off wait). */
+    watch(dev) {
+      if (this.watching || !dev || typeof dev.watchAdvertisements !== "function") return;
+      const ctl = new AbortController();
+      this.watching = ctl;
+      dev.addEventListener(
+        "advertisementreceived",
+        () => {
+          if (this.watching !== ctl) return;
+          this.unwatch();
+          this.retry();
+        },
+        { signal: ctl.signal },
+      );
+      dev.watchAdvertisements({ signal: ctl.signal }).catch(() => {
+        if (this.watching === ctl) this.watching = null; // not allowed / not supported: the engine's back-off still runs
+      });
+    },
+    unwatch() {
+      if (!this.watching) return;
+      this.watching.abort();
+      this.watching = null;
+    },
+
     lost(dev) {
       if (dev !== this.device) return;
       this.write = this.notify = null;
+      if (tabs.role !== "owner") return; // our handle closed after handing the panel to another tab
+      if (this.closing === dev) {
+        this.closing = null; // we closed it on the user's request (Release / Reconnect): not a loss
+        return;
+      }
       this.set("error", "Link lost — reconnecting…");
       this.toWorker("onDisconnected", "link lost (gattserverdisconnected)");
+      this.watch(dev);
     },
 
     disconnect() {
-      // only on the user's request (Settings → Device → link off, or Reconnect): never voluntarily
+      // only on the user's request (Release the panel, or Reconnect): never voluntarily
+      const dev = this.device;
+      this.unwatch();
+      this.write = this.notify = null;
+      if (dev && dev.gatt.connected) {
+        this.closing = dev;
+        dev.gatt.disconnect();
+      }
+      this.set("idle", "Disconnected");
+    },
+
+    /** This tab handed the panel to another tab, which has it now (or never answered): drop our GATT handle. */
+    letGo() {
+      clearTimeout(this.letGoTimer);
+      this.letGoTimer = 0;
+      this.unwatch();
       const dev = this.device;
       this.write = this.notify = null;
       if (dev && dev.gatt.connected) dev.gatt.disconnect();
-      this.set("idle", "Unlinked");
     },
 
     enqueue(data, withResponse, token) {
@@ -641,7 +849,7 @@
       }
     },
 
-    /** The "Connect panel" click: the user gesture Web Bluetooth requires for its chooser. */
+    /** The "Connect panel" / "Pick panel" click: the user gesture Web Bluetooth requires for its chooser. */
     async pick() {
       if (!hasBluetooth) return ui.toast(unsupportedReason(), true);
       try {
@@ -654,27 +862,70 @@
       try {
         dev = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "IDM-" }], optionalServices: [SERVICE] });
       } catch (e) {
-        if (e && e.name === "NotFoundError")
+        if (e && e.name === "NotFoundError" && /adapter/i.test(e.message || ""))
+          return ui.toast("Bluetooth is off, or this computer has no Bluetooth adapter. Turn it on and try again.", true);
+        if (e && e.name === "NotFoundError") {
+          const d = await this.probeDesktop(true);
+          if (d && d.holding) return ui.toast(desktopHolds(d) + ` <a href="${d.url}" target="_blank" rel="noreferrer">Open DeskDot on this computer</a>`, true);
           return ui.toast(
             "No panel picked. Not in the list? It's off, out of range, or still connected to the iDotMatrix phone app or the DeskDot desktop / Android app — close those first (only one app can hold the panel).",
             true,
           );
+        }
         return ui.toast(explain(e), true);
       }
       if (this.device && this.device !== dev && this.device.gatt.connected) this.device.gatt.disconnect();
       this.device = dev;
+      this.needsPick = false;
+      this.unwatch();
       LS.set("deskdot.web.panel", dev.id);
       ui.dismissLanding();
+      changed();
       if (worker) worker.postMessage({ t: "ble-picked" });
     },
+
+    /** Is DeskDot running on this computer, and does it hold the panel? (GET /api/health allows this site.) Chrome may
+     * ask once to let this site reach devices on the local network; without that, we only learn "can't tell". */
+    async probeDesktop(cached) {
+      if (cached && this.desktop && Date.now() - this.desktop.at < 60000) return this.desktop;
+      const url = DESKTOP + "/#connection";
+      const get = (opts) => {
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 2500);
+        return realFetch(DESKTOP + "/api/health", Object.assign({ cache: "no-store", credentials: "omit", signal: ctl.signal }, opts)).finally(() => clearTimeout(t));
+      };
+      let r = { running: false, holding: false, panel: null, url, at: Date.now() };
+      try {
+        const j = await (await get({})).json();
+        r = { running: true, holding: j.device === "connected" && j.kind !== "sim", panel: j.panel || null, url, at: Date.now() };
+      } catch {
+        try {
+          await get({ mode: "no-cors" }); // an older DeskDot: it's there, but it can't tell us more
+          r = { running: true, holding: null, panel: null, url, at: Date.now() };
+        } catch {
+          /* nothing listening on this computer (or the browser didn't allow the check) */
+        }
+      }
+      this.desktop = r;
+      changed();
+      return r;
+    },
   };
+
+  if (hasBluetooth && navigator.bluetooth.addEventListener) {
+    // Bluetooth switched back on: try at once instead of waiting out the back-off
+    navigator.bluetooth.addEventListener("availabilitychanged", (e) => e.value && ble.retry());
+  }
+  document.addEventListener("visibilitychange", () => !document.hidden && ble.state === "error" && ble.retry());
 
   function explain(e) {
     const name = (e && e.name) || "";
     const msg = (e && e.message) || String(e);
-    if (name === "SecurityError") return "Bluetooth permission was blocked for this site. Allow it in the address bar's site settings, then click Connect panel.";
+    if (name === "SecurityError")
+      return "Bluetooth permission was blocked for this site. Allow it in the address bar's site settings (the icon left of the address), then press Pick panel.";
+    if (/adapter/i.test(msg) && /not available|off|powered/i.test(msg)) return "Bluetooth is turned off on this computer (or it has no Bluetooth adapter).";
     if (name === "NetworkError" || /GATT|connect|range|disconnected/i.test(msg))
-      return "The panel didn't answer. Is it powered and close by, and not connected to the iDotMatrix phone app, the DeskDot desktop app or the Android app? " + `(${msg})`;
+      return "The panel didn't answer. It may be off, out of range, or connected to another app (the iDotMatrix phone app, DeskDot on this computer or the Android app). " + `(${msg})`;
     if (name === "NotFoundError") return "This panel doesn't offer the expected Bluetooth service — is it an iDotMatrix 32×32?";
     return msg;
   }
@@ -684,6 +935,14 @@
     const host = document.createElement("div");
     host.id = "deskdot-web-host";
     const root = host.attachShadow({ mode: "open" });
+    // the card follows the studio theme (host.css :host([data-theme="light"])); the studio may switch it live
+    // …and its glass mode (host.css :host([data-glass]); <html data-glass>, set above and by the studio's lib/glass.ts)
+    const syncTheme = () => {
+      host.setAttribute("data-theme", document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+      host.setAttribute("data-glass", document.documentElement.getAttribute("data-glass") || "liquid");
+    };
+    syncTheme();
+    new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-glass"] });
     root.innerHTML = `<link rel="stylesheet" href="${new URL("host.css", BASE).href}">
 <div class="landing" part="landing" role="dialog" aria-modal="true" aria-labelledby="dd-title">
   <div class="card">
@@ -734,6 +993,19 @@
   </select>
   <button class="x" type="button" title="Hide" aria-label="Hide">×</button>
 </div>
+<div class="landing handoff" role="dialog" aria-modal="true" aria-labelledby="dd-h-title" hidden>
+  <div class="card">
+    <div class="brand">ONE TAB DRIVES THE PANEL</div>
+    <h1 id="dd-h-title" class="h-title">The panel is connected in another tab</h1>
+    <p class="lede h-text"></p>
+    <div class="actions">
+      <button class="key ember h-use" type="button">Use it here</button>
+      <button class="key ghost h-find" type="button">Find that tab</button>
+    </div>
+    <p class="hint h-note">Only one tab can drive the panel. Moving it takes a few seconds (this tab starts the engine)
+    and needs no reload; the other tab steps back and can take it back the same way.</p>
+  </div>
+</div>
 <div class="toast" role="status" hidden></div>`;
     const $ = (s) => root.querySelector(s);
     DeskDotLogo.mount($(".logo"), { pitch: 3.6, grid: true }); // draws once the card is on the page
@@ -745,6 +1017,14 @@
     const pill = $(".pill");
     let toastTimer = 0;
     let isReady = false;
+    let studioPill = false; // the studio shows its own connection pill (ConnectionSheet.tsx): ours stays hidden
+    const handoff = $(".handoff");
+    const NOTE = $(".h-note").textContent;
+    $(".h-use").addEventListener("click", () => tabs.useHere());
+    $(".h-find").addEventListener("click", () => {
+      tabs.say({ t: "find" });
+      toast("Look for the tab whose title blinks “● DeskDot has the panel”.");
+    });
 
     const reason = unsupportedReason();
     if (reason) {
@@ -784,7 +1064,7 @@
       landing.classList.add("gone");
       setTimeout(() => (landing.hidden = true), 300);
       LS.set("deskdot.web.seen", "1");
-      if (isReady) pill.hidden = false;
+      if (isReady && !studioPill) pill.hidden = false;
     }
 
     function toast(html, bad) {
@@ -800,14 +1080,49 @@
       dismissLanding,
       toast,
       progress(phase, detail, pct) {
+        if (!handoff.hidden && handoff.dataset.mode === "moving") $(".h-note").textContent = detail || phase;
         $(".phase").textContent = detail || phase;
         if (pct != null) $(".bar i").style.width = Math.max(3, pct) + "%";
       },
       ready() {
         isReady = true;
+        handoff.hidden = true; // the engine runs in this tab (again)
         $(".boot").classList.add("done");
         $(".phase").textContent = "Engine running in this tab";
-        if (landing.hidden || landing.classList.contains("gone")) pill.hidden = false;
+        if ((landing.hidden || landing.classList.contains("gone")) && !studioPill) pill.hidden = false;
+      },
+      attachStudio() {
+        studioPill = true;
+        pill.hidden = true;
+      },
+      /** The hand-off card. mode: "standby" (another tab has the panel) · "moving" · "moved" (this tab gave it away)
+       * · "old" (another tab runs an older DeskDot that can't hand over) · null (hide). */
+      tabs(mode, info) {
+        if (!mode) {
+          handoff.hidden = true;
+          return;
+        }
+        const panel = info && info.panel ? info.panel : "your panel";
+        const T = {
+          standby: ["The panel is connected in another tab", `DeskDot is driving ${panel} from another tab of this browser. Use it here and that tab steps back — no reload, no closing tabs.`],
+          moving: info && info.starting
+            ? ["Starting DeskDot in this tab…", "The engine is starting here (a few seconds). It connects to the panel by itself — nothing to click."]
+            : ["Moving the panel to this tab…", "The other tab is finishing what it was sending and saving your settings. This tab then starts the engine and connects to the panel by itself."],
+          moved: ["Panel moved to another tab", `${panel} is now driven from another tab. This tab is resting: take the panel back whenever you like.`],
+          old: ["DeskDot is open in another tab", "That tab runs an older DeskDot that can’t hand the panel over. Close it — this tab then takes the panel by itself (no reload needed)."],
+        }[mode];
+        $(".h-title").textContent = T[0];
+        $(".h-text").textContent = T[1];
+        const use = $(".h-use");
+        use.textContent = mode === "moved" ? "Take it back" : "Use it here";
+        use.hidden = mode === "old";
+        use.disabled = mode === "moving";
+        $(".h-find").hidden = mode === "moving";
+        handoff.dataset.mode = mode;
+        if (mode !== "moving") $(".h-note").textContent = NOTE;
+        landing.hidden = true;
+        pill.hidden = true;
+        handoff.hidden = false;
       },
       fatal(err) {
         $(".boot").classList.add("bad");
@@ -832,31 +1147,215 @@
     };
   })();
 
+  // ======================================================================================= one tab drives the panel
+  // Rule 4 (exactly one BLE owner): a Web Lock decides which tab runs the engine — two engines would interleave
+  // packets on one link. Tabs talk over a BroadcastChannel, so a second tab can take the panel over without a reload
+  // and the first one steps back ("Panel moved to another tab — Take it back"). docs/WEB_APP.md "Two tabs".
+  const LOCK = "deskdot-web-engine";
+  const TAB = Math.random().toString(36).slice(2, 10);
+  const tabs = {
+    role: "starting", // owner | standby | moving (taking it) | stepping (giving it away) | moved
+    chan: typeof BroadcastChannel === "function" ? new BroadcastChannel("deskdot-web") : null,
+    owner: null, // what the tab that drives the panel last told us: {panel, link}
+    otherTabHolds: false, // the previous owner (same browser) still holds the GATT link: Chrome shares it, connect at once
+    hold: null, // resolves our lock (lets it go)
+    queue: null, // AbortController of our queued lock request (standby: take over by ourselves when that tab closes)
+    released: null, // resolves when the owner says it stepped back
+    titleTimer: 0,
+
+    say(msg) {
+      if (!this.chan) return;
+      try {
+        this.chan.postMessage(Object.assign({ from: TAB }, msg));
+      } catch {
+        /* closing */
+      }
+    },
+    announce() {
+      if (this.role === "owner") this.say({ t: "owner", panel: ble.device ? ble.device.name || null : null, link: ble.state });
+    },
+
+    /** Ask for the lock. `steal` takes it from the tab that has it (after that tab stepped back, or never answered). */
+    request(opts) {
+      let mine = null;
+      navigator.locks
+        .request(LOCK, opts, (lock) => {
+          if (!lock) return this.standby(); // ifAvailable: another tab has it
+          this.queue = null;
+          return new Promise((res) => {
+            mine = res;
+            this.hold = res;
+            this.own();
+          });
+        })
+        .catch((e) => {
+          if (!e || e.name !== "AbortError") return console.warn("DeskDot: tab lock", e);
+          if (mine && this.hold === mine) {
+            this.hold = null;
+            if (this.role === "owner") this.giveAway(true); // stolen without a hand-off: stop writing at once
+          }
+        });
+    },
+
+    /** We hold the lock: run the engine here (again, after a hand-off back — no reload). */
+    own() {
+      const again = this.role !== "starting";
+      this.role = "owner";
+      if (again) ui.tabs("moving", { starting: true });
+      if (!worker) startWorker();
+      this.announce();
+    },
+
+    /** Another tab drives the panel: offer "Use it here"; queue for the lock so we take over if that tab closes. */
+    standby() {
+      this.role = "standby";
+      engineState = "busy-tab";
+      ui.tabs(this.chan ? "standby" : "old", this.owner);
+      this.queueForLock();
+      this.say({ t: "who" });
+      if (this.chan) setTimeout(() => this.role === "standby" && !this.owner && ui.tabs("old"), 1500);
+      return undefined;
+    },
+    queueForLock() {
+      if (this.queue) return;
+      this.queue = new AbortController();
+      this.request({ signal: this.queue.signal });
+    },
+
+    /** "Use it here" / "Take it back": the owner finishes its write, saves and steps back; then we take the lock. */
+    async useHere() {
+      if (this.role !== "standby" && this.role !== "moved") return;
+      const from = this.role;
+      this.role = "moving";
+      ui.tabs("moving");
+      if (this.queue) {
+        this.queue.abort();
+        this.queue = null;
+      }
+      if (from === "moved") ble.letGo(); // we may still hold our old GATT handle: the owner tab has the panel now
+      await new Promise((res) => {
+        const t = setTimeout(res, 9000); // an owner that never answers (an older version, a frozen tab): go ahead
+        this.released = () => (clearTimeout(t), res());
+        this.say({ t: "takeover" });
+      });
+      this.released = null;
+      this.request({ steal: true });
+    },
+
+    /** Step back: another tab takes the panel. `stolen`: it already took the lock, so stop without waiting. */
+    async giveAway(stolen) {
+      if (this.role !== "owner") return;
+      this.role = "stepping"; // nothing (a second takeover, a click) acts until we're done
+      const panel = ble.device ? ble.device.name || null : null;
+      ui.tabs("moved", { panel });
+      const holding = !!(ble.device && ble.device.gatt.connected);
+      await stopWorker(!stolen);
+      ble.unwatch();
+      // keep our GATT handle until the new tab says it's connected: Chrome shares one link between tabs, so the panel
+      // never sees a disconnect (rule 5). If it never says so, let go after a minute.
+      if (holding) ble.letGoTimer = setTimeout(() => ble.letGo(), 60000);
+      ble.set("idle", "Moved to another tab");
+      this.role = "moved";
+      this.say({ t: "released", holding, panel });
+      const hold = this.hold;
+      if (hold) setTimeout(() => this.hold === hold && (hold(), (this.hold = null)), 10000); // nobody stole it: free it
+    },
+
+    onMessage(m) {
+      if (!m || m.from === TAB) return;
+      switch (m.t) {
+        case "who":
+          return this.announce();
+        case "owner":
+          this.owner = { panel: m.panel, link: m.link };
+          if (this.role === "standby") ui.tabs("standby", this.owner);
+          return;
+        case "takeover":
+          return this.giveAway(false);
+        case "released":
+          this.otherTabHolds = !!m.holding;
+          if (m.panel) this.owner = { panel: m.panel, link: "idle" };
+          if (this.released) this.released();
+          return;
+        case "connected":
+          this.owner = { panel: m.panel, link: "connected" };
+          if (this.role === "moved") {
+            ble.letGo(); // the new tab has the panel: our handle can go (the link stays up, it's shared)
+            ui.tabs("moved", this.owner);
+          } else if (this.role === "standby") ui.tabs("standby", this.owner);
+          return;
+        case "let-go":
+          if (this.role === "moved") ble.letGo();
+          return;
+        case "find":
+          if (this.role === "owner") this.flashTitle();
+          return;
+      }
+    },
+
+    /** "Find that tab": blink this tab's title (browsers don't let a page switch tabs for the user). */
+    flashTitle() {
+      clearInterval(this.titleTimer);
+      const mark = "● DeskDot has the panel · ";
+      const base = document.title.replace(mark, "");
+      let n = 0;
+      this.titleTimer = setInterval(() => {
+        document.title = n++ % 2 ? base : mark + base;
+        if (n > 14) {
+          clearInterval(this.titleTimer);
+          document.title = base;
+        }
+      }, 700);
+      try {
+        window.focus(); // works when the browser allows it (e.g. a separate window)
+      } catch {
+        /* not allowed */
+      }
+    },
+  };
+  if (tabs.chan) tabs.chan.onmessage = (e) => tabs.onMessage(e.data);
+  window.addEventListener("deskdot-web", () => tabs.announce());
+
   // ======================================================================================= start
-  // One tab owns the panel (rule 4: exactly one BLE owner). A second tab would interleave packets on the same link.
   window.addEventListener("pagehide", () => worker && worker.postMessage({ t: "sync" }));
   document.addEventListener("visibilitychange", () => document.hidden && worker && worker.postMessage({ t: "sync" }));
   if (typeof WebAssembly !== "object") {
     engineState = "unsupported-runtime";
     ui.blocked("This browser can't run WebAssembly, which the engine needs. Use a current Chrome, Edge, Firefox or Safari.");
   } else if (navigator.locks && navigator.locks.request) {
-    navigator.locks.request("deskdot-web-engine", { ifAvailable: true }, (lock) => {
-      if (!lock) {
-        engineState = "busy-tab";
-        ui.blocked("DeskDot is already open in another tab or window — only one can drive the panel. Switch to it, or close it and reload this one.");
-        return undefined;
-      }
-      startWorker();
-      return new Promise(() => {}); // hold the lock for this tab's lifetime
-    });
+    tabs.request({ ifAvailable: true });
   } else {
+    tabs.role = "owner"; // no Web Locks (very old browsers): one tab at a time is up to the user
     startWorker();
   }
 
-  // for tests and the curious: window.deskdotWeb.state()
+  // The page host's API: the studio's Connection sheet (web/src/components/ConnectionSheet.tsx) and tests.
+  // Changes are announced with a "deskdot-web" event on window.
   window.deskdotWeb = {
-    state: () => ({ engine: engineState, link: ble.state, detail: ble.detail, packet: ble.size, bluetooth: hasBluetooth }),
+    state: () => ({
+      engine: engineState,
+      role: tabs.role,
+      link: ble.state,
+      detail: ble.detail,
+      step: ble.step,
+      panel: ble.device ? ble.device.name || null : null,
+      packet: ble.size,
+      packetChoice: Number(LS.get("deskdot.web.packet") || 0) || null,
+      bluetooth: hasBluetooth,
+      needsPick: ble.needsPick,
+      desktop: ble.desktop,
+    }),
     request: engineRequest,
+    /** Must be called from a click (Web Bluetooth's user gesture). */
+    pick: () => ble.pick(),
+    retry: () => ble.retry(),
+    probeDesktop: () => ble.probeDesktop(false),
+    /** Bytes per write: 20 / 182 / 244 / 512, or null for automatic. Applies on the next connect. */
+    setPacket(n) {
+      LS.set("deskdot.web.packet", n ? String(n) : null);
+      window.dispatchEvent(new CustomEvent("deskdot-web"));
+    },
+    attachStudio: () => ui.attachStudio(),
   };
 
   // add-ons (built next to host.js by scripts/build_webapp.py): online play with friends, camera / screen / mic

@@ -17,8 +17,78 @@
   --bad: #ff3b5c;
   --mono: "Martian Mono", "Cascadia Mono", ui-monospace, monospace;
   --display: "Bricolage Grotesque Variable", "Segoe UI Variable Display", system-ui, sans-serif;
+  --landing-bg: radial-gradient(circle at 50% 0%, rgba(255, 72, 24, 0.14), transparent 55%), rgba(8, 8, 10, 0.92);
+  --card-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --key-hi: rgba(255, 255, 255, 0.06);
+  --key-floor: rgba(0, 0, 0, 0.5);
+  --on-ember: #1a0700;
+  --pill-bg: rgba(22, 22, 27, 0.94);
+  --pop-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   all: initial;
 }
+/* light "Gallery" theme — values mirror web/src/index.css :root[data-theme="light"] */
+:host([data-theme="light"]) {
+  --c0: #f4f0e8;
+  --c1: #fbf9f5;
+  --c2: #fbf9f5;
+  --c3: #ffffff;
+  --c4: #ffffff;
+  --line: #e7e1d6;
+  --line2: #d8d0c2;
+  --ink1: #1c1a22;
+  --ink2: #4a4652;
+  --ink3: #6b6673;
+  --ember: #b81f4b;
+  --ember2: #c8325c;
+  --ok: #18794e;
+  --warn: #9a5b00;
+  --bad: #c8203e;
+  --landing-bg: radial-gradient(circle at 50% 0%, rgba(214, 56, 106, 0.1), transparent 55%), rgba(244, 240, 232, 0.9);
+  --card-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 40px 90px -30px rgba(64, 48, 24, 0.4), inset 0 1px 0 #fff;
+  --key-hi: #fff;
+  --key-floor: #ddd5c8;
+  --on-ember: #ffffff;
+  --pill-bg: rgba(255, 255, 255, 0.94);
+  --pop-shadow: 0 2px 6px rgba(64, 48, 24, 0.06), 0 24px 50px -20px rgba(64, 48, 24, 0.35);
+}
+/* light, materials v2 (web/src/index.css § MATERIALS v2): the landing is a porcelain card on a linen wall in
+   daylight — gilded rules, bevelled keys, a lacquer primary key, an engraved progress groove */
+:host([data-theme="light"]) .landing {
+  background:
+    radial-gradient(1200px 560px at 50% -10%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(800px 560px at 50% 50%, rgba(214, 56, 106, 0.1), transparent 66%),
+    radial-gradient(700px 500px at 0% 100%, rgba(184, 137, 42, 0.12), transparent 70%),
+    radial-gradient(150% 115% at 50% 40%, transparent 58%, rgba(92, 70, 40, 0.15)),
+    radial-gradient(circle at 1px 1px, rgba(64, 48, 24, 0.075) 1px, transparent 0) 0 0 / 22px 22px,
+    repeating-linear-gradient(0deg, rgba(64, 48, 24, 0.018) 0 1px, transparent 1px 3px),
+    rgba(244, 240, 232, 0.96);
+}
+:host([data-theme="light"]) .card {
+  background:
+    linear-gradient(90deg, transparent 6%, rgba(230, 205, 138, 0.9) 50%, transparent 94%) top / 100% 1px no-repeat,
+    radial-gradient(120% 46% at 50% 0%, rgba(184, 31, 75, 0.04), transparent 72%),
+    linear-gradient(180deg, #ffffff, #fbf9f5 70%, #f8f4ee);
+  border-color: #e7e1d6;
+  box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(64, 48, 24, 0.02), 0 1px 2px rgba(64, 48, 24, 0.05), 0 6px 14px -8px rgba(64, 48, 24, 0.12), 0 40px 90px -36px rgba(64, 48, 24, 0.45);
+}
+:host([data-theme="light"]) .brand { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
+:host([data-theme="light"]) .key { background: linear-gradient(180deg, #fff, #f6f2ec); box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(64, 48, 24, 0.07), 0 1px 0 #ddd5c8, 0 4px 10px -4px rgba(64, 48, 24, 0.2); }
+:host([data-theme="light"]) .key:hover { border-color: #c5bcad; box-shadow: inset 0 1px 0 #fff, 0 1px 0 #ddd5c8, 0 8px 16px -8px rgba(64, 48, 24, 0.28); }
+:host([data-theme="light"]) .key.ember {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 48%, rgba(255, 255, 255, 0) 52%), linear-gradient(180deg, #cf4f72, #b81f4b 55%, #9c1a40);
+  border-color: #8f1a3c; text-shadow: 0 -1px 0 #6e1430;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 0 #6e1430, 0 10px 22px -10px rgba(184, 31, 75, 0.75);
+}
+:host([data-theme="light"]) .key.ghost { background: transparent; box-shadow: none; }
+:host([data-theme="light"]) .bar { background: #e6e0d5; border-color: transparent; box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.18), 0 1px 0 #fff; }
+:host([data-theme="light"]) .bar i { background: linear-gradient(90deg, #d6386a, #b81f4b); }
+:host([data-theme="light"]) details { border-top-color: transparent; background: linear-gradient(90deg, transparent, rgba(184, 137, 42, 0.5) 22%, rgba(214, 180, 98, 0.85) 50%, rgba(184, 137, 42, 0.5) 78%, transparent) top / 100% 1px no-repeat; }
+:host([data-theme="light"]) summary { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
+:host([data-theme="light"]) .pill { box-shadow: inset 0 1px 0 #fff, 0 2px 6px rgba(64, 48, 24, 0.06), 0 16px 30px -16px rgba(64, 48, 24, 0.4); }
+:host([data-theme="light"]) .led[data-on="ok"] { box-shadow: 0 0 0 3px rgba(24, 121, 78, 0.18); }
+:host([data-theme="light"]) .led[data-on="warn"] { box-shadow: 0 0 0 3px rgba(154, 91, 0, 0.2); }
+:host([data-theme="light"]) .led[data-on="bad"] { box-shadow: 0 0 0 3px rgba(200, 32, 62, 0.18); }
+:host([data-theme="light"]) select { background: linear-gradient(180deg, #f3eee5, #fff 60%); box-shadow: inset 0 1px 2px rgba(64, 48, 24, 0.11); }
 * {
   box-sizing: border-box;
 }
@@ -33,7 +103,7 @@
   place-items: center;
   padding: 16px;
   overflow: auto;
-  background: radial-gradient(circle at 50% 0%, rgba(255, 72, 24, 0.14), transparent 55%), rgba(8, 8, 10, 0.92);
+  background: var(--landing-bg);
   backdrop-filter: blur(6px);
   font: 15px/1.5 var(--display);
   color: var(--ink1);
@@ -49,7 +119,7 @@
   border: 1px solid var(--line2);
   border-radius: 14px;
   padding: clamp(18px, 4vw, 32px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: var(--card-shadow);
 }
 .brand {
   font: 600 10px/1 var(--mono);
@@ -135,7 +205,7 @@ h1 {
   border-radius: 10px;
   padding: 12px 18px;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 0 var(--key-hi), 0 2px 0 var(--key-floor);
 }
 .key:hover {
   border-color: var(--ink3);
@@ -157,7 +227,7 @@ summary:focus-visible,
 .key.ember {
   background: linear-gradient(180deg, var(--ember2), var(--ember));
   border-color: var(--ember);
-  color: #1a0700;
+  color: var(--on-ember);
 }
 .key.ghost {
   background: transparent;
@@ -218,9 +288,9 @@ ul {
   max-width: calc(100vw - 24px);
   padding: 6px 6px 6px 12px;
   border-radius: 999px;
-  background: rgba(22, 22, 27, 0.94);
+  background: var(--pill-bg);
   border: 1px solid var(--line2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--pop-shadow);
   font: 11px/1.2 var(--mono);
   color: var(--ink2);
 }
@@ -285,7 +355,7 @@ select {
   border: 1px solid var(--line2);
   font: 14px/1.45 var(--display);
   color: var(--ink1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--pop-shadow);
 }
 .toast.bad {
   border-color: rgba(255, 59, 92, 0.6);
@@ -326,3 +396,102 @@ select {
     font-size: 16px;
   }
 }
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   Liquid Glass (docs/STUDIO_UI.md § Liquid Glass; the studio's --lg-* tokens by name, web/src/index.css). The floating
+   chrome — the card, the connection pill and the notice — is glass: the element is transparent and isolated, ::before
+   is the body (tint + top sheen + inner light/shade, backdrop blur + saturate), ::after the 1 px specular rim lit from
+   the top-left. Keys, the select and the progress groove are glass controls (fill + rim + sheen, no blur, capsules that
+   squash and spring back). Modes follow :host([data-glass]) (host.js mirrors <html data-glass>): frosted = no blur, a
+   near-opaque fill (no backdrop-filter support, the Android app); solid = opaque (reduced transparency). Touch screens:
+   the card (in a scrolling veil) is frosted, the small fixed pill keeps its blur. */
+:host {
+  --lg-blur: 20px; --lg-blur-thick: 28px; --lg-sat: 1.8;
+  --lg-tint: rgba(22, 22, 27, 0.5); --lg-tint-thick: rgba(22, 22, 27, 0.74); --lg-frost: rgba(22, 22, 27, 0.95); --lg-solid: #16161b;
+  --lg-glare: rgba(255, 255, 255, 0.06);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.04), inset 0 14px 22px -18px rgba(255, 255, 255, 0.16), inset 0 -14px 24px -20px rgba(0, 0, 0, 0.55);
+  --lg-edge: rgba(255, 255, 255, 0.09); --lg-edge-strong: rgba(255, 255, 255, 0.18);
+  --lg-rim-a: rgba(255, 255, 255, 0.36); --lg-rim-b: rgba(255, 255, 255, 0.03); --lg-rim-c: rgba(255, 255, 255, 0.14);
+  --lg-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 12px 32px -14px rgba(0, 0, 0, 0.7);
+  --lg-control: rgba(239, 236, 228, 0.07); --lg-control-hover: rgba(239, 236, 228, 0.12);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 55%);
+  --lg-control-rim: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  --lg-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: rgba(239, 236, 228, 0.08); --lg-track-shade: rgba(0, 0, 0, 0.45);
+  --lg-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+}
+:host([data-theme="light"]) {
+  --lg-tint: rgba(255, 255, 255, 0.56); --lg-tint-thick: rgba(255, 255, 255, 0.78); --lg-frost: rgba(253, 251, 248, 0.96); --lg-solid: #ffffff;
+  --lg-glare: rgba(255, 255, 255, 0.55);
+  --lg-inner: inset 0 0 0 0.5px rgba(255, 255, 255, 0.7), inset 0 16px 24px -18px rgba(255, 255, 255, 0.95), inset 0 -14px 26px -20px rgba(64, 48, 24, 0.16);
+  --lg-edge: rgba(64, 48, 24, 0.12); --lg-edge-strong: rgba(184, 31, 75, 0.3);
+  --lg-rim-a: #ffffff; --lg-rim-b: rgba(255, 255, 255, 0.4); --lg-rim-c: rgba(255, 255, 255, 0.85);
+  --lg-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.08), 0 4px 10px -4px rgba(64, 48, 24, 0.1), 0 18px 40px -20px rgba(64, 48, 24, 0.3);
+  --lg-control: rgba(255, 255, 255, 0.62); --lg-control-hover: rgba(255, 255, 255, 0.86);
+  --lg-control-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 60%);
+  --lg-control-rim: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(255, 255, 255, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+  --lg-control-shadow: 0 0.5px 1px rgba(64, 48, 24, 0.1), 0 3px 10px -4px rgba(64, 48, 24, 0.22);
+  --lg-prominent-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 52%);
+  --lg-track: rgba(64, 48, 24, 0.07); --lg-track-shade: rgba(64, 48, 24, 0.14);
+}
+/* the glass surfaces */
+.card, .pill, .toast, :host([data-theme="light"]) .card, :host([data-theme="light"]) .pill {
+  isolation: isolate; background: transparent; border: 1px solid var(--lg-edge); box-shadow: var(--lg-shadow);
+}
+.card { position: relative; border-radius: 28px; }
+.toast { border-radius: 18px; }
+.card::before, .pill::before, .toast::before {
+  content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
+  box-shadow: var(--lg-inner);
+  -webkit-backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat)); backdrop-filter: blur(var(--lg-blur-thick)) saturate(var(--lg-sat));
+}
+.pill::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 46%), var(--lg-tint);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)); backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+}
+.card::after, .pill::after, .toast::after {
+  content: ""; position: absolute; inset: -1px; z-index: 1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(155deg, var(--lg-rim-a), var(--lg-rim-b) 34%, var(--lg-rim-b) 66%, var(--lg-rim-c));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* the gilded hairline on the light card's top edge stays (it rides on the rim) */
+:host([data-theme="light"]) .card { background: linear-gradient(90deg, transparent 8%, rgba(230, 205, 138, 0.8) 50%, transparent 92%) top / 100% 1px no-repeat; }
+/* the controls: capsules of clear glass that squash and spring back */
+.key, :host([data-theme="light"]) .key {
+  border-radius: 999px; border-color: var(--lg-edge);
+  background: var(--lg-control-sheen), var(--lg-control);
+  box-shadow: var(--lg-control-rim), var(--lg-control-shadow);
+  transition: transform 0.42s var(--lg-spring), background-color 0.2s, border-color 0.2s;
+}
+.key:hover, :host([data-theme="light"]) .key:hover { background: var(--lg-control-sheen), var(--lg-control-hover); border-color: var(--lg-edge-strong); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); }
+.key:active { transform: scale(0.95, 0.93); transition-duration: 0.12s; }
+.key.ember, :host([data-theme="light"]) .key.ember {
+  color: var(--on-ember); background: var(--lg-prominent-sheen), var(--ember); border-color: var(--ember);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.12), 0 6px 18px -8px var(--ember);
+}
+.key.ghost, :host([data-theme="light"]) .key.ghost { background: transparent; border-color: var(--lg-edge-strong); box-shadow: none; }
+select, :host([data-theme="light"]) select { border-radius: 999px; padding: 5px 10px; background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); }
+.bar, :host([data-theme="light"]) .bar { background: var(--lg-track); border-color: transparent; box-shadow: inset 0 1px 2px var(--lg-track-shade); }
+/* the veil behind the card: a blur only while clear glass is on */
+:host([data-glass="frosted"]) .landing, :host([data-glass="solid"]) .landing { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* fallbacks */
+:host([data-glass="frosted"]) :is(.card, .pill, .toast)::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :is(.card, .pill, .toast)::before { background: linear-gradient(180deg, var(--lg-glare), transparent 44%), var(--lg-frost); }
+}
+@media (pointer: coarse) {
+  .card::before, .toast::before { background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-frost); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+:host([data-glass="solid"]) :is(.card, .pill, .toast)::before { background: var(--lg-solid); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:host([data-glass="solid"]) :is(.card, .pill, .toast)::after { opacity: 0.4; }
+@media (prefers-reduced-transparency: reduce) {
+  :is(.card, .pill, .toast)::before { background: var(--lg-solid) !important; box-shadow: none; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .landing { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .key { transition: none; } }

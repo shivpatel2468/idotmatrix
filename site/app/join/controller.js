@@ -1,10 +1,58 @@
 "use strict";
+// Liquid Glass, first thing (as web/index.html; docs/STUDIO_UI.md § Liquid Glass): solid for reduced transparency;
+// frosted (near opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
+(function () { try {
+  var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && CSS.supports && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+  var rt = window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+} catch (e) {} })();
+// Light / dark: the studio's switch, localStorage deskdot.theme = light | dark | system (same origin as the studio on
+// this device), else the phone's own preference. html[data-theme] = light | dark, set first (no flash).
+(() => {
+  const root = document.documentElement;
+  let mq = null;
+  try { mq = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null; } catch (_) {}
+  const apply = () => {
+    let v = ""; try { v = String(localStorage.getItem("deskdot.theme") || "").replace(/"/g, ""); } catch (_) {}
+    const m = v === "light" || v === "dark" ? v : mq && mq.matches ? "light" : "dark";
+    try {
+      root.dataset.theme = m;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", m === "light" ? "#f4f0e8" : "#08080a");
+    } catch (_) {}
+    try { window.dispatchEvent(new Event("deskdot:theme")); } catch (_) {} // the LED avatars redraw their unlit LEDs
+  };
+  apply();
+  try { if (mq && mq.addEventListener) mq.addEventListener("change", apply); } catch (_) {}
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.theme") apply(); }); } catch (_) {}
+})();
+// The page theme (docs/STUDIO_UI.md § Page themes): the studio caches its stylesheet (deskdot.pageThemeCss, same
+// origin); it re-points --ember (and the chassis) under html[data-page-theme]. No studio visit yet: the default look.
+(() => {
+  let sheet = null;
+  const paint = () => {
+    let id = "", css = "";
+    try { id = localStorage.getItem("deskdot.pageTheme") || ""; css = localStorage.getItem("deskdot.pageThemeCss") || ""; } catch (_) {}
+    const root = document.documentElement;
+    if (!id || id === "ember" || !css) { delete root.dataset.pageTheme; css = ""; } else root.dataset.pageTheme = id;
+    try {
+      if (document.adoptedStyleSheets && window.CSSStyleSheet && "replaceSync" in CSSStyleSheet.prototype) {
+        if (!sheet) { sheet = new CSSStyleSheet(); document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]; }
+        sheet.replaceSync(css);
+      }
+    } catch (_) {}
+  };
+  paint();
+  try { window.addEventListener("storage", (e) => { if (!e || e.key === "deskdot.pageThemeCss") paint(); }); } catch (_) {}
+})();
 
-// <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours and
-// timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the D drops
-// in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The canvas
-// redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between and
-// stops while the page is hidden; reduced motion draws it lit once. DeskDotLogo.mount(canvas, { pitch, grid, dpr }).
+// <deskdot-logo> The DeskDot logo in LEDs: a plain-JS copy of web/src/lib/logo.ts (same glyphs, tubes, colours,
+// styles and timings; tests/test_logo_copies.py keeps every copy identical). Three neon tubes, "D", "esk", "Dot": the
+// D drops in, "esk" types in, "Dot" rains down, then each tube is struck like neon, hums, powers down and loops. The
+// canvas redraws only while something moves (build, strike, the loose letter's blink, power-down), idles in between
+// and stops while the page is hidden; reduced motion draws it lit once. It follows the page's light / dark: dark draws
+// neon on black, light the "paper" style (ink tubes), straight on the page — no sign or plate
+// behind it in either theme. DeskDotLogo.mount(canvas, { pitch, grid, dpr, once, light }).
 const DeskDotLogo = (() => {
   const GLYPHS = {
     D: ["###.", "#..#", "#..#", "#..#", "#..#", "#..#", "###."],
@@ -16,6 +64,8 @@ const DeskDotLogo = (() => {
   };
   const TUBES = ["D", "esk", "Dot"];
   const LOGO = ["#ff3f78", "#ff3f78", "#ffcc33"];
+  const NEON_STYLE = { grid: "rgba(255,255,255,0.045)", glass: 0.22, halo: 0.5, blend: "lighter", fill: "lighter", core: "#fff4e0", coreAlpha: 0.5 };
+  const PAPER_STYLE = { tubes: ["#c2154d", "#c2154d", "#996300"], grid: "rgba(74,58,36,0.13)", glass: 0.13, halo: 0.26, blend: "multiply", fill: "source-over", core: "#fff6ea", coreAlpha: 0.3 };
   const STRIKE = [
     [[0.05, 1], [0.07, 0], [0.03, 0.7], [0.16, 0], [0.04, 1], [0.05, 0.15], [0.09, 0.55], [0.05, 0], [0.06, 0.9], [0.04, 0.4]],
     [[0.04, 0.6], [0.12, 0], [0.05, 1], [0.04, 0], [0.03, 1], [0.22, 0.05], [0.05, 0.8], [0.03, 0.2], [0.07, 1], [0.05, 0.5]],
@@ -67,7 +117,7 @@ const DeskDotLogo = (() => {
     if (k < 2.5 / d) return n * (k -= 2.25 / d) * k + 0.9375;
     return n * (k -= 2.625 / d) * k + 0.984375;
   };
-  let glows = null;
+  const glows = {};
   const glowSprite = (color) => {
     const c = document.createElement("canvas");
     c.width = c.height = 64;
@@ -88,13 +138,15 @@ const DeskDotLogo = (() => {
   const offAt = tl.build + 1.4 + tl.hold;
   const litAt = Math.max(tl.build + 0.6, igniteAt + Math.max(...[0, 1, 2].map((p) => DELAY[p] + strikeLen(p)))) + 0.05;
 
-  /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop. */
-  function draw(ctx, lt, ox, oy, p, grid, still) {
-    if (!glows) glows = LOGO.map(glowSprite);
+  /** Draw at (ox, oy) with dot pitch p (CSS px); lt = seconds into the loop; look = "neon" | "paper". */
+  function draw(ctx, lt, ox, oy, p, grid, still, look) {
+    const st = look === "paper" ? PAPER_STYLE : NEON_STYLE;
+    const tubes = look === "paper" ? PAPER_STYLE.tubes : LOGO;
+    const gl = glows[look] || (glows[look] = tubes.map((c) => glowSprite(c)));
     if (still) lt = tl.build + 3;
     const r = p * 0.36;
     if (grid) {
-      ctx.fillStyle = "rgba(255,255,255,0.045)";
+      ctx.fillStyle = st.grid;
       for (let y = 0; y < ROWS; y++)
         for (let x = 0; x < cols; x++) {
           ctx.beginPath();
@@ -112,7 +164,7 @@ const DeskDotLogo = (() => {
         const sputter = dying < 0.35 ? (Math.sin(lt * 90) > 0.2 ? 1 : 0.25) : 0;
         level = Math.max(0, 1 - dying * 2.4) * (0.5 + sputter * 0.5);
       }
-      const color = LOGO[part], glow = glows[part];
+      const color = tubes[part], glow = gl[part];
       for (const d of dots) {
         if (d.part !== part) continue;
         let x = d.x, y = d.y, k, pop = 0;
@@ -143,23 +195,24 @@ const DeskDotLogo = (() => {
           else if (g > 0.66 && g < 0.672) lv *= 0.3;
         }
         const cx = ox + (x + 0.5) * p, cy = oy + (y + 0.5) * p;
-        ctx.globalAlpha = 0.22 * fade * Math.min(1, k * 2);
+        ctx.globalAlpha = st.glass * fade * Math.min(1, k * 2);
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(cx, cy, r * (1 + pop * 0.6), 0, Math.PI * 2);
         ctx.fill();
         const light = Math.max(lv, pop * 0.9) * fade;
         if (light > 0.02) {
-          ctx.globalCompositeOperation = "lighter";
-          ctx.globalAlpha = Math.min(0.5, light * 0.5);
+          ctx.globalCompositeOperation = st.blend;
+          ctx.globalAlpha = Math.min(st.halo, light * st.halo);
           const gs = p * 3.4;
           ctx.drawImage(glow, cx - gs / 2, cy - gs / 2, gs, gs);
+          ctx.globalCompositeOperation = st.fill;
           ctx.globalAlpha = Math.min(1, light);
           ctx.beginPath();
           ctx.arc(cx, cy, r * (1 + pop * 0.5), 0, Math.PI * 2);
           ctx.fill();
-          ctx.globalAlpha = Math.min(1, light * 0.5);
-          ctx.fillStyle = "#fff4e0";
+          ctx.globalAlpha = Math.min(1, light * st.coreAlpha);
+          ctx.fillStyle = st.core;
           ctx.beginPath();
           ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
           ctx.fill();
@@ -179,12 +232,36 @@ const DeskDotLogo = (() => {
   }
 
   /** Animate the logo on `canvas`. pitch = CSS px per dot (omit to fit the canvas's CSS width); dpr = a function
-   *  giving device px per CSS px (default devicePixelRatio, capped at 2). Returns { resize, restart }. */
+   *  giving device px per CSS px (default devicePixelRatio, capped at 2); once = build in once, then hold it lit;
+   *  light = a function answering "is this page light?" (default: a shadow host's or <html>'s data-theme, else the
+   *  system preference — followed live). Returns { resize, restart, restyle }. */
   function mount(canvas, opts) {
     const o = opts || {};
     const ctx = canvas && canvas.getContext && canvas.getContext("2d");
-    if (!ctx) return { resize() {}, restart() {} };
+    if (!ctx) return { resize() {}, restart() {}, restyle() {} };
+    const media = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null;
+    const watched = [];
+    const isLight = o.light || (() => {
+      const root = canvas.getRootNode ? canvas.getRootNode() : null;
+      const host = root && root.host;
+      if (host && watched.indexOf(host) < 0 && mo) watched.push(host), mo.observe(host, { attributes: true, attributeFilter: ["data-theme"] });
+      const t = (host && host.getAttribute("data-theme")) || document.documentElement.getAttribute("data-theme");
+      return t ? t === "light" : !!(media && media.matches);
+    });
+    let look = "";
+    /** The page's light / dark changed? Re-pick the style. True when it changed. */
+    const restyle = () => {
+      const next = isLight() ? "paper" : "neon";
+      if (next === look) return false;
+      look = next;
+      return true;
+    };
+    const watch = () => restyle() && now();
+    const mo = window.MutationObserver ? new MutationObserver(watch) : null;
+    if (mo) mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    if (media && media.addEventListener) media.addEventListener("change", watch);
     const still = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const once = !!o.once; // play the intro once, then stay lit: steady, no hum, no power-down
     const ratio = o.dpr || (() => Math.min(2, window.devicePixelRatio || 1));
     let p = 0, w = 0, h = 0, k = 0, t0 = performance.now(), raf = 0, timer = 0, drawn = false;
     const size = () => {
@@ -208,12 +285,15 @@ const DeskDotLogo = (() => {
       if (document.hidden) return; // visibilitychange wakes it
       if (!canvas.isConnected && drawn) return document.removeEventListener("visibilitychange", onVis); // removed
       if (!canvas.getClientRects().length || !size()) return later(1); // not on screen (yet): look again in a second
+      restyle();
       drawn = true;
-      const lt = ((performance.now() - t0) / 1000) % cycle;
+      const age = (performance.now() - t0) / 1000;
+      const done = once && age >= litAt;
+      const lt = done ? 0 : age % cycle;
       ctx.setTransform(k, 0, 0, k, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still);
-      if (still) return;
+      draw(ctx, lt, PAD * p, PAD * p, p, !!o.grid, still || done, look);
+      if (still || done) return;
       const s = wake(lt);
       if (s > 0) later(s);
       else raf = requestAnimationFrame(tick);
@@ -240,6 +320,7 @@ const DeskDotLogo = (() => {
         t0 = performance.now();
         now();
       },
+      restyle: watch,
     };
   }
 
@@ -320,7 +401,7 @@ function drawAvatar(cv, id, color, led = true) {
     if (!led) { if (fill) { g.fillStyle = fill; g.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5); } continue; }
     g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2);
     if (fill && fill !== "#000000") { g.shadowColor = fill; g.shadowBlur = cell * 0.5; g.fillStyle = fill; }
-    else { g.shadowBlur = 0; g.fillStyle = "rgba(255,255,255,.06)"; }
+    else { g.shadowBlur = 0; g.fillStyle = document.documentElement.dataset.theme === "light" ? "rgba(64,48,24,.09)" : "rgba(255,255,255,.06)"; }
     g.fill();
   }
   g.shadowBlur = 0;
@@ -895,6 +976,7 @@ function taken() { // colours other seats show on the panel: the host, other pho
   return t;
 }
 const hasTeams = () => S.modes.some((m) => m.teams === "versus");
+window.addEventListener("deskdot:theme", () => { try { if (S.hello) { paintMe(); renderChar(); } } catch (_) {} });
 function paintMe() { // everything that shows my look
   setColor(S.me.color);
   for (const cv of $$("#pv, #pv2, .meb .av, .info .av")) drawAvatar(cv, S.me.avatar, S.me.color);

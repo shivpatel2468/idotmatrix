@@ -1,5 +1,5 @@
 {
- "version": "3.5.0",
+ "version": "3.8.0",
  "count": 116,
  "games": 27,
  "multiplayer": 32,
@@ -259,6 +259,13 @@
      "default": 1.0,
      "min": 0.2,
      "max": 1.0
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -3201,6 +3208,13 @@
      "title": "Background",
      "type": "color",
      "default": "#000000"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -4029,6 +4043,13 @@
      "default": 18,
      "min": 4,
      "max": 40
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -4208,6 +4229,14 @@
      "min": 20,
      "max": 500,
      "group": "Alerts"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -4687,6 +4716,14 @@
      "min": 0.1,
      "max": 10.0,
      "group": "Colours"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -4977,6 +5014,14 @@
      "min": 1.0,
      "max": 9.0,
      "group": "Alerts"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -5421,6 +5466,14 @@
      "type": "color",
      "default": "#ffffff",
      "group": "Colours"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -5586,6 +5639,13 @@
      "default": 6,
      "min": 0,
      "max": 48
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -5898,7 +5958,7 @@
      "title": "Goal / score alerts",
      "type": "choice",
      "description": "Celebration overlay, even when not on screen",
-     "default": "favorite",
+     "default": "off",
      "options": [
       {
        "value": "off",
@@ -6258,6 +6318,14 @@
      "type": "toggle",
      "default": true,
      "group": "Loop"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -6459,6 +6527,14 @@
      "min": 3,
      "max": 30,
      "group": "News"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Screen"
     }
    ]
   },
@@ -6797,6 +6873,13 @@
      "title": "Disk",
      "type": "color",
      "default": "#ffaa00"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -6967,6 +7050,13 @@
      "title": "Accent",
      "type": "color",
      "default": "#00dcff"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -7439,6 +7529,13 @@
      "default": 0,
      "min": 0,
      "max": 59
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -14640,6 +14737,14 @@
      "type": "color",
      "default": "#ff143c",
      "group": "Colours"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ],
    "game": {
@@ -15413,7 +15518,7 @@
    "name": "Now Playing",
    "category": "media",
    "icon": "music",
-   "description": "Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, spectrum and more.",
+   "description": "Spotify / YouTube Music / any player: album art, karaoke lyrics, vinyl, cassette, CD, VU meters, radio dial and more.",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -15458,6 +15563,10 @@
        "label": "Lyrics over art"
       },
       {
+       "value": "wordpop",
+       "label": "Word pop"
+      },
+      {
        "value": "cover",
        "label": "Album art"
       },
@@ -15474,6 +15583,18 @@
        "label": "Vinyl"
       },
       {
+       "value": "cd",
+       "label": "CD"
+      },
+      {
+       "value": "cassette",
+       "label": "Cassette"
+      },
+      {
+       "value": "mosaic",
+       "label": "Mosaic"
+      },
+      {
        "value": "split",
        "label": "Art + info"
       },
@@ -15482,12 +15603,28 @@
        "label": "Minimal"
       },
       {
+       "value": "big_title",
+       "label": "Big title"
+      },
+      {
        "value": "palette",
        "label": "Colour wash"
       },
       {
        "value": "spectrum_art",
        "label": "Spectrum"
+      },
+      {
+       "value": "vu",
+       "label": "VU meters"
+      },
+      {
+       "value": "waveform",
+       "label": "Waveform"
+      },
+      {
+       "value": "radio",
+       "label": "Radio dial"
       }
      ]
     },
@@ -15497,16 +15634,6 @@
      "type": "toggle",
      "description": "In the playlist",
      "default": true
-    },
-    {
-     "key": "offset",
-     "title": "Lyric offset (s)",
-     "type": "number",
-     "description": "Positive = earlier",
-     "default": 0.3,
-     "min": -5,
-     "max": 5,
-     "group": "Lyrics"
     },
     {
      "key": "color",
@@ -15527,6 +15654,62 @@
      "title": "Show art when no lyrics",
      "type": "toggle",
      "default": true
+    },
+    {
+     "key": "show_album",
+     "title": "Show album",
+     "type": "toggle",
+     "description": "After the artist",
+     "default": false,
+     "group": "Track info"
+    },
+    {
+     "key": "show_source",
+     "title": "Show where it plays",
+     "type": "toggle",
+     "description": "A small generic glyph: music app, browser or player",
+     "default": true,
+     "group": "Track info"
+    },
+    {
+     "key": "scroll_style",
+     "title": "Long text",
+     "type": "choice",
+     "default": "marquee",
+     "options": [
+      {
+       "value": "marquee",
+       "label": "Marquee (loops)"
+      },
+      {
+       "value": "bounce",
+       "label": "Bounce"
+      },
+      {
+       "value": "page",
+       "label": "Pages of words"
+      }
+     ],
+     "group": "Track info"
+    },
+    {
+     "key": "scroll_speed",
+     "title": "Scroll speed (px/s)",
+     "type": "number",
+     "default": 12.0,
+     "min": 6,
+     "max": 24,
+     "group": "Track info"
+    },
+    {
+     "key": "offset",
+     "title": "Lyric offset (s)",
+     "type": "number",
+     "description": "Positive = earlier",
+     "default": 0.3,
+     "min": -5,
+     "max": 5,
+     "group": "Lyrics"
     },
     {
      "key": "karaoke_color",
@@ -15581,6 +15764,56 @@
      "group": "Lyrics"
     },
     {
+     "key": "highlight",
+     "title": "Sung highlight",
+     "type": "choice",
+     "default": "sweep",
+     "options": [
+      {
+       "value": "sweep",
+       "label": "Sweep through words"
+      },
+      {
+       "value": "word",
+       "label": "Whole words"
+      },
+      {
+       "value": "underline",
+       "label": "Underline"
+      }
+     ],
+     "group": "Lyrics"
+    },
+    {
+     "key": "line_spacing",
+     "title": "Line spacing",
+     "type": "choice",
+     "default": "normal",
+     "options": [
+      {
+       "value": "tight",
+       "label": "Tight"
+      },
+      {
+       "value": "normal",
+       "label": "Normal"
+      },
+      {
+       "value": "loose",
+       "label": "Loose"
+      }
+     ],
+     "group": "Lyrics"
+    },
+    {
+     "key": "translation",
+     "title": "Translation line",
+     "type": "toggle",
+     "description": "When the lyrics carry one (same-time lines in the LRC)",
+     "default": true,
+     "group": "Lyrics"
+    },
+    {
      "key": "show_progress",
      "title": "Progress bar",
      "type": "toggle",
@@ -15612,13 +15845,117 @@
      "group": "Display"
     },
     {
-     "key": "scroll_speed",
-     "title": "Scroll speed (px/s)",
-     "type": "number",
-     "default": 12.0,
-     "min": 6,
-     "max": 24,
-     "group": "Display"
+     "key": "transition",
+     "title": "Between songs",
+     "type": "choice",
+     "default": "dissolve",
+     "options": [
+      {
+       "value": "cut",
+       "label": "Cut"
+      },
+      {
+       "value": "slide",
+       "label": "Slide"
+      },
+      {
+       "value": "dissolve",
+       "label": "Dissolve"
+      },
+      {
+       "value": "zoom",
+       "label": "Art zoom"
+      }
+     ],
+     "group": "Song change"
+    },
+    {
+     "key": "rotate",
+     "title": "Rotate layouts",
+     "type": "choice",
+     "default": "off",
+     "options": [
+      {
+       "value": "off",
+       "label": "Off"
+      },
+      {
+       "value": "song",
+       "label": "Every song"
+      },
+      {
+       "value": "timer",
+       "label": "Every few seconds"
+      }
+     ],
+     "group": "Song change"
+    },
+    {
+     "key": "rotate_set",
+     "title": "Rotate through",
+     "type": "choice",
+     "default": "mix",
+     "options": [
+      {
+       "value": "mix",
+       "label": "Best of"
+      },
+      {
+       "value": "art",
+       "label": "Art"
+      },
+      {
+       "value": "lyrics",
+       "label": "Lyrics"
+      },
+      {
+       "value": "retro",
+       "label": "Retro gear"
+      },
+      {
+       "value": "info",
+       "label": "Track info"
+      }
+     ],
+     "group": "Song change"
+    },
+    {
+     "key": "rotate_every",
+     "title": "Rotate every (s)",
+     "type": "integer",
+     "default": 45,
+     "min": 10,
+     "max": 600,
+     "group": "Song change"
+    },
+    {
+     "key": "pause_style",
+     "title": "When paused",
+     "type": "choice",
+     "default": "auto",
+     "options": [
+      {
+       "value": "auto",
+       "label": "Layout's own"
+      },
+      {
+       "value": "dim",
+       "label": "Dim"
+      },
+      {
+       "value": "badge",
+       "label": "Pause sign"
+      },
+      {
+       "value": "freeze",
+       "label": "Freeze"
+      },
+      {
+       "value": "idle",
+       "label": "Idle screen after 20 s"
+      }
+     ],
+     "group": "Paused & idle"
     },
     {
      "key": "idle_screen",
@@ -15639,11 +15976,40 @@
        "label": "Last album art"
       },
       {
+       "value": "covers",
+       "label": "Recent covers"
+      },
+      {
+       "value": "waves",
+       "label": "Calm waves"
+      },
+      {
+       "value": "silence",
+       "label": "Silence"
+      },
+      {
        "value": "nothing",
        "label": "Nothing"
       }
      ],
-     "group": "Display"
+     "group": "Paused & idle"
+    },
+    {
+     "key": "wall_size",
+     "title": "Recent covers wall",
+     "type": "choice",
+     "default": "4",
+     "options": [
+      {
+       "value": "4",
+       "label": "4 covers"
+      },
+      {
+       "value": "16",
+       "label": "16 covers"
+      }
+     ],
+     "group": "Paused & idle"
     },
     {
      "key": "art_brightness",
@@ -15673,12 +16039,212 @@
      "group": "Art"
     },
     {
+     "key": "art_style",
+     "title": "Art style",
+     "type": "choice",
+     "default": "smooth",
+     "options": [
+      {
+       "value": "smooth",
+       "label": "Smooth"
+      },
+      {
+       "value": "pixelated",
+       "label": "Pixelated"
+      },
+      {
+       "value": "posterised",
+       "label": "Posterised"
+      },
+      {
+       "value": "dithered",
+       "label": "Dithered"
+      }
+     ],
+     "group": "Art"
+    },
+    {
+     "key": "dither",
+     "title": "Dither",
+     "type": "choice",
+     "description": "Dithered art and Mosaic",
+     "default": "bayer",
+     "options": [
+      {
+       "value": "bayer",
+       "label": "Ordered (crosshatch)"
+      },
+      {
+       "value": "diffusion",
+       "label": "Error diffusion"
+      },
+      {
+       "value": "none",
+       "label": "None"
+      }
+     ],
+     "group": "Art"
+    },
+    {
+     "key": "art_colors",
+     "title": "Colours",
+     "type": "integer",
+     "description": "Posterised / dithered art and Mosaic",
+     "default": 6,
+     "min": 2,
+     "max": 16,
+     "group": "Art"
+    },
+    {
+     "key": "art_contrast",
+     "title": "Contrast",
+     "type": "number",
+     "default": 1.0,
+     "min": 0.5,
+     "max": 1.8,
+     "group": "Art"
+    },
+    {
+     "key": "art_saturation",
+     "title": "Saturation",
+     "type": "number",
+     "default": 1.0,
+     "min": 0.0,
+     "max": 2.0,
+     "group": "Art"
+    },
+    {
      "key": "beat_sync",
      "title": "Pulse with the beat",
      "type": "toggle",
      "description": "Living art breathes with system audio (starts audio capture)",
      "default": false,
      "group": "Art"
+    },
+    {
+     "key": "title_size",
+     "title": "Big title size",
+     "type": "choice",
+     "default": "huge",
+     "options": [
+      {
+       "value": "huge",
+       "label": "Huge (14 px)"
+      },
+      {
+       "value": "tall",
+       "label": "Tall (10 px)"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "cassette_shell",
+     "title": "Cassette shell",
+     "type": "choice",
+     "default": "art",
+     "options": [
+      {
+       "value": "art",
+       "label": "From the cover"
+      },
+      {
+       "value": "classic",
+       "label": "Black"
+      },
+      {
+       "value": "chrome",
+       "label": "Chrome"
+      },
+      {
+       "value": "red",
+       "label": "Red"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "vu_style",
+     "title": "VU meters",
+     "type": "choice",
+     "default": "needles",
+     "options": [
+      {
+       "value": "needles",
+       "label": "Twin needles"
+      },
+      {
+       "value": "ladders",
+       "label": "LED ladders"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "cd_shine",
+     "title": "CD rainbow sheen",
+     "type": "toggle",
+     "default": true,
+     "group": "Layout options"
+    },
+    {
+     "key": "radio_band",
+     "title": "Radio band",
+     "type": "choice",
+     "default": "fm",
+     "options": [
+      {
+       "value": "fm",
+       "label": "FM"
+      },
+      {
+       "value": "am",
+       "label": "AM"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "mosaic_grid",
+     "title": "Mosaic",
+     "type": "choice",
+     "default": "8",
+     "options": [
+      {
+       "value": "8",
+       "label": "Big tiles (8 × 8)"
+      },
+      {
+       "value": "16",
+       "label": "Small tiles (16 × 16)"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "wave_style",
+     "title": "Waveform",
+     "type": "choice",
+     "default": "mirror",
+     "options": [
+      {
+       "value": "mirror",
+       "label": "Mirrored bars"
+      },
+      {
+       "value": "line",
+       "label": "Trace"
+      }
+     ],
+     "group": "Layout options"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Lyrics"
     }
    ]
   },
@@ -16202,6 +16768,10 @@
       {
        "value": "mono",
        "label": "Single colour"
+      },
+      {
+       "value": "theme",
+       "label": "Page theme"
       }
      ]
     },
@@ -16224,6 +16794,13 @@
      "default": 1.0,
      "min": 0.3,
      "max": 3.0
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -17804,6 +18381,14 @@
      "title": "24-hour times",
      "type": "toggle",
      "default": true
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -17949,6 +18534,14 @@
      "type": "toggle",
      "default": true,
      "group": "Alerts"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -18295,6 +18888,14 @@
      "type": "color",
      "default": "#ffd600",
      "group": "Colours"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -18546,6 +19147,13 @@
      "title": "Break colour",
      "type": "color",
      "default": "#00ff8c"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -18651,6 +19259,14 @@
      "default": 4,
      "min": 0,
      "max": 8,
+     "group": "Look"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
      "group": "Look"
     }
    ]
@@ -18990,6 +19606,14 @@
      "type": "toggle",
      "default": false,
      "group": "Alerts"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
+     "group": "Colours"
     }
    ]
   },
@@ -19105,6 +19729,13 @@
      "title": "Accent",
      "type": "color",
      "default": "#ff4818"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -19159,6 +19790,13 @@
        "label": "Days only"
       }
      ]
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -19343,6 +19981,13 @@
      "title": "Accent colour",
      "type": "color",
      "default": "#ffd600"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true
     }
    ]
   },
@@ -19462,6 +20107,14 @@
      "title": "Name colour",
      "type": "color",
      "default": "#ffffff",
+     "group": "Colours"
+    },
+    {
+     "key": "follow_theme",
+     "title": "Follow page theme",
+     "type": "toggle",
+     "description": "Use the page theme's colours (Settings → Display & colour) for the colours you haven't changed. Off = this app's own colours.",
+     "default": true,
      "group": "Colours"
     }
    ]
@@ -19815,5 +20468,46 @@
     }
    ]
   }
- ]
+ ],
+ "release": {
+  "version": "3.8.0",
+  "tag": "v3.8.0",
+  "date": "29 October 2026",
+  "page": "https://github.com/shivpatel2468/idotmatrix/releases/tag/v3.8.0",
+  "checksums": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/checksums.txt",
+  "assets": [
+   {
+    "key": "windows",
+    "platform": "windows",
+    "name": "DeskDot-Setup-3.8.0-x64.exe",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-Setup-3.8.0-x64.exe",
+    "size": 80107073,
+    "note": "Windows 10/11 (64-bit)"
+   },
+   {
+    "key": "mac_arm",
+    "platform": "mac",
+    "name": "DeskDot-3.8.0-macOS-arm64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0-macOS-arm64.dmg",
+    "size": 83346114,
+    "note": "Apple silicon (M1 and newer)"
+   },
+   {
+    "key": "mac_intel",
+    "platform": "mac",
+    "name": "DeskDot-3.8.0-macOS-x64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0-macOS-x64.dmg",
+    "size": 75430181,
+    "note": "Intel Mac"
+   },
+   {
+    "key": "android",
+    "platform": "android",
+    "name": "DeskDot-3.8.0.apk",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0.apk",
+    "size": 49105738,
+    "note": "Android 8 or newer"
+   }
+  ]
+ }
 }

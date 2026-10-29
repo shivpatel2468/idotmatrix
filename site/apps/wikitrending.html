@@ -3,35 +3,33 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Wiki Trending: Live data app for iDotMatrix · DeskDot</title>
-<meta name="description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. A live data app for the iDotMatrix 32×32 LED panel, with 3 settings." />
+<title>Wiki Trending: a DeskDot app for 32×32 panels</title>
+<meta name="description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. 3 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <link rel="canonical" href="https://idotmatrix.com/apps/wikitrending.html" />
 <meta name="theme-color" content="#08070a" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="dark light" />
 <meta name="author" content="Shiv Patel" />
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="DeskDot" />
 <meta property="og:url" content="https://idotmatrix.com/apps/wikitrending.html" />
-<meta property="og:title" content="Wiki Trending: Live data app for iDotMatrix · DeskDot" />
-<meta property="og:description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. A live data app for the iDotMatrix 32×32 LED panel, with 3 settings." />
+<meta property="og:title" content="Wiki Trending: a DeskDot app for 32×32 panels" />
+<meta property="og:description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. 3 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <meta property="og:image" content="https://idotmatrix.com/media/apps/og/wikitrending.png" />
 <meta property="og:image:width" content="480" />
 <meta property="og:image:height" content="480" />
 <meta property="og:image:alt" content="Wiki Trending on a 32×32 LED panel" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Wiki Trending: Live data app for iDotMatrix · DeskDot" />
-<meta name="twitter:description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. A live data app for the iDotMatrix 32×32 LED panel, with 3 settings." />
+<meta name="twitter:title" content="Wiki Trending: a DeskDot app for 32×32 panels" />
+<meta name="twitter:description" content="Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart. 3 settings. A DeskDot app for iDotMatrix-compatible 32×32 LED panels (unofficial)." />
 <meta name="twitter:image" content="https://idotmatrix.com/media/apps/og/wikitrending.png" />
 <meta name="twitter:image:alt" content="Wiki Trending on a 32×32 LED panel" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=Martian+Mono:wght@400..700&amp;display=swap" />
+<link rel="preload" href="/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.className+=" js"+("onpagereveal" in window?" vt":"")</script>
+<script>var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");t=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}t==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");d.setAttribute("data-theme",t);p&&p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)</script>
 <script src="/main.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Apps","item":"https://idotmatrix.com/apps.html"},{"@type":"ListItem","position":2,"name":"Wiki Trending","item":"https://idotmatrix.com/apps/wikitrending.html"}]}</script>
 </head>
@@ -44,11 +42,13 @@
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></g><path fill="currentColor" d="M12 3a9 9 0 0 1 0 18Z"/><circle cx="7.6" cy="9" r="1.5" fill="currentColor"/><circle cx="8.6" cy="14.6" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></symbol>
 </svg>
 <header class="bar" id="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="86" height="14" aria-hidden="true"></canvas><span class="word">DeskDot</span></a>
+    <a class="brand" href="/" aria-label="DeskDot home"><canvas class="mini-logo" width="96" height="22" aria-hidden="true"></canvas><span class="word sr-only">DeskDot</span><span class="tm" aria-hidden="true">™</span></a>
     <nav id="nav" aria-label="Main">
       <a href="/setup.html">AI setup</a>
       <a href="/guide.html">Run it</a>
@@ -57,12 +57,25 @@
       <a href="/studio.html">Studio</a>
       <a href="/specs.html">Specs</a>
       <a href="/faq.html">FAQ</a>
+      <a href="/whats-new.html">What's new</a>
     </nav>
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav" aria-label="Menu"><span></span><span></span><span></span></button>
     <a class="btn small primary web-app" href="/app/" title="Run DeskDot in this browser over Web Bluetooth">Open<span class="hide-sm"> in browser</span></a>
-    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="DeskDot on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="hide-sm">GitHub</span><span class="count" data-stars></span></a>
+    <a class="btn small get" href="/download.html">Get<span class="hide-sm"> DeskDot</span></a>
+    <a class="btn small gh" href="https://github.com/shivpatel2468/idotmatrix" aria-label="Source code (MIT) on GitHub" title="Source code (MIT) on GitHub"><svg aria-hidden="true"><use href="#i-gh"/></svg><span class="count" data-stars="1" aria-label="1 stars">★ 1</span></a>
+    <button class="btn small theme-btn" id="theme-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="theme-menu" aria-label="Appearance: light, dark and page theme" title="Appearance"><svg aria-hidden="true"><use href="#i-theme"/></svg></button>
   </div>
 </header>
+<div class="theme-menu" id="theme-menu" role="dialog" aria-modal="false" aria-labelledby="theme-menu-h" hidden>
+  <div class="theme-menu-head"><h2 id="theme-menu-h">Appearance</h2><button type="button" class="theme-close" aria-label="Close">×</button></div>
+  <div class="seg" role="group" aria-label="Light or dark"><button type="button" data-theme-pick="light" aria-pressed="false">Light</button><button type="button" data-theme-pick="dark" aria-pressed="false">Dark</button><button type="button" data-theme-pick="system" aria-pressed="false">Auto</button></div>
+  <h3>Page theme <small id="theme-name"></small></h3>
+  <div class="swatches" role="group" aria-label="Page theme"><button type="button" class="sw sw-ember" data-page-theme-pick="ember" aria-pressed="false" title="DeskDot"><i aria-hidden="true"></i><span>DeskDot</span></button><button type="button" class="sw sw-graphite" data-page-theme-pick="graphite" aria-pressed="false" title="Graphite &amp; ice"><i aria-hidden="true"></i><span>Graphite &amp; ice</span></button><button type="button" class="sw sw-sunset" data-page-theme-pick="sunset" aria-pressed="false" title="Sunset coral"><i aria-hidden="true"></i><span>Sunset coral</span></button><button type="button" class="sw sw-citrus" data-page-theme-pick="citrus" aria-pressed="false" title="Citrus"><i aria-hidden="true"></i><span>Citrus</span></button><button type="button" class="sw sw-royal" data-page-theme-pick="royal" aria-pressed="false" title="Royal blue"><i aria-hidden="true"></i><span>Royal blue</span></button><button type="button" class="sw sw-crimson" data-page-theme-pick="crimson" aria-pressed="false" title="Crimson velvet"><i aria-hidden="true"></i><span>Crimson velvet</span></button><button type="button" class="sw sw-midnight" data-page-theme-pick="midnight" aria-pressed="false" title="Midnight neon"><i aria-hidden="true"></i><span>Midnight neon</span></button><button type="button" class="sw sw-strip" data-page-theme-pick="strip" aria-pressed="false" title="Neon strip"><i aria-hidden="true"></i><span>Neon strip</span></button><button type="button" class="sw sw-emerald" data-page-theme-pick="emerald" aria-pressed="false" title="Emerald &amp; champagne"><i aria-hidden="true"></i><span>Emerald &amp; champagne</span></button><button type="button" class="sw sw-noir" data-page-theme-pick="noir" aria-pressed="false" title="Riviera noir"><i aria-hidden="true"></i><span>Riviera noir</span></button><button type="button" class="sw sw-jade" data-page-theme-pick="jade" aria-pressed="false" title="Imperial jade"><i aria-hidden="true"></i><span>Imperial jade</span></button><button type="button" class="sw sw-deco" data-page-theme-pick="deco" aria-pressed="false" title="Gilded deco"><i aria-hidden="true"></i><span>Gilded deco</span></button><button type="button" class="sw sw-marigold" data-page-theme-pick="marigold" aria-pressed="false" title="Marigold masala"><i aria-hidden="true"></i><span>Marigold masala</span></button><button type="button" class="sw sw-cyber" data-page-theme-pick="cyber" aria-pressed="false" title="Cyber grid"><i aria-hidden="true"></i><span>Cyber grid</span></button><button type="button" class="sw sw-arcade" data-page-theme-pick="arcade" aria-pressed="false" title="Pixel arcade"><i aria-hidden="true"></i><span>Pixel arcade</span></button><button type="button" class="sw sw-sakura" data-page-theme-pick="sakura" aria-pressed="false" title="Sakura night"><i aria-hidden="true"></i><span>Sakura night</span></button><button type="button" class="sw sw-glacier" data-page-theme-pick="glacier" aria-pressed="false" title="Glacier"><i aria-hidden="true"></i><span>Glacier</span></button><button type="button" class="sw sw-oasis" data-page-theme-pick="oasis" aria-pressed="false" title="Desert oasis"><i aria-hidden="true"></i><span>Desert oasis</span></button><button type="button" class="sw sw-abyss" data-page-theme-pick="abyss" aria-pressed="false" title="Ocean abyss"><i aria-hidden="true"></i><span>Ocean abyss</span></button><button type="button" class="sw sw-volcano" data-page-theme-pick="volcano" aria-pressed="false" title="Volcano"><i aria-hidden="true"></i><span>Volcano</span></button><button type="button" class="sw sw-galaxy" data-page-theme-pick="galaxy" aria-pressed="false" title="Galaxy"><i aria-hidden="true"></i><span>Galaxy</span></button></div>
+  <p class="theme-note">The same 21 themes as the DeskDot studio. Saved in this browser; the web app opens in it too.</p>
+</div>
+<div class="notice" id="notice" role="note" aria-label="Unofficial software">
+  <div class="wrap"><p><b>Unofficial:</b> DeskDot is not made, endorsed or supported by Shenzhen Heaton Technology or the iDotMatrix brand. Official app: iDotMatrix on Google Play / App Store.</p><button type="button" aria-label="Dismiss this notice">×</button></div>
+</div>
 
 <main id="main" tabindex="-1">
 <!-- page:start -->
@@ -74,13 +87,14 @@
     <div class="badges"><span class="badge" style="--c:#45d9ff"><i></i>Live data</span><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
     <h1>Wiki Trending</h1>
     <p class="lede">Yesterday's most-read Wikipedia articles with their views and a 5-day spike chart.</p>
-    <div class="cta"><a class="btn primary" href="/setup.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="btn" href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/wikitrending.py"><svg aria-hidden="true"><use href="#i-gh"/></svg>View source</a></div>
+    <div class="cta"><a class="btn primary" href="/download.html">Put it on your panel <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="btn" href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/wikitrending.py"><svg aria-hidden="true"><use href="#i-gh"/></svg>Source code (MIT)</a></div>
   </div>
 </div>
-<section class="app-sec" aria-labelledby="s-glance"><h2 id="s-glance">At a glance</h2><div class="facts"><div class="fact"><span>Output</span><b>Live</b><small>Rendered by the engine and streamed over Bluetooth as its data changes (about 5–9 frames a second).</small></div><div class="fact"><span>Settings</span><b>3</b><small>every one editable live in the studio, or by an agent with <code>update_app_settings</code></small></div><div class="fact"><span>Source</span><b><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/wikitrending.py">wikitrending.py</a></b><small>src/deskdot/apps/wikitrending.py</small></div></div></section><section class="app-sec" aria-labelledby="s-settings"><h2 id="s-settings">Settings</h2><div class="table-scroll"><table class="settings-table"><caption class="sr-only">Settings</caption><thead><tr><th scope="col">Setting</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Options / range</th></tr></thead><tbody><tr><th scope="row" class="k">Articles<code>count</code><span class="d">Top N most-read articles to rotate</span></th><td><span class="t">whole number</span></td><td class="def-cell"><span class="v">10</span></td><td class="opt-cell"><span class="range">1 – 15</span><span class="range-bar" aria-hidden="true"><i style="left:64.3%"></i></span></td></tr><tr><th scope="row" class="k">Seconds per article<code>seconds</code></th><td><span class="t">whole number</span></td><td class="def-cell"><span class="v">10</span></td><td class="opt-cell"><span class="range">4 – 60</span><span class="range-bar" aria-hidden="true"><i style="left:10.7%"></i></span></td></tr><tr><th scope="row" class="k">Scroll the short description<code>show_description</code></th><td><span class="t">on/off</span></td><td class="def-cell"><span class="v">On</span></td><td class="opt-cell"><span class="range">on / off</span></td></tr></tbody></table></div></section><section class="app-sec" aria-labelledby="s-try"><h2 id="s-try">Try it</h2><div class="code"><span class="label">render a frame to PNG (no panel needed)</span><pre><span class="p">$ </span>uv run deskdot preview wikitrending --out wikitrending.png</pre></div><div class="code"><span class="label">show it on your panel (engine running)</span><pre><span class="p">$ </span>curl -X POST http://127.0.0.1:8765/api/apps/wikitrending/activate</pre></div><p class="range">Or ask your agent: “Show Wiki Trending on my panel”. It calls <code>show_app</code> with <code>"wikitrending"</code>. New here? <a href="/setup.html">Set up DeskDot</a> first.</p></section><section class="app-sec" aria-labelledby="s-more"><h2 id="s-more">More live data apps</h2><div class="app-grid small"><a class="card app-card" href="/apps/windcompass.html" style="--glow:#45d9ff;--i:0">
+
+<section class="app-sec" aria-labelledby="s-glance"><h2 id="s-glance">At a glance</h2><div class="facts"><div class="fact"><span>Output</span><b>Live</b><small>Rendered by the engine and streamed over Bluetooth as its data changes (about 5–9 frames a second).</small></div><div class="fact"><span>Settings</span><b>3</b><small>every one editable live in the studio, or by an agent with <code>update_app_settings</code></small></div><div class="fact"><span>Source code (MIT)</span><b><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/src/deskdot/apps/wikitrending.py">wikitrending.py</a></b><small>src/deskdot/apps/wikitrending.py</small></div></div></section><section class="app-sec" aria-labelledby="s-settings"><h2 id="s-settings">Settings</h2><div class="table-scroll"><table class="settings-table"><caption class="sr-only">Settings</caption><thead><tr><th scope="col">Setting</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Options / range</th></tr></thead><tbody><tr><th scope="row" class="k">Articles<code>count</code><span class="d">Top N most-read articles to rotate</span></th><td><span class="t">whole number</span></td><td class="def-cell"><span class="v">10</span></td><td class="opt-cell"><span class="range">1 – 15</span><span class="range-bar" aria-hidden="true"><i style="left:64.3%"></i></span></td></tr><tr><th scope="row" class="k">Seconds per article<code>seconds</code></th><td><span class="t">whole number</span></td><td class="def-cell"><span class="v">10</span></td><td class="opt-cell"><span class="range">4 – 60</span><span class="range-bar" aria-hidden="true"><i style="left:10.7%"></i></span></td></tr><tr><th scope="row" class="k">Scroll the short description<code>show_description</code></th><td><span class="t">on/off</span></td><td class="def-cell"><span class="v">On</span></td><td class="opt-cell"><span class="range">on / off</span></td></tr></tbody></table></div></section><section class="app-sec" aria-labelledby="s-try"><h2 id="s-try">Try it</h2><div class="code"><span class="label">render a frame to PNG (no panel needed)</span><pre><span class="p">$ </span>uv run deskdot preview wikitrending --out wikitrending.png</pre></div><div class="code"><span class="label">show it on your panel (engine running)</span><pre><span class="p">$ </span>curl -X POST http://127.0.0.1:8765/api/apps/wikitrending/activate</pre></div><p class="range">Or ask your agent: “Show Wiki Trending on my panel”. It calls <code>show_app</code> with <code>"wikitrending"</code>. New here? <a href="/setup.html">Set up DeskDot</a> first.</p></section><section class="app-sec" aria-labelledby="s-more"><h2 id="s-more">More live data apps</h2><div class="app-grid small"><a class="card app-card" href="/apps/windcompass.html" style="--glow:#45d9ff;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/windcompass.png" /><img src="/media/apps/windcompass.gif" width="32" height="32" loading="lazy" decoding="async" alt="Wind Compass running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Wind Compass</h3>
     <p>Wind speed, gusts and direction on a compass with its Beaufort name, and the next 12 hours.</p>
     <div class="foot"><span>3 settings</span></div>
@@ -88,7 +102,7 @@
 </a><a class="card app-card" href="/apps/worldflags.html" style="--glow:#45d9ff;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/worldflags.png" /><img src="/media/apps/worldflags.gif" width="32" height="32" loading="lazy" decoding="async" alt="World Flags running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>World Flags</h3>
     <p>A flag of the day, a shuffle of every country's flag, or a guess-the-flag quiz.</p>
     <div class="foot"><span>2 settings</span></div>
@@ -96,15 +110,15 @@
 </a><a class="card app-card" href="/apps/airquality.html" style="--glow:#45d9ff;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/airquality.png" /><img src="/media/apps/airquality.gif" width="32" height="32" loading="lazy" decoding="async" alt="Air Quality running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Air Quality</h3>
     <p>AQI gauge, PM2.5/PM10/O3/NO2 bars, UV index advice, pollen (Europe) and a 24 h forecast.</p>
-    <div class="foot"><span>7 settings</span></div>
+    <div class="foot"><span>8 settings</span></div>
   </div>
 </a><a class="card app-card" href="/apps/asteroidflyby.html" style="--glow:#45d9ff;--i:0">
   <div class="thumb"><div class="panel"><picture><source media="(prefers-reduced-motion: reduce)" srcset="/media/apps/asteroidflyby.png" /><img src="/media/apps/asteroidflyby.gif" width="32" height="32" loading="lazy" decoding="async" alt="Asteroid Flyby running on a 32×32 LED panel" /></picture></div><span class="badge" style="--c:#45d9ff"><i></i>Live</span></div>
   <div class="body">
-    <span class="tag" style="color:#45d9ff">Live data</span>
+    <span class="tag" style="--c:#45d9ff">Live data</span>
     <h3>Asteroid Flyby</h3>
     <p>The next asteroid to pass Earth within 10 Moon distances: when, how close, how big, how fast.</p>
     <div class="foot"><span>2 settings</span></div>
@@ -119,13 +133,14 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <canvas class="footer-logo" width="150" height="24" role="img" aria-label="idotmatrix"></canvas>
-        <p>DeskDot turns an iDotMatrix 32×32 RGB LED panel into a live desktop companion. Built by
-          <a href="https://github.com/shivpatel2468">Shiv Patel</a>. Free and open source under the MIT licence.</p>
+        <canvas class="footer-logo" width="150" height="34" role="img" aria-label="DeskDot, written in glowing LED dots"></canvas>
+        <p>DeskDot™ is an independent companion app for iDotMatrix-compatible 32×32 RGB LED panels. Made by
+          <a href="https://github.com/shivpatel2468">Shiv Patel</a>, India.</p>
       </div>
       <div>
         <h2>Get started</h2>
         <ul>
+          <li><a href="/download.html">Get DeskDot</a></li>
           <li><a href="/setup.html">Set up with an AI agent</a></li>
           <li><a href="/guide.html">Step-by-step guide</a></li>
           <li><a href="/apps.html">Apps explorer</a></li>
@@ -146,17 +161,29 @@
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix">GitHub repository</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix">Source code (MIT)</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/issues">Issues</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CHANGELOG.md">Changelog</a></li>
-          <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/LICENSE">MIT licence</a></li>
+          <li><a href="/whats-new.html">What's new</a></li>
+          <li><a href="https://github.com/shivpatel2468/idotmatrix/releases">Releases</a></li>
+          <li><a href="/license.html">Licence</a></li>
           <li><a href="https://github.com/shivpatel2468/idotmatrix/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
+    <div class="foot-legal">
+      <p><b>DeskDot™</b> is an independent product by Shiv Patel, India. <b>Unofficial:</b> not made, endorsed or supported by Shenzhen Heaton Technology Co., Ltd. or the iDotMatrix brand. “iDotMatrix” is a trademark of its owner and is used only to describe compatible panels. All other trademarks belong to their owners.</p>
+      <p>DeskDot versions up to v3.2 were published under the MIT licence and remain so. Future versions will be proprietary software licensed under the DeskDot EULA.</p>
+      <ul class="foot-links" aria-label="Legal">
+        <li><a href="/privacy.html">Privacy</a></li>
+        <li><a href="/terms.html">Terms</a></li>
+        <li><a href="/licenses.html">Licences</a></li>
+        <li><a href="/download.html">Download</a></li>
+        <li><a href="https://github.com/shivpatel2468/idotmatrix">Source (GitHub)</a></li>
+      </ul>
+    </div>
     <div class="fine">
-      <span>© Shiv Patel · MIT licence · Unofficial, not affiliated with iDotMatrix</span>
-      <span>1,024 pixels. Zero subscriptions.</span>
+      <span>© 2026 Shiv Patel. Casino games: play money only, 18+.</span>
+      <span><button type="button" class="theme-open" aria-controls="theme-menu" aria-expanded="false">Appearance and page theme</button> · 1,024 pixels.</span>
     </div>
   </div>
 </footer>
