@@ -168,13 +168,18 @@
     ctx.globalAlpha = 1;
   }
 
-  /** Mount a logo on a canvas: sizes to its CSS box, animates only while visible, then idles on the hum.
-   *  `built` skips the build-in (the header logo builds once per visit, not on every page). */
-  function mountLogo(canvas, { grid = false, pad = 1, interactive = false, startDelay = 0, built = false } = {}) {
+  // seconds until every tube has struck and holds steady (the build-in, the ignition and the longest strike)
+  const SETTLE = 1.6 + 0.15 + Math.max(...STRIKE.map((_, p) => DELAY[p] + strikeLen(p))) + 0.1;
+
+  /** Mount a logo on a canvas: sizes to its CSS box, animates only while visible.
+   *  `built` skips the build-in (the header logo builds once per visit, not on every page).
+   *  `settle`: once lit, draw one still frame and stop (the header and footer logos: no per-frame work while the
+   *  page scrolls); a hover flares it and it settles again. Otherwise it idles on the hum at `fps`. */
+  function mountLogo(canvas, { grid = false, pad = 1, interactive = false, startDelay = 0, built = false, settle = false, fps = 30 } = {}) {
     if (!canvas || !canvas.getContext) return;
     const ctx = canvas.getContext("2d");
     const cols = LOGO.cols + pad * 2, rows = ROWS + pad * 2;
-    let w = 0, h = 0, p = 0, t0 = 0, raf = 0, visible = false, started = false, flare = 0;
+    let w = 0, h = 0, p = 0, t0 = 0, raf = 0, visible = false, started = false, flare = 0, settled = false, last = 0;
     const resize = () => {
       const dpr = Math.min(2, devicePixelRatio || 1);
       const cw = canvas.clientWidth || canvas.width;
@@ -190,10 +195,17 @@
       ctx.clearRect(0, 0, w, h);
       const lt = started ? (now - t0) / 1000 : -1;
       flare *= 0.92;
-      drawLogo(ctx, lt, pad * p, pad * p, p, { grid, flare, still: reduced });
+      drawLogo(ctx, lt, pad * p, pad * p, p, { grid, flare, still: reduced || settled });
     };
     const loop = (now) => {
-      frame(now);
+      // the build-in runs at full rate; the steady hum only needs `fps`
+      const lit = started && (now - t0) / 1000 > SETTLE;
+      if (!(lit && now - last < 1000 / fps - 4)) {
+        last = now;
+        if (settle && lit && flare < 0.02) settled = true;
+        frame(now);
+        if (settled && flare < 0.02) { raf = 0; return; }
+      }
       raf = visible && !document.hidden ? requestAnimationFrame(loop) : 0;
     };
     const kick = () => { if (!raf && !reduced && visible && !document.hidden) raf = requestAnimationFrame(loop); };
@@ -214,8 +226,8 @@
 
   const seenLogo = store.get("dd-logo") === "1";
   mountLogo($("#logo"), { grid: true, interactive: true, startDelay: 150 });
-  mountLogo($(".mini-logo"), { pad: 0.5, startDelay: 500, built: seenLogo });
-  mountLogo($(".footer-logo"), { pad: 0.5, built: true });
+  mountLogo($(".mini-logo"), { pad: 0.5, startDelay: 500, built: seenLogo, settle: true, interactive: true });
+  mountLogo($(".footer-logo"), { pad: 0.5, built: true, settle: true });
   store.set("dd-logo", "1");
 
   /* ===================================================================== 2. page chrome */
@@ -276,13 +288,19 @@
     : null;
   $$(".reveal").forEach((el) => (revealObs ? revealObs.observe(el) : el.classList.add("in")));
 
-  // LEDs under the cursor on cards
+  // LEDs under the cursor on cards (at most once per frame: read the box, then write, never interleaved)
+  let cardEv = null, cardRaf = 0;
   document.addEventListener("pointermove", (e) => {
-    const card = e.target.closest && e.target.closest(".card");
-    if (!card) return;
-    const r = card.getBoundingClientRect();
-    card.style.setProperty("--mx", e.clientX - r.left + "px");
-    card.style.setProperty("--my", e.clientY - r.top + "px");
+    if (e.pointerType !== "mouse") return;
+    cardEv = e;
+    cardRaf ||= requestAnimationFrame(() => {
+      cardRaf = 0;
+      const card = cardEv.target.closest && cardEv.target.closest(".card");
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", cardEv.clientX - r.left + "px");
+      card.style.setProperty("--my", cardEv.clientY - r.top + "px");
+    });
   }, { passive: true });
 
   // 5×5 LED icons from data-led="#.#.#|..."
@@ -296,12 +314,17 @@
   const device = $("#device .device-frame");
   if (device && !reduced && matchMedia("(pointer: fine)").matches) {
     const hero = $(".hero");
+    let tiltEv = null, tiltRaf = 0;
     hero.addEventListener("pointermove", (e) => {
-      const r = device.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) / innerWidth;
-      const dy = (e.clientY - (r.top + r.height / 2)) / innerHeight;
-      device.style.setProperty("--ry", (dx * 16 - 4).toFixed(2) + "deg");
-      device.style.setProperty("--rx", (-dy * 12 + 2).toFixed(2) + "deg");
+      tiltEv = e;
+      tiltRaf ||= requestAnimationFrame(() => {
+        tiltRaf = 0;
+        const r = device.getBoundingClientRect();
+        const dx = (tiltEv.clientX - (r.left + r.width / 2)) / innerWidth;
+        const dy = (tiltEv.clientY - (r.top + r.height / 2)) / innerHeight;
+        device.style.setProperty("--ry", (dx * 16 - 4).toFixed(2) + "deg");
+        device.style.setProperty("--rx", (-dy * 12 + 2).toFixed(2) + "deg");
+      });
     }, { passive: true });
     hero.addEventListener("pointerleave", () => { device.style.removeProperty("--ry"); device.style.removeProperty("--rx"); });
   }
@@ -480,7 +503,7 @@
   const resolve = (p) => (p === "system" ? (light.matches ? "light" : "dark") : p);
   const pageTheme = () => {
     const v = local.get(PAGE_KEY);
-    return swatches.some((b) => b.dataset.pageThemePick === v) ? v : "ember";
+    return swatches.some((b) => b.dataset.pageThemePick === v) ? v : "retro"; // the website's default (site_theme.SITE_DEFAULT)
   };
   const sync = () => {
     $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === pref())));

@@ -50,14 +50,15 @@ START, END = "<!-- page:start -->", "<!-- page:end -->"
 # It also hides the "unofficial" notice strip before paint once a visitor has dismissed it (main.js stores that),
 # and applies the theme like the studio's index.html does: light / dark / auto (`deskdot.theme`) as
 # <html data-theme>, and the page theme (`deskdot.pageTheme`) as <html data-page-theme> — so no page ever flashes
-# the wrong theme. main.js runs the theme menu.
+# the wrong theme. A first-time visitor (nothing stored) gets the website's default page theme, Retro calm
+# (site_theme.SITE_DEFAULT), with light / dark following the OS. main.js runs the theme menu.
 INLINE_JS = (
     'var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");'
     'try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");'
     't=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}'
     't==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");'
     'd.setAttribute("data-theme",t);'
-    'p&&p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)'
+    'p=p||"retro";p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)'
 )
 
 NAV = [
@@ -271,7 +272,7 @@ def head(
         tags.append(f'<link rel="canonical" href="{_url(path)}" />')
     img = SITE_URL + og_image
     tags += [
-        '<meta name="theme-color" content="#08070a" />',
+        '<meta name="theme-color" content="#111a22" />',
         '<meta name="color-scheme" content="dark light" />',
         '<meta name="author" content="Shiv Patel" />',
         f'<meta property="og:type" content="{og_type}" />',
@@ -787,6 +788,7 @@ def app_page(app: dict[str, Any], data: dict[str, Any], prev: dict[str, Any], nx
     )
     return document(app["page"], head_html, "apps", body)
 
+
 # ------------------------------------------------------------------ what's new (from WHATS_NEW.md)
 _KIND = {"New": ("new", "New"), "Better": ("better", "Better"), "Fixed": ("fixed", "Fixed")}
 
@@ -815,11 +817,15 @@ def whats_new() -> list[dict[str, Any]]:
                 for ln in lines[1:]:
                     for key, tag in (("before", "- Before:"), ("now", "- Now:")):
                         if ln.startswith(tag):
-                            cur, ln = key, ln[len(tag):]
+                            cur, ln = key, ln[len(tag) :]
                     if cur:
                         fields[cur].append(ln.strip())
                 items.append(
-                    {"title": lines[0].strip("*").strip(), "before": " ".join(fields["before"]), "now": " ".join(fields["now"])}
+                    {
+                        "title": lines[0].strip("*").strip(),
+                        "before": " ".join(fields["before"]),
+                        "now": " ".join(fields["now"]),
+                    }
                 )
             rel["groups"].append({"kind": kind.strip(), "items": items})
         out.append(rel)
@@ -830,7 +836,8 @@ def whats_new_html(release: dict[str, Any] | None = None) -> str:
     """The versions, newest first. The latest GitHub release (from apps.json) gets its download link."""
     rels = whats_new()
     toc = "".join(
-        f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(r["date"])}</span></a></li>' for r in rels
+        f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(r["date"])}</span></a></li>'
+        for r in rels
     )
     parts = [f'<nav class="wn-toc" aria-label="Versions"><ol>{toc}</ol></nav>']
     for i, r in enumerate(rels):
@@ -945,7 +952,11 @@ def downloads_html(release: dict[str, Any] | None) -> str:
             f'<div class="dl-btns">{btns}</div></article>'
         )
     ids = " ".join(f"dl-{a['key']}" for a in release["assets"])
-    foot = [f'<span>Version {e(release["version"])}' + (f" · {e(release['date'])}" if release.get("date") else "") + "</span>"]
+    foot = [
+        f"<span>Version {e(release['version'])}"
+        + (f" · {e(release['date'])}" if release.get("date") else "")
+        + "</span>"
+    ]
     foot.append(f'<a href="{e(release["page"])}">Release notes on GitHub</a>')
     if release.get("checksums"):
         foot.append(f'<a href="{e(release["checksums"])}">SHA-256 checksums</a>')
@@ -962,6 +973,15 @@ def downloads_html(release: dict[str, Any] | None) -> str:
 
 
 # =============================================================================================== hand pages
+def toc_html(body: str) -> str:
+    """The "On this page" list: a link to every <h2 id> of a long legal page (sticky beside the text when wide)."""
+    heads = re.findall(r'<h2 id="([\w-]+)"[^>]*>(.*?)</h2>', body, re.S)
+    items = "".join(
+        f'<li><a href="#{hid}">{re.sub(r"<[^>]+>", "", text).strip()}</a></li>' for hid, text in heads
+    )
+    return f'<nav class="toc" aria-label="On this page"><div><p>On this page</p><ol>{items}</ol></div></nav>'
+
+
 def fill(body: str, name: str, content: str) -> str:
     pat = re.compile(rf"(<!-- gen:{name} -->)(.*?)(<!-- /gen:{name} -->)", re.S)
     if not pat.search(body):
@@ -1060,6 +1080,8 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
     body = fill(body, "games", "\n".join(game_cards))
     if "<!-- gen:whatsnew -->" in body:
         body = fill(body, "whatsnew", whats_new_html(data.get("release")))
+    if "<!-- gen:toc -->" in body:
+        body = fill(body, "toc", toc_html(body))
     if "<!-- gen:downloads -->" in body:
         body = fill(body, "downloads", downloads_html(data.get("release")))
     lic = legal.licences_html()
@@ -1101,7 +1123,6 @@ def write_theme_css() -> None:
     head, rest = css.split(start, 1)
     tail = rest.split(end, 1)[1]
     path.write_text(f"{head}{start}\n{site_theme.css()}\n{end}{tail}", encoding="utf-8", newline="\n")
-
 
 
 # The DeskDot mark: an LED "D" (rose → tangerine by column) and the gold "dot" beside it, on the panel's black.

@@ -15,7 +15,138 @@ from __future__ import annotations
 import html
 from typing import Any
 
-DEFAULT = "ember"
+DEFAULT = "ember"  # the studio's default: site/styles.css's :root is its look, so it emits no block
+# The website's own default for first-time visitors (the studio and the web app keep "ember"): a calm, retro look —
+# a deep teal-navy night or a warm paper day, softer layers, the logo's LED rose and gold as the accents with a
+# sunset orange and a teal as their only companions, gentle glows. Hand-tuned (not derived from seeds) and AA-checked
+# by retro_contrast() / tests/test_site_data.py. Visitors who picked a theme keep it (localStorage deskdot.pageTheme).
+SITE_DEFAULT = "retro"
+RETRO_NAME = "Retro calm"
+RETRO_DESCRIPTION = "The website's default: a teal-navy night or a warm paper day, lit in LED rose and gold."
+RETRO = {
+    "dark": {
+        "bg": "#111a22",
+        "bg-2": "#15202a",
+        "chassis": "#1a2632",
+        "chassis-2": "#213040",
+        "line": "#263543",
+        "line-2": "#354757",
+        "ink": "#f1e9da",
+        "ink-2": "#c6beb0",
+        "ink-3": "#9c968a",
+        "rose": "#ff7396",
+        "tangerine": "#ff9a62",
+        "gold": "#f6c453",
+        "gold-metal": "#f6c453",
+        "ember": "#ff8a65",
+        "ember-2": "#ffab8a",
+        "cyan": "#5fd4c4",
+        "green": "#8fdcaa",
+        "violet": "#b9a3ff",
+        "link": "#ff9ab2",
+        "link-hover": "#ffc4d2",
+        "well": "rgba(241, 233, 218, 0.03)",
+        "well-2": "rgba(241, 233, 218, 0.055)",
+        "well-3": "rgba(241, 233, 218, 0.085)",
+        "code-bg": "#0e161d",
+        "code-head": "#15202a",
+        "code-ink": "#e6dfd2",
+        "code-dim": "#948e84",
+        "code-inline": "#1f2c38",
+        "dot-grid": "rgba(241, 233, 218, 0.05)",
+        "divider-dot": "#f6c453",
+        "wash-1": "rgba(255, 115, 150, 0.07)",
+        "wash-2": "rgba(95, 212, 196, 0.05)",
+        "wash-3": "rgba(246, 196, 83, 0.05)",
+        "selection": "rgba(255, 115, 150, 0.35)",
+        "primary-a": "#ff8fab",
+        "primary-b": "#ff7396",
+        "primary-c": "#f25f86",
+        "primary-line": "#ffa3ba",
+        "on-primary": "#2a0d17",
+        "primary-glow": "rgba(255, 115, 150, 0.18)",
+        "accent-line": "#4a3442",
+        "accent-wash": "rgba(255, 115, 150, 0.05)",
+        "gold-line": "#4f4428",
+        "gold-wash": "rgba(246, 196, 83, 0.06)",
+        "rose-line": "#4a3442",
+        "rose-wash": "rgba(255, 115, 150, 0.05)",
+        "notice-bg": "#162029",
+        "shadow": "rgba(4, 10, 16, 0.45)",
+        "shadow-strong": "rgba(4, 10, 16, 0.65)",
+        "theme-color": "#111a22",
+        "btn-fill": "linear-gradient(180deg, #223140, #1a2632)",
+    },
+    "light": {
+        "bg": "#f3ead8",
+        "bg-2": "#f8f2e5",
+        "chassis": "#fdf9f0",
+        "chassis-2": "#eee3cd",
+        "line": "#e2d5bb",
+        "line-2": "#d1c1a2",
+        "ink": "#1f2430",
+        "ink-2": "#464954",
+        "ink-3": "#5f5c60",
+        "rose": "#b52a55",
+        "tangerine": "#a8460f",
+        "gold": "#7f5b0c",
+        "gold-metal": "#c99a2e",
+        "ember": "#a63e16",
+        "ember-2": "#b52a55",
+        "cyan": "#0f6e66",
+        "green": "#2a7346",
+        "violet": "#6247a8",
+        "link": "#b02a52",
+        "link-hover": "#861c3c",
+        "well": "rgba(80, 60, 30, 0.035)",
+        "well-2": "rgba(80, 60, 30, 0.06)",
+        "well-3": "rgba(80, 60, 30, 0.09)",
+        "code-bg": "#f8f2e5",
+        "code-head": "#eee3cd",
+        "code-ink": "#2a2c36",
+        "code-dim": "#5f5c60",
+        "code-inline": "#eee3cd",
+        "dot-grid": "rgba(80, 60, 30, 0.085)",
+        "divider-dot": "#b52a55",
+        "wash-1": "rgba(181, 42, 85, 0.05)",
+        "wash-2": "rgba(15, 110, 102, 0.04)",
+        "wash-3": "rgba(201, 154, 46, 0.07)",
+        "selection": "rgba(181, 42, 85, 0.2)",
+        "primary-a": "#c9416a",
+        "primary-b": "#b52a55",
+        "primary-c": "#9c2148",
+        "primary-line": "#c9416a",
+        "on-primary": "#ffffff",
+        "primary-glow": "rgba(181, 42, 85, 0.16)",
+        "accent-line": "#e7bcc6",
+        "accent-wash": "rgba(181, 42, 85, 0.04)",
+        "gold-line": "#e2c98a",
+        "gold-wash": "rgba(201, 154, 46, 0.08)",
+        "rose-line": "#e7bcc6",
+        "rose-wash": "rgba(181, 42, 85, 0.045)",
+        "notice-bg": "#f6e4dc",
+        "shadow": "rgba(80, 60, 30, 0.16)",
+        "shadow-strong": "rgba(60, 44, 20, 0.3)",
+        "theme-color": "#f3ead8",
+        "btn-fill": "linear-gradient(180deg, rgba(255, 252, 245, 0.92), rgba(253, 249, 240, 0.7))",
+    },
+}
+# text tokens that must stay AA (4.5:1) on every surface they sit on
+_RETRO_TEXT = (
+    "ink",
+    "ink-2",
+    "ink-3",
+    "rose",
+    "tangerine",
+    "gold",
+    "ember",
+    "ember-2",
+    "cyan",
+    "green",
+    "violet",
+    "link",
+)
+_RETRO_SURFACES = ("bg", "bg-2", "chassis", "chassis-2")
 
 DARK = {
     "c0": "#08080a",
@@ -162,9 +293,35 @@ def _block(d: dict[str, str], *, light: bool, tinted: bool, texture: str, size: 
     return "\n  ".join(lines)
 
 
+def retro_contrast() -> dict[str, float]:
+    """The lowest contrast of each Retro calm text colour over its surfaces, per mode ("dark.ink-3": 4.57, …)."""
+    return {
+        f"{mode}.{k}": min(contrast(tok[k], tok[bg]) for bg in _RETRO_SURFACES)
+        for mode, tok in RETRO.items()
+        for k in _RETRO_TEXT
+    } | {f"{mode}.on-primary": contrast(tok["on-primary"], tok["primary-b"]) for mode, tok in RETRO.items()}
+
+
+def retro_css() -> str:
+    """Retro calm's swatch and its light and dark token blocks (hand-tuned, see RETRO)."""
+
+    def block(tok: dict[str, str]) -> str:
+        return "\n  ".join(f"--{k}: {v};" for k, v in tok.items())
+
+    d, lt = RETRO["dark"], RETRO["light"]
+    sel = f':root[data-page-theme="{SITE_DEFAULT}"]'
+    return (
+        f".sw-{SITE_DEFAULT} {{ --sw-a: {d['rose']}; --sw-m: {d['gold']}; --sw-t: {d['chassis']}; }}\n"
+        f':root[data-theme="light"] .sw-{SITE_DEFAULT} {{ --sw-a: {lt["rose"]}; --sw-m: {lt["gold-metal"]};'
+        f" --sw-t: {lt['chassis-2']}; }}\n"
+        f'{sel} {{\n  {block(d)}\n}}\n{sel}[data-theme="light"] {{\n  {block(lt)}\n}}'
+    )
+
+
 def css() -> str:
     """The stylesheet for every non-default theme, light and dark, plus the swatch colours of all of them."""
     parts = ["/* generated by scripts/site_theme.py from src/deskdot/gfx/themes.py: do not edit by hand */"]
+    parts.append(retro_css())
     for t in themes():
         dv = derive(t)
         d, lt = dv["dark"], dv["light"]
@@ -191,15 +348,16 @@ def menu_html() -> str:
         f'<button type="button" data-theme-pick="{mid}" aria-pressed="false">{label}</button>'
         for mid, label in (("light", "Light"), ("dark", "Dark"), ("system", "Auto"))
     )
+    picks = [{"id": SITE_DEFAULT, "name": RETRO_NAME}, *themes()]
     sw = "".join(
         f'<button type="button" class="sw sw-{t["id"]}" data-page-theme-pick="{t["id"]}" aria-pressed="false" '
         f'title="{html.escape(t["name"])}"><i aria-hidden="true"></i><span>{html.escape(t["name"])}</span></button>'
-        for t in themes()
+        for t in picks
     )
     return f"""<div class="theme-menu" id="theme-menu" role="dialog" aria-modal="false" aria-labelledby="theme-menu-h" hidden>
   <div class="theme-menu-head"><h2 id="theme-menu-h">Appearance</h2><button type="button" class="theme-close" aria-label="Close">×</button></div>
   <div class="seg" role="group" aria-label="Light or dark">{modes}</div>
   <h3>Page theme <small id="theme-name"></small></h3>
   <div class="swatches" role="group" aria-label="Page theme">{sw}</div>
-  <p class="theme-note">The same 21 themes as the DeskDot studio. Saved in this browser; the web app opens in it too.</p>
+  <p class="theme-note">Retro calm is the website's own; the other 21 are the DeskDot studio's (the web app opens in those too). Saved in this browser.</p>
 </div>"""

@@ -187,3 +187,15 @@ def test_site_themes_mirror_the_studio() -> None:
         if tid != "ember":
             assert f':root[data-page-theme="{tid}"][data-theme="light"]' in css, tid
     assert ':root[data-theme="light"]' in css and "prefers-reduced-transparency" in css
+
+
+def test_site_default_theme_is_retro_calm_and_aa() -> None:
+    """First-time visitors get the website's own Retro calm theme (light / dark from the OS); its text is AA."""
+    pages = _load("build_site_pages")
+    theme = _load("site_theme")
+    assert 'p=p||"retro"' in pages.INLINE_JS
+    css = (SITE / "styles.css").read_text(encoding="utf-8")
+    assert ':root[data-page-theme="retro"][data-theme="light"]' in css
+    assert 'data-page-theme-pick="retro"' in (SITE / "index.html").read_text(encoding="utf-8")
+    low = {k: v for k, v in theme.retro_contrast().items() if v < 4.5}
+    assert not low, low
