@@ -48,17 +48,19 @@ START, END = "<!-- page:start -->", "<!-- page:end -->"
 # it) and as supporting cross-document View Transitions (`vt`: the CSS fade-in fallback then stays off).
 # netlify.toml's Content-Security-Policy allows exactly this script by its hash (see csp_hash()).
 # It also hides the "unofficial" notice strip before paint once a visitor has dismissed it (main.js stores that),
-# and applies the theme like the studio's index.html does: light / dark / auto (`deskdot.theme`) as
-# <html data-theme>, and the page theme (`deskdot.pageTheme`) as <html data-page-theme> — so no page ever flashes
-# the wrong theme. A first-time visitor (nothing stored) gets the website's default page theme, Retro calm
-# (site_theme.SITE_DEFAULT), with light / dark following the OS. main.js runs the theme menu.
+# and applies the theme before first paint, so no page ever flashes the wrong one: light / dark / auto
+# (`deskdot.theme`, shared with the studio; nothing stored = dark) as <html data-theme>, and the table theme — the
+# casino's 21 table themes (site_theme.py) — as <html data-page-theme>: `deskdot.siteTheme`, else the studio's
+# `deskdot.pageTheme` when that id is also a table, else Cyber grid (site_theme.DEFAULT). main.js runs the menu.
 INLINE_JS = (
-    'var d=document.documentElement,t,p;d.className+=" js"+("onpagereveal" in window?" vt":"");'
+    "var d=document.documentElement,t,p,q,r=/^(" + "|".join(site_theme.ids()) + ")$/;"
+    'd.className+=" js"+("onpagereveal" in window?" vt":"");'
     'try{localStorage.getItem("dd-notice")==="1"&&(d.className+=" no-notice");'
-    't=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.pageTheme")}catch(e){}'
-    't==="light"||t==="dark"||(t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");'
+    't=localStorage.getItem("deskdot.theme");p=localStorage.getItem("deskdot.siteTheme");'
+    'q=localStorage.getItem("deskdot.pageTheme")}catch(e){}'
+    't==="light"||t==="dark"||(t=t==="system"&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");'
     'd.setAttribute("data-theme",t);'
-    'p=p||"retro";p!=="ember"&&/^[a-z]{2,20}$/.test(p)&&d.setAttribute("data-page-theme",p)'
+    'r.test(p)||(p=r.test(q)?q:"' + site_theme.DEFAULT + '");d.setAttribute("data-page-theme",p)'
 )
 
 NAV = [
@@ -272,7 +274,7 @@ def head(
         tags.append(f'<link rel="canonical" href="{_url(path)}" />')
     img = SITE_URL + og_image
     tags += [
-        '<meta name="theme-color" content="#111a22" />',
+        '<meta name="theme-color" content="#06080a" />',
         '<meta name="color-scheme" content="dark light" />',
         '<meta name="author" content="Shiv Patel" />',
         f'<meta property="og:type" content="{og_type}" />',
@@ -1113,16 +1115,23 @@ def build_hand_page(name: str, data: dict[str, Any]) -> str:
 
 
 # =============================================================================================== static extras
-def write_theme_css() -> None:
-    """The 21 page themes for the website (scripts/site_theme.py), between the gen:themes markers in styles.css."""
-    path = SITE / "styles.css"
-    css = path.read_text(encoding="utf-8")
-    start, end = "/* gen:themes */", "/* /gen:themes */"
-    if start not in css or end not in css:
+def _fill_markers(path: Path, name: str, content: str, *, sep: str = "\n") -> None:
+    text = path.read_text(encoding="utf-8")
+    start, end = f"/* gen:{name} */", f"/* /gen:{name} */"
+    if start not in text or end not in text:
         raise SystemExit(f"{path}: missing {start} / {end}")
-    head, rest = css.split(start, 1)
+    head, rest = text.split(start, 1)
     tail = rest.split(end, 1)[1]
-    path.write_text(f"{head}{start}\n{site_theme.css()}\n{end}{tail}", encoding="utf-8", newline="\n")
+    path.write_text(f"{head}{start}{sep}{content}{sep}{end}{tail}", encoding="utf-8", newline="\n")
+
+
+def write_theme_css() -> None:
+    """The casino's 21 table themes (scripts/site_theme.py): the website's (styles.css) and the web app's landing card
+    (web/webapp/host.css + the id list in host.js; build_webapp.py copies them to site/app/host/)."""
+    _fill_markers(SITE / "styles.css", "themes", site_theme.css())
+    webapp = ROOT / "web" / "webapp"
+    _fill_markers(webapp / "host.css", "tables", site_theme.host_css())
+    _fill_markers(webapp / "host.js", "table-ids", json.dumps(site_theme.ids()), sep="")
 
 
 # The DeskDot mark: an LED "D" (rose → tangerine by column) and the gold "dot" beside it, on the panel's black.

@@ -174,28 +174,41 @@ def test_netlify_config_matches_the_site() -> None:
     assert (SITE / "404.html").exists() and (SITE / "CNAME").read_text().strip() == "idotmatrix.com"
 
 
-def test_site_themes_mirror_the_studio() -> None:
-    """Light / dark / auto and all 21 page themes: applied before first paint, styled, and offered in the menu."""
+def test_site_themes_are_the_casino_tables() -> None:
+    """Light / dark / auto and the casino's 21 table themes: applied before first paint, styled in both modes, offered
+    in the menu with their felt motif, and the same themes on the web app's landing card."""
     pages = _load("build_site_pages")
-    assert "deskdot.theme" in pages.INLINE_JS and "deskdot.pageTheme" in pages.INLINE_JS
-    from deskdot.gfx.themes import PAGE_THEMES
+    js = pages.INLINE_JS
+    assert "deskdot.theme" in js and "deskdot.siteTheme" in js
+    from deskdot.apps._casino import TABLE_THEMES
 
     css = (SITE / "styles.css").read_text(encoding="utf-8")
     index = (SITE / "index.html").read_text(encoding="utf-8")
-    for tid in PAGE_THEMES:
-        assert f'data-page-theme-pick="{tid}"' in index, tid
-        if tid != "ember":
-            assert f':root[data-page-theme="{tid}"][data-theme="light"]' in css, tid
+    host_css = (ROOT / "web" / "webapp" / "host.css").read_text(encoding="utf-8")
+    host_js = (ROOT / "web" / "webapp" / "host.js").read_text(encoding="utf-8")
+    for tid, t in TABLE_THEMES.items():
+        assert f'data-page-theme-pick="{tid}"' in index and f'title="{t.name}"' in index.replace(
+            "&amp;", "&"
+        ), tid
+        assert f':root[data-page-theme="{tid}"][data-theme="light"]' in css, tid
+        assert f".sw-{tid} {{ --sw-t: {t.css['felt']};" in css, tid
+        assert f':host([data-table-theme="{tid}"])' in host_css, tid
+        assert tid in js and f'"{tid}"' in host_js, tid
+    assert 'data-page-theme-pick="retro"' not in index and 'data-page-theme-pick="ember"' not in index
     assert ':root[data-theme="light"]' in css and "prefers-reduced-transparency" in css
 
 
-def test_site_default_theme_is_retro_calm_and_aa() -> None:
-    """First-time visitors get the website's own Retro calm theme (light / dark from the OS); its text is AA."""
+def test_site_default_theme_is_cyber_grid_dark() -> None:
+    """First-time visitors get Cyber grid in dark (an explicit Light / Auto pick is kept)."""
     pages = _load("build_site_pages")
-    theme = _load("site_theme")
-    assert 'p=p||"retro"' in pages.INLINE_JS
+    js = pages.INLINE_JS
+    assert ':"cyber")' in js and 't==="system"&&matchMedia' in js
     css = (SITE / "styles.css").read_text(encoding="utf-8")
-    assert ':root[data-page-theme="retro"][data-theme="light"]' in css
-    assert 'data-page-theme-pick="retro"' in (SITE / "index.html").read_text(encoding="utf-8")
-    low = {k: v for k, v in theme.retro_contrast().items() if v < 4.5}
+    assert ':root[data-page-theme="cyber"], :root:not([data-page-theme])' in css  # no JS: Cyber grid too
+
+
+def test_site_table_themes_are_aa() -> None:
+    """Every text tone of every table theme, dark and light, is AA on every surface it sits on; keys too."""
+    theme = _load("site_theme")
+    low = {k: round(v, 2) for k, v in theme.contrast_report().items() if v < 4.5}
     assert not low, low

@@ -486,24 +486,26 @@
     fromHash();
   }
 
-  /* ===================================================================== 4. light / dark / auto and page themes
-   * Same storage and attributes as the studio (web/src/lib/theme.ts, lib/pageTheme.ts), so the web app at /app/ opens
-   * in the theme picked here and the other way round. The inline script in <head> applied it before first paint. */
-  const THEME_KEY = "deskdot.theme", PAGE_KEY = "deskdot.pageTheme", PAGE_CSS_KEY = "deskdot.pageThemeCss";
+  /* ===================================================================== 4. light / dark / auto and table themes
+   * Light / dark / auto is the studio's (web/src/lib/theme.ts: `deskdot.theme`, shared with the web app at /app/; nothing
+   * stored = dark here). The table theme is one of the casino's 21 (scripts/site_theme.py), kept in `deskdot.siteTheme`
+   * (the web app's landing card reads it too); an old studio pick that is also a table id still counts, else Cyber grid.
+   * The inline script in <head> applied both before first paint. */
+  const THEME_KEY = "deskdot.theme", PAGE_KEY = "deskdot.siteTheme", STUDIO_KEY = "deskdot.pageTheme", DEFAULT = "cyber";
   const root = document.documentElement;
   const light = matchMedia("(prefers-color-scheme: light)");
   const local = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* private mode: this page only */ } },
-    del(k) { try { localStorage.removeItem(k); } catch { /* nothing to remove */ } },
   };
   const menu = $("#theme-menu"), themeBtn = $("#theme-btn");
   const swatches = $$("[data-page-theme-pick]", menu || document);
-  const pref = () => { const v = local.get(THEME_KEY); return v === "light" || v === "dark" ? v : "system"; };
+  const pref = () => { const v = local.get(THEME_KEY); return v === "light" || v === "dark" || v === "system" ? v : "dark"; };
   const resolve = (p) => (p === "system" ? (light.matches ? "light" : "dark") : p);
+  const known = (v) => swatches.some((b) => b.dataset.pageThemePick === v);
   const pageTheme = () => {
-    const v = local.get(PAGE_KEY);
-    return swatches.some((b) => b.dataset.pageThemePick === v) ? v : "retro"; // the website's default (site_theme.SITE_DEFAULT)
+    const v = local.get(PAGE_KEY), w = local.get(STUDIO_KEY);
+    return known(v) ? v : known(w) ? w : DEFAULT;
   };
   const sync = () => {
     $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === pref())));
@@ -513,7 +515,7 @@
     const cur = swatches.find((b) => b.dataset.pageThemePick === pt);
     if (name && cur) name.textContent = cur.title;
     const meta = $('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", getComputedStyle(root).getPropertyValue("--theme-color").trim() || "#08070a");
+    if (meta) meta.setAttribute("content", getComputedStyle(root).getPropertyValue("--theme-color").trim() || "#06080a");
   };
   const paint = (fn) => {
     const go = () => { fn(); sync(); redraws.forEach((r) => r()); };
@@ -530,7 +532,7 @@
     go();
   };
   const applyMode = (p) => paint(() => root.setAttribute("data-theme", resolve(p)));
-  const applyPage = (id) => paint(() => (id === "ember" ? root.removeAttribute("data-page-theme") : root.setAttribute("data-page-theme", id)));
+  const applyPage = (id) => paint(() => root.setAttribute("data-page-theme", id));
   const openMenu = (open, from) => {
     if (!menu) return;
     menu.hidden = !open;
@@ -555,7 +557,6 @@
     }));
     swatches.forEach((b) => b.addEventListener("click", () => {
       local.set(PAGE_KEY, b.dataset.pageThemePick);
-      local.del(PAGE_CSS_KEY); // the web app's first-paint copy is for another theme now: it re-derives on load
       applyPage(b.dataset.pageThemePick);
     }));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) openMenu(false, opener || themeBtn); });

@@ -941,6 +941,16 @@
       host.setAttribute("data-theme", document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
       host.setAttribute("data-glass", document.documentElement.getAttribute("data-glass") || "liquid");
     };
+    // …and the website's table theme (idotmatrix.com's theme menu: the casino's table themes, scripts/site_theme.py):
+    // localStorage deskdot.siteTheme, else an old studio pick that is also a table, else Cyber grid
+    const TABLES = /* gen:table-ids */["classic", "royal", "crimson", "midnight", "strip", "emerald", "burgundy", "noir", "jade", "deco", "marigold", "diwali", "cyber", "arcade", "sakura", "arctic", "oasis", "abyss", "volcano", "galaxy", "riverboat"]/* /gen:table-ids */;
+    const tableTheme = () => {
+      let v = null, w = null;
+      try { v = localStorage.getItem("deskdot.siteTheme"); w = localStorage.getItem("deskdot.pageTheme"); } catch { /* storage blocked */ }
+      return TABLES.indexOf(v) >= 0 ? v : TABLES.indexOf(w) >= 0 ? w : "cyber";
+    };
+    host.setAttribute("data-table-theme", tableTheme());
+    addEventListener("storage", (e) => { if (e.key === "deskdot.siteTheme") host.setAttribute("data-table-theme", tableTheme()); });
     syncTheme();
     new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-glass"] });
     root.innerHTML = `<link rel="stylesheet" href="${new URL("host.css", BASE).href}">

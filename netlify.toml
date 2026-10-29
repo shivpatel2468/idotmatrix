@@ -58,22 +58,22 @@
 [[headers]]
   for = "/"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-u08SAEvJF3/VuaoHpG5i9Pp+hY5H1M7Pb3O7sC2PFSI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-c8Sg8PItWluKkdED4In/qHKq5xDbeBGeO3NN/VjPD4o='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/:page"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-u08SAEvJF3/VuaoHpG5i9Pp+hY5H1M7Pb3O7sC2PFSI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-c8Sg8PItWluKkdED4In/qHKq5xDbeBGeO3NN/VjPD4o='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/apps/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-u08SAEvJF3/VuaoHpG5i9Pp+hY5H1M7Pb3O7sC2PFSI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-c8Sg8PItWluKkdED4In/qHKq5xDbeBGeO3NN/VjPD4o='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 [[headers]]
   for = "/media/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-u08SAEvJF3/VuaoHpG5i9Pp+hY5H1M7Pb3O7sC2PFSI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-c8Sg8PItWluKkdED4In/qHKq5xDbeBGeO3NN/VjPD4o='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), display-capture=()"
 
 # The web app (docs/WEB_APP.md): Pyodide from the pinned jsDelivr CDN ('wasm-unsafe-eval' compiles its WebAssembly),
