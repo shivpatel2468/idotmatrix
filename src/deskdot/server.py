@@ -73,6 +73,7 @@ from .providers.custom import NAME as CUSTOM_NAME
 from .providers.custom import CustomApp
 from .providers.sports import LEAGUES
 from .tvlink import TvHub, TvLink, tv_page, tv_script
+from .updates import UpdateError, Updater
 
 log = logging.getLogger("deskdot.server")
 
@@ -131,6 +132,8 @@ class Hub:
         self.engine = engine
         self.clients: set[Client] = set()
         self._state_task: asyncio.Task[None] | None = None
+        #: extra top-level keys for the state message (e.g. "updates"), each computed when the state is sent
+        self.extras: dict[str, Any] = {}
         engine.state_listeners.add(self.state_changed)
         engine.device._on_change = self.state_changed
 
@@ -148,10 +151,16 @@ class Hub:
 
     async def _send_state(self) -> None:
         await asyncio.sleep(0.05)  # coalesce bursts
-        msg = json.dumps({"type": "state", "state": self.engine.snapshot()}, default=str)
+        msg = json.dumps({"type": "state", "state": self.snapshot()}, default=str)
         for c in self.clients:
             c.state = msg
             c.wake.set()
+
+    def snapshot(self) -> dict[str, Any]:
+        snap = self.engine.snapshot()
+        for key, fn in self.extras.items():
+            snap[key] = fn()
+        return snap
 
     async def heartbeat(self) -> None:
         while True:
@@ -189,6 +198,10 @@ class DisplayPatch(BaseModel):
     smoothing: float | None = Field(default=None, ge=0, le=0.6, description="temporal smoothing of streams")
     motion_preset: str | None = Field(default=None, max_length=40, description="motion preset tag (studio)")
     night: dict[str, Any] | None = None
+
+
+class UpdatesBody(BaseModel):
+    auto_check: bool = Field(description="Check GitHub for a new version every 6 hours")
 
 
 class TvSettings(BaseModel):
@@ -309,6 +322,8 @@ def create_app(cfg: Config) -> FastAPI:
     ws_hub = Hub(engine)
     holder["hub"] = ws_hub
     previews = Previews(engine)
+    updater = Updater(store, cfg.data_dir, device=cfg.device, on_change=ws_hub.state_changed)
+    ws_hub.extras["updates"] = updater.brief
 
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -316,6 +331,7 @@ def create_app(cfg: Config) -> FastAPI:
         if cfg.device not in ("sim", "web"):
             start_power_watch(engine, asyncio.get_running_loop())  # sleep -> hand the panel its clock
         beat = asyncio.create_task(ws_hub.heartbeat())
+        update_check = asyncio.create_task(updater.auto_loop())
         log.info(
             "DeskDot %s on http://%s:%d (device=%s, plugins=%s)",
             __version__,
@@ -328,6 +344,7 @@ def create_app(cfg: Config) -> FastAPI:
             yield
         finally:
             beat.cancel()
+            update_check.cancel()
             await engine.stop()
 
     app = FastAPI(title="DeskDot", version=__version__, lifespan=lifespan)
@@ -792,7 +809,31 @@ def create_app(cfg: Config) -> FastAPI:
 
     @app.get("/api/state")
     async def state() -> dict[str, Any]:
-        return engine.snapshot()
+        return ws_hub.snapshot()
+
+    # ------------------------------------------------------------ updates (src/deskdot/updates.py)
+    @app.get("/api/updates")
+    async def updates_info() -> dict[str, Any]:
+        """This version, the latest release (cached, checked at most every 6 h) and its installer for this OS."""
+        return updater.info()
+
+    @app.post("/api/updates/check")
+    async def updates_check() -> dict[str, Any]:
+        """Ask GitHub now (Check now in Settings)."""
+        return await updater.check(force=True)
+
+    @app.put("/api/updates")
+    async def updates_settings(body: UpdatesBody) -> dict[str, Any]:
+        updater.set_auto_check(body.auto_check)
+        return updater.info()
+
+    @app.post("/api/updates/install")
+    async def updates_install() -> dict[str, Any]:
+        """Download the installer for this OS, verify its SHA-256 and hand off (the engine restarts on desktop)."""
+        try:
+            return await updater.install()
+        except UpdateError as e:
+            raise HTTPException(409, str(e)) from e
 
     @app.get("/api/fly")
     async def fly() -> dict[str, Any]:

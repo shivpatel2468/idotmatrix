@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,8 @@ from deskdot.config import Config, Store
 from deskdot.device import SimDevice
 from deskdot.engine import Engine
 from deskdot.providers import build_hub
+
+os.environ.setdefault("DESKDOT_UPDATE_CHECK", "0")  # no background calls to GitHub from test engines
 
 
 @pytest.fixture
