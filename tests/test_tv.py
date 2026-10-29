@@ -316,3 +316,26 @@ def test_tv_page_built_for_the_join_page() -> None:
     assert "/tv/${code}" in join and '"tv"' in join
     rtc = (root / "web" / "webapp" / "host-rtc.js").read_text(encoding="utf-8")
     assert '"/api/tv"' in rtc
+
+
+def test_tv_wears_the_page_theme(tmp_path: Path) -> None:
+    """The studio's page theme (a casino table id) reaches every TV in hello and state (docs/TV_VIEW.md §2), and the
+    TV's generated copy of the themes (tv/tv-themes.js) is current and loaded before tv.js."""
+    with _client(tmp_path) as c:
+        code = c.post("/api/tv").json()["code"]
+        with c.websocket_connect(f"/ws/tv/{code}") as tv:
+            hello = _until(tv, lambda m: isinstance(m, dict) and m["type"] == "hello")
+            assert hello["page_theme"] == "cyber"
+            c.post("/api/theme", json={"id": "royal"})
+            st = _until(
+                tv, lambda m: isinstance(m, dict) and m["type"] == "state" and m["page_theme"] == "royal"
+            )
+            assert st["page_theme"] == "royal"
+        assert c.get("/tv/static/tv-themes.js").status_code == 200
+    root = Path(__file__).resolve().parents[1]
+    page = (root / "src/deskdot/tv.html").read_text(encoding="utf-8")
+    assert page.index("tv-themes.js") < page.index("/tv/static/tv.js")
+    js = (root / "src/deskdot/tv/tv-themes.js").read_text(encoding="utf-8")
+    assert (
+        '"cyber"' in js and '"--chassis-0"' in js and "backdrop-filter:" not in page
+    )  # static faux glass (§6)

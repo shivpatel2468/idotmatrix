@@ -9,7 +9,8 @@ the scripts in `tv/`), whose socket `/ws/tv/<code>` receives
   bets are locked) — about 5 times a second when something changed, else a heartbeat every 2 s,
 - binary frames: the panel, 32×32×3 RGB, at most 12 a second, newest wins (no backlog per TV).
 
-Both text messages carry `display` — the studio's choice of panel look and quality for every TV of the link
+Both text messages carry `page_theme` (the studio's page theme: a casino table id the TV wears outside the casino)
+and `display` — the studio's choice of panel look and quality for every TV of the link
 (`POST /api/tv/settings`), `{"look", "quality", "rev"}`: a TV applies it whenever `rev` changes (until someone picks
 on that TV again). One TV code at a time, never equal to the lobby code.
 
@@ -204,6 +205,11 @@ class TvHub:
         cur = self.engine.current
         return (cur.app.id, cur.app) if cur is not None else (None, None)
 
+    def _page_theme(self) -> str | None:
+        """The studio's page theme (a casino table id): the TV wears it outside the casino (docs/TV_VIEW.md §2)."""
+        th = getattr(self.engine, "page_theme", None)
+        return getattr(th, "id", None)
+
     def hello_msg(self) -> str:
         app_id, app = self._current()
         meta = None
@@ -223,6 +229,7 @@ class TvHub:
                 "meta": meta,
                 "avatars": self._avatars,
                 "display": self.link.display,
+                "page_theme": self._page_theme(),
                 "server_time": time.time(),
             }
         )
@@ -246,6 +253,7 @@ class TvHub:
                 "lobby": self.lobby.snapshot(),
                 "tv": tv,
                 "display": self.link.display,
+                "page_theme": self._page_theme(),
             },
             default=str,
         )

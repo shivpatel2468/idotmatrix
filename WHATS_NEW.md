@@ -30,6 +30,12 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Before: idotmatrix.com and the web app at /app could show different colours.
   - Now: the web app opens in the same table theme you picked on the website, and a theme you pick in the web app
     shows on the website too.
+- **The TV view matches too**
+  - Before: the TV always showed the old dark grey and orange look outside the casino, with a flat bar on top.
+  - Now: the TV wears the same table theme as the studio (Cyber grid unless you picked another), and at a casino
+    table the table's own theme. The top bar is a floating glass capsule with the DeskDot lights in the middle,
+    and the cards and the options menu are tinted like the casino's side panels. It runs just as smoothly on TV
+    sticks.
 - **Apps on the panel follow the table too**
   - Before: with the default theme, clocks and dashboards kept their own colours.
   - Now: apps that follow the page theme take the table's LED colours under every theme, the default too. Turn off

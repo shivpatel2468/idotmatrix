@@ -13,7 +13,7 @@
   --chassis-0: #08080a; --chassis-1: #0f0f13; --chassis-2: #16161b; --chassis-3: #1e1e25; --chassis-4: #27272f;
   --line: #25252d; --line-2: #33333d;
   --ink-1: #efece4; --ink-2: #b6b2a8; --ink-3: #7a7783; --ink-4: #484651;
-  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --gold-text: #ffcc33; --pink: #ff3f78;
+  --ember: #ff4818; --ember-2: #ff7a4d; --gold: #ffcc33; --gold-text: #ffcc33; --pink: #ff3f78; --ember-rgb: 255, 72, 24;
   --ok: #3ddc84; --warn: #ffb020; --bad: #ff4757; --info: #36c5f0;
   /* type (docs/TV_VIEW.md §2): one self-hosted sans for the UI and the numbers (Bricolage Grotesque, the studio's own,
      SIL OFL — tv.js loads tv/tv-sans.woff2), a display serif for titles (the system's: Didot / Bodoni on a Mac,
@@ -171,9 +171,11 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 @media (prefers-reduced-motion: reduce) { .g-live i { animation: none; } }
 
 /* ------------------------------------------------------------------ the table theme on the bar and the page
-   While a casino table shows (stage[data-table]), the bar, the page behind the scene and the veil take the table
-   theme's wing / felt / accent tones (tv.js applyTheme); registered colours cross-fade on a theme change and the
-   bar fades back to the DeskDot look for any other app. The LED wordmark keeps its own two colours. */
+   The TV always stands in a casino table's room (stage[data-room]): the table on screen at a casino table
+   (stage[data-table] adds its engraved name and gilded rule), else the studio's page theme — itself one of the
+   tables (tv.js applyRoom, tv-themes.js). The bar, the page behind the scene and the veil take the table's wing / felt
+   / accent tones and its felt's motif; registered colours cross-fade on a theme change. The LED wordmark keeps its own
+   two colours. */
 @property --wing { syntax: "<color>"; inherits: true; initial-value: #16161c; }
 @property --wing3 { syntax: "<color>"; inherits: true; initial-value: #0c0c10; }
 @property --felt3 { syntax: "<color>"; inherits: true; initial-value: #06301c; }
@@ -185,23 +187,23 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   --bar-line .8s ease, --bar-tint .8s ease; }
 #stage::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease; pointer-events: none;
   background: radial-gradient(1500px 1000px at 50% 45%, var(--wing) 0%, var(--wing3) 60%, #040405 100%); }
-#stage[data-table="1"]::before { opacity: 1; }
+#stage[data-room="1"]::before { opacity: 1; }
 #bar { isolation: isolate; transition: border-color .8s ease; }
 #bar::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .8s ease;
   background: radial-gradient(1000px 150px at 50% 0%, var(--bar-tint), transparent 75%),
     linear-gradient(180deg, var(--wing), var(--wing3)); }
-#stage[data-table="1"] #bar::before { opacity: 1; }
-#stage[data-table="1"] #bar { border-bottom-color: var(--bar-line); }
-#stage[data-table="1"] .bar-sep { background: var(--bar-line); }
-#stage[data-table="1"] #bar-cat, #stage[data-table="1"] #bar-join .jl, #stage[data-table="1"] .wordmark small { color: var(--accent-hi); opacity: .85; }
-#stage[data-table="1"] #bar-clock { color: var(--accent-hi); }
-#stage[data-table="1"] #bar-join { background: rgba(0, 0, 0, .38); border-color: var(--bar-line); }
-#stage[data-table="1"] #bar-join .jc { color: var(--accent); }
-#stage[data-table="1"] #bar-dot { box-shadow: 0 0 0 3px var(--bar-line); }
-#stage[data-table="1"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--ok); }
-#stage[data-table="1"] #bar-dot[data-on="warn"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--warn); }
-#stage[data-table="1"] #bar-dot[data-on="bad"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--bad); }
-#stage[data-table="1"] #veil { background: radial-gradient(1200px 800px at 50% 45%, var(--wing), var(--wing3) 70%); }
+#stage[data-room="1"] #bar::before { opacity: 1; }
+#stage[data-room="1"] #bar { border-bottom-color: var(--bar-line); }
+#stage[data-room="1"] .bar-sep { background: var(--bar-line); }
+#stage[data-room="1"] #bar-cat, #stage[data-room="1"] #bar-join .jl, #stage[data-room="1"] .wordmark small { color: var(--accent-hi); opacity: .85; }
+#stage[data-room="1"] #bar-clock { color: var(--accent-hi); }
+#stage[data-room="1"] #bar-join { background: rgba(0, 0, 0, .38); border-color: var(--bar-line); }
+#stage[data-room="1"] #bar-join .jc { color: var(--accent); }
+#stage[data-room="1"] #bar-dot { box-shadow: 0 0 0 3px var(--bar-line); }
+#stage[data-room="1"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--ok); }
+#stage[data-room="1"] #bar-dot[data-on="warn"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--warn); }
+#stage[data-room="1"] #bar-dot[data-on="bad"] { box-shadow: 0 0 0 3px var(--bar-line), 0 0 14px var(--bad); }
+#stage[data-room="1"] #veil { background: radial-gradient(1200px 800px at 50% 45%, var(--wing), var(--wing3) 70%); }
 /* the casino's premium header: the table's name engraved in gold leaf (a serif), a gilded double rule under the bar */
 #stage[data-table="1"] #bar-name { font: 600 36px/1.08 var(--serif);
   letter-spacing: .08em; text-transform: uppercase; color: var(--accent-hi);
@@ -211,6 +213,68 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   background: linear-gradient(90deg, transparent 2%, var(--accent) 22%, var(--accent-hi) 50%, var(--accent) 78%, transparent 98%);
   -webkit-mask: linear-gradient(180deg, #000 0 1px, transparent 1px 2px, #000 2px); mask: linear-gradient(180deg, #000 0 1px, transparent 1px 2px, #000 2px); }
 #scene { z-index: 1; }
+
+/* ------------------------------------------------------------------ the page theme's room (stage[data-room], not a table)
+   The website's and the studio's look on the TV: the felt's glow and motif behind the scene, the bar a floating Liquid
+   Glass capsule lit by the accent, cards and the options menu the casino's wings. Static faux glass only (§6: layered
+   tint, top sheen, inner light / shade, a 1 px rim, a soft shadow — painted once, no backdrop-filter, no blur). */
+#stage[data-room="1"]::before {
+  background: var(--motif, none), radial-gradient(1500px 1000px at 50% 45%, color-mix(in srgb, var(--felt) 34%, var(--wing)) 0%, var(--wing3) 60%, #040405 100%);
+  background-size: var(--motif-size, auto), auto;
+}
+#bar { left: 24px; top: 6px; width: 1872px; height: 84px; border-radius: 42px; padding: 0 22px 0 36px;
+  border: 1px solid rgba(255, 255, 255, .08); }
+#bar-join { padding: 6px 14px 6px 6px; border-radius: 12px; }
+#bar-join canvas { width: 64px; height: 64px; }
+#bar::before { border-radius: inherit; }
+#stage[data-room="1"] #bar {
+  border-color: rgba(var(--accent-rgb), .3);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0) 46%), rgba(0, 0, 0, .18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -12px 22px -18px rgba(0, 0, 0, .7),
+    inset 0 0 0 1px rgba(var(--accent-rgb), .06), 0 16px 36px -14px rgba(0, 0, 0, .7), 0 0 40px -18px rgba(var(--accent-rgb), .5);
+}
+#stage[data-room="1"]:not([data-table="1"]) #bar::after { left: 40px; right: 40px; bottom: 0; height: 2px; opacity: .8;
+  background: linear-gradient(90deg, transparent, var(--accent) 24%, var(--accent-hi) 50%, var(--accent) 76%, transparent); }
+#stage[data-room="1"]:not([data-table="1"]) #bar-cat { background: rgba(var(--accent-rgb), .08); border-color: rgba(var(--accent-rgb), .3); }
+#stage[data-room="1"]:not([data-table="1"]) #bar-cat::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+#stage[data-room="1"] .tv-card, #stage[data-room="1"] .g-stat, #stage[data-room="1"] .g-player {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(var(--accent-rgb), .07), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--wing) 92%, transparent), color-mix(in srgb, var(--wing3) 94%, transparent));
+  border-color: rgba(var(--accent-rgb), .18);
+  box-shadow: inset 0 1px 0 rgba(var(--accent-rgb), .1), 0 24px 60px -30px rgba(0, 0, 0, .9);
+}
+#stage[data-room="1"] .g-cat i { background: var(--accent); box-shadow: 0 0 14px var(--accent); }
+#stage[data-room="1"] .g-rule { background: linear-gradient(90deg, var(--accent), var(--accent-hi)); }
+#stage[data-room="1"] .g-live { background: rgba(var(--accent-rgb), .12); border-color: rgba(var(--accent-rgb), .45); }
+#stage[data-room="1"] .g-live i { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+#stage[data-room="1"] .tvm-card {
+  background: radial-gradient(120% 70% at 50% 0%, rgba(var(--accent-rgb), .08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--wing) 96%, transparent), color-mix(in srgb, var(--wing3) 97%, transparent));
+  border-color: rgba(var(--accent-rgb), .26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), inset 0 0 0 1px rgba(var(--accent-rgb), .06), 0 30px 80px rgba(0, 0, 0, .65);
+}
+#stage[data-room="1"] .tvm-card::before { background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-hi) 70%, transparent); }
+#stage[data-room="1"] .tvm-opt { background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 50%), rgba(0, 0, 0, .28);
+  border-color: rgba(var(--accent-rgb), .16); }
+#stage[data-room="1"] .tvm-opt[aria-checked="true"] {
+  background: linear-gradient(180deg, rgba(var(--ember-rgb), .34), rgba(var(--ember-rgb), .14)); border-color: var(--ember); }
+/* light: the porcelain salon — no dark wings; the accent as the theme's deepened ink */
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"])::before,
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) #bar::before { opacity: 0; }
+:root[data-theme="light"] #stage[data-room="1"] #bar { background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, .82));
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(var(--ember-rgb), .08), 0 14px 34px -18px rgba(64, 48, 24, .35); }
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) :is(#bar-cat, #bar-join .jl, .wordmark small) { color: var(--ink-2); opacity: 1; }
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) #bar-clock { color: var(--ink-1); }
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) #bar-cat::before { background: var(--ember); box-shadow: 0 0 0 3px rgba(var(--ember-rgb), .16); }
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) #bar::after { background: linear-gradient(90deg, transparent, var(--ember) 30%, var(--gold) 70%, transparent); opacity: .5; }
+:root[data-theme="light"] #stage[data-room="1"]:not([data-table="1"]) #veil { background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, var(--chassis-0) 75%); }
+:root[data-theme="light"] #stage[data-room="1"] :is(.tv-card, .g-stat, .g-player, .tvm-card, .tvm-opt) { background: linear-gradient(180deg, #ffffff, var(--chassis-1)); border-color: var(--line); }
+:root[data-theme="light"] #stage[data-room="1"] .tvm-opt[aria-checked="true"] { background: linear-gradient(180deg, rgba(var(--ember-rgb), .16), rgba(var(--ember-rgb), .06)); border-color: var(--ember); }
+:root[data-theme="light"] #stage[data-room="1"] :is(.g-cat i) { background: var(--ember); box-shadow: 0 0 0 4px rgba(var(--ember-rgb), .14); }
+:root[data-theme="light"] #stage[data-room="1"] .g-live { background: rgba(var(--ember-rgb), .08); border-color: rgba(var(--ember-rgb), .35); }
+:root[data-theme="light"] #stage[data-room="1"] .g-live i { background: var(--ember); box-shadow: 0 0 0 3px rgba(var(--ember-rgb), .15); }
+:root[data-theme="light"] #stage[data-room="1"] .g-rule { background: linear-gradient(90deg, var(--ember), var(--gold)); }
 
 /* ------------------------------------------------------------------ veil (waiting / closed) */
 #veil { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
@@ -313,7 +377,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   --chassis-0: #f4f0e8; --chassis-1: #fbf9f5; --chassis-2: #ffffff; --chassis-3: #f0ebe2; --chassis-4: #e6e0d5;
   --line: #e7e1d6; --line-2: #d8d0c2;
   --ink-1: #1c1a22; --ink-2: #4a4652; --ink-3: #6b6673; --ink-4: #a49ea8;
-  --ember: #b81f4b; --ember-2: #d6386a; --gold: #b8892a; --gold-text: #8a6412; --pink: #b81f4b;
+  --ember: #b81f4b; --ember-2: #d6386a; --gold: #b8892a; --gold-text: #8a6412; --pink: #b81f4b; --ember-rgb: 184, 31, 75;
   --ok: #18794e; --warn: #9a5b00; --bad: #c8203e; --info: #0b6f9e;
 }
 :root[data-theme="light"], :root[data-theme="light"] body, :root[data-theme="light"] #viewport { background: #e9e3d8; }
@@ -431,28 +495,28 @@ body.nocursor, body.nocursor * { cursor: none !important; }
    studio's light casino, web/src/components/casino/casino.css; MATERIALS v2). The scene's canvases draw the room in the
    same palette (tv-casino.js ROOMS.light); the felt keeps the table theme's colour. The bar: ivory with the table's name
    engraved in antique gold, a gilded double rule under it; the LED logo straight on the bar in its paper style. */
-:root[data-theme="light"] #stage[data-table="1"]::before {
+:root[data-theme="light"] #stage[data-room="1"]::before {
   background:
     radial-gradient(900px 640px at 0% 0%, var(--m-wash-a), transparent 70%),
     radial-gradient(900px 640px at 100% 100%, var(--m-wash-b), transparent 70%),
     radial-gradient(1500px 1000px at 50% 45%, #fbf8f1 0%, #f1e9da 62%, #e6dbc6 100%); }
-:root[data-theme="light"] #stage[data-table="1"] #bar { border-bottom-color: rgba(184, 137, 42, .45);
+:root[data-theme="light"] #stage[data-room="1"] #bar { border-bottom-color: rgba(184, 137, 42, .45);
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .8), 0 14px 34px -18px rgba(64, 48, 24, .4); }
-:root[data-theme="light"] #stage[data-table="1"] #bar::before {
+:root[data-theme="light"] #stage[data-room="1"] #bar::before {
   background: radial-gradient(1000px 150px at 50% 0%, rgba(255, 255, 255, .95), transparent 75%), linear-gradient(180deg, #fffdf8, #f6f0e4); }
-:root[data-theme="light"] #stage[data-table="1"] #bar-name {
+:root[data-theme="light"] #stage[data-room="1"] #bar-name {
   background: linear-gradient(180deg, #b8892a 0%, #7a5410 55%, #9c7020 78%, #5e400c 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #7a5410; }
-:root[data-theme="light"] #stage[data-table="1"] :is(#bar-cat, #bar-join .jl, .wordmark small) { color: #8a6412; opacity: 1; }
-:root[data-theme="light"] #stage[data-table="1"] #bar-cat { background: rgba(184, 137, 42, .08); border-color: rgba(184, 137, 42, .4); }
-:root[data-theme="light"] #stage[data-table="1"] #bar-clock { color: var(--ink-1); }
-:root[data-theme="light"] #stage[data-table="1"] #bar-date { color: #6b6673; }
-:root[data-theme="light"] #stage[data-table="1"] #bar-join { background: #ffffff; border-color: rgba(184, 137, 42, .45); }
-:root[data-theme="light"] #stage[data-table="1"] #bar-join .jc { color: #8a6412; }
-:root[data-theme="light"] #stage[data-table="1"] #bar-dot { box-shadow: 0 0 0 3px rgba(184, 137, 42, .25); }
-:root[data-theme="light"] #stage[data-table="1"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 3px rgba(184, 137, 42, .25), 0 0 0 7px rgba(24, 121, 78, .12); }
-:root[data-theme="light"] #stage[data-table="1"] #bar::after { background: var(--m-rule-gold); }
-:root[data-theme="light"] #stage[data-table="1"] #veil {
+:root[data-theme="light"] #stage[data-room="1"] :is(#bar-cat, #bar-join .jl, .wordmark small) { color: #8a6412; opacity: 1; }
+:root[data-theme="light"] #stage[data-room="1"] #bar-cat { background: rgba(184, 137, 42, .08); border-color: rgba(184, 137, 42, .4); }
+:root[data-theme="light"] #stage[data-room="1"] #bar-clock { color: var(--ink-1); }
+:root[data-theme="light"] #stage[data-room="1"] #bar-date { color: #6b6673; }
+:root[data-theme="light"] #stage[data-room="1"] #bar-join { background: #ffffff; border-color: rgba(184, 137, 42, .45); }
+:root[data-theme="light"] #stage[data-room="1"] #bar-join .jc { color: #8a6412; }
+:root[data-theme="light"] #stage[data-room="1"] #bar-dot { box-shadow: 0 0 0 3px rgba(184, 137, 42, .25); }
+:root[data-theme="light"] #stage[data-room="1"] #bar-dot[data-on="ok"] { box-shadow: 0 0 0 3px rgba(184, 137, 42, .25), 0 0 0 7px rgba(24, 121, 78, .12); }
+:root[data-theme="light"] #stage[data-room="1"] #bar::after { background: var(--m-rule-gold); }
+:root[data-theme="light"] #stage[data-room="1"] #veil {
   background: radial-gradient(1200px 800px at 50% 45%, #fdfcf9, #ebe2d2 75%); }
 
 /* ------------------------------------------------------------------ Liquid Glass, TV edition (docs/STUDIO_UI.md § Liquid Glass)
@@ -488,8 +552,8 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   border-bottom-color: var(--lg-edge);
   box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), var(--lg-shadow);
 }
-:root[data-theme="light"] #stage[data-table="1"] #bar { box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), var(--lg-shadow); }
-#stage[data-table="1"] #bar::before { opacity: .78; }
+:root[data-theme="light"] #stage[data-room="1"] #bar { box-shadow: inset 0 1px 0 var(--lg-rim-a), inset 0 -1px 0 var(--lg-rim-b), var(--lg-inner), var(--lg-shadow); }
+#stage[data-room="1"] #bar::before { opacity: .78; }
 /* the options menu: thick glass (dense: it holds the most text), its options glass controls */
 .tvm-card, :root[data-theme="light"] .tvm-card {
   background: linear-gradient(180deg, var(--lg-glare), transparent 40%), var(--lg-tint-thick);
@@ -509,7 +573,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
 /* glass controls on the bar and the veil, and the notice */
 #bar-cat, :root[data-theme="light"] #bar-cat { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim); }
 #bar-join, :root[data-theme="light"] #bar-join { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); border-radius: 20px; }
-:root[data-theme="light"] #stage[data-table="1"] #bar-join { background: var(--lg-control-sheen), rgba(255, 255, 255, .8); }
+:root[data-theme="light"] #stage[data-room="1"] #bar-join { background: var(--lg-control-sheen), rgba(255, 255, 255, .8); }
 .veil-code b, :root[data-theme="light"] .veil-code b { background: var(--lg-control-sheen), var(--lg-control); border-color: var(--lg-edge); box-shadow: var(--lg-control-rim), var(--lg-control-shadow); }
 #tv-toast, :root[data-theme="light"] #tv-toast {
   background: linear-gradient(180deg, var(--lg-glare), transparent 55%), var(--lg-tint-thick); border-color: var(--lg-edge);
@@ -542,6 +606,7 @@ body.nocursor, body.nocursor * { cursor: none !important; }
   </div>
 </div>
 <noscript><p style="position:fixed;inset:0;margin:0;padding:40px;font:24px system-ui;color:#efece4;background:#000">Turn on JavaScript to watch DeskDot on this screen.</p></noscript>
+<script src="/tv/static/tv-themes.js"></script>
 <script src="/tv/static/tv.js"></script>
 <script src="/tv/static/tv-games.js"></script>
 <script src="/tv/static/tv-casino.js"></script>
