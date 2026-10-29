@@ -10,8 +10,10 @@ accent deepened to bronze where it is text, primary keys in the accent (or, for 
 Every text tone is pushed until it is AA (4.5:1) on every surface it sits on; tests/test_site_data.py checks it.
 
 build_site_pages.py writes css() between the `/* gen:themes */` markers in site/styles.css and the theme menu from
-menu_html(). The pick is stored in localStorage `deskdot.siteTheme` (the studio's own page themes are a different set,
-in `deskdot.pageTheme`; a visitor whose old pick there is also a table id keeps it). Nothing stored: DEFAULT, dark.
+menu_html(). The pick is stored in localStorage `deskdot.siteTheme`. Since 3.9 the studio's page themes are these same
+tables (src/deskdot/gfx/themes.py): the web app at /app/ opens in the site's pick and writes its own pick back here
+(web/src/lib/pageTheme.ts); a visitor whose old studio pick (`deskdot.pageTheme`) is a table id keeps it. Nothing
+stored: DEFAULT, dark.
 """
 
 from __future__ import annotations
