@@ -135,7 +135,14 @@ def engine_zip(sources: bool = False) -> bytes:
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for path in sorted(SRC.rglob("*")):
             rel = path.relative_to(SRC).as_posix()
-            if path.is_dir() or "__pycache__" in rel or rel.endswith((".pyc", ".pyo")) or rel in EXCLUDE:
+            # living specs (SPEC.md, docs/SPECS.md) are for people and agents, not the tab
+            if (
+                path.is_dir()
+                or "__pycache__" in rel
+                or rel.endswith((".pyc", ".pyo"))
+                or rel in EXCLUDE
+                or path.name == "SPEC.md"
+            ):
                 continue
             data = path.read_bytes()
             name = f"deskdot/{rel}"

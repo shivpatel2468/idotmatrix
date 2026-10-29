@@ -134,8 +134,8 @@ The Android release key is **never** a CI secret: the APK is built and signed on
 1. Bump the version in `pyproject.toml` and `src/deskdot/__init__.py` (the Android app reads it from there:
    `versionCode = major*10000 + minor*100 + patch`), `uv lock`, the README badge; write the plain-words
    `## <v> — <date> · <headline>` section in `WHATS_NEW.md` (it becomes the release notes and what the studio's
-   Updates block shows) and the CHANGELOG entry. Commit.
-2. Tag and push: `git tag -a v<v> -m "DeskDot <v>" && git push origin main v<v>`. `release.yml` checks that the tag
+   Updates block shows) and the CHANGELOG entry. Commit on a `release/v<v>` branch, open a pull request, squash-merge it once CI is green.
+2. Tag the merged `main` and push only the tag: `git switch main && git pull && git tag -a v<v> -m "DeskDot <v>" && git push origin v<v>`. `release.yml` checks that the tag
    matches the code and WHATS_NEW, runs ruff + the fast tests, builds the studio, the Windows installer and both
    dmgs (each smoke-tested: the frozen engine must answer `/api/health`), writes `checksums.txt` and creates a
    **draft** release with that WHATS_NEW section.

@@ -36,7 +36,7 @@ datas = [
     (str(ROOT / "LICENSE"), "."),
     (str(ROOT / "THIRD_PARTY_NOTICES.md"), "."),
 ]
-datas += collect_data_files("deskdot", excludes=["**/__pycache__/*", "**/*.pyc"])  # casino.html, tv/*, …
+datas += collect_data_files("deskdot", excludes=["**/__pycache__/*", "**/*.pyc", "**/SPEC.md"])  # casino.html, tv/*, …
 datas += collect_data_files("soundcard")  # its cffi headers are read at import
 
 excludes = [

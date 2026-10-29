@@ -3,7 +3,7 @@
 DeskDot turns an **iDotMatrix 32×32 RGB LED panel** (BLE; its MAC lives in the local `deskdot.toml`) into a live desktop
 companion: an async Python engine, a React studio, and an MCP server so AI agents can see and drive the panel.
 
-Read before changing anything:
+Read before changing anything: the area's `SPEC.md` (map in [SPEC.md](SPEC.md)) ·
 [docs/VISION.md](docs/VISION.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
 [docs/DISPLAY_DESIGN.md](docs/DISPLAY_DESIGN.md) · [docs/APP_SDK.md](docs/APP_SDK.md) ·
 [docs/CODING_STANDARDS.md](docs/CODING_STANDARDS.md) · [docs/INSPIRATION_AND_TECH_SPECS.md](docs/INSPIRATION_AND_TECH_SPECS.md).
@@ -66,8 +66,24 @@ cd web; npm run build               # typecheck + production build → web/dist 
 | studio UI                             | `web/src/components/` — follow docs/STUDIO_UI.md  |
 | a decision with trade-offs            | `docs/adr/NNNN-title.md`                          |
 
+## How we work: living specs, one pull request per change
+
+- **Read the spec first.** Intent lives in `SPEC.md` files beside the code (root [SPEC.md](SPEC.md) maps them; how to
+  use them: [docs/SPECS.md](docs/SPECS.md)). Before changing an area, read its spec; if the change alters what the
+  area must do, update the spec (requirement ids, cited tests, `Last verified`) **in the same PR**. A PR that changes
+  behaviour without touching the spec is incomplete.
+- **Every change gets its own branch or worktree** off the latest `main` (`area/short-name`, e.g. `device/faster-acks`).
+- Commit there → `git push -u origin <branch>` → `gh pr create` with the template
+  (`.github/pull_request_template.md`): a plain-words summary, the spec and requirement ids, the checklist,
+  screenshots for UI, a release-notes line for WHATS_NEW.md.
+- **CI must be green** (`.github/workflows/ci.yml` runs on every PR), then **squash-merge**. Delete the branch.
+- `main` changes only through pull requests. **Never force-push `main`**, never commit straight to it.
+- Releases are version tags on `main`, built by `.github/workflows/release.yml` (docs/DEPLOY.md § Releases); the
+  version bump + WHATS_NEW + CHANGELOG go through a PR like everything else.
+
 ## Definition of done
 
+- The PR is open with the template filled in, CI is green, and the relevant `SPEC.md` matches the new behaviour.
 - `uv run pytest -q` and `uv run ruff check src tests` pass; `cd web && npm run build` passes if the studio changed.
 - New app: renders in `deskdot preview`, looks right in the studio preview (and on the panel if available),
   follows DISPLAY_DESIGN.md (margins, type scale, palette, one hero element).

@@ -36,11 +36,29 @@ One file in `src/deskdot/apps/` (and an import in `apps/__init__.py`), or a drop
 - `uv run deskdot preview <id> --out x.png` renders it without hardware;
 - add tests for its behaviour (loops seamless, readable on the panel, fits the GIF budget if it's a clip).
 
-## Pull requests
+## Specs: read first, update with the change
+
+Each area keeps its intent in a `SPEC.md` beside its code: what it must do (`R-…` requirements, each with the test
+that enforces it) and must never do (`I-…` invariants). The root [SPEC.md](SPEC.md) maps them;
+[docs/SPECS.md](docs/SPECS.md) explains the format. Read the area's spec before you change it. If your change alters
+what the area must do, update the spec in the same pull request. `tests/test_specs.py` checks that cited tests exist
+and ids are unique.
+
+## Pull requests (one per change)
+
+`main` only changes through pull requests, and nobody force-pushes it.
+
+1. Branch off the latest `main` (`git switch -c area/short-name`, or a separate `git worktree`), one change per branch.
+2. Commit, then `git push -u origin <branch>` and `gh pr create`. Fill in the template: what changed in plain words,
+   which `SPEC.md` / requirement ids, how you checked it, screenshots for UI, a release-notes line for WHATS_NEW.md.
+3. CI (`.github/workflows/ci.yml`: pytest, ruff, the studio build) must be green.
+4. The PR is squash-merged, and the branch is deleted.
 
 - Keep them focused; describe what changed and how you checked it (on a real panel if you have one).
 - `pytest`, `ruff` and `npm run build` (if the studio changed) must pass; CI runs them.
-- Docs change with behaviour: API, rules, or user-visible features.
+- Docs and specs change with behaviour: API, rules, or user-visible features.
+- Releases are version tags on `main` built by `.github/workflows/release.yml` ([docs/DEPLOY.md](docs/DEPLOY.md)
+  § Releases); the version bump goes through a PR first.
 - Original work only: no copied sprites, fonts, characters or brand assets.
 - Never commit secrets, `deskdot.toml`, `.env*` or `data/`.
 
