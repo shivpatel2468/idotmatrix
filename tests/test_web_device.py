@@ -230,8 +230,9 @@ def test_config_builds_the_web_device() -> None:
 
 def test_web_platform_has_only_the_browser_media_features() -> None:
     assert platforms.LABELS["web"] == "Browser"
-    # camera / screen / sound come from the page (getUserMedia / getDisplayMedia, providers/webmedia.py);
-    # everything else needs the computer itself (tests/test_web_media.py covers the providers)
+    # camera / screen / sound come from the page (getUserMedia / getDisplayMedia, providers/webmedia.py); "system"
+    # is the browser's own stats and "media" a listening service or a typed-in song (tests/test_web_apps.py);
+    # everything else needs the computer itself (tests/test_web_media.py covers the media providers)
     web = {f for f in platforms.FEATURES if platforms.supported(f, "web")}
-    assert web == {"screen", "camera", "audio", "audio_loopback"}
+    assert web == {"screen", "camera", "audio", "audio_loopback", "system", "media"}
     assert platforms.supported("system", "android")

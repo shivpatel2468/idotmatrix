@@ -162,7 +162,8 @@ def test_meta_reports_platform_and_markers(tmp_path: Path) -> None:
     assert set(meta["features"]) == set(platforms.FEATURES)
     apps = {a["id"]: a for a in meta["apps"]}
     np_ = apps["nowplaying"]
-    assert np_["platforms"] == list(platforms.DESKTOP) and np_["schema"]["platforms"] == np_["platforms"]
+    # the desktops' media sessions, and the browser app's listening services (providers/media_web.py)
+    assert np_["platforms"] == [*platforms.DESKTOP, "web"] and np_["schema"]["platforms"] == np_["platforms"]
     assert apps["clock"]["platforms"] is None and "platforms" not in apps["clock"]["schema"]
     mode = apps["mirror"]["schema"]["properties"]["mode"]
     assert mode["enumPlatforms"]["window"] == list(platforms.FEATURES["screen_window"])
