@@ -118,7 +118,9 @@ def test_paper_style_reads_on_porcelain(reference: dict) -> None:
     assert len(tubes) == 3 and tubes[0] == tubes[1] != tubes[2]  # two shades, like LOGO
     for c in tubes:
         assert _contrast(c, "#f8f4ec") >= 4.5, c  # the plate's face
-    assert neon["blend"] == "lighter" and paper["blend"] == "multiply"  # glow on black, a darkening halo on white
+    assert (
+        neon["blend"] == "lighter" and paper["blend"] == "multiply"
+    )  # glow on black, a darkening halo on white
     assert set(paper) - {"tubes"} == set(neon)
 
 
