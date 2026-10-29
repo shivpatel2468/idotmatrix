@@ -138,14 +138,28 @@ main:focus { outline: none; }
 /* A full-width bar pinned to the top edge: an opaque fill in the page colour with a hairline and a soft shadow
    below (no backdrop blur, so scrolling never re-blurs the page under it, and no text ever shows through). Its row is the page column, so the logo lines up with the
    content; the nav folds into the menu button before anything could run out of room (see "responsive"). */
+/* Liquid Glass bar: pinned flush to the top (no see-through gap above it), a thick tinted glass that blurs and
+   saturates the page scrolling under it, a top sheen and a lit hairline rim. The tint is thick enough that text
+   underneath never reads through; browsers without backdrop-filter get frosted glass, and reduced transparency
+   gets a solid bar. */
 .bar {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 10px 24px -22px var(--shadow-strong);
+  background:
+    linear-gradient(180deg, var(--lg-glare), transparent 60%),
+    var(--lg-tint-thick);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+  border-bottom: 1px solid var(--lg-edge-strong);
+  box-shadow: inset 0 1px 0 var(--lg-glare), 0 10px 24px -22px var(--shadow-strong);
   view-transition-name: site-header;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bar { background: linear-gradient(180deg, var(--lg-glare), transparent 60%), var(--lg-frost); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .bar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 .bar > .wrap {
   display: flex;
