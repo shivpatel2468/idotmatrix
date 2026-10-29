@@ -64,3 +64,103 @@ may use the network — choose **private networks**. Only the controller page is
 - By default the studio only opens on this laptop (other devices can only reach game controllers). To use the
   studio from your phone too, set `lan_studio = true` in `deskdot.toml`, allow Python through the Windows firewall,
   and open `http://<laptop-ip>:8765` on the phone. There's no login, so only do this on a network you trust.
+
+## Installers
+
+People who don't want a terminal install DeskDot from the
+[latest release](https://github.com/shivpatel2468/idotmatrix/releases/latest) (first-run steps in plain words:
+README § Download). What gets built, all from `packaging/`:
+
+| File | Built by | What it is |
+| --- | --- | --- |
+| `DeskDot-Setup-<v>-x64.exe` | CI (`release.yml`) or `packaging\windows\build.ps1` | Inno Setup installer (`packaging/windows/DeskDot.iss`): per-user into `%LOCALAPPDATA%\Programs\DeskDot`, no admin. Start menu entry (+ "simulated panel" entry), optional desktop icon, optional start-with-login (`HKCU\…\Run\DeskDot Launcher`, the value the tray's "Start with login" toggles), uninstaller. |
+| `DeskDot-<v>-macOS-arm64.dmg`, `…-x64.dmg` | CI (Apple silicon on `macos-latest`, Intel on `macos-15-intel`) | `DeskDot.app` (PyInstaller `BUNDLE`, Info.plist with the Bluetooth / microphone / camera / Apple events / local network reasons) on a drag-to-Applications disk image (`packaging/macos/build_dmg.sh`). |
+| `DeskDot-<v>.apk` | locally only (`android/`, see below) | the Android app, signed with the release key |
+| `checksums.txt` | CI | `sha256sum` of every file; the in-app updater refuses anything that doesn't match |
+
+Both desktop builds are one PyInstaller spec (`packaging/deskdot.spec`, onedir) with the built studio, the package's
+html/js/fonts and `deskdot.example.toml`; tests, `legacy/`, the MCP server and the Android/browser-only modules
+are left out. The frozen program is `src/deskdot/desktop.py`:
+
+- **Its own folder for everything it writes**: `%LOCALAPPDATA%\DeskDot` (Windows), `~/Library/Application Support/DeskDot`
+  (macOS); `DESKDOT_HOME` overrides it. First run copies `deskdot.example.toml` there as `deskdot.toml`. The install
+  folder is never written to, so updates and uninstalls keep settings, `data/` and `plugins/`.
+- **Double-click** = start the engine in the background (`DeskDot serve`, detached), open the studio in the browser,
+  run the launcher (tray icon on Windows, the Ctrl+Alt+Space bar). `--background` (start with login) skips the browser.
+- **Any CLI command still works**: `DeskDot.exe serve --sim --port 8799`, and on Windows `deskdot-cli.exe` is the same
+  program with a console (`deskdot-cli scan`, `deskdot-cli doctor`). The windowed exe logs to `data/deskdot.log`.
+
+Build the Windows installer locally (its own venv in `packaging\build\venv`; your `.venv` isn't touched; needs
+Inno Setup 6: `winget install JRSoftware.InnoSetup`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1            # studio + PyInstaller + installer
+powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1 -SkipStudio -SkipInstaller   # just the app
+packaging\build\dist\DeskDot\deskdot-cli.exe serve --sim --port 8799          # try the frozen engine
+```
+
+On a Mac: `UV_PROJECT_ENVIRONMENT=packaging/build/venv uv sync --frozen --no-dev --extra launcher --group packaging`,
+`uv run --no-sync python packaging/prepare.py`, `uv run --no-sync pyinstaller packaging/deskdot.spec --noconfirm
+--distpath packaging/build/dist --workpath packaging/build/work`, then `bash packaging/macos/build_dmg.sh <v> arm64`.
+
+### Unsigned builds
+
+The builds aren't code-signed (that needs paid certificates), so the first start shows a warning once:
+
+- **Windows SmartScreen** ("Windows protected your PC"): **More info → Run anyway**. Signed builds that many people
+  download stop showing it.
+- **macOS Gatekeeper** ("can't be opened because Apple cannot check it"): right-click the app → **Open → Open**; on
+  macOS 15+ **System Settings → Privacy & Security → Open Anyway**. The app is ad-hoc signed, not notarized.
+- **Android** asks to allow installing unknown apps, for the browser the first time and for DeskDot when it updates
+  itself.
+
+In-app updates download with Python, not a browser, so the update itself doesn't trigger these warnings again.
+
+### Code signing later (optional repository secrets)
+
+`release.yml` signs automatically when these secrets exist (Settings → Secrets and variables → Actions); without them
+it builds unsigned exactly as now:
+
+| Secret | For |
+| --- | --- |
+| `WINDOWS_CERT_PFX_BASE64`, `WINDOWS_CERT_PASSWORD` | an Authenticode code-signing certificate (`.pfx`, base64): `signtool` signs `DeskDot.exe`, `deskdot-cli.exe` and the installer |
+| `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_IDENTITY` | an Apple "Developer ID Application" certificate (`.p12`, base64) and its identity name: hardened-runtime signing of the app and the dmg |
+| `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` | notarization with `notarytool` + stapling (needs the three above; an app-specific password) |
+
+The Android release key is **never** a CI secret: the APK is built and signed on the maintainer's machine.
+
+## Releases
+
+1. Bump the version in `pyproject.toml` and `src/deskdot/__init__.py` (the Android app reads it from there:
+   `versionCode = major*10000 + minor*100 + patch`), `uv lock`, the README badge; write the plain-words
+   `## <v> — <date> · <headline>` section in `WHATS_NEW.md` (it becomes the release notes and what the studio's
+   Updates block shows) and the CHANGELOG entry. Commit.
+2. Tag and push: `git tag -a v<v> -m "DeskDot <v>" && git push origin main v<v>`. `release.yml` checks that the tag
+   matches the code and WHATS_NEW, runs ruff + the fast tests, builds the studio, the Windows installer and both
+   dmgs (each smoke-tested: the frozen engine must answer `/api/health`), writes `checksums.txt` and creates a
+   **draft** release with that WHATS_NEW section.
+3. Build the APK locally and add it, with its checksum, to the draft:
+
+   ```powershell
+   cd web; npm run build; cd ..\android; .\gradlew assembleRelease; cd ..
+   gh release download v<v> -p checksums.txt -D tmp\release --clobber
+   $apk = "android\app\build\outputs\apk\release\DeskDot-<v>.apk"
+   "$((Get-FileHash $apk -Algorithm SHA256).Hash.ToLower())  DeskDot-<v>.apk" | Add-Content tmp\release\checksums.txt -Encoding ascii
+   gh release upload v<v> $apk tmp\release\checksums.txt --clobber
+   ```
+
+4. Check the draft (files, notes), then publish it: `gh release edit v<v> --draft=false --latest`. From that moment
+   every installed DeskDot that checks for updates offers it.
+
+### How in-app updates work
+
+`src/deskdot/updates.py` (API: docs/API.md § Updates). The engine asks GitHub for the latest release at most every
+6 h (opt-out: Settings → Device → Updates). "Install" downloads the asset for this system into `data/updates/`,
+checks its SHA-256 against `checksums.txt`, then:
+
+| Installed as | Hand-off |
+| --- | --- |
+| Windows installer | quits the launcher, starts the new installer with `/SILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS` and exits the engine the normal way (the panel gets its hand-off); the installer waits up to 20 s for DeskDot to close, replaces the program folder and starts DeskDot again |
+| macOS app | a small script waits for the engine to exit, mounts the dmg, swaps the `.app` where it is (e.g. `/Applications`) and opens it; if that folder isn't writable it just opens the dmg to drag across |
+| Android app | `Updater.kt` checks the APK is signed with the same key, then opens Android's installer (the first time, Android asks to let DeskDot install apps) |
+| From source (`uv run`, the Pi service) | nothing is installed: the studio says `git pull`, `uv sync`, `cd web && npm run build`, restart |

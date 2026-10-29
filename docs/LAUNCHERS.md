@@ -75,6 +75,10 @@ uv run deskdot launcher           # starts it and shows the bar; afterwards Ctrl
   `deskdot.toml`. The login item runs `pythonw -m deskdot launcher --background --config <your deskdot.toml>`.
 - Other keys: `launcher_url` (default `http://127.0.0.1:<port>`; `DESKDOT_URL` also works).
 
+**Installed app** (Windows installer / macOS dmg, docs/DEPLOY.md § Installers): opening DeskDot starts the engine and
+this launcher together, with no `uv` needed; the tray's "Start with login" (and the installer's checkbox) runs
+`DeskDot.exe --background`.
+
 On **macOS** the same command works (pywebview uses WebKit) with a global hotkey from an AppKit key monitor, which
 needs *System Settings → Privacy & Security → Accessibility* for your terminal/Python, and there is no tray icon.
 DeskDot Bar is the better Mac experience.

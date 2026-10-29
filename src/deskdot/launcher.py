@@ -262,7 +262,16 @@ def _gui_python() -> str:
     return str(exe)
 
 
+def frozen() -> bool:
+    """True in the installed app (PyInstaller): sys.executable is DeskDot itself, not a Python."""
+    return bool(getattr(sys, "frozen", False))
+
+
 def autostart_command(cfg: LauncherConfig) -> list[str]:
+    if (
+        frozen()
+    ):  # the installed app: its default mode starts the engine and the tray (packaging/, desktop.py)
+        return [sys.executable, "--background"]
     cmd = [_gui_python(), "-m", "deskdot", "launcher", "--background"]
     if cfg.config_path:
         cmd += ["--config", str(cfg.config_path)]
@@ -362,7 +371,7 @@ def engine_alive(url: str, timeout: float = 0.8) -> bool:
 
 
 def engine_command(cfg: LauncherConfig) -> list[str]:
-    cmd = [sys.executable, "-m", "deskdot", "serve"]
+    cmd = [sys.executable, "serve"] if frozen() else [sys.executable, "-m", "deskdot", "serve"]
     if cfg.config_path:
         cmd += ["--config", str(cfg.config_path)]
     return cmd
