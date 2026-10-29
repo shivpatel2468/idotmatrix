@@ -35,13 +35,15 @@ them, linger 30 s after the last release, then stop.
   `tests/test_compat.py::test_imports_and_meta_without_platform_modules`.
 - **R-PROV-7** Recorded fixtures stay small (they are committed). Tests: `tests/test_api_health.py::test_fixtures_are_small`.
 - **R-PROV-8** Polling is ref-counted: `acquire()` starts it, the last `release()` stops it after the linger.
-  Tests: none yet (gap) — exercised only indirectly by `tests/test_web_media.py`.
+  Tests: `tests/test_provider_refcount.py::test_polling_starts_on_first_acquire_and_stops_after_the_linger`,
+  `tests/test_provider_refcount.py::test_acquire_inside_the_linger_keeps_the_same_poll`,
+  `tests/test_provider_refcount.py::test_acquire_after_the_linger_starts_polling_again`.
 
 ## Invariants
 
 - **I-PROV-1** Providers never raise into the event loop; `value` is the last good value and `error` the last failure.
 - **I-PROV-2** No blocking calls: no sync HTTP, no `psutil.cpu_percent(interval>0)`; blocking libraries go through
-  `asyncio.to_thread`.
+  `asyncio.to_thread`. Tests: `tests/test_event_loop.py::test_no_blocking_calls_on_the_event_loop`.
 - **I-PROV-3** Built-in providers need no API key or account (keyless public APIs; user-supplied tokens only for the
   user's own services, masked in the API).
 - **I-PROV-4** Tests never hit the network: providers get fake values or recorded fixtures.
@@ -55,7 +57,6 @@ Script: `uv run python scripts/api_health.py` → docs/API_HEALTH.md.
 
 ## Open questions
 
-- R-PROV-8 has no direct test of the 30 s linger.
 - API health is a manual run (no schedule); results depend on the probing network.
 
 Last verified: 2026-10-29

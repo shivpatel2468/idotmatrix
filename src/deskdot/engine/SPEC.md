@@ -55,7 +55,11 @@ The HTTP + WebSocket server in `server.py` is a stateless view over the engine.
 ## Invariants
 
 - **I-ENG-1** One asyncio task runs the tick; only it mutates what is on screen. CPU-heavy work (GIF bakes, image
-  import) goes through `asyncio.to_thread`; nothing calls `time.sleep` or sync HTTP on the loop.
+  import) goes through `asyncio.to_thread`; nothing calls `time.sleep` or sync HTTP on the loop. Tests:
+  `tests/test_event_loop.py::test_no_blocking_calls_on_the_event_loop` (static; its allowlist documents the calls
+  that run in threads or loop-less processes), `tests/test_event_loop.py::test_requests_library_is_never_imported`,
+  `tests/test_event_loop.py::test_engine_never_blocks_the_loop` (the engine under asyncio debug mode, no step
+  over 0.1 s).
 - **I-ENG-2** The engine writes to the panel only through `Device.show_frame / show_gif / command` (never a FIFO of
   frames).
 - **I-ENG-3** Every endpoint the studio uses exists in the HTTP API so scripts and MCP can do the same; a new endpoint
@@ -74,6 +78,7 @@ the [TV spec](../tv/SPEC.md), updates to the [packaging spec](../../../packaging
 ## Open questions
 
 - The < 200 ms click-to-panel budget (R-ROOT-2) is measured by hand on hardware only.
-- No test asserts I-ENG-1 (no blocking calls on the loop); review enforces it.
+- I-ENG-1's runtime check covers a handful of apps (stream, clip, casino, game, a network provider); a blocking
+  call in a rarely shown app is caught only by the static scan.
 
 Last verified: 2026-10-29
