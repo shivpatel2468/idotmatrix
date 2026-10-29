@@ -17,7 +17,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 
 # The real address replaces this token before a deploy (never a work address).
-CONTACT_EMAIL = "{{CONTACT_EMAIL}}"
+CONTACT_EMAIL = "shiv.patel1.3.2003@gmail.com"
 OWNER = "Shiv Patel"
 COUNTRY = "India"
 YEAR = 2026

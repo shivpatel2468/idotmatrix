@@ -4,7 +4,7 @@
  */
 
 /** Filled in before deploying (the website's generator has its own copy in scripts/site_legal.py). */
-export const CONTACT_EMAIL = "{{CONTACT_EMAIL}}";
+export const CONTACT_EMAIL = "shiv.patel1.3.2003@gmail.com";
 
 export const OWNER = "Shiv Patel";
 
