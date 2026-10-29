@@ -7,6 +7,8 @@ deskdot.toml
 dotdeck.toml
 *.local.toml
 android/local.properties
+android/keystore.properties
+keystore.properties
 *.keystore
 *.jks
 *.pem
@@ -25,6 +27,7 @@ __pycache__/
 .mypy_cache/
 build/
 dist/
+packaging/build/
 
 # ---------------------------------------------------------------- web
 web/node_modules/
@@ -39,6 +42,7 @@ android/app/build/
 *.aab
 
 # ---------------------------------------------------------------- tooling & scratch
+.claude/
 .playwright-mcp/
 tmp/
 *.log
