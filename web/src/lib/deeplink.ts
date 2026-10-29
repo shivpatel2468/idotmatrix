@@ -8,7 +8,7 @@ import { inspect, openSettings, type SettingsTab } from "./store";
 
 const TABS: readonly SettingsTab[] = [
   "display", "alerts", "playlist", "device", "transfer", "calibrate", "notifications", "autopilot",
-  "integrations", "audio", "weather", "panel", "handoff",
+  "integrations", "audio", "weather", "panel", "handoff", "updates",
 ];
 
 function handle() {

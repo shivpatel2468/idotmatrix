@@ -1,4 +1,4 @@
-import type { LobbyInfo, LobbyResponse, TvDisplay, TvInfo, TvLook, TvQuality, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations } from "./types";
+import type { LobbyInfo, LobbyResponse, TvDisplay, TvInfo, TvLook, TvQuality, Preset, AutopilotRule, MediaItem, Meta, Notice, PlaylistItem, Handoff, Indicator, Integrations, UpdatesInfo } from "./types";
 import { toast, useStore } from "./store";
 import type { Autotune, CalTest, Calib, MotionInfo, MotionTest, PresetListing, VideoInfo } from "./calib";
 
@@ -78,6 +78,11 @@ export const api = {
   setHandoff: (patch: Partial<Handoff>) => req<Handoff>("PUT", "/api/handoff", patch),
   handoffNow: (mode?: Handoff["mode"]) => req<{ result: string; released: boolean }>("POST", "/api/handoff/now", { mode: mode ?? null }),
   takeBack: () => req("POST", "/api/handoff/take-back"),
+  // in-app updates (docs/API.md § Updates)
+  updates: () => req<UpdatesInfo>("GET", "/api/updates"),
+  checkUpdates: () => req<UpdatesInfo>("POST", "/api/updates/check"),
+  setUpdates: (auto_check: boolean) => req<UpdatesInfo>("PUT", "/api/updates", { auto_check }),
+  installUpdate: () => req<UpdatesInfo & { result: string }>("POST", "/api/updates/install"),
   // presets: one-tap playlists
   presets: () => req<Preset[]>("GET", "/api/presets"),
   playPreset: (id: string, shuffle = false) => req<{ ok: boolean; items: number }>("POST", `/api/presets/${encodeURIComponent(id)}/play`, { shuffle }),

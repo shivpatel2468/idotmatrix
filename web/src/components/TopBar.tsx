@@ -17,6 +17,7 @@ import { Dices } from "lucide-react";
 import { openCasino, rememberCasino, useCasinoApp, useCasinoView } from "./casino/state";
 import { IconTile } from "./Icon";
 import { inAndroidApp } from "../lib/android";
+import { UpdatePill } from "./Updates";
 
 /** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
@@ -217,6 +218,7 @@ function PhoneTopBar() {
       </button>
       <Wordmark />
       <div className="flex items-center justify-end gap-1.5">
+        <UpdatePill compact />
         <button onClick={() => set({ palette: true })} className="key key-ghost key-icon" title="Find an app or action" aria-label="Search">
           <Search size={17} />
         </button>
@@ -236,7 +238,7 @@ export function TopBar() {
   if (phone) return <PhoneTopBar />;
   return (
     <header className="studio-head grid h-16 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:gap-3 md:px-5">
-      <div className="flex min-w-0 items-center gap-2.5"><StatusPill /><CasinoKey /></div>
+      <div className="flex min-w-0 items-center gap-2.5"><StatusPill /><CasinoKey /><UpdatePill /></div>
       <Wordmark />
       <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
       {/* on wide screens these live under the settings panel (App.tsx FlyDock) */}

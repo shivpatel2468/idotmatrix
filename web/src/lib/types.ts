@@ -173,6 +173,32 @@ export type EngineState = {
   };
   apps: Record<string, Record<string, unknown>>;
   providers: Record<string, { updated: number | null; error: string | null; active: boolean }>;
+  /** in-app updates (src/deskdot/updates.py); absent on engines older than 3.8 */
+  updates?: UpdatesBrief;
+};
+
+export type UpdateStatus = "idle" | "checking" | "downloading" | "verifying" | "installing" | "error";
+export type UpdatesBrief = {
+  current: string;
+  latest: string | null;
+  available: boolean;
+  status: UpdateStatus;
+  progress: number | null; // 0..1 while downloading
+  error: string | null;
+};
+/** GET /api/updates (docs/API.md § Updates) */
+export type UpdatesInfo = UpdatesBrief & {
+  notes: string; // the release's notes (WHATS_NEW-style markdown)
+  name: string | null;
+  published_at: string | null;
+  url: string;
+  assets: { name: string; size: number | null; url: string }[];
+  checked_at: number | null; // unix seconds
+  auto_check: boolean;
+  kind: "windows" | "macos" | "android" | "source" | "web";
+  can_install: boolean;
+  source_hint: string | null;
+  message: string | null;
 };
 
 export type Handoff = {

@@ -15,7 +15,8 @@ export type SettingsSection = "display" | "alerts" | "playlist" | "device";
  */
 export type SettingsTab =
   | SettingsSection
-  | "transfer" | "calibrate" | "notifications" | "autopilot" | "integrations" | "audio" | "weather" | "panel" | "handoff";
+  | "transfer" | "calibrate" | "notifications" | "autopilot" | "integrations" | "audio" | "weather" | "panel" | "handoff"
+  | "updates";
 export type MobileTab = "panel" | "apps" | "play" | "tune";
 
 /** Per-browser UI preferences (layout sizes, favourites…), persisted in localStorage. */
