@@ -28,6 +28,10 @@ class Config(BaseModel):
     lan_studio: bool = Field(
         default=False, description="Also allow the studio/API from other devices on the LAN"
     )
+    # find other DeskDots on the LAN and hand the panel over between them (ADR 0015); the studio can turn it off too
+    lan_handover: bool = Field(
+        default=True, description="Discover other DeskDots on the local network for panel hand-over"
+    )
     port: int = 8765
     # the web app only (docs/WEB_APP.md): phones join over the internet at <public_url>/p/<code> (WebRTC to the tab)
     public_url: str | None = None

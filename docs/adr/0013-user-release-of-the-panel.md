@@ -2,6 +2,8 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-08
+- **Extended by:** [ADR 0015](0015-panel-handover-between-deskdots.md) — releases are graceful (the write in flight
+  finishes first) and another DeskDot can ask for the panel itself
 
 ## Context
 

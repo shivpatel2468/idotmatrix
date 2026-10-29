@@ -11,6 +11,43 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.9.0 — 30 Oct 2026 · Move the panel between your laptop, phone and browser with one button
+
+### New
+
+- **Use the panel here — from any DeskDot**
+  - Before: to move the panel you had to find the app that had it, press Release there, then Reconnect on the
+    other one — and it often didn't connect until you unplugged the panel.
+  - Now: press Use the panel here on the laptop, the phone or the browser tab. DeskDot asks the one that has it to
+    let go, waits for the panel and connects, showing each step as it happens: Asking … to let go, Released, Waiting
+    for the panel, Connected. The other one says "Panel moved to …" with a Take it back button.
+- **See every DeskDot nearby**
+  - Before: the Connection sheet only knew about the DeskDot you were looking at.
+  - Now: it lists your laptop, phone and browser tab on the same Wi-Fi and which one has the panel. Pair two of them
+    once (both show the same 6-digit code, you press Allow) and they can hand the panel to each other from then on.
+    Only on home networks; turn it off with "Find other DeskDots on this network".
+
+### Better
+
+- **Letting go is clean**
+  - Before: releasing the panel cut it off mid-sentence — sometimes in the middle of sending an animation, which left
+    the panel blank for the next app.
+  - Now: DeskDot finishes what it's sending first, then disconnects properly.
+- **Only one DeskDot tries at a time**
+  - Before: two DeskDots could keep trying to connect at the same moment and get in each other's way.
+  - Now: while another DeskDot has the panel, the others wait quietly instead of retrying every few seconds.
+
+### Fixed
+
+- **The panel getting stuck until you unplug it**
+  - Before: after the link dropped, the panel often stayed invisible to every app for minutes or hours, because the
+    computer (or the phone) secretly kept an old connection open.
+  - Now: DeskDot closes every old connection properly, waits a moment for the panel to come back, and if it still
+    can't connect after a few tries it clears everything and waits for the panel by itself — no unplugging needed.
+- **The browser tab hanging on "Connecting…"**
+  - Before: a connect attempt in the browser could hang forever until you reloaded the page.
+  - Now: it gives up after 20 seconds and tries again.
+
 ## 3.8.0 — 29 Oct 2026 · Install DeskDot like any app, and update it from inside
 
 ### New

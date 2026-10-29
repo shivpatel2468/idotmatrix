@@ -21,12 +21,15 @@ from deskdot.server import create_app
 
 class FlakyDevice(Device):
     kind = "ble"
+    rearm_delay = 0.05
 
     def __init__(self, failures: list[str] | None = None) -> None:
         super().__init__(min_frame_interval=0.0, packet_gap=0.0)
         self.failures = list(failures or [])
         self.attempt_times: list[float] = []
-        self.disconnects = 0
+        self.disconnects = 0  # links dropped (closing a failed attempt's leftovers doesn't count)
+        self.resets = 0
+        self.linked = False
         self.packets = 0
 
     async def _connect(self) -> None:
@@ -34,9 +37,13 @@ class FlakyDevice(Device):
         if self.failures:
             raise ConnectionError(self.failures.pop(0))
         self.info.name = "IDM-TEST"
+        self.linked = True
 
     async def _disconnect(self) -> None:
-        self.disconnects += 1
+        self.resets += 1
+        if self.linked:
+            self.linked = False
+            self.disconnects += 1
 
     async def _write_packet(self, packet: bytes, response: bool) -> None:
         await asyncio.sleep(0.005)

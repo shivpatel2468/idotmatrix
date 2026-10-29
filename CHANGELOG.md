@@ -3,6 +3,24 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.9.0 — 2026-10-30 · Panel hand-over between DeskDots, clean release, link recovery
+
+- **Panel hand-over** (`src/deskdot/handover.py`, `handover_api.py`, ADR 0015): UDP beacon on 8767 (private networks
+  only, opt-out `handover.enabled` / `lan_handover`), 30 s connect lease (`Device.gate` holds automatic attempts back:
+  `reason: elsewhere`), pairing with a 6-digit code and a 256-bit key (`data/handover.json`), HMAC-signed
+  `/lan/handover/release|announce` (±120 s, nonce cache, rate limits; `LanGate` allows `/lan/handover/`), `POST
+  /api/handover/take|pair|pair/answer|forget`, `PUT /api/handover/settings`, web-app loopback `POST
+  /api/handover/tab|free` (CORS + PNA for the web app's origins, other cross-site origins refused), `state.handover`,
+  `/api/health` → `instance`, `handover`; `/api/device/link` → `moved_to`, `drained`.
+- **Device layer**: graceful `set_link(False)` / `reconnect()` (pause writes, GIF chunks keep waiting for acks);
+  `_reset_stack()` after every failed attempt; `REARM_DELAY` 2.5 s after a drop; ±20 % back-off jitter; recovery pass
+  every 4 failures (`recoveries`, `reason: recovering`, gentle replay). BLE: dispose every `BleakClient`, store it before
+  `connect()`, callbacks bound to their client, `use_cached_services=False`, Windows "still connected" check. Android:
+  abort the bridge's attempt on timeout; `BleBridge` disconnects before `close()`; multicast lock for beacons. Web:
+  `gatt.connect()` 20 s timeout, awaited `disconnect()`. New diagnose reasons `moved`, `elsewhere`, `recovering`.
+- **Studio**: Connection sheet lists DeskDots nearby, live hand-over steps, pairing prompt, opt-out; the web app builds
+  the same from DeskDot on this computer (`deskdotWeb.useHere()`). Tests: `tests/test_handover.py`.
+
 ## 3.8.0 — 2026-10-29 · Desktop installers, a signed release APK, in-app updates
 
 - **Installers** (`packaging/`): PyInstaller onedir spec (`deskdot.spec`; bundles `web/dist`, `deskdot.example.toml`,

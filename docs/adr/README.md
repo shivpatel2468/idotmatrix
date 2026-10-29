@@ -15,5 +15,6 @@
 | 0011 | [Host the whole engine on an Android phone as an app (Chaquopy + a Kotlin BLE bridge)](0011-android-host-app.md) | Proposed |
 | 0012 | [A web app: the real engine in the browser (Pyodide) with a Web Bluetooth bridge](0012-web-app-pyodide.md) | Accepted |
 | 0013 | [The user may release the panel; the engine never lets go on its own](0013-user-release-of-the-panel.md) | Accepted |
+| 0015 | [Hand the panel over between DeskDots, cleanly, with one button](0015-panel-handover-between-deskdots.md) | Proposed |
 
 New decisions: copy the format, next number, status `Proposed` → `Accepted`. Never rewrite an accepted ADR; supersede it.
