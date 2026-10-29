@@ -11,6 +11,33 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.9.0 — 29 Oct 2026 · The browser version catches up
+
+### New
+
+- **Now Playing works in the browser**
+  - Before: in the browser version Now Playing only said "not on web", because a web page can't see your music apps.
+  - Now: tell it where your music is known — ListenBrainz (just your user name), Last.fm (your user name and a free
+    key) or type the song in — and all 19 layouts, lyrics and cover art work in the browser too.
+- **System Monitor works in the browser**
+  - Before: System Monitor was greyed out in the browser.
+  - Now: it shows what your browser can tell: how busy the computer is, how much memory the page uses, and your
+    battery.
+- **The browser version tells you when it's been updated**
+  - Before: you only got a new version of the browser app if you happened to reload the page.
+  - Now: a small "New version — reload" sign appears when a newer version is online; Settings → Updates shows
+    what's new and a Reload button.
+
+### Better
+
+- **Everything from the last few updates is in the browser version**
+  - Before: the browser version was stuck on an old version, without page themes, the paper panel, Liquid Glass,
+    the TV view, the new casino touches or the 14 newest data apps.
+  - Now: it has all of them, the same as the desktop app.
+- **"Not on Browser" says why, and where to get it**
+  - Before: a few things were greyed out in the browser without saying where they do work.
+  - Now: each one says in one line why a browser can't do it, with a "Get the desktop app" link.
+
 ## 3.8.0 — 29 Oct 2026 · Install DeskDot like any app, and update it from inside
 
 ### New
