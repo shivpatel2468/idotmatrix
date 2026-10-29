@@ -25,6 +25,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- in-app updates: open Android's installer for a verified DeskDot APK from GitHub (Updater.kt) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:name="com.chaquo.python.android.PyApplication"
         android:allowBackup="false"
@@ -134,6 +137,17 @@
             android:name=".EngineService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!-- hands the downloaded update (files/data/updates/) to the package installer -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
 
         <receiver
             android:name=".BootReceiver"

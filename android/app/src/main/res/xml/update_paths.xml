@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the engine's update downloads (src/deskdot/updates.py → <files>/data/updates/) are shared, read-only,
+     with Android's package installer. -->
+<paths>
+    <files-path name="updates" path="data/updates/" />
+</paths>

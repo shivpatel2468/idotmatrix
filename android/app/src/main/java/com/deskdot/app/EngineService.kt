@@ -74,6 +74,7 @@ class EngineService : Service() {
         if (engineRunning) return
         engineRunning = true
         BleBridge.init(applicationContext)
+        Updater.init(applicationContext)
         Thread({
             // The engine runs until the service is destroyed; if it ever crashes, restart it after a pause.
             while (engineRunning) {
