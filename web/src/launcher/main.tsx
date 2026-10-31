@@ -6,6 +6,7 @@ import { installPaperImages } from "../lib/paperImg";
 import { installGlass } from "../lib/glass";
 import { Launcher } from "./Launcher";
 import "./launcher.css";
+import "../pageTheme.default.gen.css"; // the default page theme (Cyber grid) before any cached one
 
 // `deskdot launcher` loads /launcher?shell=win|mac|gtk inside its own window; plain browsers get no shell
 const shell = new URLSearchParams(location.search).get("shell");

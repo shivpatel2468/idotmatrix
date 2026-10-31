@@ -139,7 +139,14 @@ def engine_zip(sources: bool = False) -> bytes:
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for path in sorted(SRC.rglob("*")):
             rel = path.relative_to(SRC).as_posix()
-            if path.is_dir() or "__pycache__" in rel or rel.endswith((".pyc", ".pyo")) or rel in EXCLUDE:
+            # living specs (SPEC.md, docs/SPECS.md) are for people and agents, not the tab
+            if (
+                path.is_dir()
+                or "__pycache__" in rel
+                or rel.endswith((".pyc", ".pyo"))
+                or rel in EXCLUDE
+                or path.name == "SPEC.md"
+            ):
                 continue
             data = path.read_bytes()
             name = f"deskdot/{rel}"
@@ -289,9 +296,12 @@ def main() -> int:
     if a.skip_studio:
         if not (OUT / "index.html").exists():
             raise SystemExit("no previous studio build in site/app/; run without --skip-studio")
+        # the studio's files: its page, its bundle and everything vite copied from web/public (favicon, intro/*.gif …)
+        public = {q.name for q in (WEB / "public").iterdir()}
         for p in OUT.rglob("*"):
             rel = p.relative_to(OUT).as_posix()
-            if p.is_file() and (rel == "index.html" or rel.startswith("assets/") or rel == "favicon.svg"):
+            top = rel.split("/", 1)[0]
+            if p.is_file() and (rel == "index.html" or top == "assets" or top in public):
                 studio_keep[rel] = p.read_bytes()
     if OUT.exists():
         shutil.rmtree(OUT)

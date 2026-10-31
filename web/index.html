@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta name="theme-color" content="#0c0c0f" />
-    <!-- theme before first paint (no flash): localStorage deskdot.theme = light | dark | system (default) — see lib/theme.ts -->
+    <meta name="theme-color" content="#06080a" />
+    <!-- theme before first paint (no flash): localStorage deskdot.theme = light | dark (default, first run) | system — see lib/theme.ts -->
     <script>
       (function () {
-        var p = "system";
-        try { p = localStorage.getItem("deskdot.theme") || "system"; } catch (e) {}
+        var p = "dark";
+        try { p = localStorage.getItem("deskdot.theme") || "dark"; } catch (e) {}
         var t = p === "light" || p === "dark" ? p : (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
         var r = document.documentElement;
         r.setAttribute("data-theme", t);
         r.style.colorScheme = t;
-        if (t === "light") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f4f0e8");
+        if (t === "light") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#d7dbd4");
         try { // Liquid Glass before first paint (lib/glass.ts refines it): solid for reduced transparency; frosted (near
           // opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
           var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
@@ -22,7 +22,7 @@
         } catch (e) {}
         try { // the page theme (lib/pageTheme.ts) cached by the last visit: painted before the first frame
           var pt = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
-          if (pt && pt !== "ember" && css) {
+          if (pt && css) {
             var st = document.createElement("style"); st.id = "dd-page-theme"; st.textContent = css;
             document.head.appendChild(st); document.documentElement.setAttribute("data-page-theme", pt);
           }

@@ -14,10 +14,10 @@
   "use strict";
 
   // The studio theme before first paint (the website's CSP blocks index.html's inline copy of this): localStorage
-  // deskdot.theme = light | dark | system (default) → <html data-theme>, as web/src/lib/theme.ts does.
+  // deskdot.theme = light | dark (default, first run) | system → <html data-theme>, as web/src/lib/theme.ts does.
   try {
-    let pref = "system";
-    try { pref = localStorage.getItem("deskdot.theme") || "system"; } catch { /* storage blocked */ }
+    let pref = "dark";
+    try { pref = localStorage.getItem("deskdot.theme") || "dark"; } catch { /* storage blocked */ }
     const t = pref === "light" || pref === "dark" ? pref : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.style.colorScheme = t;
@@ -33,10 +33,13 @@
     document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !blur || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
   } catch { /* never block the host */ }
   // The page theme (web/src/lib/pageTheme.ts) the studio cached on the last visit, before first paint. A constructed
-  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads.
+  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads. The
+  // website's pick (deskdot.siteTheme) leads: when it is another table, the studio's default sheet shows until the
+  // studio paints that one.
   try {
     const id = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
-    if (id && id !== "ember" && css && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
+    const site = localStorage.getItem("deskdot.siteTheme");
+    if (id && css && (!site || site === id) && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
       const sheet = new CSSStyleSheet();
       sheet.replaceSync(css);
       document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];

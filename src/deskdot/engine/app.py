@@ -42,7 +42,7 @@ from pydantic import BaseModel, ConfigDict, Field, create_model, model_validator
 
 from ..gfx import Frame, to_rgb
 from ..gfx.color import RGB, ColorLike
-from ..gfx.themes import DEFAULT_THEME, ROLES, PageTheme
+from ..gfx.themes import ROLES, PageTheme
 
 if TYPE_CHECKING:
     from .runtime import AppContext
@@ -210,11 +210,11 @@ class App:
     @property
     def theme(self) -> PageTheme | None:
         """The page theme this app is drawing with, or None: the app doesn't follow themes, the person turned
-        "Follow page theme" off for it, or the theme is the default (DeskDot = every app's own colours)."""
+        "Follow page theme" off for it, or there is no theme (bare previews: every app's own colours)."""
         if not type(self).theme_aware() or not getattr(self.settings, "follow_theme", True):
             return None
         th: PageTheme | None = getattr(self.ctx, "page_theme", None)
-        return th if th is not None and th.id != DEFAULT_THEME else None
+        return th
 
     def themed(self, role: str, own: ColorLike) -> RGB:
         """The page theme's LED colour for `role` (gfx.themes.ROLES) — or `own`, the app's own colour, when the app
@@ -296,9 +296,9 @@ class App:
 def themed_settings(cls: type[App], settings: AppSettings, theme: PageTheme | None) -> AppSettings:
     """`settings` with every `theme_colors` field that is still at its default replaced by the page theme's LED
     colour for its role. The stored settings never change (the studio shows and edits the person's values); only the
-    instance the app draws with does. The default theme, an app that isn't theme-aware, or "Follow page theme" off:
+    instance the app draws with does. No theme, an app that isn't theme-aware, or "Follow page theme" off:
     `settings` unchanged."""
-    if theme is None or theme.id == DEFAULT_THEME or not cls.theme_colors:
+    if theme is None or not cls.theme_colors:
         return settings
     if not getattr(settings, "follow_theme", True):
         return settings

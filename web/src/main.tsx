@@ -10,6 +10,8 @@ import { installPaper } from "./lib/paper";
 import { installPaperImages } from "./lib/paperImg";
 import { installGlass } from "./lib/glass";
 import "./index.css";
+// the default page theme (Cyber grid), in the stylesheet so a first visit paints it before any script
+import "./pageTheme.default.gen.css";
 
 // the page theme (index.html painted the cached copy before first paint; this re-derives it and keeps it live),
 // then light / dark / auto (likewise)
