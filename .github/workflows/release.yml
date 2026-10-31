@@ -1,8 +1,13 @@
 name: Release
 
 # Push a version tag (v3.8.0) → checks → the Windows installer and the macOS disk images → a DRAFT GitHub Release
-# with checksums.txt and that version's notes from WHATS_NEW.md. Review the draft, add the Android APK (built and
-# signed locally — the release key never goes to CI), then publish it: docs/DEPLOY.md § Releases.
+# with checksums.txt and that version's notes from WHATS_NEW.md. `scripts/release.py` does all of it (docs/RELEASING.md):
+# it adds the Android APK (built and signed on the owner's machine) and publishes the draft.
+#
+# Android in CI (optional): only when the owner has added ALL FOUR secrets ANDROID_KEYSTORE_B64,
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD (docs/RELEASING.md § Signing the APK on GitHub),
+# the `android` job builds and signs the phone APK (and the watch APK once android/wear exists) and attaches them;
+# release.py then skips its local build. Without them the job is skipped and nothing changes.
 #
 # Builds are unsigned unless these optional repository secrets exist (docs/DEPLOY.md § Code signing):
 #   WINDOWS_CERT_PFX_BASE64 + WINDOWS_CERT_PASSWORD                       Authenticode (signtool)
@@ -33,6 +38,8 @@ jobs:
     name: Checks (version, lint, fast tests)
     runs-on: windows-latest
     timeout-minutes: 30
+    outputs:
+      android_signing: ${{ steps.android.outputs.signing }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,6 +53,19 @@ jobs:
           code=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/deskdot/__init__.py)
           [ "v$code" = "$TAG" ] || { echo "tag $TAG but src/deskdot/__init__.py says $code"; exit 1; }
           grep -q "^## $code " WHATS_NEW.md || { echo "WHATS_NEW.md has no '## $code' section"; exit 1; }
+      - name: Android XML is well-formed
+        run: python scripts/check_android_res.py
+      - name: Can GitHub sign the Android APK? (all four ANDROID_* secrets present)
+        id: android
+        shell: bash
+        env:
+          A: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          B: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          C: ${{ secrets.ANDROID_KEY_ALIAS }}
+          D: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$A" ] && [ -n "$B" ] && [ -n "$C" ] && [ -n "$D" ]; then echo "signing=yes" >> "$GITHUB_OUTPUT"
+          else echo "signing=no" >> "$GITHUB_OUTPUT"; echo "No Android signing secrets: the APK is built on the owner's machine."; fi
       - run: uv sync --extra mcp
       - run: uv run ruff check src tests
       - run: uv run pytest -q tests/test_updates.py tests/test_desktop.py tests/test_protocol.py tests/test_api.py tests/test_launcher.py
@@ -187,16 +207,98 @@ jobs:
             echo "MACOS_NOTARY_PROFILE=deskdot" >> "$GITHUB_ENV"
           fi
       - name: Disk image
-        run: bash packaging/macos/build_dmg.sh "${TAG#v}" "${{ matrix.arch }}"
+        # build_dmg.sh retries hdiutil itself; Spotlight indexing the fresh files is the usual "Resource busy" cause,
+        # so it's switched off first, and the whole script gets a second try with a pause.
+        run: |
+          sudo mdutil -a -i off >/dev/null 2>&1 || true
+          for attempt in 1 2; do
+            bash packaging/macos/build_dmg.sh "${TAG#v}" "${{ matrix.arch }}" && break
+            [ "$attempt" = 2 ] && { echo "the disk image failed twice"; exit 1; }
+            echo "disk image attempt $attempt failed; trying again in 30 s"; sleep 30
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: installer-macos-${{ matrix.arch }}
           path: packaging/build/installer/*.dmg
           if-no-files-found: error
 
+  android:
+    name: Android APK (signed on GitHub, optional)
+    needs: [checks, studio]
+    if: needs.checks.outputs.android_signing == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/setup-python@v5
+        id: py
+        with:
+          python-version: "3.13"   # Chaquopy compiles the app's Python with it
+      - name: SDK and signing (the keystore exists only for this job)
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" >/dev/null
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "deskdot.buildPython=${{ steps.py.outputs.python-path }}" >> android/local.properties
+          echo "$ANDROID_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > android/keystore.properties
+      - name: Build (phone, and the watch when android/wear exists)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          tasks=":app:assembleRelease"
+          [ -f wear/build.gradle.kts ] && tasks="$tasks :wear:assembleRelease"
+          ./gradlew --no-daemon $tasks
+      - name: Signed with the release key? (else phones refuse the update)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          v="${TAG#v}"
+          mkdir -p out
+          cp "android/app/build/outputs/apk/release/DeskDot-$v.apk" out/
+          if [ -f android/wear/build.gradle.kts ]; then
+            cp "$(ls android/wear/build/outputs/apk/release/*.apk | tail -n 1)" "out/DeskDot-Wear-$v.apk"
+          fi
+          want=$(keytool -list -v -keystore "$RUNNER_TEMP/release.jks" -alias "$ANDROID_KEY_ALIAS" -storepass:env ANDROID_KEYSTORE_PASSWORD | sed -n 's/.*SHA256: *//p' | head -n 1 | tr -d ':' | tr 'A-F' 'a-f')
+          for apk in out/*.apk; do
+            got=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$apk" | sed -n 's/.*SHA-256 digest: *//p' | head -n 1)
+            [ -n "$want" ] && [ "$got" = "$want" ] || { echo "$apk isn't signed with the release key"; exit 1; }
+            echo "$apk: signed with the release key"
+          done
+      - name: Forget the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" android/keystore.properties
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-android
+          path: out/*.apk
+          if-no-files-found: error
+
   release:
     name: Draft GitHub Release
-    needs: [windows, macos]
+    needs: [windows, macos, android]
+    # the android job is skipped without its secrets; the release still goes ahead (the APK comes from release.py)
+    if: ${{ !cancelled() && needs.windows.result == 'success' && needs.macos.result == 'success' && needs.android.result != 'failure' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -228,6 +330,11 @@ jobs:
           | Mac with Apple silicon (M1 and newer) | \`DeskDot-$v-macOS-arm64.dmg\` |
           | Mac with an Intel chip | \`DeskDot-$v-macOS-x64.dmg\` |
           | Android phone (8.0+) | \`DeskDot-$v.apk\` |
+          EOF
+          if [ -f "out/DeskDot-Wear-$v.apk" ]; then
+            echo "| Wear OS watch (with the phone app) | \`DeskDot-Wear-$v.apk\` |" >> notes.md
+          fi
+          cat >> notes.md <<EOF
 
           Already using DeskDot 3.8 or newer? Settings → Device → Updates installs this version for you.
           First time: the [download steps](https://github.com/${{ github.repository }}#-download) explain the

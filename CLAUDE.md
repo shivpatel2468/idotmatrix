@@ -80,8 +80,10 @@ cd web; npm run build               # typecheck + production build → web/dist 
   screenshots for UI, a release-notes line for WHATS_NEW.md.
 - **CI must be green** (`.github/workflows/ci.yml` runs on every PR), then **squash-merge**. Delete the branch.
 - `main` changes only through pull requests. **Never force-push `main`**, never commit straight to it.
-- Releases are version tags on `main`, built by `.github/workflows/release.yml` (docs/DEPLOY.md § Releases); the
-  version bump + WHATS_NEW + CHANGELOG go through a PR like everything else.
+- Releases are version tags on `main`, built by `.github/workflows/release.yml`; the version bump + WHATS_NEW +
+  CHANGELOG go through a PR like everything else. **To release, write the WHATS_NEW section and run
+  `uv run python scripts/release.py X.Y.Z`** — PR, CI, merge (asks), tag, installers, APK, publish, website:
+  [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Definition of done
 

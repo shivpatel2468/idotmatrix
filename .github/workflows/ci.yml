@@ -35,6 +35,16 @@ jobs:
       # no npm install: the tests use only node built-ins; tv_menu.test.mjs skips itself without playwright-core
       - run: node --test "tests/js/*.test.mjs"
 
+  android-resources:
+    # A second, not a Gradle build: Android's XML must be well-formed ("--" inside a comment broke the 3.9.0 APK
+    # build after it was tagged). scripts/release.py runs the same check before it tags.
+    name: Android — XML resources are well-formed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check_android_res.py
+
   studio:
     name: Studio — typecheck & build
     runs-on: ubuntu-latest
