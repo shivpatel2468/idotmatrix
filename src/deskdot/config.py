@@ -114,11 +114,19 @@ class Store:
 
         async def later() -> None:
             await asyncio.sleep(delay)
-            self.save_now()
+            # snapshot on the loop (consistent, quick), write the file off it: disk I/O must never block the engine
+            text = self._dump()
+            await asyncio.to_thread(self._write, text)
 
         self._save_task = loop.create_task(later())
 
     def save_now(self) -> None:
+        self._write(self._dump())
+
+    def _dump(self) -> str:
+        return json.dumps(self.data, indent=2, default=str)
+
+    def _write(self, text: str) -> None:
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self.data, indent=2, default=str), encoding="utf-8")
+        tmp.write_text(text, encoding="utf-8")
         tmp.replace(self.path)
