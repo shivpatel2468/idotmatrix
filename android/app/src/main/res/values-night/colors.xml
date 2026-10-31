@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- the studio's first-run look: Cyber grid, dark (web/src/lib/pageThemes.gen.ts) — in light and dark system
-         modes alike: page chassis-0, header chassis-1, tab bar --m-glass -->
+         modes alike: page chassis-0, header chassis-1, tab bar m-glass token -->
     <color name="deskdot_page">#06080A</color>
     <color name="deskdot_status">#0F1317</color>
     <color name="deskdot_nav">#0B0F12</color>
