@@ -68,6 +68,13 @@ the studio and the TV show the rest.
 ## Invariants
 
 - **I-CAS-1** Credits are play money: no purchase, cash-out, transfer or exchange to anything of value, ever; no rake.
+  Tests: `tests/test_casino_play_money.py::test_no_route_buys_sells_or_moves_credits`,
+  `tests/test_casino_play_money.py::test_no_casino_op_buys_sells_or_moves_credits`,
+  `tests/test_casino_play_money.py::test_the_bank_is_an_isolated_whole_number_ledger`,
+  `tests/test_casino_play_money.py::test_only_the_host_grants_credits`,
+  `tests/test_casino_play_money.py::test_phone_and_tv_payloads_carry_no_payment_fields`,
+  `tests/test_casino_play_money.py::test_no_payment_sdk_anywhere`. **Known violation of "no rake"**: see
+  Open questions.
 - **I-CAS-2** All randomness goes through `fair.py`; nothing else may draw outcomes.
 - **I-CAS-3** Game rules (`games/*.py`) are pure and draw nothing; panel apps are thin and draw public state only.
 - **I-CAS-4** Phase timers run from the render clock — no sleeps.
@@ -82,7 +89,10 @@ studio ops through `/api/apps/{id}/actions/*`; `status.{phase, ends_in, clock, c
 
 ## Open questions
 
-- I-CAS-1 has no automated test (nothing in the API can move credits out today; enforced by review). The website build
-  adds an 18+ gate and "play money" copy ([netlify spec](../../../netlify/SPEC.md)); main has the "Play money only" line.
+- **Known violation of I-CAS-1 ("no rake").** Texas Hold'em (`rake_percent`, `rake_cap`) and Housie (`rake`) have
+  an optional host-set rake, default 0, that the house keeps out of the pot. It is play credits, not money, but it
+  contradicts the invariant's wording. Decide: drop the rake settings, or reword I-CAS-1 to "no rake of anything of
+  value". Until then `tests/test_casino_play_money.py` lists the rake keys as `KNOWN_RAKE`.
+- The website build adds an 18+ gate and "play money" copy ([netlify spec](../../../netlify/SPEC.md)); main has the "Play money only" line.
 
 Last verified: 2026-10-29

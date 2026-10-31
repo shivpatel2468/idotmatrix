@@ -35,10 +35,16 @@ the engine: the studio (React), phones (`/p/<code>`), TVs (`/tv/<code>`), the la
 ## Invariants
 
 - **I-ROOT-1** The BLE link is owned by exactly one process (the engine); everything else goes through the HTTP API.
-  `bleak` is imported only inside `src/deskdot/device/`. (Detail: [device spec](src/deskdot/device/SPEC.md).)
+  `bleak` is imported only inside `src/deskdot/device/`, and the MCP server is a thin HTTP client that imports
+  nothing from DeskDot. (Detail: [device spec](src/deskdot/device/SPEC.md).) Tests:
+  `tests/test_boundaries.py::test_bleak_is_imported_only_inside_the_device_package`,
+  `tests/test_boundaries.py::test_mcp_server_is_a_thin_http_client`.
 - **I-ROOT-2** Nothing is drawn outside the 32×32 grid; panel text is 1-bit bitmap type only.
-- **I-ROOT-3** `render()` is pure, synchronous and fast; the event loop is never blocked.
-- **I-ROOT-4** Casino credits are play money: never bought, sold, cashed out or tied to real value.
+- **I-ROOT-3** `render()` is pure, synchronous and fast; the event loop is never blocked. Tests:
+  `tests/test_event_loop.py::test_no_blocking_calls_on_the_event_loop`,
+  `tests/test_event_loop.py::test_engine_never_blocks_the_loop`.
+- **I-ROOT-4** Casino credits are play money: never bought, sold, cashed out or tied to real value. Tests:
+  `tests/test_casino_play_money.py` (detail: [casino spec](src/deskdot/casino/SPEC.md) I-CAS-1).
 - **I-ROOT-5** Secrets (tokens, keys, `deskdot.toml`, `data/`, the Android release keystore) never enter git or an API
   response.
 - **I-ROOT-6** `main` changes only through pull requests; releases are tags on `main` (see CLAUDE.md § How we work).
@@ -70,7 +76,7 @@ The public surface is the HTTP + WebSocket API ([docs/API.md](docs/API.md)), own
 
 ## Open questions
 
-- No automated check yet that the MCP server never imports the device layer (I-ROOT-1 is enforced by review).
-- `tests/js/*.test.mjs` run with `node --test` locally but not in CI.
+- `tests/js/*.test.mjs` run in CI (`.github/workflows/ci.yml`, job `js`), but `tests/js/tv_menu.test.mjs` skips
+  there: it needs playwright-core and a Chrome, which the job doesn't install.
 
 Last verified: 2026-10-29
