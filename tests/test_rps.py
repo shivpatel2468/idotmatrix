@@ -417,7 +417,9 @@ async def test_every_phase_renders_fast(mode: str, extra: dict[str, Any], reveal
             worst = max(worst, _render(app, clock, 1))
             break
     assert worst < 0.05, f"{mode} render took {worst * 1000:.1f} ms"
-    assert {"pick", "pump", "reveal"} <= phases, phases
+    # an instant reveal at top speed can pump for less than one frame, so a frame-stepped run may never see it
+    needed = {"pick", "reveal"} if reveal == "instant" else {"pick", "pump", "reveal"}
+    assert needed <= phases, phases
     if mode == "attract":
         assert "champ" in phases and "vs" in phases
     elif mode == "tour":
