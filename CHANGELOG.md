@@ -5,6 +5,21 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
+- **Panel hand-over** (`src/deskdot/handover.py`, `handover_api.py`, ADR 0015): UDP beacon on 8767 (private networks
+  only, opt-out `handover.enabled` / `lan_handover`), 30 s connect lease (`Device.gate` holds automatic attempts back:
+  `reason: elsewhere`), pairing with a 6-digit code and a 256-bit key (`data/handover.json`), HMAC-signed
+  `/lan/handover/release|announce` (±120 s, nonce cache, rate limits; `LanGate` allows `/lan/handover/`), `POST
+  /api/handover/take|pair|pair/answer|forget`, `PUT /api/handover/settings`, web-app loopback `POST
+  /api/handover/tab|free` (CORS + PNA for the web app's origins, other cross-site origins refused), `state.handover`,
+  `/api/health` → `instance`, `handover`; `/api/device/link` → `moved_to`, `drained`.
+- **Device layer**: graceful `set_link(False)` / `reconnect()` (pause writes, GIF chunks keep waiting for acks);
+  `_reset_stack()` after every failed attempt; `REARM_DELAY` 2.5 s after a drop; ±20 % back-off jitter; recovery pass
+  every 4 failures (`recoveries`, `reason: recovering`, gentle replay). BLE: dispose every `BleakClient`, store it before
+  `connect()`, callbacks bound to their client, `use_cached_services=False`, Windows "still connected" check. Android:
+  abort the bridge's attempt on timeout; `BleBridge` disconnects before `close()`; multicast lock for beacons. Web:
+  `gatt.connect()` 20 s timeout, awaited `disconnect()`. New diagnose reasons `moved`, `elsewhere`, `recovering`.
+- **Studio**: Connection sheet lists DeskDots nearby, live hand-over steps, pairing prompt, opt-out; the web app builds
+  the same from DeskDot on this computer (`deskdotWeb.useHere()`). Tests: `tests/test_handover.py`.
 - **Web app re-audited** (docs/WEB_APP.md): the engine of 3.3–3.8 (page themes, paper panel, Liquid Glass, TV view +
   options menu over the WebRTC tunnel, casino dolly / chip sets / odometers / win moment, the 14 public-API apps, API
   health, connection sheet, updates) boots in Pyodide 0.29.5 (verified headless: 116 apps, 4 off-web); every

@@ -25,7 +25,13 @@ import java.util.UUID
  * One GATT session at a time, driven from a single handler thread. Android allows one GATT operation in flight,
  * which matches the engine: it awaits each write's [BleListener.onWriteDone] before sending the next packet, and
  * it paces packets itself (docs/HARDWARE_PROTOCOL.md). Never disconnects on its own: the panel shows a pairing
- * screen when the link drops, so only the engine's shutdown calls [disconnect].
+ * screen when the link drops, so only the engine calls [disconnect] (shutdown, the user's release, a hand-over to
+ * another DeskDot, or aborting a connect attempt it gave up on).
+ *
+ * Closing a session is always `disconnect()` first and `close()` once the stack reports STATE_DISCONNECTED (or after
+ * [CLOSE_GRACE_MS]). Calling `close()` straight away — what this bridge used to do — unregisters the callback before
+ * the link-layer disconnect happens, and on many phones the controller then keeps a "ghost" link to the panel: the
+ * panel stops advertising and no other app can connect until it is power-cycled (ADR 0015).
  */
 @SuppressLint("MissingPermission") // MainActivity requests the permissions before the service starts
 class BleBridge private constructor(private val context: Context) {
@@ -37,6 +43,7 @@ class BleBridge private constructor(private val context: Context) {
         private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val SCAN_MS = 10_000L
         private const val DIRECT_MS = 8_000L
+        private const val CLOSE_GRACE_MS = 2_000L
 
         @Volatile private var instance: BleBridge? = null
 
@@ -82,10 +89,29 @@ class BleBridge private constructor(private val context: Context) {
             stopScan()
             connected = false
             connecting = false
-            gatt?.let { it.disconnect(); it.close() }
+            val tok = pendingToken
+            pendingToken = -1
+            if (tok >= 0) listener?.onWriteDone(tok, false, "disconnected")
+            gatt?.let { closeGatt(it) }
             gatt = null
             writeChar = null
         }
+    }
+
+    /** Disconnect, then close when the stack confirms (the callback sees g != gatt and closes it) or after a grace. */
+    private fun closeGatt(g: BluetoothGatt) {
+        try {
+            g.disconnect()
+        } catch (e: Exception) {
+            Log.d(TAG, "disconnect: $e")
+        }
+        handler.postDelayed({
+            try {
+                g.close()
+            } catch (e: Exception) {
+                Log.d(TAG, "close: $e")
+            }
+        }, CLOSE_GRACE_MS)
     }
 
     /** For the app's notification: "connected to IDM-XXXXXX" etc. */
@@ -98,7 +124,8 @@ class BleBridge private constructor(private val context: Context) {
         val a = adapter
         if (a == null) return fail("this phone has no Bluetooth")
         if (!a.isEnabled) return fail("Bluetooth is off — turn it on in the phone's settings")
-        gatt?.close()
+        stopScan()
+        gatt?.let { closeGatt(it) }
         gatt = null
         connected = false
         connecting = true
@@ -120,7 +147,7 @@ class BleBridge private constructor(private val context: Context) {
     private fun fallBackToScan() {
         Log.i(TAG, "direct connect failed, scanning for the panel")
         direct = false
-        gatt?.close()
+        gatt?.let { closeGatt(it) }
         gatt = null
         scan(scanPrefix, scanAddress, attempt)
     }

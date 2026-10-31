@@ -53,6 +53,8 @@ from .gfx import PALETTE, Frame, to_hex
 from .gfx.calib import PanelCalibration
 from .gfx.font import FONTS
 from .gfx.image import encode_gif_budget, import_media
+from .handover import Handover
+from .handover_api import register as register_handover
 from .media import MediaLibrary
 from .multiplayer import (
     CASINO_HTML,
@@ -334,10 +336,30 @@ def create_app(cfg: Config) -> FastAPI:
         build=os.environ.get("DESKDOT_WEB_BUILD") if cfg.device == "web" else None,
     )
     ws_hub.extras["updates"] = updater.brief
+    # Panel hand-over between DeskDots (ADR 0015). Not in the browser engine: the page host speaks for the tab over
+    # loopback instead. Discovery (UDP beacons, the lease gate) runs only for real panels and when the user allows it.
+    handover: Handover | None = None
+    if cfg.device != "web":
+        saved = store.get("handover") or {}
+        handover = Handover(
+            device,
+            cfg.data_dir,
+            kind=cfg.device,
+            port=cfg.port,
+            enabled=bool(
+                cfg.lan_handover
+                and cfg.device in ("ble", "android")
+                and (saved.get("enabled", True) if isinstance(saved, dict) else True)
+            ),
+            on_change=ws_hub.state_changed,
+        )
+        ws_hub.extras["handover"] = handover.brief
 
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         await engine.start()
+        if handover is not None:
+            await handover.start()
         if cfg.device not in ("sim", "web"):
             start_power_watch(engine, asyncio.get_running_loop())  # sleep -> hand the panel its clock
         beat = asyncio.create_task(ws_hub.heartbeat())
@@ -355,6 +377,8 @@ def create_app(cfg: Config) -> FastAPI:
         finally:
             beat.cancel()
             update_check.cancel()
+            if handover is not None:
+                await handover.stop()
             await engine.stop()
 
     app = FastAPI(title="DeskDot", version=__version__, lifespan=lifespan)
@@ -757,6 +781,9 @@ def create_app(cfg: Config) -> FastAPI:
             "kind": info.kind,
             "panel": info.name,
             "link_enabled": info.link_enabled,
+            # the web app shows "DeskDot on <name>" and knows it can use /api/handover/tab and /free (ADR 0015)
+            "instance": handover.name if handover is not None else None,
+            "handover": handover is not None,
         }
         return JSONResponse(body, headers=_web_app_headers(request))
 
@@ -1424,10 +1451,17 @@ Each character in each row MUST be defined in the palette dictionary with a 6-di
         engine.take_back()
         return {"ok": True, "released": engine.released}
 
+    if handover is not None:
+        register_handover(app, handover, on_enabled=lambda on: store.set("handover", {"enabled": on}))
+
     @app.post("/api/device/link")
-    async def device_link(enabled: bool = Body(..., embed=True)) -> dict[str, Any]:
-        await device.set_link(enabled)
-        return {"ok": True, "link_enabled": enabled}
+    async def device_link(
+        enabled: bool = Body(..., embed=True), moved_to: str | None = Body(None, embed=True, max_length=64)
+    ) -> dict[str, Any]:
+        """Release (finishing the write in flight, then a clean disconnect) or take back the panel. `moved_to`: the
+        DeskDot it is released for (the web app's hand-over, ADR 0015), shown as "Panel moved to …"."""
+        drained = await device.set_link(enabled, **({"reason": f"moved to {moved_to}"} if moved_to else {}))
+        return {"ok": True, "link_enabled": enabled, "drained": drained}
 
     @app.post("/api/device/reconnect")
     async def reconnect(only_if_down: bool = Body(False, embed=True)) -> dict[str, Any]:

@@ -39,6 +39,7 @@ class EngineService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
+    private var multicastLock: WifiManager.MulticastLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -64,6 +65,11 @@ class EngineService : Service() {
         val mode = if (Build.VERSION.SDK_INT >= 29) WifiManager.WIFI_MODE_FULL_LOW_LATENCY else WifiManager.WIFI_MODE_FULL_HIGH_PERF
         wifiLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
             .createWifiLock(mode, "DeskDot::studio")
+            .apply { setReferenceCounted(false); acquire() }
+        // Other DeskDots on the Wi-Fi announce who holds the panel with UDP broadcasts (ADR 0015); many phones filter
+        // broadcast packets unless an app holds a multicast lock.
+        multicastLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
+            .createMulticastLock("DeskDot::handover")
             .apply { setReferenceCounted(false); acquire() }
         startEngine()
     }
@@ -100,6 +106,7 @@ class EngineService : Service() {
         }
         wakeLock?.release()
         wifiLock?.release()
+        multicastLock?.release()
         super.onDestroy()
     }
 

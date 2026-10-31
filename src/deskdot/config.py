@@ -28,6 +28,10 @@ class Config(BaseModel):
     lan_studio: bool = Field(
         default=False, description="Also allow the studio/API from other devices on the LAN"
     )
+    # find other DeskDots on the LAN and hand the panel over between them (ADR 0015); the studio can turn it off too
+    lan_handover: bool = Field(
+        default=True, description="Discover other DeskDots on the local network for panel hand-over"
+    )
     port: int = 8765
     # the web app only (docs/WEB_APP.md): phones join over the internet at <public_url>/p/<code> (WebRTC to the tab)
     public_url: str | None = None
@@ -110,11 +114,19 @@ class Store:
 
         async def later() -> None:
             await asyncio.sleep(delay)
-            self.save_now()
+            # snapshot on the loop (consistent, quick), write the file off it: disk I/O must never block the engine
+            text = self._dump()
+            await asyncio.to_thread(self._write, text)
 
         self._save_task = loop.create_task(later())
 
     def save_now(self) -> None:
+        self._write(self._dump())
+
+    def _dump(self) -> str:
+        return json.dumps(self.data, indent=2, default=str)
+
+    def _write(self, text: str) -> None:
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self.data, indent=2, default=str), encoding="utf-8")
+        tmp.write_text(text, encoding="utf-8")
         tmp.replace(self.path)
