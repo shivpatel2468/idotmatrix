@@ -92,8 +92,36 @@ export type DeviceInfo = {
   retry_at?: number | null;
   last_seen?: number | null;
   rssi?: number | null;
-  reason?: "bluetooth_off" | "not_found" | "busy" | "no_answer" | "permission" | "needs_user" | "link_lost" | "released" | "error" | null;
+  reason?:
+    | "bluetooth_off" | "not_found" | "busy" | "no_answer" | "permission" | "needs_user" | "link_lost" | "released"
+    | "moved" | "elsewhere" | "recovering" | "error" | null;
   hint?: string | null;
+  recoveries?: number;
+};
+
+/** Panel hand-over between DeskDots (src/deskdot/handover.py, ADR 0015); absent on older engines and in the browser */
+export type HandoverPeer = {
+  id: string;
+  name: string;
+  kind: string; // "ble" (a computer) | "android" | "web" (the browser tab on this computer)
+  holding: boolean;
+  panel: string | null;
+  online: boolean;
+  paired: boolean;
+  ago: number | null;
+};
+export type HandoverStep = { id: "ask" | "released" | "waiting" | "connected"; label: string; state: "todo" | "active" | "done" | "failed" };
+export type HandoverBrief = {
+  enabled: boolean;
+  me: { id: string; name: string; kind: string };
+  holder: { id: string; name: string; kind: string; me: boolean; since?: number | null } | null;
+  probable: { id: string; name: string; ago: number } | null;
+  peers: HandoverPeer[];
+  lease: { owner: string; name: string; in: number } | null;
+  progress: { steps: HandoverStep[]; error: string | null; can_force: boolean; done: boolean; target: string | null } | null;
+  moved_to: { id: string; name: string; at: number } | null;
+  pair_requests: { id: string; name: string; kind: string; code: string }[];
+  pairing: { id: string; name: string; code: string; status: "pending" | "allowed" | "denied" | "expired" }[];
 };
 
 export type PlaylistItem = {
@@ -175,6 +203,8 @@ export type EngineState = {
   providers: Record<string, { updated: number | null; error: string | null; active: boolean }>;
   /** in-app updates (src/deskdot/updates.py); absent on engines older than 3.8 */
   updates?: UpdatesBrief;
+  /** panel hand-over between DeskDots (ADR 0015); absent on engines older than 3.9 and in the browser app */
+  handover?: HandoverBrief;
 };
 
 export type UpdateKind = "windows" | "macos" | "android" | "source" | "web";

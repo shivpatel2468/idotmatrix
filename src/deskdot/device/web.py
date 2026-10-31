@@ -19,7 +19,8 @@ Bridge contract (JS object `deskdotBle` in the worker's global scope):
 - `write(data: Uint8Array, withResponse: bool, token: int)` — reports `onWriteDone(token, ok, msg)`. Browsers don't
   expose the negotiated MTU, so `writeSize` is the page's guess; if the stack refuses a packet that long, the page
   re-sends it in smaller pieces and reports the size that works with `onWriteSize(n)`.
-- `disconnect()` — close the GATT session (only when the user unlinks the panel; never voluntarily).
+- `disconnect()` — close the GATT session once the write in flight has settled, or cancel a pending
+  `gatt.connect()` (a release, a timed-out attempt; never voluntarily).
 - unsolicited: `onNotify(data)` for every fa03 notification, `onDisconnected(msg)` when the link drops.
 """
 
@@ -152,6 +153,8 @@ class WebBleDevice(Device):
                 self.needs_user = False
                 continue
             except (ConnectionError, TimeoutError) as e:
+                if isinstance(e, TimeoutError):
+                    self._abort_bridge()  # the page's gatt.connect() may still be pending: cancel it
                 # Retry with back-off like the supervisor does, but a click on "Connect panel" (a new pick) cuts
                 # the wait short — the supervisor's own back-off sleep couldn't be woken.
                 msg = (
@@ -184,11 +187,16 @@ class WebBleDevice(Device):
     async def _disconnect(self) -> None:
         was_up, self._link_up = self._link_up, False
         self._fail_writes("disconnected")
-        if was_up and self._bridge is not None:
-            try:
-                self._bridge.disconnect()
-            except Exception as e:  # pragma: no cover — defensive: the page may already be gone
-                log.debug("disconnect: %s", e)
+        if was_up:
+            self._abort_bridge()
+
+    def _abort_bridge(self) -> None:
+        if self._bridge is None:
+            return
+        try:
+            self._bridge.disconnect()
+        except Exception as e:  # pragma: no cover — defensive: the page may already be gone
+            log.debug("disconnect: %s", e)
 
     async def _write_packet(self, packet: bytes, response: bool) -> None:
         if not self._link_up or self._bridge is None:

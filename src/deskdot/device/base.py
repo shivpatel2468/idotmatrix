@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import time
 from abc import ABC, abstractmethod
 from collections import deque
@@ -30,6 +31,17 @@ from .diagnose import diagnose
 
 log = logging.getLogger("deskdot.device")
 GIF_COOLDOWN = 3.0  # s between GIF uploads; back-to-back uploads make the panel stop acking
+#: s to wait after the link dropped (or was released) before the next connect attempt. The panel needs a moment to
+#: start advertising again and WinRT / Android need it to tear the old GATT session down; connecting sooner is what
+#: produced the "link lost -> panel not found" streaks in the logs (docs/HARDWARE_PROTOCOL.md finding 18).
+REARM_DELAY = 2.5
+#: consecutive failed attempts after which the supervisor runs a recovery pass (dispose the stack, wait for the
+#: panel's advertisement, connect cleanly, replay a safe state) instead of retrying blindly
+RECOVER_AFTER = 4
+#: how long a recovery pass waits for the panel to advertise
+RECOVER_SCAN = 30.0
+#: how long a release waits for the item in flight (a GIF upload waits for each chunk's ack: 3 s x up to ~10)
+RELEASE_DRAIN = 35.0
 
 Status = Literal["disconnected", "scanning", "connecting", "connected", "error"]
 PanelMode = Literal["unknown", "diy", "gif", "native"]
@@ -61,6 +73,7 @@ class DeviceInfo(BaseModel):
     )
     reason: str | None = None  # device/diagnose.py reason code for the last failure
     hint: str | None = None  # one human next step for `reason`
+    recoveries: int = 0  # recovery passes run since start (stack reset + wait for the panel's advertisement)
 
 
 class Device(ABC):
@@ -72,6 +85,8 @@ class Device(ABC):
     packet_size: int = 20
     #: a connect attempt (scan + GATT connect + setup) that takes longer than this is abandoned and retried
     connect_timeout: float = 45.0
+    #: pause after a drop / release before the next attempt (REARM_DELAY; tests shorten it)
+    rearm_delay: float = REARM_DELAY
 
     def __init__(
         self,
@@ -110,6 +125,13 @@ class Device(ABC):
         self._last_brightness: int | None = None
         self._last_frame_at = 0.0
         self._fps_t = 0.0
+        self._dropped_at = (
+            0.0  # monotonic time the link last dropped / was released (REARM_DELAY counts from it)
+        )
+        self._safe_replay = False  # the next connect follows a recovery: replay gently (no GIF right away)
+        #: Optional coordination hook (handover.py): returns a plain-words message while another DeskDot holds the
+        #: panel or holds the connect lease, so this supervisor waits instead of adding connect attempts to the air.
+        self.gate: Callable[[], str | None] | None = None
 
     # ------------------------------------------------------------- lifecycle
     async def start(self) -> None:
@@ -131,17 +153,36 @@ class Device(ABC):
         await self._disconnect()
         self._set(status="disconnected")
 
-    async def set_link(self, enabled: bool) -> None:
+    async def set_link(self, enabled: bool, reason: str = "disconnected from the studio") -> bool:
         """Release / take back the panel on the user's explicit request (ADR 0013). Released, the supervisor stays
-        idle — nothing reconnects until the user presses Connect, so another app can hold the panel meanwhile."""
+        idle — nothing reconnects until the user presses Connect, so another app can hold the panel meanwhile.
+
+        Releasing is graceful (ADR 0015): the item in flight finishes first — a GIF upload keeps waiting for each
+        chunk's ack — so the panel is never left mid-transfer for the next app; then the GATT session is closed and
+        disposed. Returns False when the drain timed out (the link is closed anyway)."""
         self.info.link_enabled = enabled
+        drained = True
         if not enabled:
-            await self._disconnect()
-            self._mark_disconnected("disconnected from the studio")
+            drained = await self._close_gracefully(reason)
         else:
             self._set(attempts=0, reason=None, hint=None, last_error=None)
             self.retry_now()
         self._on_change()
+        return drained
+
+    async def _close_gracefully(self, reason: str) -> bool:
+        """Finish the write in flight, close the link, and keep queued work for the next connect."""
+        drained = True
+        if self.connected:
+            drained = await self.pause_writes(RELEASE_DRAIN)
+            if not drained:
+                log.warning(
+                    "release: the write in flight did not finish within %.0fs; closing anyway", RELEASE_DRAIN
+                )
+        await self._disconnect()
+        self._mark_disconnected(reason)
+        self.resume_writes()  # the writer now waits for the next connect (it checks `connected` first)
+        return drained
 
     async def reconnect(self, only_if_down: bool = False) -> str:
         """The user's "Reconnect". Not connected: try again right now (skips the back-off wait) — never a
@@ -153,8 +194,7 @@ class Device(ABC):
         if self.connected:
             if only_if_down:
                 return "connected"
-            await self._disconnect()
-            self._mark_disconnected("manual reconnect")
+            await self._close_gracefully("manual reconnect")
             self.retry_now()
             return "reconnecting"
         self._set(attempts=0)
@@ -178,6 +218,25 @@ class Device(ABC):
     def retry_now(self) -> None:
         """Wake the supervisor: the next connect attempt starts now instead of after the back-off."""
         self._retry.set()
+
+    async def wait_connected(self, limit: float) -> bool:
+        """True once the link is up (within `limit` s)."""
+        if self.connected:
+            return True
+        try:
+            await asyncio.wait_for(self._connected.wait(), limit)
+        except TimeoutError:
+            return False
+        return self.connected
+
+    async def wait_for_panel(self, limit: float) -> bool:
+        """Wait until the panel advertises (its previous central let go). Backends that can't listen for
+        advertisements return True at once and let the connect attempt find out."""
+        try:
+            return await self._wait_for_panel(limit)
+        except Exception as e:  # a scan error is not fatal: the connect attempt reports the real problem
+            log.info("waiting for the panel: %s", e)
+            return False
 
     # ------------------------------------------------------------ public API
     @property
@@ -250,6 +309,15 @@ class Device(ABC):
     async def _write_packet(self, packet: bytes, response: bool) -> None:
         """Write one ATT packet (<= packet_size bytes)."""
 
+    async def _wait_for_panel(self, limit: float) -> bool:
+        """Backend hook: wait for the panel's advertisement. Default: can't tell, go ahead."""
+        return True
+
+    async def _reset_stack(self) -> None:
+        """Backend hook (recovery, failed attempts): drop every GATT object this process may still hold. A leaked
+        session keeps the panel connected to us at the OS level, so it stops advertising for everyone."""
+        await self._disconnect()
+
     async def _write(self, data: bytes, response: bool = False) -> None:
         """Write a logical message, split into packets with a pacing gap between them."""
         n = max(20, self.packet_size)
@@ -285,6 +353,8 @@ class Device(ABC):
             self._on_change()
 
     def _mark_disconnected(self, reason: str | None) -> None:
+        if self.connected:
+            self._dropped_at = time.monotonic()
         self._connected.clear()
         code, tip = (None, None) if reason in (None, "manual reconnect") else diagnose(reason, self.kind)
         self._set(
@@ -325,15 +395,32 @@ class Device(ABC):
             if self.connected or not self.info.link_enabled:
                 await asyncio.sleep(0.5 if not self.info.link_enabled else 1.0)
                 continue
+            held = self.gate() if self.gate else None
+            if held:
+                # Another DeskDot holds the panel (or is connecting to it under the lease): don't add connect
+                # attempts to the air. "Use the panel here" or the holder letting go wakes us (retry_now).
+                self._set(status="disconnected", reason="elsewhere", hint=held, retry_at=None)
+                await self._wait_retry(3.0)
+                continue
+            rearm = self._dropped_at + self.rearm_delay - time.monotonic()
+            if rearm > 0:  # let the panel re-advertise and the OS finish tearing the old session down
+                await asyncio.sleep(rearm)
+                continue
             try:
+                if self.info.attempts and self.info.attempts % RECOVER_AFTER == 0:
+                    await self._recover()
                 self._set(status="connecting")
                 try:
                     # Verified 2026-10-01: after Windows sleeps, a WinRT connect can hang forever, which left the
                     # supervisor stuck and the panel never reconnected. Abandon a hung attempt and retry.
                     await asyncio.wait_for(self._connect(), self.connect_timeout)
                 except TimeoutError:
-                    await self._disconnect()
-                    raise ConnectionError(f"connect timed out after {self.connect_timeout:.0f}s") from None
+                    # bleak raises TimeoutError for its own (shorter) GATT timeout too, so don't claim a duration
+                    await self._reset_stack()  # never leave a half-open session behind: it holds the panel
+                    raise ConnectionError("connect timed out (the panel didn't answer)") from None
+                except Exception:
+                    await self._reset_stack()
+                    raise
                 delay = 1.0
                 now = time.time()
                 self._set(
@@ -353,14 +440,40 @@ class Device(ABC):
             except asyncio.CancelledError:
                 raise
             except Exception as e:
-                log.warning("connect failed: %s — retrying in %.0fs", e, delay)
-                self._note_failure(str(e) or type(e).__name__, retry_in=delay)
+                # jitter: two DeskDots that lost the panel at the same moment must not retry in lockstep
+                wait = delay * random.uniform(0.8, 1.25)
+                log.warning("connect failed: %s — retrying in %.0fs", e, wait)
+                self._note_failure(str(e) or type(e).__name__, retry_in=wait)
                 # "Reconnect now" starts the back-off over
-                delay = 1.0 if await self._wait_retry(delay) else min(delay * 2, 20.0)
+                delay = 1.0 if await self._wait_retry(wait) else min(delay * 2, 20.0)
                 self._set(retry_at=None)
 
+    async def _recover(self) -> None:
+        """Several attempts failed in a row: instead of retrying blindly (and the user power-cycling the panel),
+        reset this process's Bluetooth objects, wait for the panel to advertise, then connect cleanly and replay a
+        safe state."""
+        n = self.info.recoveries + 1
+        log.info("recovery %d: resetting the Bluetooth session and waiting for the panel to advertise", n)
+        self._set(
+            status="scanning",
+            reason="recovering",
+            recoveries=n,
+            hint="Recovering the link: clearing old Bluetooth sessions and waiting for the panel to show up.",
+        )
+        await self._reset_stack()
+        await asyncio.sleep(self.rearm_delay)
+        seen = await self.wait_for_panel(RECOVER_SCAN)
+        log.info("recovery %d: the panel %s", n, "is advertising" if seen else "is still not advertising")
+        self._safe_replay = True
+
     def _replay(self) -> None:
-        """After (re)connecting, restore power, brightness and whatever was on screen."""
+        """After (re)connecting, restore power, brightness and whatever was on screen.
+
+        After a recovery the panel may still be digesting an interrupted transfer, so the replay is gentle: power
+        and brightness first, a GIF only after the usual cool-down (finding 16)."""
+        if self._safe_replay:
+            self._safe_replay = False
+            self._gif_ready_at = time.monotonic() + GIF_COOLDOWN
         if self._last_brightness is not None:
             self._commands.appendleft((P.brightness(self._last_brightness), None))
         self._commands.appendleft((P.screen_on() if self.info.power else P.screen_off(), None))
