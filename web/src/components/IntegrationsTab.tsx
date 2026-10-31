@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../lib/api";
 import { PLATFORM_LABEL } from "../lib/platform";
+import { DesktopAppNote } from "./DesktopAppNote";
 import { toast, useStore } from "../lib/store";
 import type { EngineState, Indicator, Integrations } from "../lib/types";
 import { Row, Slider, Toggle } from "./controls";
@@ -62,6 +63,7 @@ function OnAirSection({ st, cfg }: { st: St; cfg: Integrations["onair"] }) {
         : `Needs Windows: DeskDot runs on ${host}, which doesn't say when the camera / microphone is in use. The style below still works with the preview.`}>
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="On Air" />
       </Row>
+      {!win && <DesktopAppNote why="a browser tab can't tell when another app uses your camera or microphone." />}
       <Row label="Style" hint={cfg.style === "full" ? "Takes over the playlist; plays natively, so a long call costs no Bluetooth traffic."
         : cfg.style === "glow" ? "A breathing red border over every app (streams while live)." : "A red mic / camera tab in the top-left corner of every app."}>
         <Seg value={cfg.style} onChange={(v) => save({ style: v })} options={[["full", "Full screen"], ["badge", "Corner badge"], ["glow", "Border glow"]]} />
@@ -103,6 +105,7 @@ function EyeBreakSection({ st, cfg }: { st: St; cfg: Integrations["eyebreak"] })
         : "After continuous keyboard / mouse use, a calm 20-second countdown: look 20 feet away. Skipped during calls and full-screen games (Windows); 2 min away from the keyboard resets the timer."}>
         <Toggle on={cfg.enabled} onChange={(v) => save({ enabled: v })} label="Eye break" />
       </Row>
+      {unsupported && <DesktopAppNote why="a browser tab can't see keyboard and mouse use outside itself." />}
       <Row label="Every">
         <Slider value={cfg.interval_min} min={5} max={120} step={5} unit=" min" onCommit={(v) => save({ interval_min: v })} />
       </Row>

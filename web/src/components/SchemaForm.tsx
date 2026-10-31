@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { PLATFORM_LABEL, platformsLabel, supportedOn } from "../lib/platform";
 import { EMPTY_MAP, useStore } from "../lib/store";
 import type { AppSchema, JsonSchemaProp, MediaItem } from "../lib/types";
+import { DesktopAppLink } from "./DesktopAppNote";
 import { Picker } from "./Picker";
 
 type Props = {
@@ -30,7 +31,7 @@ export function SchemaForm({ schema, value, onChange }: Props) {
     <p role="note" className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-[12px] leading-snug text-ink-2">
       <span className="font-[600] text-warn">{platformsLabel(schema.platforms)}.</span>{" "}
       {host === "web" && schema.webReason
-        ? <>{schema.webReason} Here the panel shows “not on web”.</>
+        ? <>{schema.webReason} Here the panel shows “not on web”. <DesktopAppLink /></>
         : <>DeskDot is running on {PLATFORM_LABEL[host] ?? host}, so the panel shows “not on {PLATFORM_LABEL[host] ?? host}”.</>}
     </p>
   );

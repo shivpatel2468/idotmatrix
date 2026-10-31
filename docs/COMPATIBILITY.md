@@ -68,7 +68,8 @@ Global settings with host limits: **Audio source "System sound"** (Windows, Linu
 
 The engine can also run inside a browser tab (Pyodide + Web Bluetooth; `platform: "web"`, label "Browser"). There
 the tab can't see the computer, so most host features above are ❌, while network data, games, creative apps and
-all settings work. System Monitor is badged "Not on Browser" (psutil). Through the browser's permission prompts
+all settings work. System Monitor shows what a browser tells (CPU pressure, the tab's memory, battery) and Now
+Playing reads a listening service or a typed-in song. Through the browser's permission prompts
 (`providers/webmedia.py` + `web/webapp/host-media.js`):
 
 | Feature | Browser host |
@@ -77,7 +78,9 @@ all settings work. System Monitor is badged "Not on Browser" (psutil). Through t
 | Screen capture (`screen`) | 🟡 `getDisplayMedia` on desktop Chrome / Edge / Firefox / Safari, from a click; ❌ phones; "Active window" / "Around cursor" = whatever was shared |
 | Mic (`audio`) | ✅ `getUserMedia({audio})` |
 | System sound (`audio_loopback`) | 🟡 a shared tab's sound (Chrome / Edge on a computer; whole system on Windows / ChromeOS); falls back to the mic elsewhere |
-| Idle, media session, window, notifications, On Air, system stats | ❌ |
+| Now playing (`media`) | 🟡 no media session: ListenBrainz (user name), Last.fm (user name + free API key) or a typed-in song (`providers/media_web.py`); no play / pause / next |
+| System stats (`system`) | 🟡 CPU pressure (Compute Pressure API: 4 steps, Chrome / Edge), the tab's memory, battery, network estimate, frame rate (`browser_stats` in `providers/system.py`); no disk or uptime |
+| Idle, window, notifications, On Air, sleep hand-off | ❌ |
 | LAN services on plain http / sockets (`lan`: OBS, 3D printer, Anki) | ❌ an https page may not call them (mixed content) and has no sockets |
 | Network data | ✅ direct where the API allows CORS, else through the site's allowlisted `/app/proxy`; Home Assistant / media servers need an https URL that allows CORS; ntfy is polled every 10 s; uptime: no TCP checks |
  Panel link: Chrome / Edge / Opera on Windows,

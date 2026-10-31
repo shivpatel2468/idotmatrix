@@ -88,21 +88,54 @@ that tab** blinks the other tab's title ("● DeskDot has the panel") — pages 
 ## What works in the browser
 
 Everything that doesn't need the computer itself, plus the camera, a shared screen and sound through the
-browser's own permission prompts — `GET /api/meta` reports `platform: "web"` with `screen`, `camera`, `audio` and
-`audio_loopback` `true` and every other host feature `false`, so the studio greys out the rest with its usual badges
-("Windows/macOS/Linux only", "Not on Browser"):
+browser's own permission prompts — `GET /api/meta` reports `platform: "web"` with `screen`, `camera`, `audio`,
+`audio_loopback`, `system` (the browser's own stats) and `media` (a listening service or a typed-in song) `true` and
+every other host feature `false`, so the studio greys out the rest with its usual badges ("Windows/macOS/Linux only",
+"Not on Browser"). In the browser app every one of those places also says why in one line and links to
+**Get the desktop app** (`/download.html`, `web/src/components/DesktopAppNote.tsx`):
 
 | Works | Doesn't (needs the desktop app, a Pi or the Android app) | Why |
 | --- | --- | --- |
-| All games, clocks, timers, pets, loops, ambient and creative apps | Now Playing, Active App | no access to the OS media session / windows |
+| All games, clocks, timers, pets, loops, ambient and creative apps | Active App | no access to the computer's windows |
 | Live-data apps (weather, sports, markets, stocks, flights, space, quakes, rain radar, news, trivia…) | Screen Mirror on phones / tablets | no `getDisplayMedia` on Android / iOS |
 | Playlists, presets, autopilot, notifications, text, agent states | Camera Mirror's face tracking and webcam hardware controls | no OpenCV in the browser (the picture is centre-cropped; zoom / pan work) |
 | **Camera Mirror, Screen Mirror, Visualizer, pets' "dance to music"** — after the browser asks (see below) | Screen Mirror "Active window" / "Around cursor" | the browser's picker chooses the window instead |
-| Canvas drawing, photo/GIF upload, Font Lab (bitmap fonts), AI creator (your Gemini key) | System Monitor, Composer CPU/RAM layers | no psutil in a tab |
-| Calibration wizard, brightness, night mode, display & motion settings | On Air, idle eye-break, OS notification mirroring, sleep hand-off | Windows/macOS system APIs |
-| Integrations reachable over https (ntfy, GitHub CI, iCal URLs, Home Assistant **with an https URL** that allows CORS) | MCP / Claude Code hooks | no server an agent could reach |
+| Canvas drawing, photo/GIF upload, Font Lab (bitmap fonts), AI creator (your Gemini key) | System Monitor's disk / uptime, network upload | a tab sees only what the browser tells (see "Browser stats") |
+| Calibration wizard, brightness, night mode, display & motion settings, page themes (apps follow them), paper panel, Liquid Glass | On Air, idle eye-break, OS notification mirroring, sleep hand-off, "Follow the app I'm using" | Windows/macOS system APIs |
+| Integrations reachable over https (ntfy, GitHub CI, iCal URLs, Home Assistant **with an https URL** that allows CORS) | MCP / Claude Code hooks, scripts calling the API | no server an agent could reach |
+| **Now Playing** (all layouts, lyrics, cover art) from ListenBrainz, Last.fm or a typed-in song; **System Monitor** from the browser's own stats | Now Playing's play / pause / next | a tab can't press keys in another app |
+| **Show on TV** (the TV view and its options menu over the WebRTC tunnel), casino (dolly, chip sets, odometer credits, win moment) | Installers, in-app installs, the tray launcher | the browser app *is* the website: **updates = reload** (below) |
 | **Play with friends** (multiplayer games, casino rooms): phones join from anywhere by the QR code — see below | | |
 | Settings, uploads and calibration persist (IndexedDB) | LAN services on plain http (OBS, printers, AnkiConnect, local Home Assistant) | an https page may not call http LAN addresses — app by app: [App support in the browser](#app-support-in-the-browser) |
+
+### Now Playing and System Monitor in a tab
+
+Neither has the computer to read, so each gets the closest thing a browser has (both were "Not on Browser" before
+3.9.0):
+
+- **Now Playing** (`providers/media_web.py`, the `WebBackend` of `MediaProvider`): Settings → *In the browser* →
+  *Where the song comes from*. **ListenBrainz** needs only a user name (`/1/user/<name>/playing-now`, keyless, CORS;
+  fed by the Web Scrobbler extension, Pano Scrobbler, many players); **Last.fm** needs a user name and a free API key
+  (`user.getRecentTracks`, the newest track while it's "now playing"; Spotify scrobbles there); **Typed in** shows the
+  song you enter until you clear it. Polled every 15 s; no position from these services, so the progress counts from
+  the start of each song; cover art from Last.fm, the Cover Art Archive or iTunes; lyrics from LRCLIB as on the
+  desktop. No transport controls. The fields carry `platforms: ["web"]`, so the desktop studio shows them disabled with
+  a "Browser only" badge. (The tab's own Media Session is no use: the studio plays nothing. Spotify's Web API would need
+  an OAuth app registered by each user, so it isn't offered.)
+- **System Monitor** (`providers/system.py` `browser_stats`): every 2 s `host.js` sends `{t:"sys-stats"}` with the
+  Compute Pressure state (CPU: nominal / fair / serious / critical → 25 / 50 / 75 / 95 %; Chrome / Edge), the tab's
+  JavaScript memory (`performance.memory`), battery, the network estimate, the page's frame rate while visible, cores
+  and the device-memory hint. The bars read **CPU / MEM / BAT**; anything a browser doesn't tell shows `--`.
+  Composer's CPU / RAM layers use the same values.
+
+### Updates: reload
+
+The browser app updates with the website. `build_webapp.py` writes `site/app/version.json` (`{version, build, notes}`
+— the notes are the newest section of WHATS_NEW.md; no timestamps, so a rebuild of the same files is the same build).
+The tab's engine knows its own build (`manifest.json` → `web_main.boot(build=…)`); `updates.Updater` (kind `web`)
+reads `/app/version.json` a minute after start and then every 30 min (the service worker never caches it). When the
+builds differ the studio shows **New version — reload** in the top bar, and Settings → Device → Updates shows the
+notes and a **Reload to update** button. Nothing is downloaded or installed by the engine.
 
 ### Camera, screen and sound
 
@@ -228,7 +261,8 @@ build, so a host tab running an older cached engine may briefly mismatch until i
 
 ## App support in the browser
 
-Audited app by app on 2026-10-04: what each app needs (providers, hosts, sockets, OS calls, files) and whether a
+Audited app by app on 2026-10-04, re-audited for 3.9.0 on 2026-10-29 (116 apps; every non-proxied provider
+endpoint answered with CORS headers): what each app needs (providers, hosts, sockets, OS calls, files) and whether a
 browser tab can give it that. Apps marked ❌ declare it in code (`platforms` without `"web"` plus a `web_reason`);
 the library shows them dimmed with a **Not on Browser** badge, the settings banner says why, the panel shows
 "NOT ON WEB" and the playlist skips them. `tests/test_web_apps.py` keeps this honest: every provider host is either
@@ -245,7 +279,7 @@ Legend: ✅ works · 🟡 works with a limit · ❌ not available.
 | Gallery, Photo Frame (uploads) | ✅ | uploads live in IndexedDB |
 | Weather, Air Quality, Tides & Surf, What to Wear, Sun & Moon, Day & Night, Planets Tonight, Pet World | ✅ | Open-Meteo, sunrise-sunset.org (CORS). Location by IP goes through the proxy (ip-api.com is http only) — set a city to skip it |
 | Live Scores, Crypto Ticker, Currency, Earthquakes, Rain Radar, Space (+ ISS), Trivia, Pokédex, Chess Puzzle, Holidays, Headlines, Daily Dose, Game Deals, Pixel Avatar, GitHub Graph, Stocks | ✅ | direct where the API allows CORS; Yahoo/Nasdaq (stocks), Hacker News/Lobsters, ZenQuotes, CheapShark, Mojang, github.com, open-notify, Google holiday calendars through `/app/proxy` |
-| Aurora Watch, Bitcoin Network, Crypto Market, Race Countdown, Long Weekend, Bike Share, Earth Events, World Flags, Rain Chance, Wind Compass, Wiki Trending, Game Server, TV Tonight (3.6.0) | ✅ | every API allows CORS (checked by `scripts/api_health.py`, column "Web") |
+| Aurora Watch, Bitcoin Network, Crypto Market, Race Countdown, Long Weekend, Bike Share, Earth Events, World Flags, Rain Chance, Wind Compass, Wiki Trending, Game Server, TV Tonight (3.6.0) | ✅ | every API allows CORS (checked by `scripts/api_health.py`, column "Web", and again with `curl -H "Origin: https://idotmatrix.com"` on 2026-10-29) |
 | Asteroid Flyby (3.6.0) | ✅ | NASA/JPL's close-approach API has no CORS: through `/app/proxy` |
 | Photo Frame (online sources) | ✅ | Met and Cleveland Museum images come from CDNs without CORS: proxied |
 | Flight Radar | 🟡 | adsb.lol / adsb.fi / OpenSky have no CORS: every poll is a proxy call, so the browser polls every 15 s instead of 8 s |
@@ -259,9 +293,9 @@ Legend: ✅ works · 🟡 works with a limit · ❌ not available.
 | Custom | 🟡 | pushes come from the studio only: scripts and agents can't reach an engine inside a tab (no `POST /api/custom`) |
 | Camera Mirror, Screen Mirror, Visualizer, Pet's "Dance to music" | 🟡 | the browser's camera / screen / mic prompts — see "Camera, screen and sound" |
 | ntfy pushes (Integrations) | 🟡 | a tab can't hold ntfy's endless stream: the engine polls (`?poll=1&since=…`) every 10 s while the tab is open; a token travels as ntfy's `auth` query parameter (ntfy refuses the `Authorization` preflight) |
-| System Monitor | ❌ | no psutil: a tab can't read CPU, memory, disk or network counters |
+| System Monitor | 🟡 | the browser's own stats (CPU pressure, the tab's memory, battery); no disk — see "Now Playing and System Monitor in a tab" |
+| Now Playing (19 layouts) | 🟡 | ListenBrainz, Last.fm (your key) or a typed-in song instead of the OS media session; no play / pause / next |
 | Active App | ❌ | a tab can't see the foreground window or app icons |
-| Now Playing | ❌ | no access to the OS media session (Spotify, Music, browser players) |
 | OBS Status | ❌ | obs-websocket is a plain `ws://` socket on your computer: an https page may not open it |
 | 3D Printer (OctoPrint / Moonraker) | ❌ | plain http on the LAN: blocked from an https page (feature `lan`) |
 | Anki | ❌ | AnkiConnect answers plain http on 127.0.0.1 and refuses other origins (feature `lan`) |
@@ -283,8 +317,11 @@ Legend: ✅ works · 🟡 works with a limit · ❌ not available.
 
 ### What a browser tab can't do (and why)
 
-- **Read the computer** — media session, foreground window, CPU/RAM counters, idle time, OS notifications, the
-  Windows privacy registry (On Air), sleep events: no web API exposes them.
+- **Read the computer** — media session, foreground window, CPU/RAM/disk counters, idle time, OS notifications, the
+  Windows privacy registry (On Air), sleep events: no web API exposes them (Now Playing and System Monitor use the
+  stand-ins above).
+- **Install or update itself** — no installers, tray launcher or start-with-login; a new version is a reload.
+- **Be an MCP server** — agents (Claude Code, the MCP tools) need the desktop engine's local HTTP API (as the next point says).
 - **Talk to plain-http / socket services on your network** — OBS, OctoPrint/Moonraker, AnkiConnect, a local Home
   Assistant or Plex at `http://192.168.…`: an https page may not load http content (mixed content), browsers have
   no raw TCP/UDP sockets (no TCP uptime checks, no mDNS discovery), and a public proxy can't reach your LAN anyway.
