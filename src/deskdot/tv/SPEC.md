@@ -54,6 +54,7 @@ only), `WS /ws/tv/{code}` (`hello`, `state`, frames, `closed`; from the TV: `pin
 
 ## Open questions
 
-- The perf budget (I-TV-2…5) is verified by the manual benchmark, not in CI; `tests/js/*` don't run in CI either.
+- The perf budget (I-TV-2…5) is verified by the manual benchmark, not in CI. `tests/js/*` run in CI
+  (job `js` in `.github/workflows/ci.yml`) except `tests/js/tv_menu.test.mjs`, which skips without playwright-core.
 
 Last verified: 2026-10-29

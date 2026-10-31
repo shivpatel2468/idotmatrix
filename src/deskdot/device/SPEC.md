@@ -52,6 +52,8 @@ replay); backends (`ble.py` desktop, `android.py`, `web.py`, `sim.py`) implement
 ## Invariants
 
 - **I-DEV-1** The engine is the only process that owns the link. `bleak` is imported only in `device/`.
+  Tests: `tests/test_boundaries.py::test_bleak_is_imported_only_inside_the_device_package`,
+  `tests/test_boundaries.py::test_mcp_server_is_a_thin_http_client`.
 - **I-DEV-2** Never disconnect voluntarily (the panel shows a pairing screen). The only exception is the user's
   explicit *Release the panel* (ADR 0013).
 - **I-DEV-3** Never queue frames FIFO toward the panel.
@@ -68,7 +70,6 @@ stats, `reason`, `hint`, `rssi`); `POST /api/device/link`, `POST /api/device/rec
 
 ## Open questions
 
-- I-DEV-1 has no automated import-boundary test (grep shows `bleak` only in `device/ble.py` today).
 - Whether `packet_gap_ms` can drop below 30 ms (HARDWARE_PROTOCOL.md § Unverified).
 
 Last verified: 2026-10-29
