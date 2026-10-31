@@ -288,3 +288,51 @@ def test_updates_api(tmp_path: Path) -> None:
         assert "updates" in c.get("/api/state").json()
     saved = json.loads((tmp_path / "state.json").read_text(encoding="utf-8"))
     assert saved["updates"]["auto_check"] is False
+
+
+# ------------------------------------------------------------------ the browser app (kind "web")
+WEB_VERSION = "https://idotmatrix.com/app/version.json"
+
+
+def _web_updater(tmp_path: Path, answer: dict[str, Any] | None, calls: list[str] | None = None) -> U.Updater:
+    def handler(req: httpx.Request) -> httpx.Response:
+        if calls is not None:
+            calls.append(str(req.url))
+        assert str(req.url) == WEB_VERSION, "the browser app only asks its own site, never GitHub"
+        return httpx.Response(404) if answer is None else httpx.Response(200, json=answer)
+
+    return U.Updater(
+        Store(tmp_path / "state.json"),
+        tmp_path,
+        kind="web",
+        current="3.9.0",
+        transport=httpx.MockTransport(handler),
+        web_version_url=WEB_VERSION,
+        build="aaaaaaaaaaaa",
+    )
+
+
+async def test_web_build_offers_a_reload_when_the_site_has_a_new_build(tmp_path: Path) -> None:
+    calls: list[str] = []
+    up = _web_updater(tmp_path, {"version": "3.9.0", "build": "bbbbbbbbbbbb", "notes": "## 3.9.0"}, calls)
+    info = await up.check(force=True)
+    assert info["available"] is True and info["kind"] == "web" and not info["can_install"]
+    assert info["build"] == "aaaaaaaaaaaa" and info["latest_build"] == "bbbbbbbbbbbb"
+    assert info["notes"] == "## 3.9.0" and up.brief()["latest_build"] == "bbbbbbbbbbbb"
+    await up.check()  # within 30 min: no second request
+    assert calls == [WEB_VERSION]
+    with pytest.raises(U.UpdateError, match="reload"):
+        await up.install()
+
+
+async def test_web_build_up_to_date_older_or_offline(tmp_path: Path) -> None:
+    same = _web_updater(tmp_path / "a", {"version": "3.9.0", "build": "aaaaaaaaaaaa"})
+    assert (await same.check(force=True))["available"] is False
+    older = _web_updater(tmp_path / "b", {"version": "3.8.0", "build": "cccccccccccc"})  # a stale CDN copy
+    assert (await older.check(force=True))["available"] is False
+    offline = _web_updater(tmp_path / "c", None)
+    info = await offline.check(force=True)
+    assert info["available"] is False and info["status"] == "error" and "website" in info["error"]
+    assert (
+        U.Updater(Store(tmp_path / "d.json"), tmp_path, kind="web").web_version_url is None
+    )  # no site: no check

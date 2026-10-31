@@ -10,6 +10,9 @@ itself. Installing (docs/API.md § Updates, docs/DEPLOY.md § Releases):
   /Applications) after the engine exits and opens the new one; if it can't write there, it opens the dmg instead.
 * **Android**: downloads `DeskDot-<v>.apk`; the app's `Updater.kt` opens the system installer (same signing key).
 * **From source** (`uv run`, a git checkout, the Pi service): nothing to install — `git pull` and rebuild.
+* **Browser** (the web app at idotmatrix.com/app/): nothing to install either — a new build is just the website.
+  The check reads the site's own `/app/version.json` (written by scripts/build_webapp.py: version, build id,
+  release notes) instead of GitHub, every 30 min, and offers a reload when its build differs from the tab's.
 
 Every download must be an HTTPS asset of this repository's release, and its SHA-256 must match the release's
 `checksums.txt` (or a `<asset>.sha256` file next to it); anything else is refused and deleted.
@@ -47,6 +50,9 @@ RELEASES_PAGE = f"https://github.com/{REPO}/releases/latest"
 #: release assets are served from here (GitHub then redirects to its CDN, also HTTPS)
 ASSET_PREFIX = f"https://github.com/{REPO}/releases/download/"
 CHECK_EVERY_S = 6 * 3600
+#: the browser app asks its own site (a small static file), so it may look more often
+WEB_CHECK_EVERY_S = 30 * 60
+WEB_FIRST_DELAY_S = 60.0
 AUTO_FIRST_DELAY_S = 30.0
 AUTO_TICK_S = 3600.0
 #: the biggest installer we accept (the Windows one is ~150 MB)
@@ -202,6 +208,8 @@ class Updater:
         transport: httpx.AsyncBaseTransport | None = None,
         request_exit: Callable[[], None] | None = None,
         handoff: Callable[[Kind, Path], str] | None = None,
+        web_version_url: str | None = None,
+        build: str | None = None,
     ) -> None:
         self.store = store
         self.dir = Path(data_dir) / "updates"
@@ -211,6 +219,9 @@ class Updater:
         self._transport = transport
         self._request_exit = request_exit or _exit_engine
         self._handoff = handoff or handoff_to_installer
+        #: the browser app: where the site publishes its current build, and the build this tab runs
+        self.web_version_url = web_version_url
+        self.build = build or None
         self.status: Status = "idle"
         self.progress: float | None = None
         self.error: str | None = None
@@ -250,7 +261,20 @@ class Updater:
         return str(r.get("version")) if r and r.get("version") else None
 
     @property
+    def latest_build(self) -> str | None:
+        r = self.release
+        return str(r.get("build")) if r and r.get("build") else None
+
+    @property
     def available(self) -> bool:
+        if self.kind == "web":  # a different build of the site (a new version, or fixes to this one)
+            lb = self.latest_build
+            return bool(
+                lb
+                and self.build
+                and lb != self.build
+                and not is_newer(self.current, self.latest or self.current)
+            )
         return bool(self.latest and is_newer(self.latest, self.current))
 
     def asset(self) -> dict[str, Any] | None:
@@ -276,6 +300,8 @@ class Updater:
             "auto_check": self.auto_check,
             "kind": self.kind,
             "can_install": self.kind in ("windows", "macos", "android") and a is not None,
+            "build": self.build,
+            "latest_build": self.latest_build,
             "source_hint": _source_message() if self.kind == "source" else None,
             "status": self.status,
             "progress": self.progress,
@@ -289,6 +315,8 @@ class Updater:
             "current": self.current,
             "latest": self.latest,
             "available": self.available,
+            "kind": self.kind,
+            "latest_build": self.latest_build,
             "status": self.status,
             "progress": self.progress,
             "error": self.error,
@@ -311,13 +339,16 @@ class Updater:
     # -------------------------------------------------------------- check
     def stale(self, now: float | None = None) -> bool:
         t = self.checked_at
-        return t is None or (now or time.time()) - t >= CHECK_EVERY_S
+        every = WEB_CHECK_EVERY_S if self.kind == "web" else CHECK_EVERY_S
+        return t is None or (now or time.time()) - t >= every
 
     async def check(self, force: bool = False) -> dict[str, Any]:
         if not force and not self.stale():
             return self.info()
         if self.status in ("downloading", "verifying", "installing"):
             return self.info()
+        if self.kind == "web":
+            return await self._check_web()
         self._set(status="checking", error=None)
         try:
             async with self._client() as http:
@@ -338,10 +369,51 @@ class Updater:
             self._set(status="error", error="Couldn't reach GitHub to check for updates.")
         return self.info()
 
+    async def _check_web(self) -> dict[str, Any]:
+        """The browser app: read the site's /app/version.json (same origin, never cached)."""
+        if not self.web_version_url:
+            return self.info()
+        self._set(status="checking", error=None)
+        try:
+            async with httpx.AsyncClient(transport=self._transport, timeout=15.0) as http:
+                r = await http.get(self.web_version_url, headers={"Cache-Control": "no-cache"})
+            r.raise_for_status()
+            j = r.json()
+            if not isinstance(j, dict) or not j.get("build"):
+                raise ValueError("version.json has no build")
+            self._sec["release"] = {
+                "version": str(j.get("version") or self.current),
+                "build": str(j["build"]),
+                "notes": str(j.get("notes") or ""),
+                "name": j.get("name"),
+                "published_at": j.get("built_at"),
+                "html_url": self.web_version_url.rsplit("/", 1)[0] + "/",
+                "assets": [],
+            }
+            self._sec["checked_at"] = time.time()
+            self.store.save_soon()
+            self._set(status="idle", error=None)
+            if self.available:
+                log.info(
+                    "a new build of the browser app is out (%s, this tab runs %s)", j["build"], self.build
+                )
+        except (httpx.HTTPError, ValueError) as e:
+            log.info("web update check failed: %s", e)
+            self._set(status="error", error="Couldn't reach the website to check for a new version.")
+        return self.info()
+
     async def auto_loop(self) -> None:
-        """Background: a check shortly after start, then whenever the last answer is 6 h old."""
+        """Background: a check shortly after start, then whenever the last answer is 6 h old (the browser app:
+        every 30 min — it only reads its own site's version.json)."""
         if self.kind == "web":
-            return  # the browser app is updated with the page
+            if not self.web_version_url:
+                return
+            await asyncio.sleep(WEB_FIRST_DELAY_S)
+            while True:
+                if self.auto_check and self.stale():
+                    with contextlib.suppress(Exception):
+                        await self.check()
+                await asyncio.sleep(WEB_CHECK_EVERY_S / 2)
         if os.environ.get("DESKDOT_UPDATE_CHECK", "1").strip().lower() in ("0", "false", "no", "off"):
             return
         await asyncio.sleep(AUTO_FIRST_DELAY_S)
@@ -356,7 +428,9 @@ class Updater:
         if self.kind == "source":
             raise UpdateError(_source_message())
         if self.kind == "web":
-            raise UpdateError("The browser app updates by itself: reload the page.")
+            raise UpdateError(
+                "The browser app updates with the website: reload the page to get the new version."
+            )
         if self._lock.locked():
             raise UpdateError("An update is already being installed.")
         async with self._lock:

@@ -1,6 +1,9 @@
 // Host-OS support for apps and settings (engine: src/deskdot/platforms.py, docs/COMPATIBILITY.md).
 import type { Platform } from "./types";
 
+/** The website's download page: the browser app links here for anything only the desktop app can do. */
+export const DESKTOP_APP_URL = "/download.html";
+
 const ALL: Platform[] = ["windows", "macos", "linux", "android", "web"];
 export const PLATFORM_LABEL: Record<Platform, string> = { windows: "Windows", macos: "macOS", linux: "Linux", android: "Android", web: "Browser" };
 

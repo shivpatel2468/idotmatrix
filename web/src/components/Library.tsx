@@ -33,7 +33,9 @@ type CardProps = { a: AppMeta; live: boolean; selected: boolean; fav: boolean; o
 /** The web app only: apps that can't run in a browser tab get a badge and the reason as a tooltip. */
 function useOffWeb(a: AppMeta): string | null {
   const web = useStore((s) => s.meta?.platform === "web");
-  return web && a.supported === false ? a.schema.webReason ?? "Needs the desktop app." : null;
+  return web && a.supported === false
+    ? `${a.schema.webReason ?? "Needs the desktop app."} Get the desktop app: idotmatrix.com/download.html`
+    : null;
 }
 
 function OffWebBadge({ why }: { why: string }) {

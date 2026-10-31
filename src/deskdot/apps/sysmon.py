@@ -1,4 +1,7 @@
-"""System monitor — CPU / RAM / disk / network from the host PC."""
+"""System monitor — CPU / RAM / disk / network from the host PC.
+
+In the browser app the page measures what a tab may know (providers/system.py `browser_stats`): CPU pressure
+(coarse: four steps), this tab's memory and the battery — the bars read CPU / MEM / BAT there."""
 
 from __future__ import annotations
 
@@ -8,7 +11,7 @@ from pydantic import Field
 
 from ..engine.app import App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, mix, scale
-from ..platforms import FEATURES
+from ..platforms import ALL, FEATURES
 from ._kit import INFO, loading, offline, unsupported
 
 #: bar tracks and the graph baseline: dim but still lit through the panel's gamma (see DISPLAY_DESIGN §3)
@@ -36,7 +39,9 @@ class SysmonSettings(AppSettings):
 class Sysmon(App):
     id = "sysmon"
     name = "System Monitor"
-    description = "Live CPU, memory, storage and network from this PC."
+    description = (
+        "Live CPU, memory, storage and network from this PC (in the browser: CPU load, tab memory, battery)."
+    )
     icon = "cpu"
     category = "data"
     Settings = SysmonSettings
@@ -47,8 +52,8 @@ class Sysmon(App):
     }  # page theme (docs/APP_SDK.md § Page theme)
     fps = 1.0
     uses = ("system",)
-    platforms = FEATURES["system"]  # psutil: every native host, not the browser app
-    web_reason = "A browser tab can't read the computer's CPU, memory, disk or network counters (no psutil)."
+    # everywhere: psutil on every native host, the browser's own stats in the web app (FEATURES["system"] is ALL)
+    platforms = () if set(FEATURES["system"]) == set(ALL) else FEATURES["system"]
 
     def render(self, f: Frame, t: float) -> None:
         if not self.supported_here():
@@ -63,10 +68,13 @@ class Sysmon(App):
 
     def _bars(self, f: Frame, d: dict) -> None:  # type: ignore[type-arg]
         s = self.settings
+        browser = bool(
+            d.get("browser")
+        )  # the web app: the tab's memory and the battery instead of RAM / disk
         rows = (
-            ("CPU", d["cpu"], s.cpu_color),
-            ("RAM", d["ram"], s.ram_color),
-            ("DSK", d["disk"], s.disk_color),
+            ("CPU", d.get("cpu"), s.cpu_color),
+            ("MEM" if browser else "RAM", d.get("ram"), s.ram_color),
+            ("BAT", d.get("battery"), s.disk_color) if browser else ("DSK", d.get("disk"), s.disk_color),
         )
         for i, (label, v, c) in enumerate(rows):
             y = 1 + i * 11

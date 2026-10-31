@@ -220,12 +220,18 @@ async def boot(
     sync: Callable[[], None] | None = None,
     proxy: str | None = None,
     public_url: str | None = None,
+    build: str | None = None,
 ) -> dict[str, Any]:
-    """Create the engine (device="web") and run the ASGI lifespan startup."""
+    """Create the engine (device="web") and run the ASGI lifespan startup.
+
+    `build` is the web build this tab runs (site/app/engine/manifest.json): the updater compares it with the
+    site's /app/version.json to offer a reload when a newer build is deployed (updates.py, kind "web")."""
     global _app, _sync, _proxy
     if sync is not None:
         _sync = sync
     _proxy = proxy or None
+    if build:
+        os.environ["DESKDOT_WEB_BUILD"] = str(build)
     logging.basicConfig(level=logging.INFO, format="%(levelname)-7s %(name)s: %(message)s")
     patch_runtime()
     base = Path(root)
@@ -343,6 +349,16 @@ def media_hello() -> None:
     from .providers import webmedia
 
     webmedia.hello()
+
+
+# ===================================================================== browser stats
+def sys_stats(data: Any) -> None:
+    """What the page measured about this browser (host.js, every 2 s): System Monitor's values in a tab."""
+    from .providers import system
+
+    raw = data.to_py() if hasattr(data, "to_py") else data
+    if isinstance(raw, dict):
+        system.browser_stats(raw)
 
 
 # ===================================================================== HTTP

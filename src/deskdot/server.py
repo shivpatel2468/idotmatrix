@@ -322,7 +322,17 @@ def create_app(cfg: Config) -> FastAPI:
     ws_hub = Hub(engine)
     holder["hub"] = ws_hub
     previews = Previews(engine)
-    updater = Updater(store, cfg.data_dir, device=cfg.device, on_change=ws_hub.state_changed)
+    updater = Updater(
+        store,
+        cfg.data_dir,
+        device=cfg.device,
+        on_change=ws_hub.state_changed,
+        # the browser app (docs/WEB_APP.md): its site says which build is current; web_main sets the tab's build
+        web_version_url=f"{cfg.public_url.rstrip('/')}/app/version.json"
+        if cfg.device == "web" and cfg.public_url
+        else None,
+        build=os.environ.get("DESKDOT_WEB_BUILD") if cfg.device == "web" else None,
+    )
     ws_hub.extras["updates"] = updater.brief
 
     @contextlib.asynccontextmanager

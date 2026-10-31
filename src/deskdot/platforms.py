@@ -45,8 +45,9 @@ SHORT: dict[str, str] = {
 
 #: host feature -> platforms where it works (see docs/COMPATIBILITY.md for the reasons)
 FEATURES: dict[str, tuple[Platform, ...]] = {
-    # media session: Windows GSMTC (winrt), macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl)
-    "media": ("windows", "macos", "linux"),
+    # media session: Windows GSMTC (winrt), macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl); in a tab
+    # no media session, but a listening service (ListenBrainz / Last.fm) or a typed-in track (providers/media_web.py)
+    "media": ("windows", "macos", "linux", "web"),
     # foreground window + icon: user32 (Windows), AppKit (macOS), xdotool on X11 (Linux; not Wayland)
     "window": ("windows", "macos", "linux"),
     # screen capture: Pillow ImageGrab (GDI, CoreGraphics, X11/XCB or gnome-screenshot on Linux); in a browser tab
@@ -72,9 +73,10 @@ FEATURES: dict[str, tuple[Platform, ...]] = {
     "notifications": ("windows", "macos"),
     # hand the panel its own clock when the computer goes to sleep (WM_POWERBROADCAST)
     "sleep_handoff": ("windows",),
-    # CPU / RAM / disk / network via psutil (Android hides CPU and network counters from apps; a browser tab has
-    # no psutil and no access to the computer's counters at all)
-    "system": NATIVE,
+    # CPU / RAM / disk / network via psutil (Android hides CPU and network counters from apps); a browser tab has no
+    # psutil, so the page reports what browsers expose instead (CPU pressure, the tab's memory, battery, network
+    # estimate, frame rate — providers/system.py `browser_stats`)
+    "system": ALL,
     # services on your own network that only speak plain http or raw sockets (OBS's WebSocket, OctoPrint /
     # Moonraker, AnkiConnect): an https page may not call http LAN addresses (mixed content) and has no sockets
     "lan": NATIVE,

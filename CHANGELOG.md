@@ -3,8 +3,29 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.9.0 — 2026-10-30 · Page themes are the casino's table themes
+## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
+- **Web app re-audited** (docs/WEB_APP.md): the engine of 3.3–3.8 (page themes, paper panel, Liquid Glass, TV view +
+  options menu over the WebRTC tunnel, casino dolly / chip sets / odometers / win moment, the 14 public-API apps, API
+  health, connection sheet, updates) boots in Pyodide 0.29.5 (verified headless: 116 apps, 4 off-web); every
+  non-proxied provider endpoint sends CORS headers. `site/app` must be rebuilt (`scripts/build_webapp.py`) to ship it.
+- **Now Playing on web**: `providers/media_web.py` `WebBackend` (ListenBrainz `playing-now`, Last.fm
+  `user.getRecentTracks` with the user's key, or typed in; 15 s cache, no controls, `player_art=False` skips the
+  player-art retries); settings `web_source`/`web_user`/`web_api_key`/`web_title`/`web_artist` (`platforms: ["web"]`);
+  `FEATURES["media"]` += web; app `platforms = (*DESKTOP, "web")`.
+- **System Monitor on web**: `providers/system.py` `browser_stats()` fed by `host.js` (`{t:"sys-stats"}` every 2 s:
+  Compute Pressure, `performance.memory`, Battery, Network Information, rAF fps, cores, deviceMemory) through
+  `worker.js` → `web_main.sys_stats()`; `FEATURES["system"] = ALL`; bars read CPU / MEM / BAT in a tab.
+- **Updates on web**: `build_webapp.py` writes `site/app/version.json` (`{version, build, notes}` = the newest
+  WHATS_NEW section); `Updater(kind="web", web_version_url, build)` checks it every 30 min; `info` adds `build`,
+  `latest_build`; `brief` adds `kind`, `latest_build`; studio: "New version — reload" pill, *Reload to update*;
+  `sw.js` never caches `version.json`; `worker.js` passes `manifest.build` to `web_main.boot(build=)`.
+- **Build**: `desktop.py` left out of the engine archive; index.html's inline pre-paint script stripped (the /app/ CSP
+  blocks it; host.js does the same work); build id also hashes the studio assets and the TV font.
+- **Studio**: `DesktopAppNote` / `DesktopAppLink` — on web, Not-on-Browser banners, On Air, eye break, OS
+  notifications, sleep hand-off and autopilot say why in one line and link to `/download.html`.
+- Tests: `tests/test_web_apps.py` (Now Playing sources, browser stats, off-web set, CORS hosts, version.json, inline
+  script, archive exclusions), `tests/test_updates.py` (web build check), `test_compat` / `test_web_device` updated.
 - **Page themes = `TABLE_THEMES`**: the table data moved to `src/deskdot/gfx/tables.py` (re-exported by
   `apps/_casino.py`); `gfx/themes.py` builds the 21 page themes from it (same ids / names) with `screen_tokens()` (dark =
   the dark casino's room, surfaces, inks, accent, felt glow + motif; light = the porcelain salon, AA-pushed) and LED

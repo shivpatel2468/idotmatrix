@@ -58,9 +58,10 @@ def _rgb(w: int, h: int, color: tuple[int, int, int]) -> bytes:
 
 # ------------------------------------------------------------------ platform wiring
 def test_features_and_apps_on_the_web() -> None:
-    for f in ("screen", "camera", "audio", "audio_loopback"):
+    # media: a listening service or a typed-in song; system: the browser's own stats (tests/test_web_apps.py)
+    for f in ("screen", "camera", "audio", "audio_loopback", "media", "system"):
         assert platforms.supported(f, "web")
-    for f in ("screen_window", "media", "window", "idle", "system", "onair", "notifications"):
+    for f in ("screen_window", "window", "idle", "onair", "notifications", "sleep_handoff", "lan"):
         assert not platforms.supported(f, "web")
     for app in (Mirror, Camera, Visualizer):
         assert "web" in app.platforms and "android" not in app.platforms

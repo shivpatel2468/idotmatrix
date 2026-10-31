@@ -8,6 +8,8 @@ Backends (picked by `sys.platform`):
 * **macOS** — `media_mac.MacBackend`: AppleScript for Spotify and Music.app, `nowplaying-cli` (if installed)
   for browsers and everything else.
 * **Linux** — `media_linux.LinuxBackend`: MPRIS through `playerctl` (Spotify, browsers, VLC, Rhythmbox…).
+* **Browser** (the web app) — `media_web.WebBackend`: a listening service (ListenBrainz, or Last.fm with your
+  key) or a track typed in, chosen in Now Playing's settings; no transport controls.
 * **Android** — none (the phone app doesn't read other apps' media sessions); the provider reports it.
 
 Position is kept on our own monotonic clock and only re-anchored when the player reports something new
@@ -374,10 +376,14 @@ class WinBackend:
         return bool(await op())
 
 
-def make_backend() -> Backend | None:
+def make_backend(hub: Any = None) -> Backend | None:
     from ..platforms import current
 
     plat = current()
+    if plat == "web":
+        from .media_web import WebBackend
+
+        return WebBackend(hub)
     if plat == "windows" and AVAILABLE:
         return WinBackend()
     if plat == "macos":
@@ -434,7 +440,7 @@ class MediaProvider(Provider[dict[str, Any]]):
     def backend(self) -> Backend | None:
         if not self._backend_made:
             self._backend_made = True
-            self._backend = make_backend()
+            self._backend = make_backend(self.hub)
         return self._backend
 
     @property
@@ -534,7 +540,8 @@ class MediaProvider(Provider[dict[str, Any]]):
         be = self.backend
         try:
             got: bytes | None = None
-            for delay in (0.0, 1.5, 2.5):
+            # a backend without player art (the browser's listening services) goes straight to the URL / iTunes
+            for delay in (0.0, 1.5, 2.5) if getattr(be, "player_art", True) else ():
                 if delay:
                     await asyncio.sleep(delay)
                 if track != self._track or be is None:
