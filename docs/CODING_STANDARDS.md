@@ -48,6 +48,8 @@
 
 ## Git & reviews
 
+- One change = one branch (or worktree) = one pull request, squash-merged after CI is green; `main` never changes
+  any other way (CLAUDE.md § How we work). Read and, if intent changes, update the area's `SPEC.md` ([SPECS.md](SPECS.md)).
 - Small, focused commits: `area: imperative summary` (e.g. `apps/weather: add snow animation`).
 - A change is reviewable when: tests + lint pass, the studio builds, screenshots/`preview` PNGs are attached for
   visual changes, docs updated.
