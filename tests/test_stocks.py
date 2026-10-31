@@ -147,7 +147,10 @@ def test_parse_nasdaq_fallback() -> None:
     assert e["name"].startswith("Apple") and e["currency"] == "USD"
     with pytest.raises(ValueError):
         parse_nasdaq({"data": None, "status": {"rCode": 400}}, "ZZZZ")
-    assert nasdaq_symbol("AAPL") == ("AAPL", ("stocks", "etf")) and nasdaq_symbol("^IXIC") == ("COMP", ("index",))
+    assert nasdaq_symbol("AAPL") == ("AAPL", ("stocks", "etf")) and nasdaq_symbol("^IXIC") == (
+        "COMP",
+        ("index",),
+    )
     assert nasdaq_symbol("RELIANCE.NS") is None and nasdaq_symbol("^GSPC") is None
 
 
