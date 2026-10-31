@@ -94,6 +94,8 @@ self.addEventListener("fetch", (event) => {
   if (req.url.startsWith(PYODIDE)) return event.respondWith(cacheFirst(RUNTIME_CACHE, req));
   if (url.origin !== self.location.origin || !url.pathname.startsWith(SCOPE.pathname)) return;
   if (url.pathname === SCOPE.pathname + "proxy") return; // live data: never cached here
+  // which build the site serves now (src/deskdot/updates.py, kind "web"): always ask the network
+  if (url.pathname === SCOPE.pathname + "version.json") return;
   // content-hashed files never change: the studio's assets, the engine archive and vendored wheels
   if (/\/assets\/|\/engine\/.+\.(zip|whl)$/.test(url.pathname)) return event.respondWith(cacheFirst(APP_CACHE, req));
   event.respondWith(networkFirst(req));

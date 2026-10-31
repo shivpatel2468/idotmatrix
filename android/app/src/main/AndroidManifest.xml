@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- receive other DeskDots' LAN beacons for the panel hand-over (ADR 0015); many phones drop broadcasts without it -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <!-- always on: a foreground service that survives the screen turning off and starts at boot -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

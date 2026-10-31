@@ -74,6 +74,14 @@ export const api = {
   applyTransferCalib: (data: { max_fps: number; packet_gap_ms: number; transition: "cut" | "push" | "fade" | "wipe" }) =>
     req("POST", "/api/calibration/transfer/apply", data),
   link: (enabled: boolean) => req("POST", "/api/device/link", { enabled }),
+  /** Panel hand-over between DeskDots (ADR 0015): "Use the panel here", pairing, the discovery opt-out. */
+  handover: {
+    take: (force = false) => req<{ ok: boolean; started: boolean }>("POST", "/api/handover/take", { force }),
+    pair: (peer: string) => req<{ code: string; status: string }>("POST", "/api/handover/pair", { peer }),
+    answer: (peer: string, allow: boolean) => req("POST", "/api/handover/pair/answer", { peer, allow }),
+    forget: (peer: string) => req("POST", "/api/handover/forget", { peer }),
+    setEnabled: (enabled: boolean) => req("PUT", "/api/handover/settings", { enabled }),
+  },
   handoff: () => req<Handoff>("GET", "/api/handoff"),
   setHandoff: (patch: Partial<Handoff>) => req<Handoff>("PUT", "/api/handoff", patch),
   handoffNow: (mode?: Handoff["mode"]) => req<{ result: string; released: boolean }>("POST", "/api/handoff/now", { mode: mode ?? null }),

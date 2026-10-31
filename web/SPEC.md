@@ -15,8 +15,8 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   Tests: none yet (gap) — `tests/js/tv_core.test.mjs` covers only the TV's theme.
 - **R-STU-2** Page themes: 21 curated themes, each with light and dark variants, stored on the engine
   (`POST /api/theme`) so every device shows the same one; the studio's seed table mirrors `gfx/themes.py` exactly;
-  no flash on load. Tests: `tests/test_page_themes.py::test_studio_mirror_matches_the_engine`,
-  `tests/test_page_themes.py::test_screen_seeds_are_valid`, `tests/test_page_themes.py::test_the_default_theme_is_the_original_look`.
+  no flash on load. Tests: `tests/test_page_themes.py::test_page_themes_are_the_casino_tables`,
+  `tests/test_page_themes.py::test_generated_studio_themes_are_current`, `tests/test_page_themes.py::test_screen_tokens_read_like_the_casino`.
 - **R-STU-3** Paper panel: in light mode the preview maps every LED colour to ink on porcelain (`paperColor`, ≥ 4.5:1
   against the unlit LED), changing only the studio's drawing — never the engine's frames, `/api/frame.png` or GIFs.
   Tests: none yet (gap).

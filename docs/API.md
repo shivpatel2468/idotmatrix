@@ -7,7 +7,7 @@ Errors: `400` bad request · `404` unknown app/media · `422` validation (`detai
 
 | Method | Path | Returns |
 | --- | --- | --- |
-| GET | `/api/health` | `{ok, version, device, kind, panel, link_enabled}` — `device` is the link status. The one endpoint another site may read: `https://idotmatrix.com` (the web app) gets CORS + Private-Network-Access headers so it can tell "your panel is connected to DeskDot on this computer" (docs/WEB_APP.md) |
+| GET | `/api/health` | `{ok, version, device, kind, panel, link_enabled, instance, handover}` — `device` is the link status; `instance` is this DeskDot's name and `handover` whether it speaks the hand-over below. The one endpoint another site may read: `https://idotmatrix.com` (the web app) gets CORS + Private-Network-Access headers so it can tell "your panel is connected to DeskDot on this computer" (docs/WEB_APP.md) |
 | GET | `/api/meta` | apps (id, name, description, icon, category, **schema**, actions; games also `max_players`, `controls` and `modes: [{id, name, min_players, max_players, teams}]` with `teams` = solo/coop/ffa/versus; every app also `platforms` (hosts it works on, `null` = everywhere) and `supported` on this host), palette, fonts, icons, leagues, plugins, and the host: `platform` (`windows`/`macos`/`linux`/`android`), `platform_label`, `features` ({feature: bool}, see [COMPATIBILITY.md](COMPATIBILITY.md)) |
 | GET | `/api/state` | full snapshot: `device` (status, name, address, link stats, and connection health: `attempts`, `retry_at`, `last_seen`, `rssi`, `reason`, `hint` — see below), `engine` (mode, current, playlist, overlay, render_ms, takeover, onair, eyebreak, indicators, custom), `settings` (incl. `integrations`, tokens masked), `apps` (settings per app), `providers` |
 | GET | `/api/frame.png?scale=1..32` | exactly what the panel shows |
@@ -327,7 +327,7 @@ preset drives the playlist.
 | POST | `/api/motion/test` | `{test: ufo|ball|scroll|sweep|pan|live|transition, a: {fps 3–12, speed 1–24 px/s, soft, smoothing 0–0.6, transition}, b?: same, layout?: stack|alternate, mode?: stream|clip}`; `clip` bakes A as a native GIF (≤ 10 fps, ≤ 40 KB) — 429 if within 20 s of the last test upload |
 | POST | `/api/motion/preset/{smoothest|balanced|ble_friendly|calm}` | applies `max_fps`, `packet_gap_ms` (never < 18), `transition`, `smoothing` |
 | POST | `/api/motion/autotune` | `{seconds?: 2–8, apply?: false}` → streams the heaviest test at 12 fps, measures the delivered rate, returns `{max_fps, packet_gap_ms, transition, smoothing, measured_fps, frame_bytes}` |
-| POST | `/api/device/link` | `{enabled}` — **Release the panel** (`false`: disconnect and stop reconnecting, so another app can connect; the panel shows its pairing screen) / take it back (`true`, connects at once). User action only — [ADR 0013](adr/0013-user-release-of-the-panel.md). Separate from display `power` |
+| POST | `/api/device/link` | `{enabled, moved_to?}` → `{ok, link_enabled, drained}` — **Release the panel** (`false`: finish the write in flight — a GIF upload waits for its chunk acks — then disconnect cleanly and stop reconnecting, so another app can connect; the panel shows its pairing screen; `drained: false` if the drain timed out) / take it back (`true`, connects at once). `moved_to`: the DeskDot it's released for (shown as "Panel moved to …"). User action only — [ADR 0013](adr/0013-user-release-of-the-panel.md), [ADR 0015](adr/0015-panel-handover-between-deskdots.md). Separate from display `power` |
 | GET / PUT | `/api/autopilot` | `{enabled, rules: [{match, app, settings}]}` — foreground-app rules |
 | POST | `/api/device/reconnect` | `{only_if_down?: false}` → `{ok, result}`. Not connected: try **now** (skips the back-off wait; never disconnects) → `retrying`. Connected: drop the link and connect again → `reconnecting` — or, with `only_if_down`, leave it → `connected`. Released: takes the panel back → `retrying` |
 | GET | `/api/device/scan` | nearby `IDM-*` panels |
@@ -340,12 +340,43 @@ Connection sheet, the MCP server and scripts can say the same thing:
 
 | Field | Meaning |
 | --- | --- |
-| `reason` | `bluetooth_off` · `not_found` (not advertising: off, out of range or held by another app) · `busy` (not found 3× in a row — most likely another app holds it, or DeskDot on this computer when the web app asks) · `no_answer` (found, connect didn't complete) · `permission` · `needs_user` (web: pick the panel) · `link_lost` (reconnecting by itself) · `released` (the user released it) · `error`; `null` when fine |
+| `reason` | `bluetooth_off` · `not_found` (not advertising: off, out of range or held by another app) · `busy` (not found 3× in a row — most likely another app holds it, or DeskDot on this computer when the web app asks) · `no_answer` (found, connect didn't complete) · `permission` · `needs_user` (web: pick the panel) · `link_lost` (reconnecting by itself) · `released` (the user released it) · `moved` (released for another DeskDot that asked) · `elsewhere` (another DeskDot nearby holds it or is connecting; automatic attempts wait) · `recovering` (resetting the Bluetooth session and waiting for the panel to advertise) · `error`; `null` when fine |
 | `hint` | one or two sentences: what to do next |
 | `attempts` | failed attempts since the last success (reset by `reconnect`) |
 | `retry_at` | epoch seconds of the next automatic attempt (back-off 1 → 2 → 4 … 20 s), or `null` |
 | `last_seen` | epoch seconds the panel last took a write or sent an ack |
 | `rssi` | dBm when the desktop engine last found the panel advertising (desktop Bluetooth only), else `null` |
+| `recoveries` | recovery passes since start (every 4 failed attempts: reset the stack, wait ≤ 30 s for the advertisement, reconnect, replay gently) |
+
+### Panel hand-over (`state.handover`, ADR 0015)
+
+DeskDots on the same private network find each other (UDP beacon on port 8767, opt-out) and move the panel with one
+button. The studio API below is on this computer only; `tab`, `free` and `GET /api/handover` also answer the web app
+(`https://idotmatrix.com`) with CORS + Private-Network-Access headers, and refuse any other cross-site `Origin`.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/api/handover` | the brief, also in `state.handover`: `{enabled, me {id, name, kind}, holder {id, name, kind, me, since} \| null, probable {id, name, ago} \| null, peers [{id, name, kind, holding, panel, online, paired, ago}], lease {owner, name, in} \| null, progress {steps [{id: ask\|released\|waiting\|connected, label, state: todo\|active\|done\|failed}], error, can_force, done, target} \| null, moved_to {id, name, at} \| null, pair_requests [{id, name, kind, code}], pairing [{id, name, code, status}]}` |
+| POST | `/api/handover/take` | `{force?: false}` → `{ok, started}` — **Use the panel here**: claim the lease, ask the holder to let go (signed), wait for the panel to advertise, connect, announce. Progress in `state.handover.progress`. `force` skips asking (the holder is unreachable): wait for the advertisement and try |
+| POST | `/api/handover/pair` | `{peer}` → `{code, status: "pending"}` — ask a nearby DeskDot to pair; its user confirms the same 6-digit code there |
+| POST | `/api/handover/pair/answer` | `{peer, allow}` — answer a pairing request shown in `pair_requests` |
+| POST | `/api/handover/forget` | `{peer}` — drop the pairing key |
+| PUT | `/api/handover/settings` | `{enabled}` — *Find other DeskDots on this network* (stored as `handover.enabled`; `lan_handover = false` in deskdot.toml turns it off for good) |
+| POST | `/api/handover/tab` | web app → `{holding, panel}` → `{want, …brief}`: the browser tab on this computer reports whether it holds the panel; `want` names who asked for it (the tab then releases with `/api/device/link {enabled: false, moved_to}` on its own engine) |
+| POST | `/api/handover/free` | web app → `{ok, released_by, detail?}`: free the panel for the tab — release it here, or ask the DeskDot on the LAN that has it |
+
+The LAN surface (`LanGate` lets only `/lan/handover/` through from other devices; private addresses only):
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| POST | `/lan/handover/pair` | none, 5 / min per address, ≤ 4 pending | `{id, name, kind, port, nonce}` → `{id, name, kind, nonce}`; shows a pairing request with the code |
+| POST | `/lan/handover/pair/poll` | none | `{id, nonce}` → `{status: pending\|allowed\|denied\|unknown, key?}` — the key once, after the user allowed it |
+| POST | `/lan/handover/release` | signed | `{want, name, for}` → `{ok, released, panel}` or `{ok: false, busy}` (another taker holds the lease); 409 when the browser tab didn't let go |
+| POST | `/lan/handover/announce` | signed | `{holding, panel}` — "I have the panel now" |
+
+Signed = headers `x-deskdot-peer` (sender id), `x-deskdot-ts` (unix s, ±120 s), `x-deskdot-nonce` (never reused),
+`x-deskdot-sig` = hex HMAC-SHA256(pair key, `METHOD\npath\nts\nnonce\nsha256hex(body)`); 401 when unpaired / stale /
+replayed / wrong, 429 over 10 / min per peer or 30 / min per address, 404 when hand-over is off.
 
 ## Media
 
@@ -370,12 +401,12 @@ is sent. Installing only accepts HTTPS assets of that repository's release whose
 
 | Method | Path | Returns / body |
 | --- | --- | --- |
-| GET | `/api/updates` | `{current, latest, available, notes, name, published_at, url, assets: [{name, size, url}], checked_at, auto_check, kind, can_install, source_hint, status, progress, error, message}` — `notes` is the release body (WHATS_NEW-style markdown); `assets` is the one installer for this system; `kind` = `windows` / `macos` / `android` (installed apps) / `source` (a checkout or `uv run`: `source_hint` says to `git pull` and rebuild) / `web` |
-| POST | `/api/updates/check` | asks GitHub now; same reply |
+| GET | `/api/updates` | `{current, latest, available, notes, name, published_at, url, assets: [{name, size, url}], checked_at, auto_check, kind, can_install, source_hint, status, progress, error, message}` — `notes` is the release body (WHATS_NEW-style markdown); `assets` is the one installer for this system; `kind` = `windows` / `macos` / `android` (installed apps) / `source` (a checkout or `uv run`: `source_hint` says to `git pull` and rebuild) / `web` (the browser app: also `build` = this tab's build and `latest_build` = the build the site serves now, from `/app/version.json`; `available` = they differ; `can_install` is always false — the studio offers *Reload to update*) |
+| POST | `/api/updates/check` | asks GitHub now (the browser app: its site's `/app/version.json`); same reply |
 | PUT | `/api/updates` | `{auto_check: bool}`; same reply |
 | POST | `/api/updates/install` | downloads, verifies and hands off; reply adds `result`: `restart` (Windows/macOS: the installer takes over and the engine exits ~1.5 s later, DeskDot starts again), `opened` (macOS: the dmg was opened because the app's folder isn't writable), `started` / `permission` / `signature` (Android: installer open / allow DeskDot to install apps first / the APK is signed with another key). `409 {detail}` with a message when it refuses: running from source, already up to date, no installer for this system, checksum missing or wrong, download failed |
 
-Progress rides on the WebSocket: `state.updates = {current, latest, available, status, progress, error}` with
+Progress rides on the WebSocket: `state.updates = {current, latest, available, kind, latest_build, status, progress, error}` with
 `status` = `idle` · `checking` · `downloading` (`progress` 0–1) · `verifying` · `installing` · `error`.
 `DESKDOT_UPDATE_CHECK=0` turns the background check off (tests set it).
 

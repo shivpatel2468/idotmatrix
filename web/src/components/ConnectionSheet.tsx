@@ -1,8 +1,8 @@
-import { AlertTriangle, Bluetooth, Laptop, MonitorSmartphone, RefreshCw, Search, Unplug } from "lucide-react";
+import { AlertTriangle, Bluetooth, Check, Circle, Globe, Laptop, Loader2, MonitorSmartphone, RefreshCw, Search, Smartphone, Unplug, X } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { api } from "../lib/api";
 import { openSettings, toast, useStore } from "../lib/store";
-import type { DeviceInfo } from "../lib/types";
+import type { DeviceInfo, HandoverBrief, HandoverPeer } from "../lib/types";
 import { Sheet } from "./Sheet";
 import { Picker } from "./Picker";
 
@@ -12,6 +12,10 @@ import { Picker } from "./Picker";
  * to when DeskDot on this computer holds the panel). Engine facts come from `state.device` (device/base.py
  * DeviceInfo, reasons from device/diagnose.py); in the browser app the page host adds its own (window.deskdotWeb,
  * web/webapp/host.js): the remembered panel, "pick it again", and whether DeskDot on this computer has it.
+ *
+ * Hand-over (ADR 0015): every DeskDot nearby (this computer, the phone app, a browser tab) with who holds the panel,
+ * one "Use the panel here" button, and the hand-over's live steps. The engine publishes them as `state.handover`; in
+ * the browser app the page host builds the same shape from DeskDot on this computer (`deskdotWeb.handover`).
  */
 
 // ------------------------------------------------------------------ open / close (no global store change needed)
@@ -42,11 +46,13 @@ type WebLink = {
   bluetooth: boolean;
   needsPick?: boolean;
   desktop?: DesktopProbe | null;
+  handover?: HandoverBrief | null;
 };
 type WebHost = {
   state(): WebLink;
   pick?(): Promise<void>;
   probeDesktop?(): Promise<DesktopProbe>;
+  useHere?(force?: boolean): Promise<void>;
   attachStudio?(): void;
   setPacket?(n: number | null): void;
 };
@@ -74,11 +80,19 @@ export type Summary = {
   action: "connect" | "pick" | "retry" | null; // the one obvious next step
 };
 
-export function summarize(dev: DeviceInfo | undefined, web?: WebLink | null): Summary {
+export function summarize(dev: DeviceInfo | undefined, web?: WebLink | null, ho?: HandoverBrief | null): Summary {
   if (!dev) return { tone: "warn", label: "Starting up…", title: "Starting up…", action: null };
   const name = dev.name ?? "your panel";
+  const progress = ho?.progress && !ho.progress.done ? ho.progress : null;
+  if (progress) return { tone: "warn", label: "Moving here…", title: "Bringing the panel here…", action: null };
+  if (!dev.link_enabled && ho?.moved_to)
+    return { tone: undefined, label: `On ${ho.moved_to.name}`, title: `Panel moved to ${ho.moved_to.name}`, action: "connect" };
   if (!dev.link_enabled)
     return { tone: undefined, label: "Released", title: "Panel released — other apps can use it", action: "connect" };
+  if (dev.status !== "connected" && ho?.holder && !ho.holder.me)
+    return { tone: undefined, label: `On ${ho.holder.name}`, title: `${ho.holder.name} has the panel`, action: "connect" };
+  if (dev.status !== "connected" && dev.reason === "recovering")
+    return { tone: "warn", label: "Recovering…", title: "Recovering the link", action: "retry" };
   if (dev.status === "connected") return { tone: "ok", label: dev.name ?? "Connected", title: `Connected to ${name}`, action: null };
   if (dev.kind === "web" && (web?.needsPick || dev.reason === "needs_user" || dev.reason === "permission"))
     return { tone: "warn", label: "Pick your panel", title: "Pick your panel to connect", action: "pick" };
@@ -94,8 +108,10 @@ export function summarize(dev: DeviceInfo | undefined, web?: WebLink | null): Su
 /** The pill's state, shared by the top bar (desktop and phone). */
 export function useConnection() {
   const dev = useStore((s) => s.state?.device);
+  const engineHo = useStore((s) => s.state?.handover);
   const web = useWebLink();
-  return { dev, web, ...summarize(dev, web) };
+  const ho = dev?.kind === "web" ? (web?.handover ?? null) : (engineHo ?? null);
+  return { dev, web, ho, ...summarize(dev, web, ho) };
 }
 
 // ------------------------------------------------------------------ helpers
@@ -135,6 +151,138 @@ const WHERE: Record<DeviceInfo["kind"], [string, typeof Laptop]> = {
   sim: ["A simulated panel (no hardware)", Laptop],
 };
 
+const KIND_ICON: Record<string, typeof Laptop> = { ble: Laptop, sim: Laptop, android: Smartphone, web: Globe };
+
+function peerStatus(p: HandoverPeer): string {
+  if (p.holding) return p.panel ? `has the panel (${p.panel})` : "has the panel";
+  if (p.online) return "nearby";
+  return p.ago != null && p.ago < 7200 ? `last seen ${ago(p.ago)}` : "not seen lately";
+}
+
+function StepIcon({ state }: { state: string }) {
+  if (state === "done") return <Check size={13} className="text-ok" />;
+  if (state === "active") return <Loader2 size={13} className="animate-spin text-info" />;
+  if (state === "failed") return <X size={13} className="text-bad" />;
+  return <Circle size={10} className="text-ink-4" />;
+}
+
+/** Someone asked to pair with this DeskDot: shown even while the sheet is closed (the user must Allow it here). */
+function PairPrompt({ ho, floating }: { ho: HandoverBrief; floating?: boolean }) {
+  const req = ho.pair_requests[0];
+  if (!req) return null;
+  const answer = (allow: boolean) => () => void api.handover.answer(req.id, allow).catch(() => undefined);
+  return (
+    <section
+      className={
+        floating
+          ? "fixed bottom-4 right-4 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-info/40 bg-chassis-1 p-3 text-[12.5px] shadow-xl"
+          : "rounded-xl border border-info/40 bg-info/10 p-3 text-[12.5px]"
+      }
+    >
+      <p className="text-ink-1">
+        <b>{req.name}</b> wants to pair with this DeskDot, so the two can hand the panel to each other.
+      </p>
+      <p className="mt-1 text-ink-2">
+        Check that {req.name} shows the same code: <b className="font-mono text-[14px] text-ink-1">{req.code}</b>
+      </p>
+      <div className="mt-2.5 flex gap-2">
+        <button className="key key-ember" onClick={answer(true)}>Allow</button>
+        <button className="key key-ghost" onClick={answer(false)}>Don't allow</button>
+      </div>
+    </section>
+  );
+}
+
+/** Every DeskDot nearby and who holds the panel (ADR 0015). */
+function Nearby({ ho, dev, web }: { ho: HandoverBrief; dev: DeviceInfo; web: boolean }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const meHolds = dev.status === "connected";
+  const pairing = Object.fromEntries(ho.pairing.map((p) => [p.id, p]));
+  const pair = (id: string) => async () => {
+    setBusy(id);
+    try {
+      const r = await api.handover.pair(id);
+      toast(`Confirm on the other device: code ${r.code}`, "info");
+    } catch {
+      /* toasted */
+    } finally {
+      setBusy(null);
+    }
+  };
+  const MeIcon = KIND_ICON[dev.kind] ?? Laptop;
+  return (
+    <section className="qs-card">
+      <div className="mb-1.5 text-[12px] font-[620] uppercase tracking-wide text-ink-3">DeskDot nearby</div>
+      <div className="flex items-center gap-2.5 py-1.5 text-[12.5px]">
+        <MeIcon size={14} className="shrink-0 text-ink-3" />
+        <span className="min-w-0 flex-1 truncate text-ink-1">
+          {ho.me.name} <span className="text-ink-3">(this one)</span>
+        </span>
+        <span className={meHolds ? "text-ok" : "text-ink-3"}>{meHolds ? "has the panel" : "—"}</span>
+      </div>
+      {ho.peers.map((p) => {
+        const Icon = KIND_ICON[p.kind] ?? Laptop;
+        const out = pairing[p.id];
+        return (
+          <div key={p.id} className="flex items-center gap-2.5 border-t border-line py-1.5 text-[12.5px]">
+            <Icon size={14} className={`shrink-0 ${p.online ? "text-ink-2" : "text-ink-4"}`} />
+            <span className={`min-w-0 flex-1 truncate ${p.online ? "text-ink-1" : "text-ink-3"}`}>{p.name}</span>
+            {out && out.status === "pending" ? (
+              <span className="text-info">confirm on {p.name}: <b className="font-mono">{out.code}</b></span>
+            ) : (
+              <span className={p.holding ? "text-ok" : "text-ink-3"}>{peerStatus(p)}</span>
+            )}
+            {!web && !p.paired && p.online && p.kind !== "web" && !(out && out.status === "pending") && (
+              <button className="key !px-2 !py-0.5 text-[11.5px]" disabled={busy === p.id} onClick={pair(p.id)}
+                title="Pair once so the two DeskDots can hand the panel to each other">
+                Pair
+              </button>
+            )}
+          </div>
+        );
+      })}
+      {ho.peers.length === 0 && (
+        <p className="border-t border-line pt-1.5 text-[12px] text-ink-3">
+          {web
+            ? "No DeskDot found on this computer."
+            : ho.enabled
+              ? "No other DeskDot found on this network yet (they appear within a few seconds when they're on the same Wi-Fi)."
+              : "Finding other DeskDots is off."}
+        </p>
+      )}
+      {!ho.holder && ho.probable && !meHolds && (
+        <p className="border-t border-line pt-1.5 text-[12px] text-ink-3">
+          Nobody nearby says they have the panel. It was last with <b className="text-ink-2">{ho.probable.name}</b> ({ago(ho.probable.ago)}).
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** "Asking <device> to let go → Released → Waiting for the panel → Connected", live. */
+function Progress({ ho, onForce }: { ho: HandoverBrief; onForce: () => void }) {
+  const pr = ho.progress;
+  if (!pr) return null;
+  return (
+    <section className={`rounded-xl border p-3 text-[12.5px] ${pr.error ? "border-bad/30 bg-bad/10" : "border-line bg-chassis-0"}`}>
+      <ol className="space-y-1">
+        {pr.steps.map((s) => (
+          <li key={s.id} className={`flex items-center gap-2 ${s.state === "todo" ? "text-ink-3" : "text-ink-1"}`}>
+            <span className="flex w-4 justify-center"><StepIcon state={s.state} /></span>
+            {s.label}
+          </li>
+        ))}
+      </ol>
+      {pr.error && <p className="mt-2 text-ink-1">{pr.error}</p>}
+      {pr.error && pr.can_force && (
+        <button className="key mt-2" onClick={onForce} title="Waits for the panel to be free, then connects. Nothing is cut off mid-transfer.">
+          Try anyway
+        </button>
+      )}
+    </section>
+  );
+}
+
 function Row({ k, v }: { k: string; v: React.ReactNode }) {
   return (
     <div className="flex gap-3 py-1.5 text-[12.5px]">
@@ -147,7 +295,7 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
 // ------------------------------------------------------------------ the sheet
 export function ConnectionSheet() {
   const isOpen = useOpen();
-  const { dev, web, tone, title, action } = useConnection();
+  const { dev, web, ho, tone, title, action } = useConnection();
   const now = useNow(isOpen);
   const [confirmRelease, setConfirmRelease] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -160,10 +308,15 @@ export function ConnectionSheet() {
     if (!isOpen) setConfirmRelease(false);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen) return ho && ho.pair_requests.length && dev?.kind !== "web" ? <PairPrompt ho={ho} floating /> : null;
   const desktop = probe ?? web?.desktop ?? null;
   const host = webHost();
   const connected = dev?.status === "connected";
+  const isWeb = dev?.kind === "web";
+  // "Use the panel here" goes through the hand-over when there is one: it asks whoever has the panel to let go first
+  const take = (force = false) =>
+    isWeb ? (host?.useHere ? host.useHere(force) : api.link(true)) : ho ? api.handover.take(force) : api.link(true);
+  const moving = !!(ho?.progress && !ho.progress.done);
 
   const run = (fn: () => Promise<unknown>) => async () => {
     setBusy(true);
@@ -176,14 +329,14 @@ export function ConnectionSheet() {
     }
   };
   const primary = {
-    connect: { label: "Use the panel here", icon: Bluetooth, go: run(() => api.link(true)) },
+    connect: { label: ho?.moved_to ? "Take it back" : "Use the panel here", icon: Bluetooth, go: run(() => take()) },
     // pick() must run inside the click (Web Bluetooth's user gesture): no await before it
     pick: { label: "Pick panel", icon: Search, go: () => void host?.pick?.() },
     retry: { label: "Reconnect now", icon: RefreshCw, go: run(() => api.reconnect(true)) },
   };
   const p = action ? primary[action] : null;
   const [where, WhereIcon] = dev ? WHERE[dev.kind] : WHERE.ble;
-  const problem = !connected && dev?.link_enabled && (dev?.hint || dev?.last_error);
+  const problem = !connected && dev?.link_enabled && !moving && (dev?.hint || dev?.last_error);
 
   return (
     <Sheet open onClose={closeConnection} title="Connection">
@@ -213,6 +366,10 @@ export function ConnectionSheet() {
           )}
         </section>
 
+        {ho && dev && ho.pair_requests.length > 0 && !isWeb && <PairPrompt ho={ho} />}
+
+        {ho && <Progress ho={ho} onForce={run(() => take(true))} />}
+
         {problem && (
           <section className="flex gap-2.5 rounded-xl border border-warn/30 bg-warn/10 p-3 text-[12.5px] text-ink-2">
             <AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
@@ -223,7 +380,17 @@ export function ConnectionSheet() {
           </section>
         )}
 
-        {desktop && (desktop.running || desktop.error) && (
+        {ho && dev && <Nearby ho={ho} dev={dev} web={isWeb} />}
+
+        {isWeb && desktop && !desktop.running && (
+          <p className="px-1 text-[12px] text-ink-3">
+            Panel on your phone's DeskDot? This page can't reach the phone over the network (browsers block an https page
+            from talking to local devices), so open DeskDot on the phone, press <b className="text-ink-2">Release the panel</b>,
+            then Reconnect now here. With DeskDot running on this computer, it asks the phone for you.
+          </p>
+        )}
+
+        {desktop && (desktop.running || desktop.error) && !ho && (
           <section className="flex gap-2.5 rounded-xl border border-line bg-chassis-0 p-3 text-[12.5px] text-ink-2">
             <Laptop size={15} className="mt-0.5 shrink-0 text-info" />
             <div className="min-w-0">
@@ -246,7 +413,7 @@ export function ConnectionSheet() {
 
         <div className="flex flex-wrap gap-2">
           {p && (
-            <button className="key key-ember" disabled={busy} onClick={p.go}>
+            <button className="key key-ember" disabled={busy || moving} onClick={p.go}>
               <p.icon size={13} /> {p.label}
             </button>
           )}
@@ -294,9 +461,10 @@ export function ConnectionSheet() {
           <section className="rounded-xl border border-warn/30 bg-warn/10 p-3 text-[12.5px] text-ink-2">
             <p className="text-ink-1">Let another app use the panel?</p>
             <p className="mt-1">
-              DeskDot disconnects and <b className="text-ink-1">stops reconnecting</b> until you press Use the panel here. The
-              panel shows its blinking pairing screen until the other app (the iDotMatrix phone app, the web app or
-              another DeskDot) connects.
+              DeskDot finishes what it is sending, disconnects cleanly and <b className="text-ink-1">stops reconnecting</b> until
+              you press Use the panel here. The panel shows its blinking pairing screen until the other app (the iDotMatrix
+              phone app, the web app or another DeskDot) connects. Another DeskDot can also take it with its own Use the panel
+              here — no need to release it first.
             </p>
             <div className="mt-2.5 flex gap-2">
               <button className="key" onClick={run(async () => { await api.link(false); setConfirmRelease(false); toast("Panel released — other apps can connect now", "info"); })}>
@@ -305,6 +473,13 @@ export function ConnectionSheet() {
               <button className="key key-ghost" onClick={() => setConfirmRelease(false)}>Cancel</button>
             </div>
           </section>
+        )}
+
+        {ho && !isWeb && (
+          <label className="flex items-center gap-2 px-1 text-[12px] text-ink-3" title="DeskDots on the same Wi-Fi find each other so you can move the panel with one button. Only on private networks; nothing leaves your network.">
+            <input type="checkbox" checked={ho.enabled} onChange={(e) => void api.handover.setEnabled(e.target.checked).catch(() => undefined)} />
+            Find other DeskDots on this network
+          </label>
         )}
 
         <button className="key key-ghost !px-0 text-ink-3" onClick={() => { closeConnection(); openSettings("device"); }}>

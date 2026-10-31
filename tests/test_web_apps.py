@@ -85,6 +85,12 @@ CORS_OK = {
     "upload.wikimedia.org",
     "thumb.wikimedia.org",  # picture of the day (Photo Frame), verified 2026-10-08
     "latest.currency-api.pages.dev",  # the currency-api mirror (sample URL in CurrencyProvider.endpoints)
+    # Now Playing in the browser (providers/media_web.py), verified 2026-10-29
+    "api.listenbrainz.org",
+    "ws.audioscrobbler.com",  # Last.fm's API (CORS even on errors)
+    "lastfm.freetls.fastly.net",  # Last.fm cover images
+    "coverartarchive.org",  # redirects to archive.org, then a numbered archive.org node: all with CORS
+    "archive.org",
 }
 # hosts that only appear at run time (image URLs inside API answers), with the provider that fetches them
 DYNAMIC = {
@@ -95,6 +101,8 @@ DYNAMIC = {
     "randomfox.ca": "photos (foxes)",
     "raw.githubusercontent.com": "pokedex sprites",
     "query2.finance.yahoo.com": "stocks",
+    "lastfm.freetls.fastly.net": "media (Last.fm covers)",
+    "archive.org": "media (Cover Art Archive redirect)",
 }
 # user-configured services (no fixed host) and documentation placeholders
 NOT_FIXED = {"example.com", "homeassistant.local", "octopi.local", "nas.local", "host"}
@@ -158,7 +166,8 @@ def _off_web() -> list[str]:
 
 def test_apps_that_cant_run_in_a_tab_say_why() -> None:
     off = _off_web()
-    assert {"sysmon", "activeapp", "nowplaying", "obs", "printer", "anki"} <= set(off)
+    assert set(off) == {"activeapp", "obs", "printer", "anki"}, "a new off-web app: add it to docs/WEB_APP.md"
+    assert not {"sysmon", "nowplaying"} & set(off)  # the browser's own stats; a listening service / typed in
     for app_id in off:
         cls = REGISTRY[app_id]
         assert len(cls.web_reason) > 20, f"{app_id}: set web_reason (why it can't run in a browser tab)"
@@ -175,7 +184,7 @@ def test_lan_apps_only_lose_the_browser() -> None:
     assert platforms.supported("lan", "android") and not platforms.supported("lan", "web")
 
 
-@pytest.mark.parametrize("app_id", ["sysmon", "obs", "printer", "anki", "activeapp", "nowplaying"])
+@pytest.mark.parametrize("app_id", ["obs", "printer", "anki", "activeapp"])
 async def test_off_web_apps_say_not_on_web(engine, monkeypatch, app_id: str) -> None:  # type: ignore[no-untyped-def]
     monkeypatch.setattr(platforms, "current", lambda: "web")
     if app_id in ("obs", "printer"):
@@ -345,3 +354,213 @@ async def test_uptime_focus_view_explains_browser_limits(engine, monkeypatch) ->
     f = Frame()
     app._focus(f, 0.0, [({"label": "DB", "kind": "tcp"}, st)])
     assert f.px.any()
+
+
+# ------------------------------------------------------------------------------------ Now Playing
+def _np_hub(tmp_path: Path, settings: dict[str, Any], answer: Any) -> Any:
+    store = Store(tmp_path / "s.json")
+    store.section("apps")["nowplaying"] = settings
+    hub = build_hub(store, lambda _n: None)
+    hub.http = httpx.AsyncClient(transport=httpx.MockTransport(answer))
+    return hub
+
+
+LB_NOW = {
+    "payload": {
+        "count": 1,
+        "playing_now": True,
+        "listens": [
+            {
+                "track_metadata": {
+                    "artist_name": "Daft Punk",
+                    "track_name": "One More Time",
+                    "release_name": "Discovery",
+                    "additional_info": {"duration_ms": 320000, "release_mbid": "abc-123"},
+                }
+            }
+        ],
+    }
+}
+
+
+async def test_now_playing_from_listenbrainz_in_the_browser(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from deskdot.providers import media_web
+
+    monkeypatch.setattr(platforms, "current", lambda: "web")
+    seen: list[str] = []
+
+    def answer(req: httpx.Request) -> httpx.Response:
+        seen.append(str(req.url))
+        if req.url.host == "api.listenbrainz.org":
+            return httpx.Response(200, json=LB_NOW)
+        return httpx.Response(404)
+
+    hub = _np_hub(tmp_path, {"web_source": "listenbrainz", "web_user": "rob"}, answer)
+    p = hub.get("media")
+    try:
+        assert p.supported and isinstance(p.backend, media_web.WebBackend) and not p.can_control
+        v = await p.fetch()
+        assert v["active"] and v["title"] == "One More Time" and v["artist"] == "Daft Punk"
+        assert v["playing"] and v["duration"] == 320 and v["controls"] is False
+        assert seen[0] == "https://api.listenbrainz.org/1/user/rob/playing-now"
+        await p.fetch()  # cached for POLL_S: the 1 s tick doesn't ask again
+        assert sum("listenbrainz" in u for u in seen) == 1
+        snap = media_web.parse_listenbrainz(LB_NOW)
+        assert snap is not None and snap.art_url == "https://coverartarchive.org/release/abc-123/front-250"
+        assert media_web.parse_listenbrainz({"payload": {"listens": []}}) is None
+    finally:
+        await hub.http.aclose()
+
+
+async def test_now_playing_from_lastfm_and_typed_in(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from deskdot.providers import media_web
+
+    monkeypatch.setattr(platforms, "current", lambda: "web")
+    track = {
+        "name": "Midnight City",
+        "artist": {"#text": "M83"},
+        "album": {"#text": "Hurry Up"},
+        "image": [{"#text": "https://lastfm.freetls.fastly.net/i/u/300x300/cover.png", "size": "extralarge"}],
+        "@attr": {"nowplaying": "true"},
+    }
+
+    def answer(req: httpx.Request) -> httpx.Response:
+        assert req.url.host == "ws.audioscrobbler.com" and req.url.params["api_key"] == "k1"
+        return httpx.Response(200, json={"recenttracks": {"track": [track]}})
+
+    hub = _np_hub(tmp_path, {"web_source": "lastfm", "web_user": "u", "web_api_key": "k1"}, answer)
+    try:
+        v = await hub.get("media").fetch()
+        assert v["title"] == "Midnight City" and v["artist"] == "M83" and v["album"] == "Hurry Up"
+        snap = media_web.parse_lastfm({"recenttracks": {"track": [track]}})
+        assert snap is not None and snap.art_url and snap.art_url.endswith("cover.png")
+        done = {**track, "@attr": {}}  # the newest scrobble, finished: nothing is playing now
+        assert media_web.parse_lastfm({"recenttracks": {"track": done}}) is None
+        with pytest.raises(RuntimeError, match="Invalid API key"):
+            media_web.parse_lastfm({"error": 10, "message": "Invalid API key"})
+        # typed in: no network at all; clearing the song stops it
+        hub.store.section("apps")["nowplaying"] = {
+            "web_source": "manual",
+            "web_title": "Song",
+            "web_artist": "Me",
+        }
+        v = await hub.get("media").fetch()
+        assert v["active"] and v["title"] == "Song" and v["artist"] == "Me"
+        hub.store.section("apps")["nowplaying"] = {"web_source": "manual", "web_title": ""}
+        assert (await hub.get("media").fetch()) == {"active": False}
+        hub.store.section("apps")["nowplaying"] = {"web_source": "lastfm", "web_user": "u"}
+        with pytest.raises(RuntimeError, match="API key"):
+            await hub.get("media").fetch()
+    finally:
+        await hub.http.aclose()
+
+
+async def test_now_playing_renders_in_the_browser(engine, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(platforms, "current", lambda: "web")
+    app = engine._slot("nowplaying").app
+    assert app.supported_here()
+    schema = app.meta().settings_schema
+    for key in ("web_source", "web_user", "web_api_key", "web_title", "web_artist"):
+        assert schema["properties"][key]["platforms"] == ["web"], key  # "Browser only" on the desktop
+    assert schema["properties"]["web_api_key"]["format"] == "password"
+    f = Frame()
+    app.render(f, 0.5)
+    assert f.px.any()
+
+
+# --------------------------------------------------------------------------------- System Monitor
+async def test_system_monitor_uses_the_browsers_own_stats(engine, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from deskdot.providers import system
+
+    monkeypatch.setattr(platforms, "current", lambda: "web")
+    monkeypatch.setattr(system, "current", lambda: "web")
+    monkeypatch.setattr(system, "_browser", None)
+    p = engine.hub.get("system")
+    assert p.supported
+    assert await p.fetch() is None  # the page hasn't reported yet: loading, not an error
+    b = system.browser_stats(
+        {
+            "pressure": "serious",
+            "heap_used": 50e6,
+            "heap_limit": 200e6,
+            "battery": 0.42,
+            "charging": False,
+            "downlink_mbps": 8,
+            "fps": 60,
+            "cores": 8,
+            "device_memory_gb": 8,
+            "rtt_ms": "nonsense",
+        }
+    )
+    assert b["cpu"] == 75 and b["ram"] == 25 and b["battery"] == 42 and b["plugged"] is False
+    assert b["net_down"] == 1_000_000 and b["fps"] == 60 and b["rtt_ms"] is None
+    v = await p.fetch()
+    assert v["browser"] is True and v["disk"] is None and v["cpu_hist"] == [75]
+    assert system.browser_stats({})["cpu"] is None  # a browser without Compute Pressure: "--"
+    app = engine._slot("sysmon").app
+    assert app.supported_here() and "webReason" not in app.meta().settings_schema
+    p.value = v
+    for layout in ("bars", "graph"):
+        engine.store.section("apps")["sysmon"] = {"layout": layout}
+        engine.slots.pop("sysmon", None)
+        f = Frame()
+        engine._slot("sysmon").app.render(f, 0.0)
+        assert f.px.any(), layout
+
+
+def test_web_main_forwards_browser_stats(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from deskdot.providers import system
+
+    monkeypatch.setattr(system, "_browser", None)
+    web_main.sys_stats({"pressure": "nominal"})
+    assert system._browser is not None and system._browser["cpu"] == 25
+
+
+# ------------------------------------------------------------------------------------ the web build
+def _build_script() -> Any:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_webapp", ROOT / "scripts" / "build_webapp.py")
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_web_build_writes_version_json_with_the_newest_notes() -> None:
+    b = _build_script()
+    notes = b.whats_new_notes(
+        "# What's new\n<!-- ## x — format -->\n## 3.9.0 — a\n### New\n- **A**\n\n## 3.8.0 — b\n"
+    )
+    assert notes == "## 3.9.0 — a\n### New\n- **A**\n"
+    real = b.whats_new_notes((ROOT / "WHATS_NEW.md").read_text(encoding="utf-8"))
+    assert real.startswith("## ") and "\n## " not in real
+    j = json.loads(b.version_json("3.9.0", "abc123", notes))
+    assert j == {"version": "3.9.0", "build": "abc123", "notes": notes}  # deterministic: no timestamps
+    sw = (ROOT / "web" / "webapp" / "sw.js").read_text(encoding="utf-8")
+    assert 'SCOPE.pathname + "version.json") return;' in sw, "version.json must never come from a cache"
+
+
+def test_web_build_drops_the_inline_prepaint_script(tmp_path: Path) -> None:
+    b = _build_script()
+    index = tmp_path / "index.html"
+    index.write_text((ROOT / "web" / "index.html").read_text(encoding="utf-8"), encoding="utf-8")
+    b.inject_host(index, "b1")
+    html = index.read_text(encoding="utf-8")
+    assert "<script>" not in html, (
+        "the web app's CSP forbids inline script (host.js paints the theme instead)"
+    )
+    assert '<script src="/app/host/host.js?v=b1"></script>' in html
+    host = (ROOT / "web" / "webapp" / "host.js").read_text(encoding="utf-8")
+    for key in ("deskdot.theme", "deskdot.glass", "deskdot.pageTheme"):  # the same pre-paint work, in host.js
+        assert key in host, key
+
+
+def test_web_engine_archive_leaves_out_desktop_only_modules() -> None:
+    b = _build_script()
+    assert {"desktop.py", "launcher.py", "mcp_server.py", "cli.py", "device/ble.py"} <= b.EXCLUDE
+    for rel in b.EXCLUDE:  # every exclusion still names a real module (a rename would ship it silently)
+        assert (ROOT / "src" / "deskdot" / rel).exists(), rel
+    # the new browser-side modules ship (they are imported by the engine in a tab)
+    for rel in ("providers/media_web.py", "updates.py", "tvlink.py", "gfx/themes.py", "casino/chips.py"):
+        assert rel not in b.EXCLUDE and (ROOT / "src" / "deskdot" / rel).exists(), rel

@@ -410,6 +410,9 @@ holds the panel). Wording comes from one function, `summarize()`, shared with th
 | In use elsewhere (red) | not found 3× in a row (`busy`), or the web app saw DeskDot on this computer holding it | Reconnect now (after freeing it there) |
 | Pick your panel (amber) | web app: no panel this browser may use yet, or the permission expired | Pick panel (the browser's chooser) |
 | Released (grey) | the user released the panel | Use the panel here |
+| On <device> (grey) | another DeskDot has it (`state.handover.holder`), or this one let it go for it (`moved_to`) | Use the panel here / Take it back |
+| Moving here… (amber) | a hand-over is running | — (the steps show in the sheet) |
+| Recovering… (amber) | `reason: recovering` — the engine is clearing old sessions and waiting for the panel | Reconnect now |
 
 The sheet shows **what and where** (panel name and address; "DeskDot on this computer" / "This browser tab" / "The
 Android app" / simulator), signal strength when known (`rssi`), connected-for or last-seen, failed attempts and the
@@ -419,6 +422,17 @@ a warning box with the raw error underneath, then **one primary button** (ember)
 until *Use the panel here*. In the web app it adds *Is DeskDot open on this computer?* (probes
 `http://127.0.0.1:8765/api/health`), *Pick another panel* and the packet-size choice; the page host's floating pill
 hides once the studio has mounted the sheet (`deskdotWeb.attachStudio()`).
+
+**Hand-over (ADR 0015).** *DeskDot nearby* lists this DeskDot and every one on the network (laptop, phone, the browser
+tab on this computer) with who has the panel, *Pair* for ones not paired yet (the code to confirm shows inline), and
+"it was last with …" when nobody claims it. *Use the panel here* runs the hand-over; its steps show live with a
+spinner / tick / cross — *Asking <device> to let go → Released → Waiting for the panel → Connected* — and a failed
+step ends in one plain sentence plus **Try anyway** when the holder couldn't be reached. A pairing request from another
+DeskDot shows as a card (also floating, bottom right, while the sheet is closed) with the code and *Allow / Don't allow*.
+A checkbox at the bottom turns *Find other DeskDots on this network* off. In the web app the page host builds the same
+list from DeskDot on this computer (`deskdotWeb.state().handover`, `deskdotWeb.useHere()`); without it, the sheet
+explains that an https page can't reach the phone and how to release it there by hand. The Android app shows the same
+sheet (it is the studio in a WebView).
 
 ## Display menu (`components/DisplayMenu.tsx`, `lib/look.ts`)
 

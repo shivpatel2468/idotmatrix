@@ -280,10 +280,11 @@ class Lobby:
 
 
 class LanGate:
-    """ASGI middleware: clients that aren't on this computer may only use the phone controller (/p/, /ws/p/) and
-    the read-only TV view (/tv/, /ws/tv/ — docs/TV_VIEW.md); both check their code."""
+    """ASGI middleware: clients that aren't on this computer may only use the phone controller (/p/, /ws/p/),
+    the read-only TV view (/tv/, /ws/tv/ — docs/TV_VIEW.md), both of which check their code, and the panel hand-over
+    endpoints (/lan/handover/ — pairing needs the user's Allow, everything else is signed; ADR 0015)."""
 
-    ALLOWED = ("/p/", "/ws/p/", "/tv/", "/ws/tv/")
+    ALLOWED = ("/p/", "/ws/p/", "/tv/", "/ws/tv/", "/lan/handover/")
 
     def __init__(self, app: Any, allow_all: bool = False) -> None:
         self.app = app
