@@ -31,6 +31,29 @@ from .diagnose import diagnose
 log = logging.getLogger("deskdot.device")
 GIF_COOLDOWN = 3.0  # s between GIF uploads; back-to-back uploads make the panel stop acking
 
+
+async def wait_for(aw, timeout: float):  # noqa: ASYNC109 — this *is* the asyncio.timeout wrapper
+    """`asyncio.wait_for`, without CPython's pre-3.12 cancellation race.
+
+    Found on the actual watch's Python (3.11, see docs/adr/0012-wear-armv7-host.md): if the task awaiting
+    `asyncio.wait_for(fut, timeout)` is itself cancelled (e.g. `Device.stop()`, a reconnect, a link drop) in
+    the exact same event-loop tick that `fut` independently resolves (a GATT ack, a connect callback), 3.11's
+    `wait_for` can silently swallow the cancellation and return `fut`'s result as if nothing happened — the
+    writer task then never notices it should stop, and `Device.stop()`/a reconnect hangs forever awaiting it.
+    This is a real, reproducible CPython bug (not Windows- or test-specific): fixed in 3.12 by rewriting
+    `wait_for` on top of `asyncio.timeout()`, not backported to 3.11.
+
+    Fix: use `asyncio.timeout()` directly instead of `wait_for`'s own (buggy, pre-3.12) bookkeeping.
+    `asyncio.timeout()` the context manager (not `wait_for`) has existed since Python 3.11 — it's the
+    correct primitive 3.12's `wait_for` was rewritten to use — and is confirmed race-free on 3.11 in this
+    exact scenario (a bare repro of this race: `asyncio.timeout()` propagates the outer `CancelledError`
+    correctly; `asyncio.wait_for()` doesn't). Runs identically on 3.12+ (not a 3.11-only code path — the
+    phone/desktop's Python 3.13 build takes the exact same route, it just never hits the race there).
+    """
+    async with asyncio.timeout(timeout):
+        return await aw
+
+
 Status = Literal["disconnected", "scanning", "connecting", "connected", "error"]
 PanelMode = Literal["unknown", "diy", "gif", "native"]
 
@@ -166,7 +189,7 @@ class Device(ABC):
         touching the link. True when the writer went quiet within `limit` s. `resume_writes()` undoes it."""
         self._paused = True
         try:
-            await asyncio.wait_for(self._idle.wait(), limit)
+            await wait_for(self._idle.wait(), limit)
         except TimeoutError:
             return False
         return True
@@ -266,7 +289,7 @@ class Device(ABC):
 
     async def _await_ack(self, wait: float) -> bytes | None:
         try:
-            return await asyncio.wait_for(self._acks.get(), wait)
+            return await wait_for(self._acks.get(), wait)
         except TimeoutError:
             return None
 
@@ -313,7 +336,7 @@ class Device(ABC):
         """Sleep the back-off, or less if the user pressed Reconnect now. True when woken by the user."""
         if not self._retry.is_set():
             try:
-                await asyncio.wait_for(self._retry.wait(), delay)
+                await wait_for(self._retry.wait(), delay)
             except TimeoutError:
                 return False
         self._retry.clear()
@@ -330,7 +353,7 @@ class Device(ABC):
                 try:
                     # Verified 2026-10-01: after Windows sleeps, a WinRT connect can hang forever, which left the
                     # supervisor stuck and the panel never reconnected. Abandon a hung attempt and retry.
-                    await asyncio.wait_for(self._connect(), self.connect_timeout)
+                    await wait_for(self._connect(), self.connect_timeout)
                 except TimeoutError:
                     await self._disconnect()
                     raise ConnectionError(f"connect timed out after {self.connect_timeout:.0f}s") from None
