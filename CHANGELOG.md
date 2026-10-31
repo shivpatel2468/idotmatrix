@@ -5,6 +5,13 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
+- **Device link: cancellation-safe `wait_for`** (`device/base.py`): every `asyncio.wait_for` in `device/`
+  (android, base, ble, web; 10 sites, including the GATT write-ack wait) now goes through `base.wait_for()`, built on
+  `asyncio.timeout()`. On CPython 3.11, `asyncio.wait_for` returns the result instead of raising `CancelledError`
+  when the waiting task is cancelled in the same loop tick its future resolves (fixed upstream in 3.12, not
+  backported), which left `Device.stop()`/reconnects hanging. No change on 3.12+; it keeps the panel link correct
+  on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
+  one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
 - **Web app re-audited** (docs/WEB_APP.md): the engine of 3.3–3.8 (page themes, paper panel, Liquid Glass, TV view +
   options menu over the WebRTC tunnel, casino dolly / chip sets / odometers / win moment, the 14 public-API apps, API
   health, connection sheet, updates) boots in Pyodide 0.29.5 (verified headless: 116 apps, 4 off-web); every
