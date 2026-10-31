@@ -9,7 +9,8 @@ import { Row, Toggle } from "./controls";
 /**
  * In-app updates (src/deskdot/updates.py, docs/API.md § Updates): the Settings block and the top-bar pill.
  * The engine checks GitHub Releases at most every 6 h; installing downloads the installer for this system, checks
- * its SHA-256 and hands off (Windows / macOS restart DeskDot; Android opens its installer).
+ * its SHA-256 and hands off (Windows / macOS restart DeskDot; Android opens its installer). The browser app
+ * (kind "web") reads its site's /app/version.json instead and offers a reload when a new build is out.
  */
 
 const DISMISS_KEY = "deskdot.update.dismissed";
@@ -128,16 +129,20 @@ export function UpdatesBlock() {
   };
 
   const installLabel = info.kind === "android" ? "Download & install" : "Install & restart";
+  const web = info.kind === "web";
+  // the browser app: a new build of the same version is a fix — say "a new version of the browser app"
+  const headline = info.available
+    ? web && info.latest === info.current ? "A new build of the browser app is ready" : `DeskDot ${info.latest} is available`
+    : info.latest ? "You have the latest version" : "DeskDot";
   return (
     <>
       <div className="flex flex-wrap items-center gap-3 rounded-lg bg-chassis-0 px-3 py-3">
         <span className="led" data-on={info.available ? "ember" : status === "error" ? "warn" : "ok"} />
         <div className="min-w-0 flex-1">
-          <div className="text-[13.5px] font-[560]">
-            {info.available ? `DeskDot ${info.latest} is available` : info.latest ? "You have the latest version" : "DeskDot"}
-          </div>
+          <div className="text-[13.5px] font-[560]">{headline}</div>
           <div className="text-[11.5px] text-ink-3">
-            This is version {info.current}{info.latest && info.available ? ` · new: ${info.latest}` : ""} · checked {ago(info.checked_at)}
+            This is version {info.current}{web && info.build ? ` (browser build ${info.build})` : ""}
+            {info.latest && info.available ? ` · new: ${info.latest}${web && info.latest_build ? ` (${info.latest_build})` : ""}` : ""} · checked {ago(info.checked_at)}
           </div>
         </div>
         <button className="key" disabled={checking || busy} onClick={check}>
@@ -160,8 +165,16 @@ export function UpdatesBlock() {
             </div>
           ) : info.kind === "source" ? (
             <p className="text-[12px] leading-relaxed text-ink-2"><Inline text={info.source_hint ?? ""} /></p>
-          ) : info.kind === "web" ? (
-            <p className="text-[12px] text-ink-2">The browser app updates by itself: reload the page.</p>
+          ) : web ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="key key-ember" onClick={() => window.location.reload()}>
+                <RefreshCw size={13} /> Reload to update
+              </button>
+              <span className="min-w-[180px] flex-1 text-[11.5px] leading-snug text-ink-3">
+                The browser app updates with the website: reloading this tab loads the new version. Your settings and
+                uploads stay in this browser.
+              </span>
+            </div>
           ) : (
             <p className="text-[12px] text-ink-2">
               There's no installer for your system in this release yet.{" "}
@@ -191,7 +204,9 @@ export function UpdatesBlock() {
       {error && <div className="mt-2 text-[12px] text-warn">{error}</div>}
 
       <div className="mt-2 divide-y divide-line">
-        <Row label="Check for updates automatically" hint="About every 6 hours DeskDot asks GitHub if there's a new version. Nothing about you is sent.">
+        <Row label="Check for updates automatically" hint={web
+          ? "About every 30 minutes this tab asks idotmatrix.com which version it serves. Nothing about you is sent."
+          : "About every 6 hours DeskDot asks GitHub if there's a new version. Nothing about you is sent."}>
           <Toggle on={info.auto_check} label="Check for updates automatically" onChange={async (v) => setInfo(await api.setUpdates(v))} />
         </Row>
       </div>
@@ -205,13 +220,14 @@ export function UpdatePill({ compact = false }: { compact?: boolean }) {
   const u = useStore((s) => s.state?.updates);
   const [hidden, setHidden] = useState<string | null>(() => dismissed());
   const toasted = useRef<string | null>(null);
-  const latest = u?.available ? u.latest : null;
+  const latest = u?.available ? (u.kind === "web" && u.latest_build ? `${u.latest} (${u.latest_build})` : u.latest) : null;
+  const web = u?.kind === "web";
 
   useEffect(() => {
     if (!latest || latest === hidden || toasted.current === latest) return;
     toasted.current = latest;
-    toast(`DeskDot ${latest} is available — Settings → Updates`, "info");
-  }, [latest, hidden]);
+    toast(web ? "A new version of the browser app is ready — reload the page to get it" : `DeskDot ${latest} is available — Settings → Updates`, "info");
+  }, [latest, hidden, web]);
 
   if (!latest || latest === hidden) return null;
   const busy = u?.status === "downloading" || u?.status === "verifying" || u?.status === "installing";
@@ -224,7 +240,7 @@ export function UpdatePill({ compact = false }: { compact?: boolean }) {
       <button onClick={() => openSettings("updates")} title={`DeskDot ${latest} is available — see what's new and install`}
         className={clsx("flex items-center gap-1.5 rounded-full py-1.5 text-[12px] font-medium text-ember transition hover:bg-[var(--lg-control-hover)]", compact ? "px-2" : "pl-2.5 pr-1.5")}>
         <Sparkles size={13} />
-        {compact ? <span className="sr-only">Update available</span> : <span>{busy ? "Updating…" : "Update available"}</span>}
+        {compact ? <span className="sr-only">Update available</span> : <span>{busy ? "Updating…" : web ? "New version — reload" : "Update available"}</span>}
       </button>
       {!compact && !busy && (
         <button className="key key-ghost key-icon !h-6 !w-6" aria-label="Hide until the next version" title="Hide until the next version" onClick={dismiss}>

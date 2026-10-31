@@ -324,7 +324,17 @@ def create_app(cfg: Config) -> FastAPI:
     ws_hub = Hub(engine)
     holder["hub"] = ws_hub
     previews = Previews(engine)
-    updater = Updater(store, cfg.data_dir, device=cfg.device, on_change=ws_hub.state_changed)
+    updater = Updater(
+        store,
+        cfg.data_dir,
+        device=cfg.device,
+        on_change=ws_hub.state_changed,
+        # the browser app (docs/WEB_APP.md): its site says which build is current; web_main sets the tab's build
+        web_version_url=f"{cfg.public_url.rstrip('/')}/app/version.json"
+        if cfg.device == "web" and cfg.public_url
+        else None,
+        build=os.environ.get("DESKDOT_WEB_BUILD") if cfg.device == "web" else None,
+    )
     ws_hub.extras["updates"] = updater.brief
     # Panel hand-over between DeskDots (ADR 0015). Not in the browser engine: the page host speaks for the tab over
     # loopback instead. Discovery (UDP beacons, the lease gate) runs only for real panels and when the user allows it.

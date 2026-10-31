@@ -3,7 +3,7 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.9.0 — 2026-10-30 · Panel hand-over between DeskDots, clean release, link recovery
+## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
 - **Panel hand-over** (`src/deskdot/handover.py`, `handover_api.py`, ADR 0015): UDP beacon on 8767 (private networks
   only, opt-out `handover.enabled` / `lan_handover`), 30 s connect lease (`Device.gate` holds automatic attempts back:
@@ -20,6 +20,42 @@ The technical log for developers. For the same updates in plain words (before �
   `gatt.connect()` 20 s timeout, awaited `disconnect()`. New diagnose reasons `moved`, `elsewhere`, `recovering`.
 - **Studio**: Connection sheet lists DeskDots nearby, live hand-over steps, pairing prompt, opt-out; the web app builds
   the same from DeskDot on this computer (`deskdotWeb.useHere()`). Tests: `tests/test_handover.py`.
+- **Web app re-audited** (docs/WEB_APP.md): the engine of 3.3–3.8 (page themes, paper panel, Liquid Glass, TV view +
+  options menu over the WebRTC tunnel, casino dolly / chip sets / odometers / win moment, the 14 public-API apps, API
+  health, connection sheet, updates) boots in Pyodide 0.29.5 (verified headless: 116 apps, 4 off-web); every
+  non-proxied provider endpoint sends CORS headers. `site/app` must be rebuilt (`scripts/build_webapp.py`) to ship it.
+- **Now Playing on web**: `providers/media_web.py` `WebBackend` (ListenBrainz `playing-now`, Last.fm
+  `user.getRecentTracks` with the user's key, or typed in; 15 s cache, no controls, `player_art=False` skips the
+  player-art retries); settings `web_source`/`web_user`/`web_api_key`/`web_title`/`web_artist` (`platforms: ["web"]`);
+  `FEATURES["media"]` += web; app `platforms = (*DESKTOP, "web")`.
+- **System Monitor on web**: `providers/system.py` `browser_stats()` fed by `host.js` (`{t:"sys-stats"}` every 2 s:
+  Compute Pressure, `performance.memory`, Battery, Network Information, rAF fps, cores, deviceMemory) through
+  `worker.js` → `web_main.sys_stats()`; `FEATURES["system"] = ALL`; bars read CPU / MEM / BAT in a tab.
+- **Updates on web**: `build_webapp.py` writes `site/app/version.json` (`{version, build, notes}` = the newest
+  WHATS_NEW section); `Updater(kind="web", web_version_url, build)` checks it every 30 min; `info` adds `build`,
+  `latest_build`; `brief` adds `kind`, `latest_build`; studio: "New version — reload" pill, *Reload to update*;
+  `sw.js` never caches `version.json`; `worker.js` passes `manifest.build` to `web_main.boot(build=)`.
+- **Build**: `desktop.py` left out of the engine archive; index.html's inline pre-paint script stripped (the /app/ CSP
+  blocks it; host.js does the same work); build id also hashes the studio assets and the TV font.
+- **Studio**: `DesktopAppNote` / `DesktopAppLink` — on web, Not-on-Browser banners, On Air, eye break, OS
+  notifications, sleep hand-off and autopilot say why in one line and link to `/download.html`.
+- Tests: `tests/test_web_apps.py` (Now Playing sources, browser stats, off-web set, CORS hosts, version.json, inline
+  script, archive exclusions), `tests/test_updates.py` (web build check), `test_compat` / `test_web_device` updated.
+- **Page themes = `TABLE_THEMES`**: the table data moved to `src/deskdot/gfx/tables.py` (re-exported by
+  `apps/_casino.py`); `gfx/themes.py` builds the 21 page themes from it (same ids / names) with `screen_tokens()` (dark =
+  the dark casino's room, surfaces, inks, accent, felt glow + motif; light = the porcelain salon, AA-pushed) and LED
+  palettes whose hero is the table's LED accent. Default `cyber`; `LEGACY` maps `ember`/`graphite`/`sunset`/`citrus`/
+  `glacier` → `cyber`/`noir`/`volcano`/`arcade`/`arctic` (stored state, `POST /api/theme`, the browser). Theme-aware apps
+  follow every theme, the default included; `deskdot preview` without `--theme` draws own colours.
+  `scripts/gen_page_themes.py` writes `web/src/lib/pageThemes.gen.ts` + `web/src/pageTheme.default.gen.css` (a test
+  fails when stale); index.css § TABLE ROOM styles the dark studio's panels as casino wings. First run: Cyber grid,
+  dark (studio, launcher, `webapp/host.js`, Android bars/resources); in the web app `deskdot.siteTheme` leads and is
+  written back. The top bar's Casino key pins classic gold (`.cz-gold-top`; the page theme's `--gold` leaked into it).
+- **TV view**: hello / state carry `page_theme`; `src/deskdot/tv/tv-themes.js` (generated) holds every theme's TV
+  tokens; `tv.js` `applyRoom` wears the page theme outside the casino (`stage[data-room]`) and the table at a casino
+  table; the bar is a static faux-glass capsule, cards / menu are wings, accents follow. Benchmark (CPU ×6, 960×540
+  DPR 2, software compositing, 12 s): clock p50/p95 16.7/16.8 ms both, busy 25.8 → 25.9 %; roulette 16.7/33.3 ms
+  both, busy 69.5 → 66.7 %. `build_webapp.py --skip-studio` keeps `web/public` files (intro GIFs).
 
 ## 3.8.0 — 2026-10-29 · Desktop installers, a signed release APK, in-app updates
 

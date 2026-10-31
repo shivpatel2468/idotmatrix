@@ -5,6 +5,7 @@ import { api, loadPresets } from "../lib/api";
 import { type SettingsSection, type SettingsTab, toast, useStore } from "../lib/store";
 import type { EngineState, Handoff } from "../lib/types";
 import { AutopilotEditor } from "./AutopilotEditor";
+import { DesktopAppNote } from "./DesktopAppNote";
 import { ColourCalibration } from "./calibration/ColourCalibration";
 import { MotionLab } from "./calibration/MotionLab";
 import { Row, Slider, Toggle } from "./controls";
@@ -204,6 +205,7 @@ function NotificationsTab({ st }: { st: St }) {
       <Row label="On screen for">
         <Slider value={n.duration} min={2} max={30} unit=" s" onCommit={(v) => save({ duration: v })} />
       </Row>
+      {!can && <DesktopAppNote why="a browser tab can't read the notifications Windows or macOS show." />}
       <Row label="Only these apps" hint="Comma-separated, e.g. WhatsApp, Teams. Empty = all.">
         <input className="field !h-8 !w-56" defaultValue={n.only} onBlur={(e) => save({ only: e.target.value })} />
       </Row>
@@ -319,6 +321,7 @@ function HandoffSection({ st }: { st: St }) {
         <Row label="When the computer goes to sleep" hint="Windows only. Always uses the panel's clock (there's only a moment before sleep).">
           <fieldset disabled={!sleepOk} className={sleepOk ? undefined : "opacity-50"}><Toggle on={h.on_sleep} label="Hand over on sleep" onChange={(v) => save({ on_sleep: v })} /></fieldset>
         </Row>
+        {!sleepOk && <DesktopAppNote why="a browser tab isn't told when the computer goes to sleep." />}
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         <button className="key" disabled={busy} onClick={async () => {
@@ -521,6 +524,7 @@ function SectionBody({ id, st }: { id: SettingsSection; st: St }) {
         <Block id="presets" title="Your presets" icon="list-music"><PresetManager /></Block>
         <Block id="autopilot" title="Follow the app I'm using" icon="wand-sparkles"
           hint="Autopilot: when an app is in front on your computer (Spotify, VS Code, a YouTube tab…), show a matching app on the panel.">
+          <DesktopAppNote why="a browser tab can't see which app is in front on your computer, so these rules never fire here." />
           <AutopilotEditor />
         </Block>
         <Block id="handoff" title="Keep showing when my computer is off" icon="laptop-minimal"

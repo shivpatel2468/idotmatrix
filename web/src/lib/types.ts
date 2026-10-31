@@ -207,11 +207,14 @@ export type EngineState = {
   handover?: HandoverBrief;
 };
 
+export type UpdateKind = "windows" | "macos" | "android" | "source" | "web";
 export type UpdateStatus = "idle" | "checking" | "downloading" | "verifying" | "installing" | "error";
 export type UpdatesBrief = {
   current: string;
   latest: string | null;
   available: boolean;
+  kind?: UpdateKind;
+  latest_build?: string | null; // the browser app: the build its site serves now (version.json)
   status: UpdateStatus;
   progress: number | null; // 0..1 while downloading
   error: string | null;
@@ -225,10 +228,11 @@ export type UpdatesInfo = UpdatesBrief & {
   assets: { name: string; size: number | null; url: string }[];
   checked_at: number | null; // unix seconds
   auto_check: boolean;
-  kind: "windows" | "macos" | "android" | "source" | "web";
+  kind: UpdateKind;
   can_install: boolean;
   source_hint: string | null;
   message: string | null;
+  build?: string | null; // the browser app: the build this tab runs
 };
 
 export type Handoff = {

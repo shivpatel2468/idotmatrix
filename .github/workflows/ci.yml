@@ -23,6 +23,18 @@ jobs:
       - run: uv run ruff format --check src tests
       - run: uv run pytest -q
 
+  js:
+    name: JS — node tests (tests/js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # no npm install: the tests use only node built-ins; tv_menu.test.mjs skips itself without playwright-core
+      - run: node --test "tests/js/*.test.mjs"
+
   studio:
     name: Studio — typecheck & build
     runs-on: ubuntu-latest

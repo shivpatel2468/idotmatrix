@@ -13,6 +13,8 @@ What it produces (docs/WEB_APP.md):
     site/app/engine/*.whl          pure-Python wheels Pyodide doesn't ship (python-multipart)
     site/app/engine/manifest.json  what the worker loads: Pyodide version/CDN, packages, archive names
     site/app/sw.js                 service worker (API routing for <img>, offline cache)
+    site/app/version.json          {version, build, notes}: open tabs compare it with their own build and offer a
+                                   reload when a newer one is deployed (src/deskdot/updates.py, kind "web")
     site/app/join/…                the phone join page served at /p/<code> (online play with friends, WebRTC):
                                    index.html + join.{js,css}, and the engine's phone pages (controller.html,
                                    casino.html) with their inline script moved to <kind>.js (the page's CSP);
@@ -70,8 +72,10 @@ PACKAGES = [
 # pure-Python wheels from PyPI that Pyodide doesn't ship: vendored next to the engine (same version as uv.lock)
 PYPI_WHEELS = ["python-multipart"]
 
-# Desktop-only modules: never imported in the browser (entry points, the tray launcher, the MCP server, bleak).
+# Desktop-only modules: never imported in the browser (entry points, the tray launcher, the MCP server, bleak, the
+# installed app's start-up).
 EXCLUDE = {
+    "desktop.py",
     "launcher.py",
     "mcp_server.py",
     "cli.py",
@@ -135,7 +139,14 @@ def engine_zip(sources: bool = False) -> bytes:
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for path in sorted(SRC.rglob("*")):
             rel = path.relative_to(SRC).as_posix()
-            if path.is_dir() or "__pycache__" in rel or rel.endswith((".pyc", ".pyo")) or rel in EXCLUDE:
+            # living specs (SPEC.md, docs/SPECS.md) are for people and agents, not the tab
+            if (
+                path.is_dir()
+                or "__pycache__" in rel
+                or rel.endswith((".pyc", ".pyo"))
+                or rel in EXCLUDE
+                or path.name == "SPEC.md"
+            ):
                 continue
             data = path.read_bytes()
             name = f"deskdot/{rel}"
@@ -166,8 +177,18 @@ def build_studio(dest: Path) -> None:
                 shutil.copy2(item, target)
 
 
+#: index.html's inline pre-paint script (theme, Liquid Glass, page theme): the web app's CSP forbids inline script,
+#: so the browser would block it with a console error — host.js does the same work before first paint instead
+_INLINE_SCRIPT = re.compile(r"\s*<script>\s*\(function \(\) \{.*?\}\)\(\);\s*</script>", re.S)
+
+
 def inject_host(index: Path, build: str) -> None:
     html = index.read_text(encoding="utf-8")
+    html = _INLINE_SCRIPT.sub("", html)
+    if "<script>" in html:
+        raise SystemExit(
+            "index.html: an inline <script> can't run under the web app's CSP (move it to host.js)"
+        )
     # --skip-studio keeps the previous (already injected) page: drop the old injection first
     html = re.sub(
         r'\s*<meta name="description"[^>]*>|\s*<link rel="manifest"[^>]*>|\s*<script src="/app/host/host\.js[^>]*></script>',
@@ -244,6 +265,20 @@ def build_join(dest: Path, build: str) -> None:
         shutil.copy2(src, dest / "tv" / src.name)
 
 
+def whats_new_notes(text: str) -> str:
+    """The newest section of WHATS_NEW.md (from its first `## ` heading to the next): the reload card's notes."""
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    m = re.search(r"^## .*?(?=^## |\Z)", text, flags=re.S | re.M)
+    return m.group(0).strip() + "\n" if m else ""
+
+
+def version_json(version: str, build: str, notes: str) -> str:
+    """site/app/version.json: what the site serves now (deterministic: no timestamps)."""
+    return (
+        json.dumps({"version": version, "build": build, "notes": notes}, indent=2, ensure_ascii=False) + "\n"
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--skip-studio", action="store_true", help="keep the studio files already in site/app/")
@@ -261,9 +296,12 @@ def main() -> int:
     if a.skip_studio:
         if not (OUT / "index.html").exists():
             raise SystemExit("no previous studio build in site/app/; run without --skip-studio")
+        # the studio's files: its page, its bundle and everything vite copied from web/public (favicon, intro/*.gif …)
+        public = {q.name for q in (WEB / "public").iterdir()}
         for p in OUT.rglob("*"):
             rel = p.relative_to(OUT).as_posix()
-            if p.is_file() and (rel == "index.html" or rel.startswith("assets/") or rel == "favicon.svg"):
+            top = rel.split("/", 1)[0]
+            if p.is_file() and (rel == "index.html" or top == "assets" or top in public):
                 studio_keep[rel] = p.read_bytes()
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -300,6 +338,8 @@ def main() -> int:
         *PHONE_PAGES.values(),
         TV_PAGE,
         *sorted(TV_SCRIPTS.glob("*.js")),
+        *sorted(TV_SCRIPTS.glob("*.woff2")),
+        *sorted((OUT / "assets").rglob("*")),  # the studio: a studio-only change is a new build too
     ]:
         if src.is_file():
             h.update(src.read_bytes())
@@ -323,6 +363,8 @@ def main() -> int:
         "proxy": "/app/proxy",
     }
     (OUT / "engine" / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    notes = whats_new_notes((ROOT / "WHATS_NEW.md").read_text(encoding="utf-8"))
+    (OUT / "version.json").write_text(version_json(__version__, build, notes), encoding="utf-8")
     (OUT / "manifest.webmanifest").write_text(
         json.dumps(
             {

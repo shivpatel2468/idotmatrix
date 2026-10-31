@@ -39,7 +39,7 @@ from ..gfx.calib import apply as apply_calibration
 from ..gfx.calib import pattern as calibration_pattern
 from ..gfx.image import encode_gif_budget
 from ..gfx.testvideo import CalCard, MotionCard, StillCard
-from ..gfx.themes import PAGE_THEMES, PageTheme, page_theme
+from ..gfx.themes import LEGACY, PAGE_THEMES, PageTheme, page_theme
 from ..providers import Hub, Provider
 from ..providers.custom import NAME as CUSTOM_NAME
 from ..providers.custom import CustomApp
@@ -219,7 +219,9 @@ class Engine:
         self._integ_cache: dict[str, tuple[Any, dict[str, Any]]] = {}
         # page theme (docs/STUDIO_UI.md § Page themes): the pick (shown on every screen at once) and the one the
         # panel draws with (applied after THEME_SETTLE_S, so clicking through the swatches re-bakes clips once)
-        self.page_theme: PageTheme = page_theme(store.get("page_theme"))
+        self.page_theme: PageTheme = page_theme(store.get("page_theme"))  # a pre-3.9 id maps to its table
+        if store.get("page_theme") not in (None, self.page_theme.id):
+            store.set("page_theme", self.page_theme.id)
         self.panel_theme: PageTheme = self.page_theme
         self._theme_task: asyncio.Task[None] | None = None
         self._theme_applied_at = -1e9
@@ -290,6 +292,7 @@ class Engine:
 
     def set_page_theme(self, tid: str) -> dict[str, Any]:
         """Pick the page theme. Every screen follows at once (state push); the panel follows after a short settle."""
+        tid = LEGACY.get(tid, tid)  # a pre-3.9 id (an old studio, a script) picks its table
         if tid not in PAGE_THEMES:
             raise KeyError(tid)
         self.page_theme = PAGE_THEMES[tid]

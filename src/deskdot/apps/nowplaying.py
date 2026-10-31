@@ -49,7 +49,7 @@ from pydantic import Field
 from ..engine.app import Action, App, AppSettings, Choice, Color, register
 from ..gfx import PALETTE, Frame, calibrate, mix, scale, to_rgb
 from ..gfx.font import FONTS, draw_marquee, fit, measure
-from ..platforms import DESKTOP
+from ..platforms import DESKTOP, only_on
 from ..providers.lyrics import normalize_track
 from ..providers.media import decode_art, extract_palette
 from . import _npdraw as kit
@@ -609,6 +609,38 @@ class NowPlayingSettings(AppSettings):
         "mirror", {"mirror": "Mirrored bars", "line": "Trace"}, title="Waveform", group="Layout options"
     )
 
+    # ---- in the browser (the web app has no media session: providers/media_web.py)
+    web_source: str = Field(
+        "manual",
+        title="Where the song comes from",
+        description="A browser tab can't see your music apps. ListenBrainz needs only your user name; Last.fm "
+        "needs your user name and a free API key; or type the song in.",
+        json_schema_extra={
+            "enum": ["manual", "listenbrainz", "lastfm"],
+            "enumLabels": {"manual": "Typed in", "listenbrainz": "ListenBrainz", "lastfm": "Last.fm"},
+            **only_on("web", group="In the browser"),
+        },
+    )
+    web_user: str = Field(
+        "", max_length=64, title="User name", description="Your ListenBrainz or Last.fm user name",
+        json_schema_extra=only_on("web", group="In the browser"),
+    )  # fmt: skip
+    web_api_key: str = Field(
+        "", max_length=64, title="Last.fm API key",
+        description="Free at last.fm/api/account/create (only for Last.fm). Kept in this browser.",
+        json_schema_extra=only_on("web", group="In the browser", format="password", writeOnly=True),
+    )  # fmt: skip
+    web_title: str = Field(
+        "", max_length=120, title="Song (typed in)", description="Clear it when the music stops",
+        json_schema_extra=only_on("web", group="In the browser"),
+    )  # fmt: skip
+    web_artist: str = Field(
+        "",
+        max_length=120,
+        title="Artist (typed in)",
+        json_schema_extra=only_on("web", group="In the browser"),
+    )
+
 
 # ------------------------------------------------------------------------------------------------ app
 @register
@@ -628,12 +660,9 @@ class NowPlaying(App):
         "karaoke_color": "accent2",
     }  # page theme (docs/APP_SDK.md § Page theme)
     uses = ("media", "lyrics")  # "audio" is acquired on demand (spectrum / VU / waveform / beat-synced only)
-    # the host's media session: Windows GSMTC, macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl)
-    platforms = DESKTOP
-    web_reason = (
-        "A browser tab can't read the computer's media session (Spotify, Music, browser players); "
-        "use the desktop app."
-    )
+    # the host's media session: Windows GSMTC, macOS AppleScript / nowplaying-cli, Linux MPRIS (playerctl); in the
+    # browser app a listening service (ListenBrainz / Last.fm) or a typed-in song (settings "In the browser")
+    platforms = (*DESKTOP, "web")
     actions = (
         Action("prev", "Previous", "skip-back"),
         Action("toggle", "Play/Pause", "play"),

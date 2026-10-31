@@ -82,12 +82,14 @@ class Clock(App):
   (what the studio shows) never change.
 - **`self.themed(role, own)`**: the theme's colour for `role`, or `own` when the app isn't following a theme right now.
   `self.theme` is the `PageTheme` or `None`.
-- **The default theme (`ember`, DeskDot) is every app's own look** — nothing changes until someone picks another theme.
+- **Every theme recolours, the default (`cyber`, Cyber grid) too.** Since 3.9 the page themes are the casino's 21
+  table themes; the hero `accent` is the table's own LED accent. Without a theme (bare `deskdot preview` with no
+  `--theme`) an app draws in its own colours; turning **Follow page theme** off does the same on the panel.
 - Theme-aware apps get a **Follow page theme** switch automatically (`follow_theme`, in the colour group): the per-app
   opt-out. Off = own colours.
 - Clips re-bake on a theme change (`clip_key()` includes the theme); the engine applies a new theme to the panel after
   1.2 s of quiet and at most every 6 s, so browsing swatches costs one GIF upload. Previews and
-  `deskdot preview APP --theme galaxy` show the theme too.
+  `deskdot preview APP --theme galaxy` show the theme too (no `--theme`: the app's own colours).
 - **Don't follow** where colour means something: up / down and win / loss, teams and flags, photos and album art,
   weather icons, characters and pets, games with genre themes, the casino (table themes). Use roles for chrome only.
 

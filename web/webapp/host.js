@@ -14,10 +14,10 @@
   "use strict";
 
   // The studio theme before first paint (the website's CSP blocks index.html's inline copy of this): localStorage
-  // deskdot.theme = light | dark | system (default) → <html data-theme>, as web/src/lib/theme.ts does.
+  // deskdot.theme = light | dark (default, first run) | system → <html data-theme>, as web/src/lib/theme.ts does.
   try {
-    let pref = "system";
-    try { pref = localStorage.getItem("deskdot.theme") || "system"; } catch { /* storage blocked */ }
+    let pref = "dark";
+    try { pref = localStorage.getItem("deskdot.theme") || "dark"; } catch { /* storage blocked */ }
     const t = pref === "light" || pref === "dark" ? pref : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.style.colorScheme = t;
@@ -33,10 +33,13 @@
     document.documentElement.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !blur || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
   } catch { /* never block the host */ }
   // The page theme (web/src/lib/pageTheme.ts) the studio cached on the last visit, before first paint. A constructed
-  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads.
+  // stylesheet, so the website's CSP (no inline styles) can't block it; the studio takes over once it loads. The
+  // website's pick (deskdot.siteTheme) leads: when it is another table, the studio's default sheet shows until the
+  // studio paints that one.
   try {
     const id = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
-    if (id && id !== "ember" && css && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
+    const site = localStorage.getItem("deskdot.siteTheme");
+    if (id && css && (!site || site === id) && document.adoptedStyleSheets && "replaceSync" in CSSStyleSheet.prototype) {
       const sheet = new CSSStyleSheet();
       sheet.replaceSync(css);
       document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
@@ -1550,6 +1553,72 @@
     },
     attachStudio: () => ui.attachStudio(),
   };
+
+  // ======================================================================================= browser stats
+  // System Monitor in a tab (providers/system.py `browser_stats`): a page can't read the computer's CPU, RAM or disk,
+  // so every 2 s it sends what browsers do tell — CPU pressure (Compute Pressure API: nominal / fair / serious /
+  // critical), this tab's JavaScript memory, the battery, the network estimate, the page's frame rate while visible,
+  // CPU cores and the device-memory hint. Anything a browser doesn't support is simply left out.
+  const sysStats = (() => {
+    const s = {};
+    try {
+      if ("PressureObserver" in window) {
+        const po = new window.PressureObserver((records) => {
+          const r = records[records.length - 1];
+          if (r) s.pressure = r.state;
+        });
+        po.observe("cpu", { sampleInterval: 2000 }).catch(() => undefined);
+      }
+    } catch { /* no Compute Pressure here */ }
+    try {
+      if (navigator.getBattery) {
+        navigator.getBattery().then((b) => {
+          const read = () => ((s.battery = b.level), (s.charging = b.charging));
+          read();
+          b.addEventListener("levelchange", read);
+          b.addEventListener("chargingchange", read);
+        }, () => undefined);
+      }
+    } catch { /* no Battery Status API */ }
+    let frames = 0;
+    let since = performance.now();
+    const tick = () => {
+      frames++;
+      if (!document.hidden) requestAnimationFrame(tick);
+    };
+    document.addEventListener("visibilitychange", () => {
+      frames = 0;
+      since = performance.now();
+      if (!document.hidden) requestAnimationFrame(tick);
+    });
+    requestAnimationFrame(tick);
+    setInterval(() => {
+      if (!worker || engineState !== "ready") return;
+      const now = performance.now();
+      const fps = document.hidden ? null : Math.round((frames * 1000) / Math.max(1, now - since));
+      frames = 0;
+      since = now;
+      const mem = performance.memory; // Chrome / Edge only
+      const net = navigator.connection;
+      worker.postMessage({
+        t: "sys-stats",
+        stats: {
+          pressure: s.pressure || null,
+          heap_used: mem ? mem.usedJSHeapSize : null,
+          heap_limit: mem ? mem.jsHeapSizeLimit : null,
+          battery: typeof s.battery === "number" ? s.battery : null,
+          charging: typeof s.charging === "boolean" ? s.charging : null,
+          downlink_mbps: net && typeof net.downlink === "number" ? net.downlink : null,
+          rtt_ms: net && typeof net.rtt === "number" ? net.rtt : null,
+          fps,
+          cores: navigator.hardwareConcurrency || null,
+          device_memory_gb: navigator.deviceMemory || null,
+        },
+      });
+    }, 2000);
+    return { snapshot: () => ({ ...s }) };
+  })();
+  window.deskdotWeb.sysStats = sysStats.snapshot;
 
   // add-ons (built next to host.js by scripts/build_webapp.py): online play with friends, camera / screen / mic
   for (const name of ["host-rtc.js", "host-media.js"]) {
