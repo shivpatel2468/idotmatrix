@@ -8,6 +8,8 @@ Read before changing anything: the area's `SPEC.md` (map in [SPEC.md](SPEC.md)) 
 [docs/DISPLAY_DESIGN.md](docs/DISPLAY_DESIGN.md) · [docs/APP_SDK.md](docs/APP_SDK.md) ·
 [docs/CODING_STANDARDS.md](docs/CODING_STANDARDS.md) · [docs/INSPIRATION_AND_TECH_SPECS.md](docs/INSPIRATION_AND_TECH_SPECS.md).
 Decisions and their reasons: [docs/adr/](docs/adr/).
+Before any UI or design work on any surface (studio, phone, watch, TV, website), read [docs/DESIGN_TASTE.md](docs/DESIGN_TASTE.md) — the owner's taste.
+
 
 ## Commands
 
