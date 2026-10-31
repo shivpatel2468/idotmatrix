@@ -671,6 +671,7 @@
       TV.theme = v; // the menu marks the pick at once; the page cross-fades to it
       crossFade(() => {
         paintTheme(v); // the DOM restyles through CSS; canvas scenes redraw their static layers once (restyle)
+        paintTokens(roomId ? pageThemeId(roomId) : null); // the theme's tokens for the new light / dark
         restyle();
         redrawPanels(); // light draws the paper panel, dark the emissive one
       });
@@ -1993,6 +1994,8 @@
       ctx.meta = m.meta || null;
       if (m.avatars) ctx.avatars = m.avatars;
       onStudioDisplay(m.display); // the studio's look / quality for every TV (POST /api/tv/settings)
+      if (m.page_theme) ctx.pageTheme = m.page_theme; // the studio's page theme: a casino table id
+      applyRoom();
       ctx.connected = true;
       link.closed = false;
       setDot("ok");
@@ -2008,7 +2011,8 @@
       ctx.tv = m.tv || null; // TV-only anchors (docs/TV_VIEW.md §3): e.g. a locked casino round's outcome + clock
       ctx.stateAt = now();
       onStudioDisplay(m.display);
-      applyTheme(ctx.status.table_theme);
+      if (m.page_theme) ctx.pageTheme = m.page_theme;
+      applyRoom();
       renderBar();
       if (!pickScene() && current) safe(() => current.scene.update && current.scene.update(ctx));
       if (menu.open) renderMenu(); // the house's dolly / chips may have changed (or the table did)
@@ -2035,14 +2039,57 @@
   }
 
   // =========================================================================================== table theme
+  // The room around the scene: at a casino table the table's theme (status.table_theme), anywhere else the studio's
+  // page theme — itself one of the casino's tables (hello / state `page_theme`, tv-themes.js generated from the
+  // tables). Its tokens go on <html> in this TV's light / dark (paintTokens), its felt / wings / accent on the stage.
+  const PT = (typeof self !== "undefined" && self.DeskDotTVThemes) || null;
+  /** The page theme's id as a table id (an old id maps to its table), else the default. Pure (tests). */
+  function pageThemeId(id) {
+    if (!PT) return null;
+    const k = (id && PT.legacy && PT.legacy[id]) || id;
+    return PT.themes[k] ? k : PT.default;
+  }
+  let painted = "";
+  /** The theme's tokens (tv.html :root names) for the light / dark on screen, once per change: no work per frame. */
+  function paintTokens(id) {
+    const d = PT && id && PT.themes[id];
+    const key = d ? `${id}|${TV.theme}` : "";
+    if (key === painted) return;
+    painted = key;
+    try {
+      const st = document.documentElement.style;
+      if (!d) return;
+      const tok = d[TV.theme === "light" ? "light" : "dark"];
+      for (const k of Object.keys(tok)) st.setProperty(k, tok[k]);
+      const meta = document.querySelector && document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", tok["--chassis-0"]);
+    } catch {
+      /* no DOM (tests) */
+    }
+  }
+  let roomId = null;
+  function applyRoom() {
+    const t = ctx.status && ctx.status.table_theme;
+    if (t && t.id) {
+      applyTheme(t, true);
+      paintTokens(pageThemeId(t.id));
+      return;
+    }
+    const id = pageThemeId(ctx.pageTheme);
+    applyTheme(id ? { id, css: PT.themes[id].table } : null, false);
+    paintTokens(id);
+  }
+
   let themeId = null;
-  function applyTheme(t) {
+  function applyTheme(t, table = true) {
     const id = (t && t.id) || null;
-    ctx.theme = (t && t.css) || {};
-    if (id === themeId) return;
-    themeId = id;
+    ctx.theme = (table && t && t.css) || {};
+    const key = id ? `${table ? "t" : "p"}:${id}` : null;
+    if (key === themeId) return;
+    themeId = key;
+    roomId = id;
     const st = $("stage").style;
-    const css = ctx.theme;
+    const css = (t && t.css) || {};
     const map = {
       "--felt": css.felt,
       "--felt2": css.felt2,
@@ -2063,9 +2110,24 @@
       if (v) st.setProperty(k, v);
       else st.removeProperty(k);
     }
+    const css2 = (t && t.css) || {};
+    if (css2.pattern && css2.pattern !== "none") {
+      st.setProperty("--motif", css2.pattern);
+      st.setProperty("--motif-size", css2.pattern_size || "auto");
+    } else {
+      st.removeProperty("--motif");
+      st.removeProperty("--motif-size");
+    }
     $("stage").dataset.tableTheme = id || ""; // (data-theme on <html> is light / dark)
-    $("stage").dataset.table = id ? "1" : ""; // a casino table: the bar and the page take its theme
+    $("stage").dataset.table = id && table ? "1" : ""; // a casino table: its engraved name, its gilded rule
+    $("stage").dataset.room = id ? "1" : ""; // a table's room (the casino's, or the page theme's): bar, page, veil
   }
+  try {
+    applyRoom(); // before the first message: the default table (Cyber grid), so the waiting card is themed too
+  } catch {
+    /* no DOM (tests) */
+  }
+  TV.pageThemeId = pageThemeId;
 
   // =========================================================================================== generic scene
   // The live panel as a huge LED matrix in its bezel, the app's name and its simple status values at the side,

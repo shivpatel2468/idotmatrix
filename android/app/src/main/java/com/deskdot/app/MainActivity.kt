@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -75,7 +74,7 @@ class MainActivity : ComponentActivity() {
         // GPU compositing for the whole window (the default since API 14 — stated, so no theme or OEM overlay drops it)
         window.setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
         requestHighRefreshRate()
-        val bars = Bars.load(prefs, isNight())
+        val bars = Bars.load(prefs)
         web = WebView(this).apply {
             setBackgroundColor(bars.page)
             // The WebView keeps the default layer type on purpose: it already draws on the GPU through the window's
@@ -151,9 +150,6 @@ class MainActivity : ComponentActivity() {
         requestHighRefreshRate() // some OEM skins reset the window's mode when the app comes back
     }
 
-    private fun isNight() =
-        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
     // ------------------------------------------------------------------------------------------- refresh rate
 
     @Suppress("DEPRECATION")
@@ -182,12 +178,12 @@ class MainActivity : ComponentActivity() {
                 .putBoolean("bar_light_icons", lightIcons).apply()
 
         companion object {
-            // the studio's own colours (web/src/index.css): header chassis-1, tab bar --m-glass, page chassis-0
-            val DARK = Bars(Color.parseColor("#0F0F13"), Color.parseColor("#0E0E12"), Color.parseColor("#08080A"), true)
-            val LIGHT = Bars(Color.parseColor("#FBF9F5"), Color.parseColor("#FBF9F5"), Color.parseColor("#F4F0E8"), false)
+            // the studio's first-run look (Cyber grid, dark — web/src/lib/pageThemes.gen.ts): header chassis-1, tab
+            // bar --m-glass, page chassis-0
+            val DARK = Bars(Color.parseColor("#0F1317"), Color.parseColor("#0B0F12"), Color.parseColor("#06080A"), true)
 
-            fun load(p: SharedPreferences, night: Boolean): Bars {
-                if (!p.contains("bar_page")) return if (night) DARK else LIGHT // first start: the studio's "Auto"
+            fun load(p: SharedPreferences): Bars {
+                if (!p.contains("bar_page")) return DARK // first start: the studio's first-run look (dark)
                 return Bars(p.getInt("bar_status", 0), p.getInt("bar_nav", 0), p.getInt("bar_page", 0), p.getBoolean("bar_light_icons", true))
             }
         }

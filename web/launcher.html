@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f0f13" />
+    <meta name="theme-color" content="#0f1317" />
     <script>
       (function () { // the studio theme (deskdot.theme: light | dark | system), before first paint — lib/theme.ts
-        var p = "system";
-        try { p = localStorage.getItem("deskdot.theme") || "system"; } catch (e) {}
+        var p = "dark";
+        try { p = localStorage.getItem("deskdot.theme") || "dark"; } catch (e) {}
         var t = p === "light" || p === "dark" ? p : (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
         document.documentElement.setAttribute("data-theme", t);
         document.documentElement.style.colorScheme = t;
@@ -19,7 +19,7 @@
         } catch (e) {}
         try { // the page theme (lib/pageTheme.ts) cached by the last visit: painted before the first frame
           var pt = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");
-          if (pt && pt !== "ember" && css) {
+          if (pt && css) {
             var st = document.createElement("style"); st.id = "dd-page-theme"; st.textContent = css;
             document.head.appendChild(st); document.documentElement.setAttribute("data-page-theme", pt);
           }

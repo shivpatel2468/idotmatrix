@@ -1,5 +1,6 @@
 /**
- * The studio theme: light | dark | system (default system → the OS's prefers-color-scheme).
+ * The studio theme: light | dark | system (Auto: the OS's prefers-color-scheme). First run: dark (the casino's
+ * tables are made for it); a saved choice is kept.
  *
  * Contract shared with every DeskDot page (studio, casino.html, controller.html, join pages, the TV):
  *   - stored in localStorage `deskdot.theme` (pages served by the engine share the origin, so it carries over);
@@ -32,9 +33,9 @@ export function getThemePref(): ThemePref {
     const v = localStorage.getItem(THEME_KEY);
     if (v === "light" || v === "dark" || v === "system") return v;
   } catch {
-    /* storage blocked: follow the system */
+    /* storage blocked: the default */
   }
-  return "system";
+  return "dark";
 }
 
 export const resolveTheme = (pref: ThemePref): Theme => (pref === "system" ? (media?.matches ? "light" : "dark") : pref);

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- the studio's dark theme ("Instrument panel", web/src/index.css) -->
-    <color name="deskdot_page">#08080A</color>
-    <color name="deskdot_status">#0F0F13</color>
-    <color name="deskdot_nav">#0E0E12</color>
+    <!-- the studio's first-run look: Cyber grid, dark (web/src/lib/pageThemes.gen.ts) — in light and dark system
+         modes alike: page chassis-0, header chassis-1, tab bar --m-glass -->
+    <color name="deskdot_page">#06080A</color>
+    <color name="deskdot_status">#0F1317</color>
+    <color name="deskdot_nav">#0B0F12</color>
     <bool name="deskdot_light_bars">false</bool>
 </resources>
