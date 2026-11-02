@@ -8,6 +8,8 @@ Read before changing anything: the area's `SPEC.md` (map in [SPEC.md](SPEC.md)) 
 [docs/DISPLAY_DESIGN.md](docs/DISPLAY_DESIGN.md) · [docs/APP_SDK.md](docs/APP_SDK.md) ·
 [docs/CODING_STANDARDS.md](docs/CODING_STANDARDS.md) · [docs/INSPIRATION_AND_TECH_SPECS.md](docs/INSPIRATION_AND_TECH_SPECS.md).
 Decisions and their reasons: [docs/adr/](docs/adr/).
+Before any UI or design work on any surface (studio, phone, watch, TV, website), read [docs/DESIGN_TASTE.md](docs/DESIGN_TASTE.md) — the owner's taste.
+
 
 ## Commands
 
@@ -78,8 +80,10 @@ cd web; npm run build               # typecheck + production build → web/dist 
   screenshots for UI, a release-notes line for WHATS_NEW.md.
 - **CI must be green** (`.github/workflows/ci.yml` runs on every PR), then **squash-merge**. Delete the branch.
 - `main` changes only through pull requests. **Never force-push `main`**, never commit straight to it.
-- Releases are version tags on `main`, built by `.github/workflows/release.yml` (docs/DEPLOY.md § Releases); the
-  version bump + WHATS_NEW + CHANGELOG go through a PR like everything else.
+- Releases are version tags on `main`, built by `.github/workflows/release.yml`; the version bump + WHATS_NEW +
+  CHANGELOG go through a PR like everything else. **To release, write the WHATS_NEW section and run
+  `uv run python scripts/release.py X.Y.Z`** — PR, CI, merge (asks), tag, installers, APK, publish, website:
+  [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Definition of done
 

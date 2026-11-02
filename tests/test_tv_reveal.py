@@ -138,3 +138,29 @@ async def test_status_clock_anchors_are_public_and_steady() -> None:
     rv = (app.tv_extra() or {})["reveal"]
     assert rv["at"] - rv["since_lock"] == pytest.approx(app.status()["clock"]["lock_at"], abs=0.02)
     assert "outcome" not in json.dumps(app.status()["clock"])
+
+
+async def test_housie_publishes_its_call_and_claim_moments() -> None:
+    """Housie never reveals, but the moment a number was drawn (`called_at`) and a claim was verified (`claim_at`)
+    are public timers: the TV drops the ball and plays the claim ribbon from them on the shared clock."""
+    app = await _table("casino_housie")
+    clk = app.session.clock
+    await app.action("casino", {"op": "buy", "count": 1, "player": 2})
+    await app.action("casino", {"op": "lock", "player": "host"})
+    c = app.status()["clock"]
+    assert "called_at" not in c and "claim_at" not in c, "nothing drawn or claimed yet"
+    for _ in range(200):
+        clk.t += 0.1
+        app.render(Frame(), clk.t)
+        if app.game.called:
+            break
+    g = app.game
+    c = app.status()["clock"]
+    off = time.time() - clk.t
+    assert c["called_at"] == pytest.approx(g.last_call_at + off, abs=0.05)
+    assert c["call_at"] > c["called_at"], "the next call comes after the last one"
+    assert "claim_at" not in c
+    g.flash = {"prize": "early5", "pid": "pid00002", "ticket": 0, "at": clk.t}
+    c = app.status()["clock"]
+    assert c["claim_at"] == pytest.approx(clk.t + off, abs=0.05)
+    assert "outcome" not in json.dumps(c) and app.tv_extra() is None

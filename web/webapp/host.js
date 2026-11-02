@@ -707,7 +707,9 @@
           await this.wake(dev);
         }
         this.progress(`Connecting to ${name}…`);
-        const server = await dev.gatt.connect();
+        // Chrome's gatt.connect() can hang (the panel half-held by another central): cancel it after 20 s, or this
+        // tab ignores every later attempt (`connecting` stays true) and only a reload helps
+        const server = await withTimeout(dev.gatt.connect(), 20000, () => dev.gatt.disconnect());
         this.progress("Setting up the link…");
         const service = await server.getPrimaryService(SERVICE);
         this.write = await service.getCharacteristic(WRITE);
@@ -728,6 +730,7 @@
         this.closing = null;
         this.set("connected", `${dev.name || "Panel"} · ${this.size}-byte packets`);
         tabs.say({ t: "connected", panel: dev.name || null }); // a tab that handed the panel over lets go of it now
+        desk.connected();
         this.toWorker("onConnected", "web:" + dev.id, dev.name || "IDM-panel", this.size);
       } catch (e) {
         if (tabs.otherTabHolds) {
@@ -796,16 +799,21 @@
       this.watch(dev);
     },
 
-    disconnect() {
-      // only on the user's request (Release the panel, or Reconnect): never voluntarily
+    async disconnect() {
+      // only on the user's request (Release the panel, Reconnect, a hand-over) or to cancel a stuck attempt: never
+      // voluntarily. The engine already paused its writes; let the packet in flight settle, then close and wait
+      // until Chrome reports the link down, so the next app finds the panel advertising (ADR 0015).
       const dev = this.device;
       this.unwatch();
+      await Promise.race([this.chain.catch(() => undefined), new Promise((r) => setTimeout(r, 3000))]);
       this.write = this.notify = null;
-      if (dev && dev.gatt.connected) {
+      if (dev && (dev.gatt.connected || this.connecting)) {
         this.closing = dev;
-        dev.gatt.disconnect();
+        dev.gatt.disconnect(); // also cancels a pending gatt.connect()
+        for (let i = 0; i < 20 && dev.gatt.connected; i++) await new Promise((r) => setTimeout(r, 100));
       }
       this.set("idle", "Disconnected");
+      desk.report();
     },
 
     /** This tab handed the panel to another tab, which has it now (or never answered): drop our GATT handle. */
@@ -900,7 +908,8 @@
       let r = { running: false, holding: false, panel: null, url, at: Date.now() };
       try {
         const j = await (await get({})).json();
-        r = { running: true, holding: j.device === "connected" && j.kind !== "sim", panel: j.panel || null, url, at: Date.now() };
+        r = { running: true, holding: j.device === "connected" && j.kind !== "sim", panel: j.panel || null, url, at: Date.now(), name: j.instance || null, handover: !!j.handover };
+        if (j.handover) desk.start();
       } catch {
         try {
           await get({ mode: "no-cors" }); // an older DeskDot: it's there, but it can't tell us more
@@ -912,6 +921,188 @@
       this.desktop = r;
       changed();
       return r;
+    },
+  };
+
+  function withTimeout(promise, ms, onTimeout) {
+    let t = 0;
+    return Promise.race([
+      promise.finally(() => clearTimeout(t)),
+      new Promise((_, reject) => {
+        t = setTimeout(() => {
+          try {
+            onTimeout && onTimeout();
+          } catch {
+            /* already gone */
+          }
+          reject(Object.assign(new Error("the panel didn't answer in time (GATT connect timed out)"), { name: "NetworkError" }));
+        }, ms);
+      }),
+    ]);
+  }
+
+  // ======================================================================================= hand-over with DeskDot here
+  // ADR 0015. A browser can't join the LAN discovery (no UDP) and an https page can't call a phone's http address, but
+  // it may talk to DeskDot on this computer over loopback (Private Network Access headers): this tab reports whether it
+  // holds the panel (DeskDot answers "please let go" when someone wants it — the laptop itself, or a phone on the
+  // LAN through it) and asks DeskDot to free the panel for it ("Use the panel here"). The Connection sheet shows
+  // `deskdotWeb.state().handover`, built here in the same shape as the engine's `state.handover`.
+  const desk = {
+    brief: null, // the desktop's last /api/handover/tab answer (its handover brief + `want`)
+    timer: 0,
+    progress: null,
+    movedTo: null,
+    letting: false,
+
+    holding() {
+      return ble.state === "connected" && tabs.role === "owner";
+    },
+    /** This tab connected: if DeskDot was ever seen on this computer, start reporting (and learn who's nearby). */
+    connected() {
+      this.movedTo = null;
+      if (LS.get("deskdot.web.desktopSeen")) this.start();
+      else this.report();
+    },
+    start() {
+      if (this.timer) return;
+      LS.set("deskdot.web.desktopSeen", "1");
+      const tick = async () => {
+        await this.report();
+        this.timer = setTimeout(tick, this.brief ? 3000 : 15000);
+      };
+      this.timer = setTimeout(tick, 0);
+    },
+    async report() {
+      if (!this.timer && !(ble.desktop && ble.desktop.running)) return;
+      let r = null;
+      try {
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 2500);
+        const res = await realFetch(DESKTOP + "/api/handover/tab", {
+          method: "POST",
+          credentials: "omit",
+          cache: "no-store",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ holding: this.holding(), panel: ble.device ? ble.device.name || null : null }),
+          signal: ctl.signal,
+        }).finally(() => clearTimeout(t));
+        if (res.ok) r = await res.json();
+      } catch {
+        /* DeskDot isn't running here (or the browser didn't allow the local request) */
+      }
+      this.brief = r;
+      if (r && r.want && this.holding() && !this.letting) this.letGoFor(r.want);
+      changed();
+    },
+    /** Someone (DeskDot here, or a phone through it) wants the panel: release it gracefully from this tab. */
+    async letGoFor(name) {
+      this.letting = true;
+      try {
+        await fetch("/api/device/link", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ enabled: false, moved_to: name }),
+        });
+        this.movedTo = { id: "desktop", name, at: Date.now() / 1000 };
+        ui.toast(`Panel moved to ${name.replace(/</g, "&lt;")}. Press Use the panel here to take it back.`);
+      } finally {
+        this.letting = false;
+        await this.report();
+      }
+    },
+    steps(who) {
+      return [
+        { id: "ask", label: who ? `Asking ${who} to let go` : "Checking nobody else has it", state: "active" },
+        { id: "released", label: "Released", state: "todo" },
+        { id: "waiting", label: "Waiting for the panel", state: "todo" },
+        { id: "connected", label: "Connected", state: "todo" },
+      ];
+    },
+    step(id, state, label) {
+      const steps = this.progress.steps;
+      const i = steps.findIndex((s) => s.id === id);
+      steps[i].state = state;
+      if (label) steps[i].label = label;
+      if (state === "done" && steps[i + 1] && steps[i + 1].state === "todo") steps[i + 1].state = "active";
+      changed();
+    },
+    fail(error, canForce) {
+      for (const s of this.progress.steps) if (s.state === "active") s.state = "failed";
+      Object.assign(this.progress, { error, can_force: !!canForce, done: true });
+      changed();
+    },
+    /** "Use the panel here" in this tab. Must not await before ble.pick() could be needed: it never picks. */
+    async useHere(force) {
+      if (this.progress && !this.progress.done) return;
+      const d = await ble.probeDesktop(true);
+      const holder = this.brief && this.brief.holder;
+      const who = d && d.running && d.holding ? d.name || "DeskDot on this computer" : holder && holder.id !== "tab" ? holder.name : null;
+      this.progress = { steps: this.steps(force ? null : who), error: null, can_force: false, done: false, target: who };
+      changed();
+      if (!force && d && d.running && d.handover) {
+        this.start();
+        let r = null;
+        try {
+          const res = await realFetch(DESKTOP + "/api/handover/free", { method: "POST", credentials: "omit", cache: "no-store", headers: { "content-type": "application/json" }, body: "{}" });
+          r = await res.json();
+        } catch {
+          r = null;
+        }
+        if (!r || !r.ok)
+          return this.fail(
+            (r && r.detail ? r.detail + ". " : "DeskDot on this computer didn't answer. ") + "You can also try anyway: this tab waits for the panel to be free.",
+            true,
+          );
+        this.step("ask", "done");
+        this.step("released", "done", r.released_by ? `Released by ${r.released_by}` : "Nobody else had it");
+      } else {
+        // no DeskDot here to ask (or forced): an https page can't reach a phone on the LAN — wait for the panel instead
+        this.step("ask", "done", force ? "Trying anyway" : "No DeskDot on this computer to ask");
+        this.step("released", "done", "Waiting for whoever has it to let go");
+      }
+      this.movedTo = null;
+      await fetch("/api/device/link", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled: true }) }).catch(() => undefined);
+      ble.retry();
+      const end = Date.now() + 45000;
+      while (Date.now() < end && ble.state !== "connected") {
+        if (this.progress.steps[2].state === "active" && ble.state === "connecting") this.step("waiting", "done");
+        await new Promise((r) => setTimeout(r, 300));
+      }
+      if (ble.state !== "connected")
+        return this.fail(
+          "The panel didn't connect. It's probably still held by another app — DeskDot on your phone (open it and press Release the panel), the iDotMatrix phone app, or another computer. If nothing holds it, unplug the panel for 5 seconds.",
+          true,
+        );
+      if (this.progress.steps[2].state !== "done") this.step("waiting", "done");
+      this.step("connected", "done");
+      this.progress.done = true;
+      changed();
+      this.report();
+    },
+    /** The engine-shaped hand-over state for the Connection sheet. */
+    state() {
+      const b = this.brief;
+      const peers = [];
+      let holder = null;
+      if (b && b.me) {
+        const deskHolds = !!(b.holder && b.holder.me);
+        peers.push({ id: b.me.id, name: `${b.me.name} (DeskDot)`, kind: b.me.kind || "ble", holding: deskHolds, panel: null, online: true, paired: true, ago: 0 });
+        for (const p of b.peers || []) if (p.id !== "tab") peers.push(Object.assign({}, p, { paired: true }));
+        if (b.holder && b.holder.id !== "tab") holder = Object.assign({}, b.holder, { me: false, name: deskHolds ? b.me.name : b.holder.name });
+      }
+      if (!b && !this.progress && !this.movedTo) return null;
+      return {
+        enabled: !!b,
+        me: { id: "tab", name: "This browser tab", kind: "web" },
+        holder: this.holding() ? { id: "tab", name: "This browser tab", kind: "web", me: true } : holder,
+        probable: null,
+        peers,
+        lease: null,
+        progress: this.progress,
+        moved_to: ble.state !== "connected" ? this.movedTo : null,
+        pair_requests: [],
+        pairing: [],
+      };
     },
   };
 
@@ -1346,12 +1537,15 @@
       bluetooth: hasBluetooth,
       needsPick: ble.needsPick,
       desktop: ble.desktop,
+      handover: desk.state(),
     }),
     request: engineRequest,
     /** Must be called from a click (Web Bluetooth's user gesture). */
     pick: () => ble.pick(),
     retry: () => ble.retry(),
     probeDesktop: () => ble.probeDesktop(false),
+    /** "Use the panel here": ask DeskDot on this computer (and through it a phone on the LAN) to let go, then connect. */
+    useHere: (force) => desk.useHere(!!force),
     /** Bytes per write: 20 / 182 / 244 / 512, or null for automatic. Applies on the next connect. */
     setPacket(n) {
       LS.set("deskdot.web.packet", n ? String(n) : null);

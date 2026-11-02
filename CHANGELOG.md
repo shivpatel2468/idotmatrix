@@ -3,8 +3,18 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
+## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
 
+- **TV casino** (`tv/tv-casino.js`, docs/TV_VIEW.md §3/§6/§7, R-TV-9…11): poker tables deal face-down card sprites
+  from `clock.lock_at` (`dealAt`/`dealEnd`/`dealOrder`), teen patti's show flips from `reveal_at − 3.2`
+  (`showAnchor`/`showFlip`) then glows the winning hand; seats/plates re-laid (`PK.cy` 476, 3-line plates), `slowHz`
+  0 with an event key. Big six: `b6Flap` (peg push + damped ring-back timed by solving the wheel's parabola), a
+  half-res motion-blur twin cross-faded by speed, a lit-segment sprite, board inside the felt. Housie: wire cage +
+  9 tumbling ball sprites (`cageTurn`), the drawn ball's path (`heroPath`), dauber stamp at 1.55 s, claim ribbons per
+  prize from `clock.claim_at`, new layout; the per-frame call ring is gone. Game scenes (`tv-games.js`) see-through
+  in the room. Engine: housie publishes `status.clock.called_at` / `claim_at` (`Housie.flash_at`). Tests:
+  `tests/js/tv_casino.test.mjs` (deal/show timing, plates on stage, flapper, blur/lit segment, cage/ball path, live-TV
+  plays), `tests/test_tv_reveal.py::test_housie_publishes_its_call_and_claim_moments`; housie fixture regenerated.
 - **Device link: cancellation-safe `wait_for`** (`device/base.py`): every `asyncio.wait_for` in `device/`
   (android, base, ble, web; 10 sites, including the GATT write-ack wait) now goes through `base.wait_for()`, built on
   `asyncio.timeout()`. On CPython 3.11, `asyncio.wait_for` returns the result instead of raising `CancelledError`
@@ -12,6 +22,24 @@ The technical log for developers. For the same updates in plain words (before �
   backported), which left `Device.stop()`/reconnects hanging. No change on 3.12+; it keeps the panel link correct
   on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
   one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
+
+## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
+
+- **Panel hand-over** (`src/deskdot/handover.py`, `handover_api.py`, ADR 0015): UDP beacon on 8767 (private networks
+  only, opt-out `handover.enabled` / `lan_handover`), 30 s connect lease (`Device.gate` holds automatic attempts back:
+  `reason: elsewhere`), pairing with a 6-digit code and a 256-bit key (`data/handover.json`), HMAC-signed
+  `/lan/handover/release|announce` (±120 s, nonce cache, rate limits; `LanGate` allows `/lan/handover/`), `POST
+  /api/handover/take|pair|pair/answer|forget`, `PUT /api/handover/settings`, web-app loopback `POST
+  /api/handover/tab|free` (CORS + PNA for the web app's origins, other cross-site origins refused), `state.handover`,
+  `/api/health` → `instance`, `handover`; `/api/device/link` → `moved_to`, `drained`.
+- **Device layer**: graceful `set_link(False)` / `reconnect()` (pause writes, GIF chunks keep waiting for acks);
+  `_reset_stack()` after every failed attempt; `REARM_DELAY` 2.5 s after a drop; ±20 % back-off jitter; recovery pass
+  every 4 failures (`recoveries`, `reason: recovering`, gentle replay). BLE: dispose every `BleakClient`, store it before
+  `connect()`, callbacks bound to their client, `use_cached_services=False`, Windows "still connected" check. Android:
+  abort the bridge's attempt on timeout; `BleBridge` disconnects before `close()`; multicast lock for beacons. Web:
+  `gatt.connect()` 20 s timeout, awaited `disconnect()`. New diagnose reasons `moved`, `elsewhere`, `recovering`.
+- **Studio**: Connection sheet lists DeskDots nearby, live hand-over steps, pairing prompt, opt-out; the web app builds
+  the same from DeskDot on this computer (`deskdotWeb.useHere()`). Tests: `tests/test_handover.py`.
 - **Web app re-audited** (docs/WEB_APP.md): the engine of 3.3–3.8 (page themes, paper panel, Liquid Glass, TV view +
   options menu over the WebRTC tunnel, casino dolly / chip sets / odometers / win moment, the 14 public-API apps, API
   health, connection sheet, updates) boots in Pyodide 0.29.5 (verified headless: 116 apps, 4 off-web); every

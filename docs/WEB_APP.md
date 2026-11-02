@@ -71,6 +71,18 @@ Connection sheet (`/#connection`); an older DeskDot answers only "something is r
 let the site reach devices on the local network; the result is cached for a minute, and it never runs on page load.
 The sheet's *Is DeskDot open on this computer?* runs the same check by hand.
 
+**Hand-over with DeskDot on this computer (ADR 0015).** Once a check has found a DeskDot that speaks the hand-over
+(`/api/health` → `handover: true`), the page reports every 3 s whether this tab holds the panel
+(`POST http://127.0.0.1:8765/api/handover/tab`) and learns who is nearby. When the answer carries `want` (DeskDot here,
+or a phone on the LAN through it, asked for the panel), the tab releases gracefully through its own engine
+(`/api/device/link {enabled: false, moved_to}`) and shows *Panel moved to …*. *Use the panel here* in the tab calls
+`POST /api/handover/free` (DeskDot lets go, or asks the phone for it), then connects. The tab never talks to a phone
+directly: an https page can't reach `http://<phone>` on the LAN, so without DeskDot on the computer the sheet says how
+to release it on the phone by hand. The page starts reporting on load only in a browser that has seen DeskDot here
+before (`deskdot.web.desktopSeen`), so nobody without the desktop app gets a local-network permission prompt.
+`gatt.connect()` gives up after 20 s (cancelled with `gatt.disconnect()`), and a release waits for the write in flight
+and for Chrome to report the link down.
+
 **Two tabs.** Each tab joins a `BroadcastChannel("deskdot-web")`; the tab holding the Web Lock runs the engine.
 
 | Step | Tab A (has the panel) | Tab B (opened later) |

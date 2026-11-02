@@ -36,7 +36,8 @@ studio full screen.
 
 ## Invariants
 
-- **I-AND-1** The release keystore and `android/keystore.properties` are never committed and never given to CI; the
+- **I-AND-1** The release keystore and `android/keystore.properties` are never committed and never given to CI unless the
+  owner adds the four `ANDROID_*` repository secrets on purpose (docs/RELEASING.md); otherwise the
   APK is built and signed on the maintainer's machine. Every release uses the same key.
 - **I-AND-2** The Python engine is not forked for Android; Android-only code lives in `device/android.py`,
   `android_main.py` and the Kotlin shell.
