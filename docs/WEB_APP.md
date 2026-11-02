@@ -146,8 +146,8 @@ The browser app updates with the website. `build_webapp.py` writes `site/app/ver
 — the notes are the newest section of WHATS_NEW.md; no timestamps, so a rebuild of the same files is the same build).
 The tab's engine knows its own build (`manifest.json` → `web_main.boot(build=…)`); `updates.Updater` (kind `web`)
 reads `/app/version.json` a minute after start and then every 30 min (the service worker never caches it). When the
-builds differ the studio shows **New version — reload** in the top bar, and Settings → Device → Updates shows the
-notes and a **Reload to update** button. Nothing is downloaded or installed by the engine.
+builds differ the studio shows **New version — reload** in the top bar; it opens the Updates sheet with the notes and
+a **Reload** button (also reachable from Settings → Device → Updates → *Open updates*). Nothing is downloaded or installed by the engine.
 
 ### Camera, screen and sound
 

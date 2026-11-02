@@ -159,7 +159,8 @@ function peerStatus(p: HandoverPeer): string {
   return p.ago != null && p.ago < 7200 ? `last seen ${ago(p.ago)}` : "not seen lately";
 }
 
-function StepIcon({ state }: { state: string }) {
+/** A live step's mark (hand-over steps here, install steps in the Updates sheet). */
+export function StepIcon({ state }: { state: string }) {
   if (state === "done") return <Check size={13} className="text-ok" />;
   if (state === "active") return <Loader2 size={13} className="animate-spin text-info" />;
   if (state === "failed") return <X size={13} className="text-bad" />;

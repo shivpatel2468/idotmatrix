@@ -15,6 +15,13 @@ The technical log for developers. For the same updates in plain words (before �
   in the room. Engine: housie publishes `status.clock.called_at` / `claim_at` (`Housie.flash_at`). Tests:
   `tests/js/tv_casino.test.mjs` (deal/show timing, plates on stage, flapper, blur/lit segment, cage/ball path, live-TV
   plays), `tests/test_tv_reveal.py::test_housie_publishes_its_call_and_claim_moments`; housie fixture regenerated.
+- **Updates sheet** (`web/src/components/UpdatesSheet.tsx`, R-STU-6): the top-bar update pill and Settings → Updates
+  ("Open updates") open a Connection-style sheet (same `Sheet`, cards and `StepIcon` steps): current → new version,
+  the release notes, one primary action (Install & restart / Download & install / Reload), live steps from
+  `state.updates.status` (download with the engine's real `progress` only, checksums.txt, install, restart — or
+  Android's installer / version.json → reload), errors on the step they happened in with Retry, Check now, Up to
+  date. Step logic is pure (`web/src/lib/updateFlow.ts`) and tested by `tests/js/update_flow.test.mjs`. Settings keeps
+  a status line and the auto-check switch. No engine change.
 - **Device link: cancellation-safe `wait_for`** (`device/base.py`): every `asyncio.wait_for` in `device/`
   (android, base, ble, web; 10 sites, including the GATT write-ack wait) now goes through `base.wait_for()`, built on
   `asyncio.timeout()`. On CPython 3.11, `asyncio.wait_for` returns the result instead of raising `CancelledError`
