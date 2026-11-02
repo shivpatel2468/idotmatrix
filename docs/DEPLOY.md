@@ -75,7 +75,7 @@ README § Download). What gets built, all from `packaging/`:
 | --- | --- | --- |
 | `DeskDot-Setup-<v>-x64.exe` | CI (`release.yml`) or `packaging\windows\build.ps1` | Inno Setup installer (`packaging/windows/DeskDot.iss`): per-user into `%LOCALAPPDATA%\Programs\DeskDot`, no admin. Start menu entry (+ "simulated panel" entry), optional desktop icon, optional start-with-login (`HKCU\…\Run\DeskDot Launcher`, the value the tray's "Start with login" toggles), uninstaller. |
 | `DeskDot-<v>-macOS-arm64.dmg`, `…-x64.dmg` | CI (Apple silicon on `macos-latest`, Intel on `macos-15-intel`) | `DeskDot.app` (PyInstaller `BUNDLE`, Info.plist with the Bluetooth / microphone / camera / Apple events / local network reasons) on a drag-to-Applications disk image (`packaging/macos/build_dmg.sh`). |
-| `DeskDot-<v>.apk` | locally only (`android/`, see below) | the Android app, signed with the release key |
+| `DeskDot-<v>.apk` | `scripts/release.py` on the owner's machine, or CI when the optional `ANDROID_*` secrets exist (docs/RELEASING.md) | the Android app, signed with the release key (`DeskDot-Wear-<v>.apk` for the watch, once `android/wear` exists) |
 | `checksums.txt` | CI | `sha256sum` of every file; the in-app updater refuses anything that doesn't match |
 
 Both desktop builds are one PyInstaller spec (`packaging/deskdot.spec`, onedir) with the built studio, the package's
@@ -127,9 +127,13 @@ it builds unsigned exactly as now:
 | `MACOS_CERT_P12_BASE64`, `MACOS_CERT_PASSWORD`, `MACOS_SIGN_IDENTITY` | an Apple "Developer ID Application" certificate (`.p12`, base64) and its identity name: hardened-runtime signing of the app and the dmg |
 | `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` | notarization with `notarytool` + stapling (needs the three above; an app-specific password) |
 
-The Android release key is **never** a CI secret: the APK is built and signed on the maintainer's machine.
+The Android release key stays on the maintainer's machine unless the owner deliberately adds the four `ANDROID_*`
+secrets (docs/RELEASING.md § Signing the APK on GitHub); then the `android` job signs the APK in CI.
 
 ## Releases
+
+**Use `uv run python scripts/release.py <version>`** — it does every step below, resumes if interrupted and asks
+before merging or deploying: [RELEASING.md](RELEASING.md). The manual steps, for reference:
 
 1. Bump the version in `pyproject.toml` and `src/deskdot/__init__.py` (the Android app reads it from there:
    `versionCode = major*10000 + minor*100 + patch`), `uv lock`, the README badge; write the plain-words
