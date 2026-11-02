@@ -19,6 +19,7 @@ bleak closes the session and device when the link drops, but the services only i
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import sys
