@@ -18,6 +18,7 @@ SPEC.md (root: product goal, users, platforms, invariants, the map)
 ├── web/SPEC.md                     the studio
 ├── web/webapp/SPEC.md              the browser version
 ├── android/SPEC.md                 the phone host app
+├── android/wear/SPEC.md            the watch app (a light remote of the phone)
 ├── packaging/SPEC.md               installers, releases, in-app updates
 └── netlify/SPEC.md                 idotmatrix.com, functions, CSP, legal copy
 ```
@@ -40,7 +41,7 @@ Each `SPEC.md` has the same sections, kept to one or two screens:
 A spec states intent, not implementation. Don't copy code, tables or prose that already live in a doc
 (docs/ARCHITECTURE.md, docs/API.md, docs/CASINO.md…); link to them.
 
-Area codes: `ROOT`, `ENG`, `DEV`, `APP`, `PROV`, `CAS`, `TV`, `STU`, `WEB`, `AND`, `REL`, `SITE`. Ids are never
+Area codes: `ROOT`, `ENG`, `DEV`, `APP`, `PROV`, `CAS`, `TV`, `STU`, `WEB`, `AND`, `WEAR`, `REL`, `SITE`. Ids are never
 reused: when a requirement is removed, its number stays retired.
 
 ## How agents and people use the specs
