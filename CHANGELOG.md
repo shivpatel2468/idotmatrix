@@ -22,6 +22,7 @@ The technical log for developers. For the same updates in plain words (before �
   backported), which left `Device.stop()`/reconnects hanging. No change on 3.12+; it keeps the panel link correct
   on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
   one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
+- **Watch themes** (`scripts/gen_watch_themes.py` → `android/wear/.../WatchThemes.gen.kt`): the 21 table themes as plain Kotlin (ARGB ints, dark + light, gold-leaf stops) for the Wear OS apps, from `PAGE_THEMES.tokens()` like `gen_page_themes.py`; `--check` and `tests/test_watch_themes.py` catch a stale file; `--out/--package` writes another app's copy (Orbit, the watch faces). New `android/wear/SPEC.md` (R-WEAR-1…5).
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
