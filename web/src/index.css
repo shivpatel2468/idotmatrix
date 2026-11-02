@@ -555,6 +555,10 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
+/* touch screens: no grain layer — a fixed full-screen mix-blend layer makes the GPU re-blend the whole screen every
+   time anything under it changes (the live panel: every frame). At 5 % it is invisible on a phone anyway. */
+@media (pointer: coarse) { .noise::before { display: none; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -982,7 +986,7 @@ summary::-webkit-details-marker { display: none; }
 .fly-full[data-idle="true"] { cursor: none; }
 .fly-full-bar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center;
-  justify-content: space-between; gap: 8px; padding: max(10px, env(safe-area-inset-top, 0px)) 14px 10px;
+  justify-content: space-between; gap: 8px; padding: max(10px, var(--safe-top)) 14px 10px;
   background: linear-gradient(to bottom, rgba(3, 4, 9, 0.85), transparent); transition: opacity 0.35s ease;
 }
 .fly-full[data-idle="true"] .fly-full-bar, .fly-full[data-idle="true"] .fly-cambar { opacity: 0; pointer-events: none; }
@@ -1137,25 +1141,31 @@ body[data-boot="intro"] .app-shell, body[data-boot="closing"] .app-shell { trans
    - 16 px inputs (iOS zooms the page into anything smaller), 44 px tap targets, no tap flash, no double-tap delay;
    - bottom sheets instead of pop-overs and centred dialogs; overscroll that never drags the page. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* the safe areas: the browser's env() everywhere; the Android app draws edge to edge and sets them from the window
+   insets (MainActivity → DeskDotAndroid.insets(), inline on <html>), so its WebView never has to guess */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px);
+}
 #root { height: 100dvh; }
 button, a, [role="button"], input, select, label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 body { overscroll-behavior: none; }
 
 @media (max-width: 767.98px) {
   input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
-  .noise { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  .noise { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 }
 
 .phone-head {
-  height: calc(52px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
+  height: calc(52px + var(--safe-top)); padding-top: var(--safe-top);
   background: linear-gradient(180deg, var(--color-chassis-1), var(--m-glass));
   border-bottom: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
   position: relative; z-index: 20;
 }
-.phone-panel { padding-top: 10px; padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+.phone-panel { padding-top: 10px; padding-bottom: calc(66px + var(--safe-bottom)); }
 .phone-scroll {
   min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
-  padding: 10px 12px calc(78px + env(safe-area-inset-bottom, 0px)); scrollbar-width: none;
+  padding: 10px 12px calc(78px + var(--safe-bottom)); scrollbar-width: none;
   display: flex; flex-direction: column; gap: 10px;
 }
 .phone-scroll::-webkit-scrollbar { display: none; }
@@ -1171,7 +1181,7 @@ body { overscroll-behavior: none; }
 /* bottom tab bar */
 .tabbar {
   position: fixed; inset: auto 0 0 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr);
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 6px calc(6px + var(--safe-bottom));
   background: var(--m-glass);
   border-top: 1px solid var(--color-line);
 }
@@ -1223,8 +1233,8 @@ body { overscroll-behavior: none; }
 }
 @media (min-width: 640px) { .sheet { left: calc(50% - 260px); right: auto; width: 520px; } }
 .sheet-handle { width: 40px; height: 5px; border-radius: 99px; background: var(--color-chassis-4); margin: 8px auto 10px; flex-shrink: 0; }
-.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
-.sheet-foot { padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--color-line); }
+.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px calc(16px + var(--safe-bottom)); }
+.sheet-foot { padding: 10px 16px calc(10px + var(--safe-bottom)); border-top: 1px solid var(--color-line); }
 @keyframes sheet-up { from { transform: translateY(100%); } }
 @keyframes sheet-fade { from { opacity: 0; } }
 .qs-card { padding: 14px; border-radius: 16px; background: var(--color-chassis-0); border: 1px solid var(--color-line); }
@@ -1236,6 +1246,8 @@ body { overscroll-behavior: none; }
 }
 .qs-tile:active { background: var(--color-chassis-3); color: var(--color-ink-1); }
 @media (prefers-reduced-motion: reduce) { .sheet, .sheet-scrim { animation: none; } }
+/* touch screens: the scrim dims without blurring (a full-screen blur re-renders on every frame of the panel behind) */
+@media (pointer: coarse) { .sheet-scrim, :root[data-theme="light"] .sheet-scrim { -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 /* ------------------------------------------------------------- shell polish (both themes) */
 /* the desktop header: a hairline that fades out at both ends, under a whisper of glass */
@@ -1295,8 +1307,8 @@ body { overscroll-behavior: none; }
 .phone-scroll[data-tab="tune"]::after { display: none; }
 
 /* ---- the floating theme key */
-.theme-fab { position: fixed; left: 12px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 32; }
-.theme-fab[data-lift="true"] { bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+.theme-fab { position: fixed; left: 12px; bottom: calc(78px + var(--safe-bottom)); z-index: 32; }
+.theme-fab[data-lift="true"] { bottom: calc(140px + var(--safe-bottom)); }
 .theme-fab-key {
   position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px;
   color: var(--color-gold-text);
@@ -1824,25 +1836,58 @@ body { overscroll-behavior: none; }
 /* tab bar: a floating capsule of glass in the thumb zone (iOS 26) — content scrolls under it; the open tab sits in a
    bright lens that morphs in */
 :root[data-theme] .tabbar {
-  inset: auto 10px calc(8px + env(safe-area-inset-bottom, 0px)) 10px; padding: 5px;
+  inset: auto 10px calc(8px + var(--safe-bottom)) 10px; padding: 5px;
   border: 1px solid var(--lg-edge); border-radius: 30px; box-shadow: var(--lg-shadow-lift);
 }
-.tabbar-btn { min-height: 54px; gap: 2px; border-radius: 24px; position: relative; }
+.tabbar-btn { min-height: 54px; gap: 2px; border-radius: 24px; position: relative; z-index: 1; color: var(--color-ink-2); }
 :root[data-theme] .tabbar-btn[aria-current="page"] { color: var(--color-ember); }
-.tabbar-btn[aria-current="page"]::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 24px;
-  background: var(--lg-lens); box-shadow: var(--lg-lens-rim), var(--lg-lens-shadow);
-  animation: lg-morph 0.5s var(--lg-spring) both;
-}
 :root[data-theme] .tabbar-btn[aria-current="page"] .tabbar-pill { background: transparent; box-shadow: none; }
-.tabbar-btn:active { transform: scale(0.94); transition: transform 0.12s; }
-.tabbar-btn { transition: color 0.2s, transform 0.4s var(--lg-spring); }
-/* the floating bar is lower and narrower than the old docked one: the scroll areas keep their clearance */
-@media (prefers-reduced-motion: reduce) { .tabbar-btn[aria-current="page"]::before { animation: none; } }
+.tabbar-btn:active .tabbar-pill { transform: scale(0.9); transition: transform 0.12s; }
+.tabbar-btn .tabbar-pill { transition: transform 0.4s var(--lg-spring); }
+/* the bubble (components/TabBar.tsx, lib/tabDrag.ts): a lens of brighter glass behind the open tab that you can drag
+   along the bar; it springs to the nearest tab on release. Only its transform moves (set from JS / WAAPI); the fill
+   and rim cross-fade (opacity) while a finger holds it, so it turns clearer like a drop of water being pressed. */
+.tabbar { touch-action: none; -webkit-user-select: none; user-select: none; }
+.tabbar-bubble {
+  position: absolute; z-index: 0; left: 5px; top: 5px; bottom: 5px; width: var(--tab-slot, 25%);
+  border-radius: 24px; pointer-events: none; will-change: transform; transform-origin: 50% 50%;
+}
+.tabbar-bubble > i { position: absolute; inset: 0; border-radius: inherit; transition: opacity 0.25s ease; }
+.tabbar-bubble-fill {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 12%, transparent), color-mix(in oklab, var(--color-ember) 4%, transparent)), var(--lg-lens);
+  box-shadow: var(--lg-lens-shadow);
+}
+.tabbar-bubble-rim {
+  box-shadow: var(--lg-lens-rim), inset 0 -6px 12px -8px rgba(255, 255, 255, 0.22), 0 0 0 0.5px color-mix(in oklab, var(--color-ember) 30%, transparent);
+  opacity: 0.85;
+}
+.tabbar[data-drag="true"] .tabbar-bubble-fill { opacity: 0.55; }
+.tabbar[data-drag="true"] .tabbar-bubble-rim { opacity: 1; }
+/* the tab under the moving bubble lights up before it opens */
+:root[data-theme] .tabbar[data-drag="true"] .tabbar-btn[aria-current="page"]:not([data-near]) { color: var(--color-ink-2); }
+:root[data-theme] .tabbar-btn[data-near] { color: var(--color-ember); }
+.tabbar-btn[data-near] .tabbar-pill { transform: scale(1.08); }
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-bubble > i, .tabbar-btn .tabbar-pill { transition: none; }
+  .tabbar-btn[data-near] .tabbar-pill { transform: none; }
+}
+
+/* the bar's own glass: real blur wherever it is smooth — also in the Android app, where the rest of the chrome stays
+   frosted (lib/glass.ts → html[data-bar-glass]). Thick enough that text scrolling under it never reads through: a
+   denser tint than regular glass, a strong blur, saturation for vibrancy, a lit top edge and a soft caustic along the
+   bottom (the light bent through the rim). Frosted / solid / reduced transparency keep their fills (rules above). */
+:root { --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 64%, transparent); --lg-bar-blur: 22px; }
+:root[data-theme="light"] { --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 68%, transparent); }
+:root[data-bar-glass="liquid"] .tabbar::before {
+  background: linear-gradient(180deg, var(--lg-glare), transparent 46%), var(--lg-bar-tint);
+  box-shadow: var(--lg-inner), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -10px 18px -14px rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.9) brightness(1.04);
+  backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.9) brightness(1.04);
+}
 
 /* sheets: a glass card floating above the bottom edge, its corners concentric with the screen's */
 :root[data-theme] .sheet {
-  inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px; max-height: calc(88dvh - 8px);
+  inset: auto 8px calc(8px + var(--safe-bottom)) 8px; max-height: calc(88dvh - 8px);
   border: 1px solid var(--lg-edge); border-radius: 34px; box-shadow: var(--lg-shadow-lift);
 }
 @media (min-width: 640px) { :root[data-theme] .sheet { left: calc(50% - 260px); right: auto; width: 520px; } }

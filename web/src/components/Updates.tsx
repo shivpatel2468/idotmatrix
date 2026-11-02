@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Download, RefreshCw, Sparkles, X } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { joinContinuations } from "../lib/notes";
 import { openSettings, toast, useStore } from "../lib/store";
 import type { UpdatesInfo } from "../lib/types";
 import { Row, Toggle } from "./controls";
@@ -55,7 +56,7 @@ function Inline({ text }: { text: string }) {
 
 /** Headings (##/###), bullets with one nested level ("Before:" / "Now:"), paragraphs. No HTML is ever injected. */
 export function ReleaseNotes({ text }: { text: string }) {
-  const lines = text.replace(/<!--[\s\S]*?-->/g, "").replace(/\r/g, "").split("\n");
+  const lines = joinContinuations(text.replace(/<!--[\s\S]*?-->/g, "").replace(/\r/g, "").split("\n"));
   const out: React.ReactNode[] = [];
   lines.forEach((raw, i) => {
     const line = raw.trimEnd();

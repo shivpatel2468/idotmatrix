@@ -19,6 +19,18 @@ and keeps playing with the laptop off. Why and how: [docs/adr/0011-android-host-
   tiles just off screen (`offscreenPreRaster`) and runs at important renderer priority. Android may still lower the
   rate: on Xiaomi / MIUI / HyperOS set **Settings → Display → Refresh rate → High (120 Hz)** ("Default" lets the
   system drop apps to 60 Hz). Settings → Display & colour → App icon shows the rate now and the best available.
+- **Full screen:** the app draws edge to edge (`enableEdgeToEdge`): transparent status and navigation bars, the studio
+  underneath. The window insets (bars, cutout) go to the page as CSS variables `--safe-top/bottom/left/right` —
+  `insets()` once before first paint (web/index.html), then pushed on every change — and the keyboard shrinks the
+  WebView, so nothing hides under a bar or the keyboard.
+- **Launch:** the Android 12+ splash (`core-splashscreen`, `Theme.DeskDot.Starting`) is only the page colour with no
+  icon, so there is one logo, no white flash and no double splash. `IntroView` then builds the LED logo out of dots
+  (~1.4 s, the studio logo's glyphs and choreography) and keeps it lit, with a faint shimmer, until the studio calls
+  `introDone()`; then it fades into the studio. It follows the system's animation scale (off = the lit logo at once)
+  and the remembered theme (dark: neon rose / gold; light: ink). There is no "starting" text: only a missing
+  Bluetooth permission or an engine silent for 30 s gets a kind line under the logo (tap to fix / to nudge it).
+- **Back** first asks the studio to close what is open (`window.__deskdotBack()`: a sheet, dialog or menu), then sends
+  the app to the background.
 - **Only the studio opens inside the app.** Links to anything but `127.0.0.1` / `localhost` open in the browser.
 - **`window.DeskDotAndroid`** (the `Bridge` inner class; web side `web/src/lib/android.ts`):
 
@@ -27,13 +39,14 @@ and keeps playing with the laptop off. Why and how: [docs/adr/0011-android-host-
   | `setBars(status, nav, page, lightIcons)` | system bar colours (`#rrggbb`) + icon contrast and the window background for the studio theme on screen; remembered in `deskdot.ui` prefs for the next cold start |
   | `icons()` / `getIcon()` / `setIcon(id)` | launcher icon ids (JSON), the enabled one, switch (returns false for an unknown id) |
   | `display()` | `{"hz", "max", "modes"}` — the refresh rate now, the best, all at this resolution |
-  | `version()` | `1` |
+  | `insets()` | `{"top", "bottom", "left", "right"}` in CSS px — the bars and cutout (bottom 0 while typing) |
+  | `introDone()` | the studio is ready: the LED intro fades into it |
+  | `version()` | `2` |
 
-  The studio calls `setBars` on every theme change (light / dark / Auto), so status bar, navigation bar and the
-  window behind the page always match. Before the studio loads, `values/` and `values-night/` colour the window in
-  the studio's first-run look (Cyber grid, dark); after the first run the remembered theme is used. Android 15+
-  draws apps edge to edge: there the root view is padded by the bar insets and the window background (the theme's
-  page colour) shows behind the bars.
+  The studio calls `setBars` on every theme change (light / dark / Auto), so the bar icons and the window behind the
+  page always match (the bars are transparent: the studio's own header and tab bar show through them). Before the
+  studio loads, `values/` and `values-night/` colour the window in the studio's first-run look (Cyber grid, dark);
+  after the first run the remembered theme is used, by the intro too.
 
 ## Launcher icons
 
