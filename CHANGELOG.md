@@ -18,6 +18,7 @@ The technical log for developers. For the same updates in plain words (before �
 - **Rake removed** (R-CAS-13, I-CAS-1): Hold'em `rake_percent` / `rake_cap` and Housie `rake` settings, `_pvp.award(rake=)`,
   `rake_taken` and the `rake` status keys are gone; pots go wholly to the winners (nets sum to 0). Stale stored rake
   keys are ignored (`tests/test_casino_cards.py::test_stored_rake_from_an_older_version_is_ignored`).
+- **Watch themes** (`scripts/gen_watch_themes.py` → `android/wear/.../WatchThemes.gen.kt`): the 21 table themes as plain Kotlin (ARGB ints, dark + light, gold-leaf stops) for the Wear OS apps, from `PAGE_THEMES.tokens()` like `gen_page_themes.py`; `--check` and `tests/test_watch_themes.py` catch a stale file; `--out/--package` writes another app's copy (Orbit, the watch faces). New `android/wear/SPEC.md` (R-WEAR-1…5).
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 

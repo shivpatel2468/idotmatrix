@@ -64,6 +64,7 @@ The full list of non-negotiable rules is [CLAUDE.md](CLAUDE.md); each child spec
 | Studio | [web/SPEC.md](web/SPEC.md) | themes, page themes, paper panel, Liquid Glass, connection, updates UI |
 | Web app | [web/webapp/SPEC.md](web/webapp/SPEC.md) | the engine in a browser tab, Web Bluetooth, two tabs, online play |
 | Android | [android/SPEC.md](android/SPEC.md) | the phone host app, BLE bridge, system bars, self-update |
+| Watch | [android/wear/SPEC.md](android/wear/SPEC.md) | the Wear OS remote, the watch's table themes, its energy rules |
 | Packaging & updates | [packaging/SPEC.md](packaging/SPEC.md) | installers, release workflow, in-app updates, signing |
 | Website & Netlify | [netlify/SPEC.md](netlify/SPEC.md) | idotmatrix.com, functions, CSP, legal copy |
 
