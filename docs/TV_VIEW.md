@@ -190,6 +190,11 @@ round has nothing left to decide once bets lock (roulette, big six, 7 up 7 down,
   roulette wheel is integrated frame by frame on the panel; the TV integrates the same exact step and slews onto
   the reported `wheel` angle.
 - Phones and the studio can adopt the same clock (`casino.html` / `web/src/components/casino/sync.ts`).
+- **Games without a reveal animate from public timers** (`status.clock`, the same anchors every device gets): the
+  poker tables deal from `lock_at` and teen patti's show runs from the finish (`reveal_at` − the 3.2 s end beat);
+  housie's ball leaves the cage at `called_at` (when the current number was drawn) and a claim is celebrated from
+  `claim_at` (when it was verified). Nothing about an outcome is in them — the cards stay backs until
+  `status.table.showdown`, the ball's number is the one already in `status.housie.calls` (§7).
 
 ## 4. Writing a scene — the registry
 
@@ -271,6 +276,10 @@ recessed well with a diffuser sheen) standing on a soft pool of shadow, the app'
 category and the status chips (cards with an accent edge), a *LIVE* pill whose dot breathes on its own opacity (the status's simple values:
 score, best, level, player, phase…) at the side, the lobby's players and the join QR when a lobby is open.
 
+The games' scenes (`tv-games.js`) stand in the same room (3.10): their backdrop is see-through, so the table's felt
+glow and motif show behind the panel, and their cards (seats, stats, duels, options, the bracket) wear the casino's
+wings with the table's accent — they used to cover the room in a flat near-black.
+
 ## 6. Performance on TV sticks (Fire TV, Android TV, Chromecast)
 
 A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk on Fire TV) usually reports a
@@ -304,6 +313,13 @@ A TV stick has a phone CPU from years ago and a small GPU, and its browser (Silk
 - **Idle sprites leave the layer tree.** A pooled sprite that isn't showing is `display: none`, not `opacity: 0`
   (dozens of transparent composited layers measurably slowed the 6× benchmark). Sprites that only ever show while
   moving and scaling (the win banners, rays, the flash) are painted at stage scale 1 and a soft burst at ¼ size.
+- **Moving things are sprites, the table redraws per event.** Cards being dealt or turned at the poker tables, the
+  housie cage, its tumbling balls, the drawn ball, the stamp and the claim ribbon, big six's flapper, its lit segment
+  and its motion-blurred twin are small pooled canvases (or the wheel-sized blur, drawn once at half resolution)
+  moved by transform / opacity; the table layer redraws once when a deal or a show ends, a number is stamped or a
+  claim starts — the poker tables and housie have no slow redraw rate at all (their clocks sweep in their own
+  canvases). A big ring with a glow redrawn every frame (housie's old call countdown) cost a stick more than the
+  whole table, so there is none.
 - **Paint the expensive once, early.** Sprites that take a long paint (a tier banner: wide stroked text) are cached
   per page and pre-warmed one per 1.5 s while betting, never on the moment's first frame.
 - **Measure.** A headless benchmark (software canvas and compositing, CDP CPU throttling ×6 at 960×540 DPR 2, fixture
@@ -356,7 +372,27 @@ pixel, ivory — docs/CASINO.md §13), the denomination colours and labels uncha
   spot gets its payout stack pushed from the dealer (stake × the spot's odds).
 - Cards turn in 3D (narrow on the axis, lift toward the camera, the turning edge leans and darkens); dice tumble as
   they roll (a cosmetic turn that unwinds to square as they settle on the panel's faces); slot reels smear along the
-  strip at speed; big six's clapper ticks on the pegs; housie balls drop and bounce.
+  strip at speed.
+- **Teen Patti / Hold'em (3.10):** after the lock's shuffle second the dealer deals face down from a deck on the felt
+  beside them, the seat on their left first, round after round (`dealAt`: 0.1 s in, ≤ 0.22 s a card, all inside the
+  game's 2 s deal beat), each card flicked and settling square at its seat. At a teen patti show the shown hands slide
+  out into a face-up spread and turn one card after another, hand after hand (`showFlip`), then the winning hand lifts
+  and glows in the table's accent with its name (PAIR, TRAIL …) in gold, the others dim, the winner's ring lights and
+  the event line says who won. The oval sits higher so every seat's plate (name, stack and the last move, the latest
+  one lit in the accent) stays on screen; the table's engraved name sits across the top of the felt when no seat is
+  there. Ivory plates in the daylight salon.
+- **Big six (3.10):** a leather flapper with a brass pivot leans on each brass peg as it comes (the panel's kick
+  window), snaps off and rings back — timed from the moment that peg passed, solved from the wheel's own law
+  (`b6Flap`) — and falls straight once the wheel stops; the wheel smears into a motion-blurred twin above 4.7 rad/s
+  and sharpens as it slows; the drawn segment lights under the flapper as it stops. The betting board sits inside
+  the felt, the chips clear of the text.
+- **Housie (3.10):** a brass wire cage on a stand turns up as each call comes (from 1.4 s before `call_at`), its
+  balls riding the drum, and runs down after; at `called_at` the drawn ball drops out of the hatch, rolls down a
+  brass rail and hops into the cradle, growing to the hero ball (`heroPath`); 1.55 s after the call a dauber stamps
+  the number onto the 1–90 board with an ink ring and sparks, and the call's name shows. A verified claim slams a
+  ribbon onto the board — EARLY FIVE! / TOP LINE! … / FULL HOUSE! in the win tiers' metals (lines big, the full house
+  the jackpot's gold) with "P3 claims it" in the player's colour — with sparks, and lights the prize's row. The board
+  sits inside the felt; the pot shows in the cradle before the first call.
 
 **The win / lose moment** — when a round settles every screen plays the same moment from the result's anchor
 `status.clock.phase_at` (a screen that tunes in more than 2.6 s late shows the settled table, no replay). It reads

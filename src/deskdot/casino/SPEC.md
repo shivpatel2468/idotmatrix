@@ -39,9 +39,11 @@ the studio and the TV show the rest.
   `tests/test_casino.py::test_phone_protocol_bet_settle_and_private_state`,
   `tests/test_casino.py::test_phones_betting_at_once_see_the_same_table`,
   `tests/test_tv.py::test_tv_never_gets_private_data`.
-- **R-CAS-7** One clock: statuses carry wall-clock anchors (`status.clock`), sockets answer pings with `server_time`,
-  so panel, studio, phones and TV flip at the same moment. Tests:
-  `tests/test_tv_reveal.py::test_status_clock_anchors_are_public_and_steady`, `tests/js/tv_casino.test.mjs`.
+- **R-CAS-7** One clock: statuses carry wall-clock anchors (`status.clock`; housie adds `called_at` and `claim_at`,
+  when the current number was drawn and the latest claim verified), sockets answer pings with `server_time`, so
+  panel, studio, phones and TV flip at the same moment. Tests:
+  `tests/test_tv_reveal.py::test_status_clock_anchors_are_public_and_steady`,
+  `tests/test_tv_reveal.py::test_housie_publishes_its_call_and_claim_moments`, `tests/js/tv_casino.test.mjs`.
 - **R-CAS-8** Table themes: every casino app offers every theme, every theme is LED-safe and renders every view, and
   the studio, phone page and TV mirror the engine's list. Tests:
   `tests/test_casino_themes.py::test_themes_are_led_safe`,
@@ -95,4 +97,4 @@ studio ops through `/api/apps/{id}/actions/*`; `status.{phase, ends_in, clock, c
   value". Until then `tests/test_casino_play_money.py` lists the rake keys as `KNOWN_RAKE`.
 - The website build adds an 18+ gate and "play money" copy ([netlify spec](../../../netlify/SPEC.md)); main has the "Play money only" line.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-02
