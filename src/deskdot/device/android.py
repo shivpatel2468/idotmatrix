@@ -27,7 +27,7 @@ import logging
 from typing import Any
 
 from . import protocol as P
-from .base import Device
+from .base import Device, wait_for
 
 log = logging.getLogger("deskdot.android")
 
@@ -122,7 +122,7 @@ class AndroidBleDevice(Device):
         self._connect_future = loop.create_future()
         self._bridge.connect(self.info.address, P.NAME_PREFIX, self._listener)
         try:
-            address, name, write_size = await asyncio.wait_for(self._connect_future, CONNECT_TIMEOUT)
+            address, name, write_size = await wait_for(self._connect_future, CONNECT_TIMEOUT)
         except TimeoutError:
             # Abort the bridge's attempt: left running, a late success would hold the panel for a Python side that
             # gave up on it (a "ghost" connection — the panel stops advertising for every other app).
@@ -169,7 +169,7 @@ class AndroidBleDevice(Device):
         self._writes[token] = fut
         try:
             self._bridge.write(packet, response, token)
-            await asyncio.wait_for(fut, WRITE_TIMEOUT)
+            await wait_for(fut, WRITE_TIMEOUT)
         except TimeoutError:
             raise ConnectionError("write timed out") from None
         finally:
