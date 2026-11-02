@@ -9,6 +9,7 @@
  *                   {t:"ble-retry"} (try to connect now)   {t:"handoff"} (another tab takes the panel → {t:"handed-off"})
  *                   {t:"media-frame", kind, w, h, data: ArrayBuffer RGB}  {t:"media-audio", sr, data: ArrayBuffer f32,
  *                   source}  {t:"media-state", kind, state, detail}  {t:"media-hello"}   (host-media.js)
+ *                   {t:"sys-stats", stats}  (host.js: CPU pressure, tab memory, battery, network, fps — System Monitor)
  *   worker → page   {t:"status", phase, detail, pct} {t:"ready"} {t:"fatal", error}
  *                   {t:"ws", sid, ev, data}  {t:"ble", op, ...}  (GATT requests for the page to perform)
  *                   {t:"media", op:"want"|"stop", kind, opts}  (camera / screen / sound the engine needs)
@@ -147,7 +148,7 @@ async function boot() {
 
   status("start", "Starting the engine", 90);
   web = pyodide.pyimport("deskdot.web_main");
-  await web.boot("/deskdot", syncSoon, manifest.proxy || null, self.location.origin);
+  await web.boot("/deskdot", syncSoon, manifest.proxy || null, self.location.origin, manifest.build || null);
   setInterval(syncNow, 15000); // media uploads and app data saved outside the state file
 
   ready = true;
@@ -224,6 +225,8 @@ function handle(msg) {
       return web.media_state(msg.kind, msg.state, msg.detail || "");
     case "media-hello":
       return web.media_hello();
+    case "sys-stats": // what this browser tells about itself (System Monitor in a tab, providers/system.py)
+      return web.sys_stats(msg.stats || {});
   }
 }
 
@@ -231,7 +234,7 @@ self.onmessage = (e) => {
   const msg = e.data;
   if (msg.t === "sync") return syncNow();
   if (!ready) {
-    if (msg.t === "media-frame" || msg.t === "media-audio") return; // live data: never queue it
+    if (msg.t === "media-frame" || msg.t === "media-audio" || msg.t === "sys-stats") return; // live data: never queue it
     // BLE events can't wait (a connect may be pending), but nothing BLE happens before the engine runs
     early.push(msg);
     return;

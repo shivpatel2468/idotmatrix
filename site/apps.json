@@ -1,5 +1,5 @@
 {
- "version": "3.8.0",
+ "version": "3.9.0",
  "count": 116,
  "games": 27,
  "multiplayer": 32,
@@ -6828,7 +6828,7 @@
    "name": "System Monitor",
    "category": "data",
    "icon": "cpu",
-   "description": "Live CPU, memory, storage and network from this PC.",
+   "description": "Live CPU, memory, storage and network from this PC (in the browser: CPU load, tab memory, battery).",
    "kind": "stream",
    "kinds": [
     "stream"
@@ -16239,6 +16239,63 @@
      "group": "Layout options"
     },
     {
+     "key": "web_source",
+     "title": "Where the song comes from",
+     "type": "choice",
+     "description": "A browser tab can't see your music apps. ListenBrainz needs only your user name; Last.fm needs your user name and a free API key; or type the song in.",
+     "default": "manual",
+     "options": [
+      {
+       "value": "manual",
+       "label": "Typed in"
+      },
+      {
+       "value": "listenbrainz",
+       "label": "ListenBrainz"
+      },
+      {
+       "value": "lastfm",
+       "label": "Last.fm"
+      }
+     ],
+     "group": "In the browser"
+    },
+    {
+     "key": "web_user",
+     "title": "User name",
+     "type": "text",
+     "description": "Your ListenBrainz or Last.fm user name",
+     "default": "",
+     "max_length": 64,
+     "group": "In the browser"
+    },
+    {
+     "key": "web_api_key",
+     "title": "Last.fm API key",
+     "type": "text",
+     "description": "Free at last.fm/api/account/create (only for Last.fm). Kept in this browser.",
+     "default": "",
+     "max_length": 64,
+     "group": "In the browser"
+    },
+    {
+     "key": "web_title",
+     "title": "Song (typed in)",
+     "type": "text",
+     "description": "Clear it when the music stops",
+     "default": "",
+     "max_length": 120,
+     "group": "In the browser"
+    },
+    {
+     "key": "web_artist",
+     "title": "Artist (typed in)",
+     "type": "text",
+     "default": "",
+     "max_length": 120,
+     "group": "In the browser"
+    },
+    {
      "key": "follow_theme",
      "title": "Follow page theme",
      "type": "toggle",
@@ -20470,42 +20527,42 @@
   }
  ],
  "release": {
-  "version": "3.8.0",
-  "tag": "v3.8.0",
-  "date": "29 October 2026",
-  "page": "https://github.com/shivpatel2468/idotmatrix/releases/tag/v3.8.0",
-  "checksums": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/checksums.txt",
+  "version": "3.9.0",
+  "tag": "v3.9.0",
+  "date": "2 November 2026",
+  "page": "https://github.com/shivpatel2468/idotmatrix/releases/tag/v3.9.0",
+  "checksums": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/checksums.txt",
   "assets": [
    {
     "key": "windows",
     "platform": "windows",
-    "name": "DeskDot-Setup-3.8.0-x64.exe",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-Setup-3.8.0-x64.exe",
-    "size": 80107073,
+    "name": "DeskDot-Setup-3.9.0-x64.exe",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-Setup-3.9.0-x64.exe",
+    "size": 80257752,
     "note": "Windows 10/11 (64-bit)"
    },
    {
     "key": "mac_arm",
     "platform": "mac",
-    "name": "DeskDot-3.8.0-macOS-arm64.dmg",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0-macOS-arm64.dmg",
-    "size": 83346114,
+    "name": "DeskDot-3.9.0-macOS-arm64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0-macOS-arm64.dmg",
+    "size": 83402170,
     "note": "Apple silicon (M1 and newer)"
    },
    {
     "key": "mac_intel",
     "platform": "mac",
-    "name": "DeskDot-3.8.0-macOS-x64.dmg",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0-macOS-x64.dmg",
-    "size": 75430181,
+    "name": "DeskDot-3.9.0-macOS-x64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0-macOS-x64.dmg",
+    "size": 75567278,
     "note": "Intel Mac"
    },
    {
     "key": "android",
     "platform": "android",
-    "name": "DeskDot-3.8.0.apk",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.8.0/DeskDot-3.8.0.apk",
-    "size": 49105738,
+    "name": "DeskDot-3.9.0.apk",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0.apk",
+    "size": 49236578,
     "note": "Android 8 or newer"
    }
   ]
