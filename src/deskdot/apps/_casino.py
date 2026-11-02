@@ -365,6 +365,8 @@ class CasinoApp(App):
         "turn_at": "turn_deadline",
         "stage_at": "stage_deadline",
         "call_at": "next_call_at",
+        "called_at": "last_call_at",  # housie: when the current number was drawn (the TV's ball leaves the cage)
+        "claim_at": "flash_at",  # housie: when the latest prize claim was verified (the TV's celebration)
     }
 
     def clock_anchors(self) -> dict[str, float | None]:

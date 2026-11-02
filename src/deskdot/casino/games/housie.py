@@ -211,6 +211,11 @@ class Housie(CasinoGame):
         super().__init__(session, rules)
         self._reset()
 
+    @property
+    def flash_at(self) -> float | None:
+        """When the latest prize claim was verified (the TV's claim celebration plays from it, docs/TV_VIEW.md §7)."""
+        return self.flash["at"] if self.flash else None
+
     def _reset(self) -> None:
         self.tickets: dict[str, list[list[int]]] = {}  # pid -> tickets (dealt at the lock)
         self.first_ticket: dict[str, int] = {}  # pid -> index of its first ticket in the outcome

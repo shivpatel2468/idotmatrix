@@ -3591,7 +3591,7 @@
     g.strokeStyle = rgba(S.th.accent, 0.6);
     g.stroke();
     txt(g, ws.length ? "WINNERS" : "NO WINNERS", x + 22, y + 38, 22, S.th.accent, { weight: 850, shadow: false });
-    if (!ws.length) txt(g, o.empty || "The house takes the table", x + 22, y + 88, 26, INK2, { weight: 650 });
+    if (!ws.length) txt(g, o.empty || "The house takes the table", x + 22, y + 88, 26, INK2, { weight: 650, maxW: w - 44 });
     ws.slice(0, max).forEach((wv, i) => {
       const yy = y + 62 + i * 54;
       avatar(S, g, x + 44, yy + 22, 20, wv);
@@ -4306,6 +4306,7 @@
   const BY = 500;
   const BR = 410;
   const B6_SEG = TAU / 54;
+  const B6_HUB = 170;
 
   /**
    * The wheel's rotation (radians, clockwise) on the engine's clock — apps/casino_bigsix.py wheel_angle, 1:1:
@@ -4332,32 +4333,56 @@
         fx.from = fx.phi == null || ts > 0 ? end - travel : fx.phi;
       }
       let phi;
-      if (ts >= 0) phi = b6Phi(end, travel, stop, ts);
-      else {
-        const V = (2 * travel) / stop;
+      let w; // angular speed (rad/s): the motion blur's weight
+      const V = (2 * travel) / stop;
+      if (ts >= 0) {
+        phi = b6Phi(end, travel, stop, ts);
+        w = ts < stop ? V * (1 - ts / stop) : 0;
+      } else {
         const s = clamp((ts + lock) / lock, 0, 1);
         let d = mod(end - travel - fx.from, TAU);
         while (d < V * lock * 0.5) d += TAU;
         phi = fx.from + d * (3 * s * s - 2 * s * s * s) + V * lock * (s * s * s - s * s);
+        w = Math.abs((d * (6 * s - 6 * s * s) + V * lock * (3 * s * s - 2 * s)) / lock);
       }
       fx.phi = phi;
-      return { phi, ts, stop };
+      return { phi, ts, stop, w, end, travel };
     }
     if (fx.phi == null) {
       const last = arr(S.st.history).filter((h) => h.game === "bigsix").slice(-1)[0];
       const seg = obj(last && last.outcome).segment;
       fx.phi = typeof seg === "number" ? -(seg + 0.5) * B6_SEG : 0;
     }
-    return { phi: fx.phi, ts: null, stop: 6.4 };
+    return { phi: fx.phi, ts: null, stop: 6.4, w: 0 };
   }
 
-  function b6Wheel(S) {
-    const key = `${wheelK()}`;
-    if (S.fx.img && S.fx.img.key === key) return S.fx.img.c;
-    const D = 2 * BR + 10;
-    const m = makeCanvas(D, D, wheelK());
-    const g = m.g;
-    g.translate(D / 2, D / 2);
+  /**
+   * The flapper (the leather clapper at 12 o'clock), in radians: a peg leans it over as it comes (the panel's kick:
+   * the last 30 % of each segment before the peg, the same moments as the panel's), it snaps off the peg and
+   * rings back with a damped wobble — timed from the moment that peg passed, solved from the wheel's own law —
+   * and settles once the wheel has stopped. Pure function of the shared clock.
+   */
+  const FLAP = { PUSH: 0.34, ZONE: 0.3, RING: 0.2, DECAY: 11, FREQ: 34 };
+  function b6Flap(m) {
+    if (m.ts == null || m.ts < 0) return 0;
+    const tsc = Math.min(m.ts, m.stop);
+    const phi = b6Phi(m.end, m.travel, m.stop, tsc);
+    const f = (mod(-phi, TAU) / B6_SEG) % 1;
+    let bend = f < FLAP.ZONE ? FLAP.PUSH * (1 - f / FLAP.ZONE) : 0;
+    // when did the last peg pass? φ crossed the boundary φb = SEG·⌊φ/SEG⌋: solve φ(t) = φb for t (φ is a parabola)
+    const pb = B6_SEG * Math.floor(phi / B6_SEG);
+    const q = (m.end - pb) / m.travel;
+    if (q >= 0 && q <= 1) {
+      const tb = (1 - Math.sqrt(q)) * m.stop;
+      const dt = tsc - tb;
+      if (dt >= 0 && dt < 0.6) bend -= FLAP.PUSH * FLAP.RING * 2 * Math.exp(-dt * FLAP.DECAY) * Math.sin(dt * FLAP.FREQ + 0.6);
+    }
+    if (m.ts > m.stop) bend *= Math.exp(-(m.ts - m.stop) * 8); // the wheel has stopped: the flapper falls straight
+    return bend;
+  }
+
+  /** The wheel, sharp (its own canvas, drawn once). */
+  function b6WheelDraw(g) {
     for (let i = 0; i < 54; i++) {
       const s = B6_BY[B6_WHEEL[i]];
       const a0 = i * B6_SEG - Math.PI / 2;
@@ -4376,17 +4401,29 @@
       g.save();
       g.rotate((i + 0.5) * B6_SEG);
       const label = s.sym === "joker" ? "J" : s.sym === "logo" ? "★" : s.sym;
-      txt(g, label, 0, -BR + 66, s.sym.length > 1 && label.length > 1 ? 30 : 38, s.sym === "logo" ? "#3a2c08" : "#ffffff", { align: "center", weight: 850 });
+      txt(g, label, 0, -BR + 70, s.sym.length > 1 && label.length > 1 ? 30 : 38, s.sym === "logo" ? "#3a2c08" : "#ffffff", { align: "center", weight: 850 });
       g.restore();
     }
-    g.fillStyle = "#e6c46a";
+    // the pegs: turned brass studs on every divider, catching the lamp
     for (let i = 0; i < 54; i++) {
       const a = i * B6_SEG - Math.PI / 2;
-      circle(g, Math.cos(a) * (BR - 8), Math.sin(a) * (BR - 8), 5);
+      const x = Math.cos(a) * (BR - 12);
+      const y = Math.sin(a) * (BR - 12);
+      g.save();
+      g.shadowColor = "rgba(0,0,0,.6)";
+      g.shadowBlur = 4;
+      g.shadowOffsetY = 2;
+      circle(g, x, y, 7.5);
+      const pg = g.createRadialGradient(x - 2.5, y - 3, 0.5, x, y, 7.5);
+      pg.addColorStop(0, "#fff6d0");
+      pg.addColorStop(0.45, "#e6c46a");
+      pg.addColorStop(1, "#7a5418");
+      g.fillStyle = pg;
       g.fill();
+      g.restore();
     }
-    circle(g, 0, 0, 170);
-    const hg = g.createRadialGradient(-40, -50, 10, 0, 0, 170);
+    circle(g, 0, 0, B6_HUB);
+    const hg = g.createRadialGradient(-40, -50, 10, 0, 0, B6_HUB);
     hg.addColorStop(0, "#3a3046");
     hg.addColorStop(1, "#141018");
     g.fillStyle = hg;
@@ -4402,8 +4439,60 @@
       g.fill();
       g.restore();
     }
+  }
+  function b6Wheel(S) {
+    const key = `${wheelK()}`;
+    if (S.fx.img && S.fx.img.key === key) return S.fx.img.c;
+    const D = 2 * BR + 10;
+    const m = makeCanvas(D, D, wheelK());
+    m.g.translate(D / 2, D / 2);
+    b6WheelDraw(m.g);
     S.fx.img = { key, c: m.c };
     return m.c;
+  }
+  /**
+   * The wheel at speed: the sharp wheel smeared along its turn (the average of 12 copies over ~1.3 segments), drawn
+   * once at half resolution — it is a blur, so nothing is lost — and cross-faded in by the wheel's speed.
+   */
+  const B6_BLUR_K = 0.5;
+  function b6Blur(S) {
+    if (S.fx.blur) return S.fx.blur;
+    const D = 2 * BR + 10;
+    const src = b6Wheel(S);
+    const m = makeCanvas(D, D, B6_BLUR_K);
+    const g = m.g;
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      g.save();
+      g.translate(D / 2, D / 2);
+      g.rotate(((i / (n - 1)) - 0.5) * B6_SEG * 1.3);
+      g.globalAlpha = 1 / (i + 1);
+      g.drawImage(src, -D / 2, -D / 2, D, D);
+      g.restore();
+    }
+    S.fx.blur = m.c;
+    return m.c;
+  }
+  /** The winning segment lit at the top once the wheel has stopped: a small sprite turned with the wheel. */
+  const B6_LIT = { w: 150, h: BR - B6_HUB + 40 };
+  function b6LitDraw(g) {
+    const cx = B6_LIT.w / 2;
+    const cy = BR + 20; // the wheel's centre, below the sprite
+    const a0 = -Math.PI / 2 - B6_SEG / 2;
+    const a1 = -Math.PI / 2 + B6_SEG / 2;
+    g.beginPath();
+    g.arc(cx, cy, BR - 2, a0, a1);
+    g.arc(cx, cy, B6_HUB + 4, a1, a0, true);
+    g.closePath();
+    g.save();
+    g.shadowColor = "#fff2c0";
+    g.shadowBlur = 18;
+    g.lineWidth = 5;
+    g.strokeStyle = "#fff2c0";
+    g.stroke();
+    g.restore();
+    g.fillStyle = "rgba(255,246,214,.26)";
+    g.fill();
   }
 
   const bigsix = makeScene({
@@ -4412,25 +4501,62 @@
     init(S) {
       S.fx = { phi: null };
     },
-    // the wheel (pre-rendered once, spun by a CSS rotate) and the clapper (a CSS rotate about its pivot)
+    // the wheel (pre-rendered once, spun by a CSS rotate), its motion-blurred twin, the lit segment and the flapper
     layers(S, root) {
       const k = wheelK();
       const D = 2 * BR + 10;
       S.L.wheel = layer(root, BX - D / 2, BY - D / 2, D, D, k, true);
-      S.L.clap = layer(root, BX - 20, BY - BR - 54, 40, 112, k, true);
-      S.L.clap.c.style.transformOrigin = "20px 8px";
+      S.L.blur = layer(root, BX - D / 2, BY - D / 2, D, D, B6_BLUR_K, true);
+      S.L.blur.c.style.display = "none";
+      S.L.blur.cache = { display: "none" };
+      S.L.lit = layer(root, BX - B6_LIT.w / 2, BY - BR - 20, B6_LIT.w, B6_LIT.h, k, true, true);
+      S.L.lit.c.style.transformOrigin = `${B6_LIT.w / 2}px ${BR + 20}px`;
+      S.L.lit.c.style.display = "none";
+      S.L.lit.cache = { display: "none" };
+      b6LitDraw(S.L.lit.g);
+      // the flapper: a tapered leather tongue on a brass pivot, its tip reaching between the pegs
+      S.L.clap = layer(root, BX - 30, BY - BR - 60, 60, 128, k, true, true);
+      S.L.clap.c.style.transformOrigin = "30px 16px";
       const g = S.L.clap.g;
       g.save();
-      g.translate(20, 8);
-      g.beginPath();
-      g.moveTo(-16, 0);
-      g.lineTo(16, 0);
-      g.lineTo(3, 92);
-      g.lineTo(-3, 92);
-      g.closePath();
-      g.fillStyle = "#d6283a";
-      g.shadowColor = "rgba(0,0,0,.6)";
+      g.translate(30, 16);
+      g.shadowColor = "rgba(0,0,0,.55)";
       g.shadowBlur = 8;
+      g.shadowOffsetY = 4;
+      g.beginPath();
+      g.moveTo(-15, 0);
+      g.quadraticCurveTo(-13, 50, -3, 84);
+      g.lineTo(3, 84);
+      g.quadraticCurveTo(13, 50, 15, 0);
+      g.closePath();
+      const lg = g.createLinearGradient(-15, 0, 15, 0);
+      lg.addColorStop(0, "#7a0f1c");
+      lg.addColorStop(0.45, "#e0303f");
+      lg.addColorStop(0.6, "#ff6070");
+      lg.addColorStop(1, "#8c1422");
+      g.fillStyle = lg;
+      g.fill();
+      g.shadowColor = "transparent";
+      g.lineWidth = 1.5;
+      g.strokeStyle = "rgba(255,210,150,.55)"; // a gold stitch down the edge
+      g.setLineDash([4, 4]);
+      g.beginPath();
+      g.moveTo(-9, 8);
+      g.quadraticCurveTo(-8, 48, -2, 76);
+      g.moveTo(9, 8);
+      g.quadraticCurveTo(8, 48, 2, 76);
+      g.stroke();
+      g.setLineDash([]);
+      // the brass pivot cap
+      circle(g, 0, 0, 14);
+      const pg = g.createRadialGradient(-4, -5, 1, 0, 0, 14);
+      pg.addColorStop(0, "#fff6d0");
+      pg.addColorStop(0.5, "#e6c46a");
+      pg.addColorStop(1, "#6a4712");
+      g.fillStyle = pg;
+      g.fill();
+      circle(g, 0, 0, 4);
+      g.fillStyle = "#4a3210";
       g.fill();
       g.restore();
       S.L.clap.show();
@@ -4441,24 +4567,46 @@
       l.g.clearRect(0, 0, l.w, l.h);
       l.g.drawImage(b6Wheel(S), 0, 0, l.w, l.h);
       l.show();
+      S.fx.blurDrawn = false; // the blurred twin is made the first time the wheel runs fast
     },
     move(S) {
       const m = b6Now(S, S.T);
-      S.L.wheel.c.style.transform = `rotate(${((m.phi * 180) / Math.PI).toFixed(3)}deg)`;
-      // the clapper flicks while a peg passes under it (the panel's kick: the first 30 % of each segment)
-      const f = (mod(-m.phi, TAU) / B6_SEG) % 1;
-      const kick = m.ts != null && m.ts >= 0 && m.ts < m.stop && f < 0.3 ? 0.32 * (1 - f / 0.3) : 0;
-      S.L.clap.c.style.transform = `rotate(${((-kick * 180) / Math.PI).toFixed(2)}deg)`;
+      const tf = `rotate(${((m.phi * 180) / Math.PI).toFixed(3)}deg)`;
+      S.L.wheel.c.style.transform = tf;
+      // motion blur by speed: blurred above 4.7 rad/s, sharp below 2.2; only the visible layer is in the tree
+      const b = clamp((m.w - 2.2) / 2.5, 0, 1);
+      if (b > 0) {
+        if (!S.fx.blurDrawn) {
+          const l = S.L.blur;
+          l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+          l.g.clearRect(0, 0, l.w, l.h);
+          l.g.drawImage(b6Blur(S), 0, 0, l.w, l.h);
+          l.show();
+          S.fx.blurDrawn = true;
+        }
+        moveLayer(S.L.blur, tf, b.toFixed(3));
+      } else hideLayer(S.L.blur);
+      setStyle(S.L.wheel.c, "visibility", b >= 1 ? "hidden" : "visible", (S.L.wheel.cache = S.L.wheel.cache || {}));
+      // the flapper on the pegs
+      const flap = b6Flap(m);
+      const ft = `rotate(${((-flap * 180) / Math.PI).toFixed(2)}deg)`;
+      if (S.fx.flapTf !== ft) S.L.clap.c.style.transform = S.fx.flapTf = ft;
       S.fx.stopped = m.ts != null && m.ts >= m.stop;
       S.fx.under = mod(Math.floor(mod(-m.phi, TAU) / B6_SEG), 54);
       const rv = revealOf(S, "bigsix");
       const seg = rv ? obj(rv.outcome).segment : null;
+      // the winning segment lights up under the flapper as the wheel stops, and glows on through the result
+      if (typeof seg === "number" && S.fx.stopped) {
+        const a = m.ts - m.stop;
+        const op = Math.min(1, a / 0.25) * (0.7 + 0.3 * Math.cos(a * 4.2));
+        moveLayer(S.L.lit, `rotate(${(((m.phi + (seg + 0.5) * B6_SEG) * 180) / Math.PI).toFixed(3)}deg)`, op.toFixed(3));
+      } else hideLayer(S.L.lit);
       if (typeof seg !== "number") stampMove(S, "stamp", 0, 0, null);
       else {
         const i = B6.findIndex((x) => x.sym === B6_WHEEL[seg]);
         const [x, y] = b6Tile(Math.max(0, i));
         stampPaint(S, "stamp", "WIN", S.th.accent);
-        stampMove(S, "stamp", x + 206, y + 70, m.ts - m.stop, 104, -0.2);
+        stampMove(S, "stamp", x + 196, y + 64, m.ts - m.stop, 104, -0.2);
       }
     },
     overlays(S, root) {
@@ -4484,18 +4632,18 @@
       g.lineWidth = 8;
       g.strokeStyle = "#d9b45a";
       g.stroke();
-      txt(g, "BIG SIX", 990, 92, 44, th.accent, { weight: 850 });
-      txt(g, "THE MONEY WHEEL · 54 SEGMENTS", 992, 128, 22, INK2, { weight: 700 });
+      txt(g, "BIG SIX", B6_BX, 92, 44, th.accent, { weight: 850, font: "serif", gold: goldOn(), spacing: 3 });
+      txt(g, "THE MONEY WHEEL · 54 SEGMENTS", B6_BX + 2, 128, 22, INK2, { weight: 700 });
       B6.forEach((s, i) => {
         const [x, y] = b6Tile(i);
-        feltBox(g, th, x, y, 250, 140, { fill: "rgba(0,0,0,.22)" });
-        rr(g, x + 14, y + 14, 92, 112, 14);
+        feltBox(g, th, x, y, B6_TW, 140, { fill: "rgba(0,0,0,.22)" });
+        rr(g, x + 14, y + 14, 84, 112, 14);
         g.fillStyle = s.col;
         g.fill();
         const label = s.sym === "joker" ? "JOKER" : s.sym === "logo" ? "LOGO" : s.sym;
-        txt(g, label, x + 60, y + 88, label.length > 2 ? 22 : 54, s.sym === "logo" ? "#3a2c08" : "#fff", { align: "center", weight: 850 });
-        txt(g, `PAYS ${s.pays} : 1`, x + 120, y + 48, 24, INK1, { weight: 800 });
-        txt(g, `${s.n} of 54`, x + 120, y + 78, 20, INK3, { weight: 700 });
+        txt(g, label, x + 56, y + 88, label.length > 2 ? 20 : 54, s.sym === "logo" ? "#3a2c08" : "#fff", { align: "center", weight: 850 });
+        txt(g, `PAYS ${s.pays}:1`, x + 112, y + 46, 24, INK1, { weight: 800 });
+        txt(g, `${s.n} of 54`, x + 112, y + 76, 19, INK3, { weight: 700 });
       });
     },
     draw(S, g, t) {
@@ -4503,8 +4651,8 @@
       const fx = S.fx;
       const th = S.th;
       // bulbs round the housing (lit, alternate, all on at the result)
-      for (let i = 0; i < 36; i++) {
-        const a = (i / 36) * TAU;
+      for (let i = 1; i < 36; i++) {
+        const a = (i / 36) * TAU; // (none at 12 o'clock: the flapper's pivot sits there)
         const lit = st.phase === "result" || i % 2 === 0;
         circle(g, BX + Math.sin(a) * (BR + 30), BY - Math.cos(a) * (BR + 30), lit ? 8 : 6);
         g.fillStyle = lit ? "#fff2c0" : "rgba(255,220,140,.25)";
@@ -4516,9 +4664,6 @@
       circle(g, BX, BY, BR);
       g.fillStyle = sheen;
       g.fill();
-      circle(g, BX, BY - BR - 46, 14);
-      g.fillStyle = "#e6c46a";
-      g.fill();
       // the hub: the symbol under the clapper once the wheel has stopped (as on the panel)
       const resSeg = obj(obj(st.result).outcome).segment;
       const landed = st.phase === "result" && typeof resSeg === "number" ? resSeg : null;
@@ -4527,8 +4672,8 @@
       txt(g, sym ? (sym.sym === "joker" ? "JOKER" : sym.sym === "logo" ? "LOGO" : sym.sym) : "BIG SIX", BX, BY + (sym ? 30 : 14), sym ? (sym.sym.length > 2 ? 52 : 110) : 46, sym ? sym.col : th.accent, { align: "center", weight: 850, glow: sym ? sym.col : null });
       const showRes = landed != null;
       // headline
-      drawHeadline(S, g, 990, 150, 510, t, headline(S, t, (ph) => {
-        if (ph === "spinning") return { title: "SPINNING…", sub: "Listen for the clapper", tone: th.accent_hi };
+      drawHeadline(S, g, B6_BX, 150, 2 * B6_TW + B6_GAP, t, headline(S, t, (ph) => {
+        if (ph === "spinning") return { title: "SPINNING…", sub: "Watch the flapper on the pegs", tone: th.accent_hi };
         if (ph === "result") {
           const s = B6_BY[B6_WHEEL[landed]];
           return { ...headline(S, t), title: `${s.sym === "joker" ? "JOKER" : s.sym === "logo" ? "LOGO" : s.sym} PAYS ${s.pays}:1`, tone: s.col };
@@ -4540,17 +4685,21 @@
       B6.forEach((s, i) => {
         const [x, y] = b6Tile(i);
         const isWin = winSym === s.sym;
-        if (isWin) glowBox(g, x, y, 250, 140, s.col, 1);
+        if (isWin) glowBox(g, x, y, B6_TW, 140, s.col, 1);
         const tot = num(obj(st.totals)[s.id]);
-        if (tot) txt(g, fmt(S, tot), x + 120, y + 116, 20, INK2, { font: "mono", weight: 700 });
-        spotChips(S, g, s.id, sb[s.id], x + 206, y + 74, t, { r: 24, glow: isWin ? th.accent : null, dim: winSym != null && !isWin });
+        if (tot) txt(g, fmt(S, tot), x + 112, y + 118, 19, INK2, { font: "mono", weight: 700 });
+        spotChips(S, g, s.id, sb[s.id], x + 202, y + 104, t, { r: 22, glow: isWin ? th.accent : null, dim: winSym != null && !isWin });
       });
-      if (showRes) winnersCard(S, g, 1255, 740, 250, t, { instant: true, max: 2 });
+      if (showRes) winnersCard(S, g, B6_BX + B6_TW + B6_GAP, 740, B6_TW, t, { instant: true, max: 2 });
     },
   });
+  // the betting board: two columns of tiles right of the wheel, inside the felt (they used to run into the rail)
+  const B6_BX = 962;
+  const B6_TW = 250;
+  const B6_GAP = 12;
   function b6Tile(i) {
-    if (i === 6) return [990, 740];
-    return [990 + (i % 2) * 265, 250 + Math.floor(i / 2) * 160];
+    if (i === 6) return [B6_BX, 740];
+    return [B6_BX + (i % 2) * (B6_TW + B6_GAP), 250 + Math.floor(i / 2) * 160];
   }
 
   // ================================================================================================ 7 UP 7 DOWN
@@ -5322,10 +5471,29 @@
   });
 
   // ================================================================================================ POKER TABLES (hold'em, teen patti)
-  const PK = { cx: 760, cy: 500, rx: 560, ry: 300 };
+  // The oval sits a little high so every seat, its name plate and its cards stay on the stage (the bottom seat's plate
+  // used to fall off the screen): seats ring the felt at (rx + 70, ry + 44).
+  const PK = { cx: 760, cy: 476, rx: 560, ry: 290 };
+  const PK_SEAT = [70, 44];
   function pokerSeatXY(i, n) {
     const a = Math.PI / 2 + (i * TAU) / Math.max(1, n);
-    return [PK.cx + Math.cos(a) * (PK.rx + 70), PK.cy + Math.sin(a) * (PK.ry + 70), a];
+    return [PK.cx + Math.cos(a) * (PK.rx + PK_SEAT[0]), PK.cy + Math.sin(a) * (PK.ry + PK_SEAT[1]), a];
+  }
+  /** A seat's name plate (name, stack, last move): under the avatar, or over it on the far side. [x, y, w, h] */
+  const PLATE_H = 84;
+  function pokerPlate(i, n) {
+    const [x, y, a] = pokerSeatXY(i, n);
+    return Math.sin(a) > -0.35 ? [x - 110, y + 56, 220, PLATE_H] : [x - 110, y - 56 - PLATE_H, 220, PLATE_H];
+  }
+  /** Where seat i's card c (of ncards) rests: toward the felt's centre; `big` for a face-up hand at a show. */
+  function pokerCardXY(i, n, c, ncards, big) {
+    const [x, y] = pokerSeatXY(i, n);
+    const dx = PK.cx - x;
+    const dy = PK.cy - y;
+    const d = Math.hypot(dx, dy) || 1;
+    const off = c - (ncards - 1) / 2;
+    const reach = big ? 125 + 60 * Math.abs(dx / d) : 125; // a face-up spread is wider: clear of the avatar at the side seats
+    return [x + (dx / d) * reach + off * (big ? 64 : 30), y + (dy / d) * reach, off * (big ? 0.08 : 0.12)];
   }
   function pokerSeats(S) {
     const st = S.st;
@@ -5336,6 +5504,17 @@
       live: false,
       seats: S.players.filter((p) => p.online).map((p) => ({ seat: p.seat, name: p.name, color: p.color, stack: p.credits, sitting: sitting.has(String(p.seat)) })),
     };
+  }
+  /**
+   * The table's engraved name: across the top of the felt when no seat sits there, else none (the header carries the
+   * table's name too) — it used to sit under the bottom seat's cards and chips.
+   */
+  function pokerTitleFree(n) {
+    for (let i = 0; i < n; i++) {
+      const a = mod(Math.PI / 2 + (i * TAU) / n, TAU);
+      if (Math.abs(a - 1.5 * Math.PI) < 0.75) return false;
+    }
+    return true;
   }
   function pokerBg(S, g, title) {
     const th = S.th;
@@ -5367,10 +5546,180 @@
     g.setLineDash([2, 7]);
     g.stroke();
     g.setLineDash([]);
-    txt(g, title, PK.cx, PK.cy + 190, 46, rgba(th.accent, 0.22), { align: "center", weight: 700, font: "serif", emboss: true, spacing: 6 });
+    if (pokerTitleFree(pokerSeats(S).seats.length)) txt(g, title, PK.cx, PK.cy - 170, 42, rgba(th.accent, 0.22), { align: "center", weight: 700, font: "serif", emboss: true, spacing: 6 });
   }
 
-  /** One seat round the oval: avatar, name plate with the stack, hole cards (backs, or the showdown), bet chips. */
+  // ------------------------------------------------------------------------------------------------ the deal and the show
+  // Turn games send no TV reveal, but their timers are public (status.clock): the hand is dealt from the lock — the
+  // panel's shuffle second (LOCK), then the game's deal beat (casino/games/_pvp.py deal_beat, 2 s) — and a show turns
+  // the hands over from the finish (reveal_at − the 3.2 s end beat). Every card's moment is a pure function of the
+  // shared clock, so every screen deals and turns the same card in the same frame. The cards are backs until the engine
+  // makes them public (status.table.showdown). Cards on the move are pooled sprites (transforms only); the table layer
+  // redraws once when the deal or the show is over.
+  const DEAL = { LEAD: 0.1, FLY: 0.34, SPAN: 1.75, STEP: 0.22 };
+  const SHOW = { BEAT: 3.2, LEAD: 0.25, SEAT: 0.35, CARD: 0.14, GROW: 0.2, TURN: 0.42, GLOW: 0.15 };
+  const CARD_S = [66, 92]; // a hand face down
+  const CARD_B = [92, 128]; // a hand face up
+  /** Seconds after the lock when card c (dealing round) of the j-th seat in deal order (of n seats) leaves the deck. */
+  function dealAt(c, j, n, ncards) {
+    const step = Math.min(DEAL.STEP, DEAL.SPAN / Math.max(1, ncards * n));
+    return LOCK + DEAL.LEAD + (c * n + j) * step;
+  }
+  /** Seconds after the lock when the last card lands. */
+  const dealEnd = (n, ncards) => dealAt(ncards - 1, Math.max(0, n - 1), Math.max(1, n), ncards) + DEAL.FLY;
+  /** Each seat's place in the deal (index in `seats` → order): the seat after the dealer first, the dealer last. */
+  function dealOrder(n, dealerIdx) {
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(mod(i - (dealerIdx < 0 ? -1 : dealerIdx) - 1, Math.max(1, n)));
+    return out;
+  }
+  /** Where the deck sits: on the felt in front of the dealer, to their left (clear of the pot and their cards). */
+  function deckXY(n, dealerIdx) {
+    if (dealerIdx < 0 || !n) return [PK.cx + 230, PK.cy - 60];
+    const [x, y] = pokerSeatXY(dealerIdx, n);
+    const dx = PK.cx - x;
+    const dy = PK.cy - y;
+    const d = Math.hypot(dx, dy) || 1;
+    return [x + (dx / d) * 200 - (dy / d) * 170, y + (dy / d) * 200 + (dx / d) * 170];
+  }
+  /** The show's timeline (s after the show starts) for `ns` hands of `ncards`: {end, glow}. */
+  function showTimes(ns, ncards) {
+    const end = SHOW.LEAD + Math.max(0, ns - 1) * SHOW.SEAT + Math.max(0, ncards - 1) * SHOW.CARD + SHOW.TURN;
+    return { end, glow: end + SHOW.GLOW };
+  }
+  /** How far card c of the si-th shown hand has turned (0 = back up, 1 = face up), `age` s into the show. */
+  const showFlip = (age, si, c) => clamp((age - (SHOW.LEAD + si * SHOW.SEAT + c * SHOW.CARD)) / SHOW.TURN, 0, 1);
+  /** When the show began (engine clock): the finish, i.e. the reveal deadline − the end beat; null without a show. */
+  function showAnchor(st) {
+    const tb = obj(st.table);
+    const ck = obj(st.clock);
+    if (!tb.finished || !Object.keys(obj(tb.showdown)).length) return null;
+    if (typeof ck.reveal_at === "number") return ck.reveal_at - SHOW.BEAT;
+    if (st.phase === "result" && typeof ck.phase_at === "number") return ck.phase_at - SHOW.BEAT;
+    return null;
+  }
+  /** The engine's clock is known (a live TV); tests without one see every hand at rest. */
+  const synced = (S) => !!(S.ctx && typeof S.ctx.serverNow === "function");
+
+  /**
+   * This frame's deal / show state of a poker table: {deal: {since, end} | null, show: {age, end, glow, seats} | null}.
+   * Pure function of the status and the shared clock (S.T).
+   */
+  function pokerMotion(S, ncards, dealerIdx, withShow) {
+    const st = S.st;
+    const { live, seats } = pokerSeats(S);
+    const n = seats.length;
+    const out = { deal: null, show: null, seats, n, ncards, dealerIdx };
+    if (!live || !n || !synced(S)) return out;
+    const lockAt = obj(st.clock).lock_at;
+    if (typeof lockAt === "number" && (st.phase === "locked" || st.phase === "dealing" || st.phase === "action")) {
+      const since = S.T - lockAt;
+      const end = dealEnd(n, ncards);
+      if (since > -2 && since < end) out.deal = { since, end };
+    }
+    const at = withShow ? showAnchor(st) : null;
+    if (at != null) {
+      const shown = obj(obj(st.table).showdown);
+      const order = seats.map((s, i) => ({ s, i })).filter((x) => arr(shown[String(x.s.seat)]).length);
+      const tm = showTimes(order.length, ncards);
+      const age = S.T - at;
+      if (age > -1 && age < tm.glow) out.show = { age, end: tm.end, glow: tm.glow, order };
+    }
+    return out;
+  }
+
+  /** The card sprites: a pool of small plain canvases over the table, moved by transform / opacity. */
+  function cardSprite(S, i, key, w, h, paint) {
+    const pool = S.cardPool || (S.cardPool = []);
+    let sp = pool[i];
+    if (!sp || sp.w !== w || sp.h !== h) {
+      if (sp) sp.l.c.remove();
+      sp = { l: layer(S.cardBox, 0, 0, w + 8, h + 8, chipLayerK(), true, true), key: null, w, h };
+      sp.l.c.style.display = "none";
+      sp.l.cache = { display: "none" };
+      pool[i] = sp;
+    }
+    if (sp.key !== key) {
+      sp.key = key;
+      const g = sp.l.g;
+      g.setTransform(sp.l.k, 0, 0, sp.l.k, 0, 0);
+      g.clearRect(0, 0, w + 8, h + 8);
+      paint(g);
+    }
+    return sp;
+  }
+  function cardSpritesHideFrom(S, i) {
+    for (const sp of (S.cardPool || []).slice(i)) if (sp) hideLayer(sp.l);
+  }
+  const cardBack = (S) => shade(S.th.accent_deep === CLASSIC.accent_deep ? "#8f1c2c" : S.th.felt3, 1.25);
+
+  /** Every frame: place the cards in flight (the deal) and the cards turning (the show). */
+  function pokerFrame(S, m) {
+    let used = 0;
+    const back = cardBack(S);
+    if (m.deal) {
+      const order = dealOrder(m.n, m.dealerIdx);
+      const [dx, dy] = deckXY(m.n, m.dealerIdx);
+      const [w, h] = CARD_S;
+      m.seats.forEach((seat, i) => {
+        for (let c = 0; c < m.ncards; c++) {
+          const u = (m.deal.since - dealAt(c, order[i], m.n, m.ncards)) / DEAL.FLY;
+          if (u < 0) continue;
+          const [x, y, rot] = pokerCardXY(i, m.n, c, m.ncards, false);
+          const e = easeOut(u);
+          const k = clamp(u, 0, 1);
+          const px = lerp(dx, x, e);
+          const py = lerp(dy, y, e) - Math.sin(k * Math.PI) * 26;
+          const r = rot + (1 - e) * (hash01(`${seat.seat}|${c}`) - 0.5) * 2.4; // a flick of the wrist, settling square
+          const sc = 1 + 0.12 * Math.sin(k * Math.PI);
+          const sp = cardSprite(S, used++, `back|${back}|${S.k}`, w, h, (g) => g.drawImage(cardImage("back", w, h, S.k, back), 0, 0, w + 8, h + 8));
+          moveLayer(sp.l, `translate(${(px - w / 2 - 4).toFixed(1)}px,${(py - h / 2 - 4).toFixed(1)}px) rotate(${r.toFixed(3)}rad) scale(${sc.toFixed(3)})`, "1");
+        }
+      });
+    }
+    if (m.show) {
+      const shown = obj(obj(S.st.table).showdown);
+      const [w, h] = CARD_B;
+      m.show.order.forEach(({ s, i }, si) => {
+        const codes = arr(shown[String(s.seat)]);
+        for (let c = 0; c < m.ncards; c++) {
+          const f = showFlip(m.show.age, si, c);
+          const start = SHOW.LEAD + si * SHOW.SEAT + c * SHOW.CARD;
+          const g0 = clamp((m.show.age - (start - SHOW.GROW)) / SHOW.GROW, 0, 1); // slide out to the face-up spread
+          const [x0, y0, r0] = pokerCardXY(i, m.n, c, m.ncards, false);
+          const [x1, y1, r1] = pokerCardXY(i, m.n, c, m.ncards, true);
+          const e = easeOut(g0);
+          const face = f >= 0.5;
+          const code = codes[c];
+          const sp = cardSprite(S, used++, face ? `f|${code}|${S.k}` : `b|${back}|${S.k}`, w, h, (g) =>
+            g.drawImage(face ? cardImage(code, w, h, S.k, null) : cardImage("back", w, h, S.k, back), 0, 0, w + 8, h + 8));
+          const sx = Math.max(0.02, Math.abs(Math.cos(f * Math.PI)));
+          const lift = 1 + 0.09 * Math.sin(f * Math.PI);
+          const base = lerp(CARD_S[0] / w, 1, e);
+          const px = lerp(x0, x1, e);
+          const py = lerp(y0, y1, e) - 14 * Math.sin(f * Math.PI);
+          moveLayer(sp.l, `translate(${(px - w / 2 - 4).toFixed(1)}px,${(py - h / 2 - 4).toFixed(1)}px) rotate(${lerp(r0, r1, e).toFixed(3)}rad) scale(${(base * sx * lift).toFixed(3)},${(base * lift).toFixed(3)})`, "1");
+        }
+      });
+    }
+    cardSpritesHideFrom(S, used);
+  }
+
+  /** The table layer's key for a poker table: it redraws when the deal or the show changes stage, not per frame. */
+  function pokerKey(S, m) {
+    const st = S.st;
+    let k = m.deal ? (m.deal.since < 0 ? "d0" : "d1") : "";
+    if (m.show) k += m.show.age < 0 ? "|s0" : m.show.age < m.show.end ? "|s1" : "|s2";
+    if (st.phase === "betting" || st.phase === "idle") {
+      const left = leftTo(S, "ends_at", S.clk.ends, S.t);
+      if (left != null) k += `|${Math.ceil(left - 1e-6)}`; // the lobby's countdown digit
+    }
+    const fl = obj(obj(st.table).flash);
+    if (fl.age != null) k += num(fl.age) + (S.t - (S.ctx.stateAt || S.t)) < 2.6 ? "|f" : "";
+    return k;
+  }
+
+  /** One seat round the oval: avatar, name plate with the stack, hole cards (backs, or the show), bet chips. */
   function pokerSeat(S, g, t, seat, i, n, o) {
     const th = S.th;
     const [x, y, a] = pokerSeatXY(i, n);
@@ -5382,26 +5731,38 @@
     const dl = Math.hypot(towardX, towardY) || 1;
     const ux = towardX / dl;
     const uy = towardY / dl;
-    // cards
+    // cards (none while the deal or the show has them in flight as sprites)
     const shown = o.showdown ? arr(o.showdown[String(seat.seat)]) : [];
     const ncards = o.ncards;
-    if (o.live && !seat.folded) {
-      const cw = shown.length ? 92 : 66;
-      const ch = shown.length ? 128 : 92;
+    const mo = o.motion;
+    const sprites = mo && (mo.deal || (mo.show && shown.length && mo.show.age < mo.show.end));
+    if (o.live && !seat.folded && !sprites) {
+      const winner = o.winners && o.winners.has(String(seat.seat));
+      const glowing = o.glowShow && shown.length;
       for (let c = 0; c < ncards; c++) {
-        const cx = x + ux * 125 + (c - (ncards - 1) / 2) * (shown.length ? 64 : 30);
-        const cy = y + uy * 125;
+        const [cx, cy, rot] = pokerCardXY(i, n, c, ncards, !!shown.length);
         const code = shown[c];
-        const f = cardFly(S, `h${seat.seat}c${c}`, PK.cx, PK.cy, cx, cy, t, 0.45);
         if (code) {
-          const g2 = o.best && o.best.has(code);
-          const ff = cardFly(S, `sd${seat.seat}c${c}`, cx, cy, cx, cy, t, 0.5);
-          drawCard(S, g, code, cx, cy - (g2 ? 10 : 0), cw, ch, { flip: ff.flip, rot: (c - (ncards - 1) / 2) * 0.08, glow: g2 ? th.accent : null });
-        } else drawCard(S, g, "back", f.x, f.y, cw, ch, { down: true, rot: (c - (ncards - 1) / 2) * 0.12 + f.rot, alpha: f.flip < 1 ? 0.6 + 0.4 * f.flip : 1 });
+          // the winning hand lifts and glows in the table's accent; the others dim (teen patti); hold'em lights its best five
+          const lit = o.best ? o.best.has(code) : glowing && winner;
+          const dim = glowing && !winner && !o.best ? 0.32 : 0;
+          const ff = o.flipSynced ? { flip: 1 } : cardFly(S, `sd${seat.seat}c${c}`, cx, cy, cx, cy, t, 0.5);
+          drawCard(S, g, code, cx, cy - (lit ? 12 : 0), CARD_B[0], CARD_B[1], { flip: ff.flip, rot, glow: lit ? th.accent : null, dim });
+        } else {
+          const f = o.synced ? { x: cx, y: cy, rot: 0, flip: 1 } : cardFly(S, `h${seat.seat}c${c}`, PK.cx, PK.cy, cx, cy, t, 0.45);
+          drawCard(S, g, "back", f.x, f.y, CARD_S[0], CARD_S[1], { down: true, rot: rot + f.rot, alpha: f.flip < 1 ? 0.6 + 0.4 * f.flip : 1 });
+        }
+      }
+      // the hand's name under a shown hand: gold for the winner
+      const hand = o.hands && o.hands[String(seat.seat)];
+      if (shown.length && hand && glowing) {
+        const [cx, cy] = pokerCardXY(i, n, (ncards - 1) / 2, ncards, true);
+        const d = CARD_B[1] / 2 + 26; // on the felt side of the cards, clear of the avatar
+        pill(g, String(hand).toUpperCase(), cx + ux * d, cy + uy * d, 20, winner ? th.accent : "rgba(0,0,0,.72)", winner ? th.ink : INK2, { align: "center", weight: 850 });
       }
     }
-    // the bet in front
-    if (num(seat.bet) > 0 && !(o.finished && S.st.phase === "result")) {
+    // the bet in front (gone to the pot once the hand is decided)
+    if (num(seat.bet) > 0 && !o.finished) {
       const bx = x + ux * 225;
       const by = y + uy * 200;
       stack(S, g, bx, by, 24, num(seat.bet), p.color);
@@ -5416,8 +5777,8 @@
       hudRing(S, `turn${seat.seat}`, x, y, 58, { left: tc.left(t), span: num(tb.turn_span, 20), color: th.accent, low: BAD, lowBelow: 5, label: false, width: 8 });
     }
     if (winner) {
-      g.save();
-      const rad = Math.round((62 + 4 * Math.sin(t * 6)) * 2) / 2;
+      // a steady gold ring (it used to pulse at the table layer's 4 Hz — a stutter)
+      const rad = 64;
       glowFx(g, `wring|${rad}`, x - rad - 3, y - rad - 3, 2 * rad + 6, 2 * rad + 6, th.accent, 30, (m) => {
         circle(m, x, y, rad);
         m.lineWidth = 6;
@@ -5428,19 +5789,18 @@
       g.strokeStyle = th.accent;
       g.lineWidth = 6;
       g.stroke();
-      g.restore();
     }
     avatar(S, g, x, y, 44, p, { alpha, glow: seat.turn || winner });
-    const below = Math.sin(a) > -0.35;
-    const py = below ? y + 60 : y - 124;
-    rr(g, x - 110, py, 220, 64, 14);
-    g.fillStyle = seat.turn ? rgba(th.accent, 0.25) : "rgba(8,8,12,.82)";
+    const [plx, ply, plw, plh] = pokerPlate(i, n);
+    rr(g, plx, ply, plw, plh, 14);
+    // the plate: the gallery's leather in the dark, ivory with a gold hairline in the daylight salon
+    g.fillStyle = seat.turn ? rgba(th.accent, P.light ? 0.18 : 0.25) : P.light ? "rgba(255,253,248,.94)" : "rgba(8,8,12,.82)";
     g.fill();
     g.lineWidth = 2;
-    g.strokeStyle = seat.turn ? th.accent : rgba(p.color, 0.7);
+    g.strokeStyle = seat.turn ? th.accent : P.light ? "rgba(184,137,42,.65)" : rgba(p.color, 0.7);
     g.stroke();
-    txt(g, p.name || `P${seat.seat}`, x, py + 28, 24, p.color, { align: "center", weight: 800, maxW: 200, alpha });
-    txt(g, seat.stack != null ? fmt(S, seat.stack) : "", x, py + 56, 22, INK1, { align: "center", font: "mono", weight: 700, alpha });
+    txt(g, p.name || `P${seat.seat}`, x, ply + 28, 24, inkOf(p.color), { align: "center", weight: 800, maxW: 200, alpha, shadow: !P.light });
+    txt(g, seat.stack != null ? fmt(S, seat.stack) : "", x, ply + 54, 22, P.light ? P.ink1 : INK1, { align: "center", font: "mono", weight: 700, alpha, shadow: !P.light });
     // markers and the last action
     const tags = o.tags ? o.tags(seat) : [];
     tags.forEach((tg, k) => {
@@ -5450,17 +5810,15 @@
     });
     const fl = obj(obj(S.st.table).flash);
     const age = fl.age != null ? num(fl.age) + (t - (S.ctx.stateAt || t)) : 99;
+    // the plate's third line: the latest move lit in the accent for a moment, then the last move, quietly (both on the
+    // plate, clear of the cards on the felt)
     if (String(fl.seat) === String(seat.seat) && age < 2.6) {
-      const k = easeOut(age / 0.25);
       const word = fl.text + (num(fl.amount) && !/FOLD|PACK|CHECK|SEEN/.test(fl.text) ? ` ${fmt(S, fl.amount)}` : "");
-      g.save();
-      g.globalAlpha = age > 2.1 ? clamp((2.6 - age) / 0.5, 0, 1) : 1;
-      pill(g, word, x, (below ? y - 70 : y + 72) - (1 - k) * 20, 26 * (0.8 + 0.2 * k), th.accent, th.ink, { align: "center" });
-      g.restore();
+      pill(g, word, x, ply + plh - 15, 17, th.accent, th.ink, { align: "center", weight: 850 });
     } else if (seat.last && o.live && !(o.finished && S.st.phase === "result")) {
-      pill(g, String(seat.last), x, below ? y - 62 : y + 66, 16, "rgba(0,0,0,.7)", INK2, { align: "center" });
+      txt(g, String(seat.last), x, ply + plh - 9, 16, P.light ? P.ink2 : INK2, { align: "center", weight: 800, spacing: 1, shadow: false, alpha });
     }
-    if (seat.folded) txt(g, "FOLDED", x, y + 8, 22, INK2, { align: "center", weight: 900 });
+    if (seat.folded) pill(g, o.foldWord || "FOLDED", x, y, 18, "rgba(10,10,14,.86)", INK2, { align: "center", weight: 850 });
   }
 
   function pokerLobby(S, g, t, needs) {
@@ -5476,12 +5834,38 @@
       txt(g, `${n} in · at least two to deal · ${needs}`, PK.cx, PK.cy + 50, 26, INK2, { align: "center", weight: 650 });
     }
   }
+  /** The deck on the felt while the hand is shuffled and dealt (a few offset backs). */
+  function pokerDeck(S, g, m) {
+    const [x, y] = deckXY(m.n, m.dealerIdx);
+    const back = cardBack(S);
+    for (let i = 0; i < 4; i++) drawCard(S, g, "back", x - i * 1.5, y - i * 2.5, CARD_S[0], CARD_S[1], { down: true, back, rot: -0.12 });
+  }
 
   const pokerClip = () => `ellipse(${PK.rx}px ${PK.ry}px at ${PK.cx}px ${PK.cy}px)`;
-  const holdem = makeScene({
+  /** What both poker tables share: the oval, the deal / show sprites and the redraw rule. */
+  function pokerDef(def, ncards, dealerOf, withShow) {
+    const m = (S) => S.fx.m || (S.fx.m = pokerMotion(S, ncards, -1, withShow));
+    return Object.assign({
+      feltClip: pokerClip,
+      bgKey: (S) => String(pokerSeats(S).seats.length), // the engraved title depends on where the seats are
+      overlays(S, root) {
+        S.cardBox = document.createElement("div");
+        Object.assign(S.cardBox.style, { position: "absolute", left: "0px", top: "0px", width: "0px", height: "0px", pointerEvents: "none" });
+        root.appendChild(S.cardBox);
+      },
+      move(S) {
+        const { seats } = pokerSeats(S);
+        S.fx.m = pokerMotion(S, ncards, dealerOf(S, seats), withShow);
+        pokerFrame(S, S.fx.m);
+      },
+      key: (S) => pokerKey(S, m(S)),
+      bannerY: 340, // the moment's banner and ticker clear of the bottom seat's hand
+      slowHz: () => 0, // the turn clocks sweep in their own canvases; the table redraws on change only
+    }, def);
+  }
+  const holdem = makeScene(pokerDef({
     id: "casino-holdem",
     app: "casino_holdem",
-    feltClip: pokerClip,
     bg(S, g) {
       pokerBg(S, g, "TEXAS HOLD'EM");
     },
@@ -5500,6 +5884,7 @@
       const th = S.th;
       const tb = obj(st.table);
       const { live, seats } = pokerSeats(S);
+      const m = S.fx.m || pokerMotion(S, 2, -1, false);
       const result = st.phase === "result" || tb.finished;
       const winSet = new Set(arr(tb.winners).map((w) => String(w.seat)));
       const best = new Set();
@@ -5514,6 +5899,7 @@
           drawCard(S, g, board[i], f.x, f.y, 104, 146, { flip: f.flip, glow: best.has(board[i]) ? th.accent : null, dim: result && best.size && !best.has(board[i]) ? 0.35 : 0 });
         }
       }
+      if (m.deal) pokerDeck(S, g, m);
       if (live) {
         const pots = arr(tb.pots);
         const pot = num(tb.pot);
@@ -5524,7 +5910,7 @@
       const showdown = obj(tb.showdown);
       seats.forEach((s, i) => {
         pokerSeat(S, g, t, s, i, seats.length, {
-          live, ncards: 2, showdown, best, finished: !!tb.finished, winners: result ? winSet : null,
+          live, ncards: 2, showdown, best, finished: !!tb.finished, winners: result ? winSet : null, motion: m, synced: synced(S),
           tags: (seat) => {
             const out = [];
             if (live && String(tb.button_seat) === String(seat.seat)) out.push({ text: "D", bg: "#f6f0e0", fg: "#111" });
@@ -5554,12 +5940,11 @@
       txt(g, `HAND #${num(tb.hand)} · BLINDS ${arr(tb.blinds).join("/")}`, 1500, 50, 22, roomInk(INK2), { align: "right", weight: 800, shadow: !P.light });
       arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, roomInk(i === all.length - 1 ? INK1 : INK3), { weight: 650, shadow: !P.light }));
     },
-  });
+  }, 2, (S, seats) => seats.findIndex((s) => String(s.seat) === String(obj(S.st.table).button_seat)), false));
 
-  const teenpatti = makeScene({
+  const teenpatti = makeScene(pokerDef({
     id: "casino-teenpatti",
     app: "casino_teenpatti",
-    feltClip: pokerClip,
     bg(S, g) {
       pokerBg(S, g, "TEEN PATTI");
     },
@@ -5578,20 +5963,21 @@
       const th = S.th;
       const tb = obj(st.table);
       const { live, seats } = pokerSeats(S);
+      const m = S.fx.m || pokerMotion(S, 3, -1, true);
       const result = st.phase === "result" || tb.finished;
       const winSet = new Set(arr(tb.winners).map((w) => String(w.seat)));
+      // the winning hand glows once every hand of the show has turned (at once on a screen without the clock)
+      const glowShow = !!tb.finished && (!m.show || m.show.age >= m.show.glow - SHOW.GLOW);
+      if (m.deal || st.phase === "locked") pokerDeck(S, g, m);
       if (live) {
         if (num(tb.pot) > 0) stack(S, g, PK.cx - 80, PK.cy - 20, 30, num(tb.pot), th.accent);
         txt(g, `POT ${fmt(S, tb.pot)}`, PK.cx - 38, PK.cy - 6, 40, INK1, { font: "mono", weight: 800 });
         txt(g, `BOOT ${fmt(S, tb.boot)} · STAKE ${fmt(S, tb.stake)}`, PK.cx, PK.cy + 44, 24, INK2, { align: "center", weight: 750 });
-        const hands = obj(tb.hands);
-        if (result && Object.keys(hands).length) {
-          txt(g, Object.entries(hands).map(([s, h]) => `${playerOf(S, s).name || `P${s}`}: ${h}`).join("   ·   "), PK.cx, PK.cy + 90, 24, th.accent_hi, { align: "center", weight: 750, maxW: 900 });
-        }
       } else pokerLobby(S, g, t, `boot ${fmt(S, num(st.buy_in))}`);
       seats.forEach((s, i) => {
         pokerSeat(S, g, t, s, i, seats.length, {
-          live, ncards: 3, showdown: obj(tb.showdown), best: null, finished: !!tb.finished, winners: result ? winSet : null,
+          live, ncards: 3, showdown: obj(tb.showdown), best: null, finished: !!tb.finished, winners: glowShow ? winSet : null,
+          motion: m, synced: synced(S), flipSynced: synced(S), glowShow, hands: obj(tb.hands), foldWord: "PACKED",
           tags: (seat) => {
             const out = [];
             if (live && seat.dealer) out.push({ text: "D", bg: "#f6f0e0", fg: "#111" });
@@ -5609,12 +5995,13 @@
       if (ss) banner = `${playerOf(S, ss.from).name || "?"} asks ${playerOf(S, ss.to).name || "?"} for a SIDESHOW · ${num(ss.in)}s`;
       else if (ev.kind === "sideshow") banner = `SIDESHOW: ${playerOf(S, ev.loser).name || "?"} packs`;
       else if (ev.kind === "refused") banner = `${playerOf(S, ev.with).name || "?"} refused the sideshow`;
-      else if (ev.kind === "show") banner = ev.tie ? "SHOW — a tie: the asker loses" : `SHOW — ${playerOf(S, ev.winner).name || "?"} wins it`;
-      if (banner && live) pill(g, banner, PK.cx, PK.cy - 120, 26, rgba(th.accent, 0.92), th.ink, { align: "center" });
+      else if (ev.kind === "show") banner = !glowShow ? "SHOW!" : ev.tie ? "SHOW — a tie: the asker loses" : `SHOW — ${playerOf(S, ev.winner).name || "?"} wins it`; // the winner only once the hands have turned
+      if (banner && live && st.phase !== "result") pill(g, banner, PK.cx, PK.cy - 120, 26, rgba(th.accent, 0.92), th.ink, { align: "center" });
       drawHeadline(S, g, 40, 20, 470, t, headline(S, t, (p) => {
         if (p === "betting") return { title: "NEXT HAND", sub: `Boot ${fmt(S, num(st.buy_in))} · hand #${num(tb.hand) + 1}`, tone: th.accent };
         if (p === "locked" || p === "dealing" || p === "action") {
-          if (tb.finished) return { title: "SHOW", sub: "", tone: th.accent };
+          if (tb.finished) return { title: "SHOW", sub: "The hands turn over", tone: th.accent };
+          if (m.deal || p === "locked") return { title: "DEALING", sub: "Three cards each, face down", tone: th.accent_hi };
           const who = tb.turn_seat != null ? playerOf(S, tb.turn_seat) : null;
           return { title: who ? `${who.name || `P${tb.turn_seat}`} TO ACT` : "DEALING", sub: "Chaal, raise, show or pack", tone: who ? seatColor(S, tb.turn_seat) : th.accent_hi };
         }
@@ -5627,11 +6014,21 @@
       txt(g, `HAND #${num(tb.hand)}`, 1500, 50, 22, roomInk(INK2), { align: "right", weight: 800, shadow: !P.light });
       arr(tb.log).slice(-5).forEach((line, i, all) => txt(g, line, 40, 960 - (all.length - 1 - i) * 30, 22, roomInk(i === all.length - 1 ? INK1 : INK3), { weight: 650, shadow: !P.light }));
     },
-  });
+  }, 3, (S, seats) => seats.findIndex((s) => s.dealer), true));
 
   // ================================================================================================ HOUSIE
-  const HB = { x: 40, y: 120, cw: 86, ch: 92 };
-  const HBALL = [1190, 290];
+  // The 1–90 board on the left (inside the felt), the draw on the right: a brass wire cage that tumbles its balls as a
+  // call comes, the drawn ball rolling down a rail into the cradle, the number stamped onto the board, the prizes
+  // under it — and a ribbon for every verified claim. Timing is the engine's: the next call (clock.call_at), the call
+  // just made (clock.called_at) and the latest claim (clock.claim_at), on the shared clock, so every screen drops
+  // the same ball in the same frame. The number itself is only ever the one the engine has called (status.housie).
+  const HB = { x: 62, y: 166, cw: 76, ch: 80 };
+  const HZ = 878; // the right-hand zone: x from here to the felt's edge (≈ 1476)
+  const CAGE = { x: 1010, y: 296, r: 126 };
+  const HERO = { x: 1338, y: 286, r: 100 };
+  const RAIL = { x0: 1102, y0: 402, x1: 1236, y1: 440 };
+  const HOUSIE_T = { SPIN0: 1.4, SPIN1: 1.0, TURNS: 3, EXIT: 0.3, ROLL: 0.95, HOP: 1.3, STAMP: 1.55, CLAIM: 3.6 };
+  const TUMBLE = 9;
   function housieCell(n) {
     const i = n - 1;
     return [HB.x + (i % 10) * HB.cw, HB.y + Math.floor(i / 10) * HB.ch];
@@ -5665,12 +6062,147 @@
     g.fillStyle = gr;
     g.fill();
     g.restore();
+    if (n == null) return; // a tumbling ball: its number faces away
     circle(g, x, y, r * 0.62);
     g.fillStyle = "#fbf8f1";
     g.fill();
     txt(g, String(n), x, y + r * 0.22, r * (n >= 10 ? 0.6 : 0.72), "#15151c", { align: "center", weight: 900, shadow: false });
   }
   const housieColor = (n) => ["#e0263c", "#ff7419", "#e0a800", "#3ddc84", "#33d1ff", "#1f6fff", "#a64dff", "#ff3f78", "#12b35a"][Math.min(8, Math.floor(n / 10))];
+
+  /**
+   * The cage's turn (radians) at engine time T: at rest between calls; around each call it winds up over SPIN0 s,
+   * the ball drops at the call, and it runs down over SPIN1 s — TURNS whole turns per call (a smootherstep), so it
+   * always comes to rest square. `calls` are the call moments near T (the last one made, the next one due).
+   * → {a, w}: the angle and its speed (rad/s).
+   */
+  function cageTurn(T, calls) {
+    const span = HOUSIE_T.SPIN0 + HOUSIE_T.SPIN1;
+    for (const c of calls) {
+      if (typeof c !== "number") continue;
+      const u = (T - c + HOUSIE_T.SPIN0) / span;
+      if (u <= 0 || u >= 1) continue;
+      const s = u * u * u * (u * (u * 6 - 15) + 10);
+      const ds = (30 * u * u * (u - 1) * (u - 1)) / span;
+      return { a: TAU * HOUSIE_T.TURNS * s, w: TAU * HOUSIE_T.TURNS * ds };
+    }
+    return { a: 0, w: 0 };
+  }
+  /**
+   * The drawn ball `age` s after its call: out of the cage's mouth, down the rail (rolling), a hop into the cradle
+   * where it grows to the hero size. → {x, y, s (scale of the hero sprite), rot, op} or null before the call.
+   */
+  function heroPath(age) {
+    if (age == null || age < 0) return null;
+    const T = HOUSIE_T;
+    const small = 24 / HERO.r;
+    if (age < T.EXIT) {
+      const u = easeIn(age / T.EXIT);
+      return { x: lerp(CAGE.x + 30, RAIL.x0, u), y: lerp(CAGE.y + 40, RAIL.y0, u), s: small, rot: u * 2, op: clamp(age / 0.08, 0, 1) };
+    }
+    if (age < T.ROLL) {
+      const u = (age - T.EXIT) / (T.ROLL - T.EXIT);
+      const e = u * (0.6 + 0.4 * u); // it gathers speed down the slope
+      const x = lerp(RAIL.x0, RAIL.x1, e);
+      const y = lerp(RAIL.y0, RAIL.y1, e) - Math.abs(Math.sin(u * Math.PI * 3)) * 6 * (1 - u);
+      return { x, y, s: small, rot: 2 + Math.hypot(x - RAIL.x0, y - RAIL.y0) / 24, op: 1 };
+    }
+    const r0 = 2 + Math.hypot(RAIL.x1 - RAIL.x0, RAIL.y1 - RAIL.y0) / 24;
+    const u = clamp((age - T.ROLL) / (T.HOP - T.ROLL), 0, 1);
+    const e = easeOut(u);
+    const back = easeOutBack(u);
+    return {
+      x: lerp(RAIL.x1, HERO.x, e),
+      y: lerp(RAIL.y1, HERO.y, e) - Math.sin(u * Math.PI) * 70,
+      s: lerp(small, 1, back),
+      rot: wrapPi(r0) * (1 - e), // it spins square as it settles: the number reads upright
+      op: 1,
+    };
+  }
+  /** The engine's call / claim moments as ages on this screen (synced clock, else local fallbacks). */
+  function housieAges(S) {
+    const ck = obj(S.st.clock);
+    const on = synced(S);
+    const callAge = on && typeof ck.called_at === "number" ? S.T - ck.called_at : S.fx.callAt != null ? S.t - S.fx.callAt : null;
+    const claimAge = on && typeof ck.claim_at === "number" ? S.T - ck.claim_at : S.fx.claimAt != null ? S.t - S.fx.claimAt : null;
+    return { callAge, claimAge };
+  }
+  /** The claim ribbon's tier: lines are big, the full house is the jackpot. */
+  const claimTier = (prize) => (prize === "full" ? "jackpot" : prize === "top" || prize === "middle" || prize === "bottom" ? "big" : "win");
+  const RIB = { w: 820, h: 210 };
+  function ribbonPaint(S, name, who, color, prize) {
+    const L = S.L.claim;
+    const key = `${name}|${who}|${color}|${prize}`;
+    if (L.key === key) return;
+    L.key = key;
+    const T = TIERS[claimTier(prize)];
+    const l = L.rib;
+    const g = l.g;
+    g.setTransform(l.k, 0, 0, l.k, 0, 0);
+    g.clearRect(0, 0, RIB.w, RIB.h);
+    const cx = RIB.w / 2;
+    const cy = 88;
+    g.save();
+    g.beginPath();
+    g.moveTo(80, cy - 62);
+    g.lineTo(RIB.w - 80, cy - 62);
+    g.lineTo(RIB.w - 34, cy);
+    g.lineTo(RIB.w - 80, cy + 62);
+    g.lineTo(80, cy + 62);
+    g.lineTo(34, cy);
+    g.closePath();
+    softStroke(g, 0, 24, "#000", 0.7, 0, 10, 5);
+    const rb = g.createLinearGradient(0, cy - 62, 0, cy + 62);
+    rb.addColorStop(0, shade(T.c[3], 1.6));
+    rb.addColorStop(0.5, T.c[3]);
+    rb.addColorStop(1, shade(T.c[3], 0.6));
+    g.fillStyle = rb;
+    g.fill();
+    g.lineWidth = 4;
+    g.strokeStyle = T.c[1];
+    g.stroke();
+    g.restore();
+    const word = `${String(name).toUpperCase()}!`;
+    g.save();
+    g.font = `italic 900 84px ${FONT}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.lineJoin = "round";
+    g.strokeStyle = T.glow;
+    for (let i = 3; i >= 1; i--) {
+      g.globalAlpha = 0.12;
+      g.lineWidth = 10 + i * 12;
+      g.strokeText(word, cx, cy, RIB.w - 150);
+    }
+    g.globalAlpha = 1;
+    g.lineWidth = 12;
+    g.strokeStyle = shade(T.c[3], 0.7);
+    g.strokeText(word, cx, cy, RIB.w - 150);
+    g.lineWidth = 5;
+    g.strokeStyle = T.c[0];
+    g.strokeText(word, cx, cy, RIB.w - 150);
+    const mg = g.createLinearGradient(0, cy - 42, 0, cy + 42);
+    mg.addColorStop(0, T.c[0]);
+    mg.addColorStop(0.45, T.c[1]);
+    mg.addColorStop(0.55, T.c[2]);
+    mg.addColorStop(1, T.c[1]);
+    g.fillStyle = mg;
+    g.fillText(word, cx, cy, RIB.w - 150);
+    g.restore();
+    // who claimed it, on a dark lozenge in their colour
+    const sub = `${who || "?"} claims it`;
+    g.font = `850 30px ${FONT}`;
+    const sw = Math.min(RIB.w - 200, (g.measureText(sub).width || sub.length * 16) + 56);
+    rr(g, cx - sw / 2, cy + 70, sw, 46, 23);
+    g.fillStyle = "rgba(10,10,14,.92)";
+    g.fill();
+    g.lineWidth = 2;
+    g.strokeStyle = color || T.c[1];
+    g.stroke();
+    txt(g, sub, cx, cy + 104, 30, color || INK1, { align: "center", weight: 850, shadow: false, maxW: sw - 30 });
+    l.show();
+  }
+
   const housie = makeScene({
     id: "casino-housie",
     app: "casino_housie",
@@ -5683,23 +6215,242 @@
       }
       // call_in is exact to 0.1 s: the next call is due at stateAt + call_in
       S.fx.nextCall = typeof h.call_in === "number" ? t + h.call_in : null;
+      // the latest claim (fallback without clock.claim_at: its age when the state was built)
+      const fl = obj(h.flash);
+      const fk = fl.name ? `${fl.prize}|${fl.seat}` : "";
+      if (fk !== S.fx.claimKey) {
+        S.fx.claimKey = fk;
+        S.fx.claimAt = fl.name ? t - num(fl.age) : null;
+      }
     },
+    // the cage: its tumbling balls under the turning wire drum; the drawn ball (two sprites: the one arriving, the
+    // one leaving the cradle); the claim ribbon over the board
+    layers(S, root) {
+      const k = wheelK();
+      const D = Math.ceil(17 * 2.8);
+      S.fx.tumble = [];
+      for (let i = 0; i < TUMBLE; i++) {
+        const l = layer(root, 0, 0, D, D, k, true, true);
+        ballRaw(l.g, D / 2, D / 2, 17, null, housieColor(1 + Math.floor(hash01(`tb${i}`) * 89)));
+        S.fx.tumble.push(l);
+      }
+      const W = 2 * CAGE.r + 16;
+      S.L.drum = layer(root, CAGE.x - W / 2, CAGE.y - W / 2, W, W, k, true, true);
+      const g = S.L.drum.g;
+      g.save();
+      g.translate(W / 2, W / 2);
+      const brass = (lw, a) => {
+        g.lineWidth = lw;
+        g.strokeStyle = `rgba(230,196,106,${a})`;
+      };
+      // the wire drum: two rims, spokes, a lattice of wires (seen face on, it turns about its axle)
+      g.shadowColor = "rgba(0,0,0,.5)";
+      g.shadowBlur = 3;
+      g.shadowOffsetY = 1;
+      brass(7, 1);
+      circle(g, 0, 0, CAGE.r);
+      g.stroke();
+      brass(3, 0.8);
+      circle(g, 0, 0, CAGE.r - 14);
+      g.stroke();
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * TAU;
+        brass(i % 3 ? 2 : 4, i % 3 ? 0.55 : 0.95);
+        g.beginPath();
+        g.moveTo(Math.cos(a) * 16, Math.sin(a) * 16);
+        g.lineTo(Math.cos(a) * CAGE.r, Math.sin(a) * CAGE.r);
+        g.stroke();
+      }
+      brass(1.5, 0.35);
+      for (const rr0 of [42, 70, 98]) {
+        circle(g, 0, 0, rr0);
+        g.stroke();
+      }
+      // the hatch the balls leave by, and the hub
+      brass(5, 1);
+      g.beginPath();
+      g.arc(0, 0, CAGE.r, -0.2, 0.2);
+      g.stroke();
+      g.shadowBlur = 0;
+      circle(g, 0, 0, 16);
+      const hg = g.createRadialGradient(-5, -6, 1, 0, 0, 16);
+      hg.addColorStop(0, "#fff6d0");
+      hg.addColorStop(0.5, "#e6c46a");
+      hg.addColorStop(1, "#6a4712");
+      g.fillStyle = hg;
+      g.fill();
+      g.restore();
+      const H = 2 * HERO.r + 40;
+      S.L.hero = [0, 1].map(() => {
+        const l = layer(root, 0, 0, H, H, k, true, true);
+        l.c.style.display = "none";
+        l.cache = { display: "none" };
+        return l;
+      });
+      S.L.heroN = [null, null];
+    },
+    overlays(S, root) {
+      stampLayers(S, root, "dab");
+      const rib = layer(root, 0, 0, RIB.w, RIB.h, Math.min(tableK(), 1.25), true);
+      rib.c.style.display = "none";
+      rib.cache = { display: "none" };
+      const burst = layer(root, 0, 0, BURST, BURST, 1, false);
+      burst.c.style.display = "none";
+      S.L.claim = { rib, burst, key: null };
+    },
+    move(S) {
+      const st = S.st;
+      const h = obj(st.housie);
+      const ck = obj(st.clock);
+      const calls = arr(h.calls);
+      const last = calls[calls.length - 1];
+      const { callAge, claimAge } = housieAges(S);
+      const playing = st.phase === "dealing" || st.phase === "result";
+      // the cage: winds up toward the next call, drops the ball at the call, runs down
+      const cg = synced(S)
+        ? cageTurn(S.T, [ck.called_at, ck.call_at])
+        : cageTurn(S.t, [S.fx.callAt, S.fx.nextCall]);
+      const spin = playing ? cg : { a: 0, w: 0 };
+      const dtf = `rotate(${spin.a.toFixed(3)}rad)`;
+      if (S.fx.drumTf !== dtf) S.L.drum.c.style.transform = S.fx.drumTf = dtf;
+      const kk = clamp(spin.w / 6, 0, 1); // 0: the balls lie in a heap; 1: they ride the drum
+      const D = Math.ceil(17 * 2.8);
+      S.fx.tumble.forEach((l, i) => {
+        const h1 = hash01(`tb${i}a`);
+        const h2 = hash01(`tb${i}b`);
+        const pile = [CAGE.x + (i - (TUMBLE - 1) / 2) * 22 + (i % 2) * 6, CAGE.y + CAGE.r - 34 - (i % 3) * 18 - Math.abs(i - 4) * -3];
+        const a = spin.a * (0.75 + 0.25 * h1) + h2 * TAU;
+        const rad = CAGE.r * (0.35 + 0.42 * h1) + 8 * Math.sin(spin.a * 1.7 + i);
+        const orbit = [CAGE.x + Math.cos(a) * rad, CAGE.y + Math.sin(a) * rad];
+        const x = lerp(pile[0], orbit[0], kk);
+        const y = lerp(pile[1], orbit[1], kk);
+        moveLayer(l, `translate(${(x - D / 2).toFixed(1)}px,${(y - D / 2).toFixed(1)}px)`, "1");
+      });
+      // the drawn ball, and the one before it leaving the cradle
+      const idx = calls.length % 2;
+      const cur = S.L.hero[idx];
+      const old = S.L.hero[1 - idx];
+      const H = 2 * HERO.r + 40;
+      const paintHero = (l, slot, n) => {
+        if (S.L.heroN[slot] === n) return;
+        S.L.heroN[slot] = n;
+        l.g.setTransform(l.k, 0, 0, l.k, 0, 0);
+        l.g.clearRect(0, 0, H, H);
+        if (n != null) ballRaw(l.g, H / 2, H / 2, HERO.r, n, housieColor(n));
+      };
+      const p = playing && last != null ? heroPath(callAge == null ? 9 : callAge) : null;
+      if (p) {
+        paintHero(cur, idx, last);
+        moveLayer(cur, `translate(${(p.x - H / 2).toFixed(1)}px,${(p.y - H / 2).toFixed(1)}px) rotate(${p.rot.toFixed(3)}rad) scale(${p.s.toFixed(3)})`, p.op.toFixed(3));
+      } else hideLayer(cur);
+      const prev = calls[calls.length - 2];
+      const ou = callAge == null ? 1 : clamp(callAge / 0.35, 0, 1);
+      if (p && prev != null && ou < 1) {
+        paintHero(old, 1 - idx, prev);
+        moveLayer(old, `translate(${(HERO.x - H / 2).toFixed(1)}px,${(HERO.y - H / 2 + 40 * ou).toFixed(1)}px) scale(${(1 - 0.4 * ou).toFixed(3)})`, (1 - ou).toFixed(3));
+      } else hideLayer(old);
+      // the number stamped on the board
+      S.fx.stamped = callAge == null || callAge >= HOUSIE_T.STAMP;
+      if (playing && last != null && callAge != null && callAge < 30) {
+        const [x, y] = housieCell(last);
+        stampPaint(S, "dab", String(last), housieColor(last));
+        stampMove(S, "dab", x + HB.cw / 2, y + HB.ch / 2, callAge - HOUSIE_T.STAMP, 84, -0.12);
+      } else stampMove(S, "dab", 0, 0, null);
+      // a verified claim: the ribbon slams onto the board, sparks fly, it lifts away
+      const fl = obj(h.flash);
+      const C = S.L.claim;
+      const ca = fl.name && claimAge != null ? claimAge : null;
+      S.fx.claimOn = ca != null && ca >= 0 && ca < HOUSIE_T.CLAIM + 0.6;
+      if (S.fx.claimOn) {
+        ribbonPaint(S, fl.name, fl.who, fl.color, fl.prize);
+        const cx = HB.x + 5 * HB.cw;
+        const cy = HB.y + 4.5 * HB.ch;
+        const u = clamp(ca / 0.32, 0, 1);
+        const out = clamp((ca - HOUSIE_T.CLAIM) / 0.5, 0, 1);
+        const sc = (u < 1 ? 1.6 - 0.6 * easeOutBack(u) : 1 + 0.02 * Math.sin((ca - 0.32) * 5)) * (1 - 0.15 * out);
+        moveLayer(C.rib, `translate(${(cx - RIB.w / 2).toFixed(1)}px,${(cy - RIB.h / 2).toFixed(1)}px) scale(${sc.toFixed(3)})`, (clamp(u * 3, 0, 1) * (1 - out)).toFixed(3));
+        burstDraw(S, "claim", cx, cy - 20, ca - 0.12, fl.color || S.th.accent_hi || S.th.accent);
+      } else {
+        hideLayer(C.rib);
+        burstDraw(S, "claim", 0, 0, null);
+      }
+    },
+    key: (S) => `${S.fx.stamped ? 1 : 0}${S.fx.claimOn ? 1 : 0}${S.st.phase === "betting" ? `|${Math.ceil(num(leftTo(S, "ends_at", S.clk.ends, S.t), -1) - 1e-6)}` : ""}${S.st.phase !== "dealing" || obj(S.st.housie).called ? "" : `|${num(obj(S.st.housie).first_in)}`}`,
+    slowHz: () => 0, // the call countdown sweeps in its own canvas; the board redraws per call and per claim
     bg(S, g) {
       const th = S.th;
       rr(g, 18, 18, RAIL_X - 34, SH - 36, 60);
       luxTable(g, th, 760, 480, 1100, 36);
+      // the board: a dark inlaid panel with the numbers printed on it
       rr(g, HB.x - 10, HB.y - 10, 10 * HB.cw + 20, 9 * HB.ch + 20, 18);
       g.fillStyle = "rgba(0,0,0,.35)";
       g.fill();
+      g.lineWidth = 2;
+      g.strokeStyle = rgba(th.accent, 0.35);
+      g.stroke();
       for (let n = 1; n <= 90; n++) {
         const [x, y] = housieCell(n);
         rr(g, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
         g.fillStyle = "rgba(255,255,255,.05)";
         g.fill();
-        txt(g, String(n), x + HB.cw / 2, y + HB.ch / 2 + 13, 36, "rgba(255,255,255,.28)", { align: "center", weight: 800, shadow: false });
+        txt(g, String(n), x + HB.cw / 2, y + HB.ch / 2 + 12, 32, "rgba(255,255,255,.28)", { align: "center", weight: 800, shadow: false });
       }
-      txt(g, "HOUSIE", HB.x, 92, 44, th.accent, { weight: 900 });
-      txt(g, "PRIZES", 950, 560, 20, INK3, { weight: 800, shadow: false });
+      txt(g, "HOUSIE", HB.x - 4, 128, 46, th.accent, { weight: 700, font: "serif", gold: goldOn(), spacing: 4 });
+      // the cage's stand: two brass legs from the axle to a base, the drum's dark inside, the rail and the cradle
+      const brass = (lw) => {
+        const gr = g.createLinearGradient(0, CAGE.y - CAGE.r, 0, 460);
+        gr.addColorStop(0, "#f2d68a");
+        gr.addColorStop(0.5, "#b8892a");
+        gr.addColorStop(1, "#6a4712");
+        g.lineWidth = lw;
+        g.strokeStyle = gr;
+      };
+      g.save();
+      g.lineCap = "round";
+      g.beginPath();
+      g.ellipse(CAGE.x, 462, 150, 14, 0, 0, TAU);
+      g.fillStyle = "rgba(0,0,0,.35)";
+      g.fill();
+      brass(12);
+      g.beginPath();
+      g.moveTo(CAGE.x, CAGE.y);
+      g.lineTo(CAGE.x - 104, 454);
+      g.moveTo(CAGE.x, CAGE.y);
+      g.lineTo(CAGE.x + 104, 454);
+      g.stroke();
+      brass(14);
+      g.beginPath();
+      g.moveTo(CAGE.x - 132, 456);
+      g.lineTo(CAGE.x + 132, 456);
+      g.stroke();
+      circle(g, CAGE.x, CAGE.y, CAGE.r - 2);
+      const dg = g.createRadialGradient(CAGE.x - 30, CAGE.y - 40, 10, CAGE.x, CAGE.y, CAGE.r);
+      dg.addColorStop(0, "rgba(255,255,255,.10)");
+      dg.addColorStop(1, "rgba(0,0,0,.45)");
+      g.fillStyle = dg;
+      g.fill();
+      // the rail: a pair of brass rods from the hatch down to the cradle
+      brass(5);
+      for (const o of [-9, 9]) {
+        g.beginPath();
+        g.moveTo(RAIL.x0 - 6, RAIL.y0 + 14 + o * 0.3 + o);
+        g.lineTo(RAIL.x1 + 18, RAIL.y1 + 14 + o * 0.3 + o);
+        g.stroke();
+      }
+      // the cradle: a brass cup on a short pedestal under the hero ball
+      brass(10);
+      g.beginPath();
+      g.ellipse(HERO.x, HERO.y + HERO.r - 6, 70, 14, 0, 0, Math.PI);
+      g.stroke();
+      brass(16);
+      g.beginPath();
+      g.moveTo(HERO.x, HERO.y + HERO.r + 8);
+      g.lineTo(HERO.x, HERO.y + HERO.r + 40);
+      g.moveTo(HERO.x - 56, HERO.y + HERO.r + 44);
+      g.lineTo(HERO.x + 56, HERO.y + HERO.r + 44);
+      g.stroke();
+      g.restore();
+      txt(g, "PRIZES", HZ, 588, 20, INK3, { weight: 800, shadow: false, spacing: 2 });
     },
     railInfo(S, p) {
       const b = arr(obj(S.st.housie).buyers).find((x) => String(x.seat) === String(p.seat));
@@ -5714,17 +6465,16 @@
       const h = obj(st.housie);
       const calls = arr(h.calls);
       const last = calls[calls.length - 1];
-      const callAge = S.fx.callAt != null ? t - S.fx.callAt : 9;
-      const set = new Set(calls);
-      txt(g, `${calls.length} / 90 CALLED`, HB.x + 10 * HB.cw, 92, 26, INK2, { align: "right", font: "mono", weight: 750 });
-      for (const n of set) {
+      const ph = st.phase;
+      const playing = ph === "dealing" || ph === "result";
+      // the newest number is on the board once the stamp has hit it
+      const onBoard = new Set(S.fx.stamped || !playing ? calls : calls.slice(0, -1));
+      txt(g, `${onBoard.size} / 90 CALLED`, HB.x + 10 * HB.cw, 128, 26, INK2, { align: "right", font: "mono", weight: 750 });
+      for (const n of onBoard) {
         const [x, y] = housieCell(n);
         const isLast = n === last;
-        const k = isLast ? easeOut(callAge / 0.5) : 1;
-        g.save();
-        g.globalAlpha = k;
         if (isLast) {
-          glowFx(g, `hcell|${HB.cw}|${HB.ch}`, x + 4, y + 4, HB.cw - 8, HB.ch - 8, th.accent, 30 * (0.6 + 0.4 * Math.sin(t * 5)), (m) => {
+          glowFx(g, `hcell|${HB.cw}|${HB.ch}`, x + 4, y + 4, HB.cw - 8, HB.ch - 8, th.accent, 24, (m) => {
             rr(m, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
             m.fillStyle = "#000";
             m.fill();
@@ -5733,85 +6483,65 @@
         rr(g, x + 4, y + 4, HB.cw - 8, HB.ch - 8, 12);
         g.fillStyle = isLast ? th.accent : rgba(housieColor(n), 0.85);
         g.fill();
-        g.restore();
-        txt(g, String(n), x + HB.cw / 2, y + HB.ch / 2 + 13, 38, isLast ? th.ink : "#fff", { align: "center", weight: 900, shadow: false });
+        txt(g, String(n), x + HB.cw / 2, y + HB.ch / 2 + 12, 34, isLast ? th.ink : "#fff", { align: "center", weight: 900, shadow: false });
       }
-      // the ball and the caller
-      const ph = st.phase;
-      if (ph === "dealing" || ph === "result") {
-        if (last != null) {
-          const k = easeOut(callAge / 0.6);
-          const bounce = callAge < 0.8 ? Math.abs(Math.sin(callAge * 9)) * (1 - callAge / 0.8) * 40 : 0;
-          ball(g, HBALL[0], HBALL[1] - (1 - k) * 200 - bounce, 140, last, housieColor(last));
-          const left = S.fx.nextCall != null ? Math.max(0, S.fx.nextCall - t) : null;
-          if (left != null && ph === "dealing" && !h.finished) {
-            g.beginPath();
-            g.arc(HBALL[0], HBALL[1], 162, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(1 - left / num(h.pace, 6), 0, 1));
-            g.lineWidth = 8;
-            g.strokeStyle = rgba(th.accent, 0.8);
-            g.stroke();
-          }
-          txt(g, HOUSIE_NAMES[last] || `Number ${last}`, HBALL[0], HBALL[1] + 200, 30, th.accent_hi, { align: "center", weight: 750 });
-        } else {
-          const fl = h.first_in != null ? `FIRST CALL IN ${h.first_in}` : "LOOK AT YOUR TICKETS";
-          txt(g, fl, HBALL[0], HBALL[1], 40, th.accent, { align: "center", weight: 900 });
+      // the right-hand zone under the cage: the call's name, the last few balls — or the buy-in / waiting headline
+      const capY = 520;
+      if (playing && last != null) {
+        if (S.fx.stamped && ph === "dealing") txt(g, HOUSIE_NAMES[last] || `Number ${last}`, HERO.x, HERO.y + HERO.r + 86, 28, th.accent_hi, { align: "center", weight: 750, maxW: 300 });
+        // (no countdown ring round the ball: the cage winding up is the cue — and a big ring redrawn with its glow
+        // every frame cost a TV stick more than the whole draw)
+        const prev = calls.slice(0, -1).slice(-7).reverse();
+        if (ph === "dealing") prev.forEach((n, i) => ball(g, HZ + 30 + i * 80, capY + 20, 28, n, housieColor(n)));
+        else {
+          const ws = winners(S);
+          const line = ws.length ? `WINNERS  ${ws.slice(0, 3).map((w) => `${w.name || `P${w.seat}`} ${signed(S, num(w.net))}`).join("  ·  ")}` : "No full house: unclaimed prizes went back to the tickets";
+          txt(g, line, HZ, capY + 30, 24, ws.length ? th.accent_hi : INK2, { weight: 800, maxW: 1476 - HZ });
         }
-        calls.slice(-7, -1).reverse().forEach((n, i) => ball(g, 1000 + i * 82, 520 - 0, 32, n, housieColor(n)));
-      } else if (ph === "locked") {
-        txt(g, "TICKETS ARE DEALT", HBALL[0], HBALL[1], 40, th.accent, { align: "center", weight: 900 });
+      } else if (ph === "dealing") {
+        drawHeadline(S, g, HZ, capY - 42, 1476 - HZ, t, { title: h.first_in != null ? `FIRST CALL IN ${h.first_in}` : "LOOK AT YOUR TICKETS", sub: "The cage turns as each number comes", tone: th.accent }, { size: 44 });
       } else {
-        drawHeadline(S, g, 950, 140, 550, t, headline(S, t, (p) => {
+        drawHeadline(S, g, HZ, capY - 46, 1476 - HZ, t, headline(S, t, (p) => {
           if (p === "betting") {
             const left = leftTo(S, "ends_at", S.clk.ends, t);
             const span = num(obj(st.rules).buy_seconds, 45);
-            return { title: "BUY TICKETS", sub: `${fmt(S, h.price)} a ticket · up to ${num(h.max, 1)} each`, tone: th.accent, pulse: st.ends_in == null, ring: left != null ? { frac: left / span, label: Math.ceil(left - 1e-6), color: left < 6 ? BAD : th.accent, left, span, base: th.accent, low: BAD, lowBelow: 6 } : null };
+            return { title: "BUY TICKETS", sub: `${fmt(S, h.price)} a ticket · up to ${num(h.max, 1)} each`, tone: th.accent, ring: left != null ? { frac: left / span, label: Math.ceil(left - 1e-6), color: left < 6 ? BAD : th.accent, left, span, base: th.accent, low: BAD, lowBelow: 6 } : null };
           }
+          if (p === "locked") return { title: "TICKETS ARE DEALT", sub: "Check your numbers", tone: th.accent };
           return null;
-        }), { size: 56 });
-        txt(g, "POT", 950, 360, 22, INK3, { weight: 800, shadow: false });
-        txt(g, fmt(S, h.pot), 950, 430, 72, INK1, { font: "mono", weight: 800 });
-        txt(g, `${num(h.sold)} tickets sold`, 950, 470, 26, INK2, { weight: 650 });
+        }), { size: 44 });
       }
-      // prizes
+      if (!playing || last == null) {
+        // the pot in the cradle's place
+        txt(g, "POT", HERO.x, HERO.y - 50, 22, INK3, { align: "center", weight: 800, shadow: false, spacing: 2 });
+        txt(g, fmt(S, h.pot), HERO.x, HERO.y + 22, 72, INK1, { align: "center", font: "mono", weight: 800 });
+        txt(g, `${num(h.sold)} tickets sold`, HERO.x, HERO.y + 62, 24, INK2, { align: "center", weight: 650 });
+      }
+      // prizes: a row each — lit while its claim is celebrated, the winners' names once it is won
+      const fl = obj(h.flash);
       arr(h.prizes).forEach((pr, i) => {
-        const y = 580 + i * 50;
+        const y = 604 + i * 50;
         const won = pr.state === "won" || pr.state === "claimed";
-        rr(g, 950, y, 550, 44, 10);
-        g.fillStyle = won ? rgba(th.accent, 0.2) : "rgba(0,0,0,.28)";
+        const hot = S.fx.claimOn && fl.prize === pr.id;
+        if (hot) glowBox(g, HZ, y, 1476 - HZ, 44, th.accent, 1, 10);
+        rr(g, HZ, y, 1476 - HZ, 44, 10);
+        g.fillStyle = hot ? rgba(th.accent, 0.32) : won ? rgba(th.accent, 0.18) : "rgba(0,0,0,.28)";
         g.fill();
-        txt(g, pr.name, 966, y + 31, 24, won ? th.accent_hi : INK1, { weight: 800 });
-        txt(g, fmt(S, pr.amount), 1240, y + 31, 24, INK1, { align: "right", font: "mono", weight: 750 });
+        txt(g, pr.name, HZ + 16, y + 31, 24, won ? th.accent_hi : INK1, { weight: 800 });
+        txt(g, fmt(S, pr.amount), HZ + 290, y + 31, 24, INK1, { align: "right", font: "mono", weight: 750 });
         const ws = arr(pr.winners);
         if (ws.length) {
-          let x = 1262;
+          let x = HZ + 312;
           ws.slice(0, 3).forEach((w) => {
             circle(g, x + 10, y + 22, 10);
             g.fillStyle = w.color || seatColor(S, w.seat);
             g.fill();
-            txt(g, w.name || `P${w.seat}`, x + 26, y + 30, 20, w.color || INK1, { weight: 750, maxW: 70 });
-            x += 80;
+            txt(g, w.name || `P${w.seat}`, x + 26, y + 30, 20, w.color || INK1, { weight: 750, maxW: 60 });
+            x += 92;
           });
-        } else txt(g, pr.state === "open" ? "OPEN" : "", 1490, y + 30, 18, INK3, { align: "right", weight: 800 });
+        } else txt(g, pr.state === "open" ? "OPEN" : "", 1460, y + 30, 18, INK3, { align: "right", weight: 800 });
       });
-      // the claim flash
-      const fl = obj(h.flash);
-      const age = fl.age != null ? num(fl.age) + (t - (S.ctx.stateAt || t)) : 99;
-      if (fl.name && age < 4) {
-        const k = easeOut(age / 0.3);
-        g.save();
-        g.globalAlpha = age > 3.4 ? (4 - age) / 0.6 : 1;
-        rr(g, HB.x + 60, 400 - (1 - k) * 40, 740, 160, 26);
-        g.fillStyle = "rgba(10,10,14,.92)";
-        g.fill();
-        g.lineWidth = 4;
-        g.strokeStyle = fl.color || th.accent;
-        g.stroke();
-        txt(g, String(fl.name).toUpperCase(), HB.x + 430, 470 - (1 - k) * 40, 54, th.accent, { align: "center", weight: 900, glow: rgba(th.accent, 0.6) });
-        txt(g, `${fl.who || "?"} claims it!`, HB.x + 430, 520 - (1 - k) * 40, 34, fl.color || INK1, { align: "center", weight: 800 });
-        g.restore();
-      }
-      arr(h.bogeys).filter((b) => num(b.age) < 6).slice(-1).forEach((b) => pill(g, `BOGEY! ${b.name} — false ${b.prize} claim`, HB.x + 430, 960, 22, "rgba(255,77,94,.92)", "#fff", { align: "center" }));
-      if (ph === "result") winnersCard(S, g, 950, 140, 550, t, { delay: 0.6, max: 4, empty: "Unclaimed prizes went back to the tickets" });
+      arr(h.bogeys).filter((b) => num(b.age) < 6).slice(-1).forEach((b) => pill(g, `BOGEY! ${b.name} — false ${b.prize} claim`, HB.x + 380, 936, 22, "rgba(255,77,94,.92)", "#fff", { align: "center" }));
     },
   });
 
@@ -5826,8 +6556,9 @@
     const sp = obj(m.sprites).symbols ? m.sprites : obj(S.fx.lastSprites);
     const rows = arr(obj(sp.symbols)[ch]);
     const pal = arr(sp.palette);
-    const n = Math.max(1, rows.length);
-    const mm = makeCanvas(n * px, n * px, S.k);
+    const n = Math.max(1, rows.length) || 1;
+    const side = rows.length ? n * px : 8 * px; // no pixel art: the symbol's letter on a cell of the usual size
+    const mm = makeCanvas(side, side, S.k);
     rows.forEach((row, j) => {
       for (let i = 0; i < row.length; i++) {
         const v = row[i];
@@ -5843,7 +6574,7 @@
         mm.g.restore();
       }
     });
-    if (!rows.length && ch !== "_") txt(mm.g, ch, (n * px) / 2, (n * px) / 2 + 20, 60, "#fff", { align: "center" });
+    if (!rows.length && ch !== "_") txt(mm.g, ch, side / 2, side / 2 + side * 0.18, side * 0.5, "#fff", { align: "center", weight: 900 });
     S.fx.sprites.set(key, mm.c);
     return mm.c;
   }
@@ -6136,8 +6867,9 @@
   const API = {
     SCENES, Countdown, PhaseTracker, lockTime, parseCard, baccaratTotal, rouletteCovers, rouletteBoard, rouletteSpotXY,
     rouletteCenter, reelPos, bigRoad, hash01, hexRgb, shade, wrapPi, bjSeatXY, pokerSeatXY, EU_WHEEL, US_WHEEL,
-    B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
+    B6_WHEEL, B6, wheelStep, rouletteBallRel, panelR, b6Phi, b6Flap, B6_SEG, b6Tile, sevensDice, bacDealTimes, abPace, serverClock, sigOf,
     R_CX, R_CY, BX, BY, SEV, LADDER, RACK_MAX, chipRack, rackOf, breakInto, shortChip, chipStyle, pyRound,
+    cageTurn, heroPath, HOUSIE_T, HERO, CAGE, housieCell, claimTier, dealAt, dealEnd, dealOrder, showTimes, showFlip, showAnchor, pokerPlate, pokerCardXY, DEAL, SHOW, PK,
     winTier, tickerAt, MOMENT, TIERS, dollyPath, DOLLY_STYLES, DOLLY_REST, DOLLY_AFTER, odoPos, Odo, chipSetOf, CHIP_SETS,
     THEME_CHIP_SET, railSeat, previewDolly, previewChips, ROOMS,
   }; // fmt: skip
