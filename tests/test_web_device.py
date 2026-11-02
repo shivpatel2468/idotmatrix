@@ -132,7 +132,16 @@ async def test_frames_are_split_into_paced_packets_one_at_a_time() -> None:
         assert all(len(p) <= 100 for p, _, _ in page.packets)
         frame = [t for p, _, t in page.packets[-len(range(0, len(payload), 100)) :]]
         gaps = [b - a for a, b in itertools.pairwise(frame)]
-        assert gaps and min(gaps) >= 0.018, f"packets of one message must be paced: {gaps}"
+        # Tolerance: on this Python 3.11 build, time.monotonic() is GetTickCount64()-backed (~15.6 ms
+        # resolution — confirmed via time.get_clock_info("monotonic")), vs. 3.13's QueryPerformanceCounter
+        # (sub-microsecond). A real ~20 ms asyncio.sleep(packet_gap) can be *measured* as one coarse tick
+        # short if the two monotonic() samples straddle a tick boundary — the packets are still paced
+        # (the production code unconditionally awaits the full packet_gap), only the test's own clock
+        # reads one less. Allow one tick of slack rather than hard-coding a value tuned for a finer clock.
+        tick = time.get_clock_info("monotonic").resolution
+        assert gaps and min(gaps) >= dev.packet_gap - tick, (
+            f"packets of one message must be paced: {gaps} (tick={tick})"
+        )
         await _until(lambda: dev.info.frames_sent >= 1)
     finally:
         await dev.stop()
