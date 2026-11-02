@@ -11,10 +11,60 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.10.0 — 2 Nov 2026 · The TV casino comes alive: dealt cards, a real money wheel, the housie cage
+
+### New
+
+- **Teen Patti on the TV: the deal and the show**
+  - Before: the cards just appeared in front of each player, and at a show the hands were simply there, face up.
+  - Now: the dealer deals three cards to every seat, one at a time from the deck, starting on their left. At a show
+    the hands slide out and turn over card by card, then the winning hand lifts and glows with its name in gold.
+    Every screen deals and turns the same card at the same moment. Hold'em deals the same way.
+- **Big Six on the TV: a real money wheel**
+  - Before: a plain red pointer twitched at the top while the wheel turned.
+  - Now: a leather flapper on a brass pivot leans on each brass peg and snaps back, the wheel blurs at full speed and
+    sharpens as it slows, and the winning segment lights up under the flapper when it stops — in step with the panel.
+- **Housie on the TV: the cage, the ball and the stamp**
+  - Before: the number appeared in a big ball and its square lit up.
+  - Now: a brass cage tumbles its balls as each call comes, the drawn ball rolls down a rail into the cradle, and a
+    stamp marks the number on the board. Every prize claim gets its own banner — EARLY FIVE!, TOP LINE!, FULL HOUSE! —
+    with the player's name and a burst of sparks.
+
+### Better
+
+- **The game scenes on the TV stand in your table's room**
+  - Before: Snake, Pong, Tetris and the other games sat on a flat near-black page, whatever theme you picked.
+  - Now: the theme's felt glow and pattern show behind the panel, and the cards wear the table's colours.
+- **Nothing falls off the TV at the card tables**
+  - Before: the bottom player's name plate was cut off at the bottom of the screen, and the table's name sat under
+    their cards and chips.
+  - Now: every seat, plate and hand fits on screen; the last move shows on the player's plate, clear of the cards.
+- **A tidier Housie and Big Six board on the TV**
+  - Before: the housie board ran into the table's edge and labels overlapped the balls; big six's chips covered the
+    odds.
+  - Now: both boards sit inside the felt, every label has its own place, and the "no winners" note fits its card.
+
+### Fixed
+
+- **Smoother Teen Patti and Hold'em on TV sticks**
+  - Before: the card tables redrew the whole table four times a second, so they could stutter on a Fire TV.
+  - Now: they only redraw when something changes; the moving cards are light sprites.
+
 ## 3.9.0 — 31 Oct 2026 · Casino themes everywhere, the browser version catches up, smoother panel hand-over
 
 ### New
 
+- **Use the panel here — from any DeskDot**
+  - Before: to move the panel you had to find the app that had it, press Release there, then Reconnect on the
+    other one — and it often didn't connect until you unplugged the panel.
+  - Now: press Use the panel here on the laptop, the phone or the browser tab. DeskDot asks the one that has it to
+    let go, waits for the panel and connects, showing each step as it happens: Asking … to let go, Released, Waiting
+    for the panel, Connected. The other one says "Panel moved to …" with a Take it back button.
+- **See every DeskDot nearby**
+  - Before: the Connection sheet only knew about the DeskDot you were looking at.
+  - Now: it lists your laptop, phone and browser tab on the same Wi-Fi and which one has the panel. Pair two of them
+    once (both show the same 6-digit code, you press Allow) and they can hand the panel to each other from then on.
+    Only on home networks; turn it off with "Find other DeskDots on this network".
 - **Now Playing works in the browser**
   - Before: in the browser version Now Playing only said "not on web", because a web page can't see your music apps.
   - Now: tell it where your music is known — ListenBrainz (just your user name), Last.fm (your user name and a free
@@ -30,6 +80,13 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Better
 
+- **Letting go is clean**
+  - Before: releasing the panel cut it off mid-sentence — sometimes in the middle of sending an animation, which left
+    the panel blank for the next app.
+  - Now: DeskDot finishes what it's sending first, then disconnects properly.
+- **Only one DeskDot tries at a time**
+  - Before: two DeskDots could keep trying to connect at the same moment and get in each other's way.
+  - Now: while another DeskDot has the panel, the others wait quietly instead of retrying every few seconds.
 - **Everything from the last few updates is in the browser version**
   - Before: the browser version was stuck on an old version, without page themes, the paper panel, Liquid Glass,
     the TV view, the new casino touches or the 14 newest data apps.
@@ -65,6 +122,14 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Fixed
 
+- **The panel getting stuck until you unplug it**
+  - Before: after the link dropped, the panel often stayed invisible to every app for minutes or hours, because the
+    computer (or the phone) secretly kept an old connection open.
+  - Now: DeskDot closes every old connection properly, waits a moment for the panel to come back, and if it still
+    can't connect after a few tries it clears everything and waits for the panel by itself — no unplugging needed.
+- **The browser tab hanging on "Connecting…"**
+  - Before: a connect attempt in the browser could hang forever until you reloaded the page.
+  - Now: it gives up after 20 seconds and tries again.
 - **The Casino button at the top looks right again**
   - Before: with some themes the gold Casino button turned into a blurry pink-and-gold smudge.
   - Now: it is always a clean gold button, in light and dark, and the coin still drops when you press it.

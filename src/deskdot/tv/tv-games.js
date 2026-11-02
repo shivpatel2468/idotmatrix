@@ -589,6 +589,13 @@
 /* light mode (tv.js: html[data-theme=light]): the tokens above turn porcelain; players' colours as text deepen (same
    hue) to read on white; avatars keep a small dark plate; the countdown / banner sit over the dark panel as before */
 :root[data-theme="light"] .tvg{background:radial-gradient(1200px 900px at 22% 50%,rgba(255,255,255,.75),transparent 60%),var(--chassis-0)}
+/* in a table's room (stage[data-room], the default) the scene is see-through: the room's felt glow and motif show
+   behind the panel and the cards, which wear the casino's wings with the table's accent (DESIGN_TASTE.md §1) */
+#stage[data-room="1"] .tvg{background:radial-gradient(1200px 900px at 22% 50%,rgba(var(--accent-rgb),.08),transparent 60%)}
+:root[data-theme="light"] #stage[data-room="1"] .tvg{background:radial-gradient(1200px 900px at 22% 50%,rgba(255,255,255,.6),transparent 60%)}
+:root:not([data-theme="light"]) #stage[data-room="1"] :is(.tvg-stat,.tvg-seat,.tvg-duel,.tvg-opt,.tvg-pill,.tvg-bracket .m){
+  background:radial-gradient(120% 80% at 50% 0%,rgba(var(--accent-rgb),.07),transparent 60%),linear-gradient(180deg,color-mix(in srgb,var(--wing) 92%,transparent),color-mix(in srgb,var(--wing3) 94%,transparent));
+  border-color:rgba(var(--accent-rgb),.2)}
 :root[data-theme="light"] :is(.tvg-seat .nm,.tvg-team h3,.tvg-pick .col h4,.tvg-duel .sym,.tvg-duel .nm,.tvg-hand .nm){color:color-mix(in srgb,var(--c) 55%,#000);text-shadow:none}
 :root[data-theme="light"] .tvg-pill{color:color-mix(in srgb,var(--p) 55%,#000)}
 :root[data-theme="light"] .tvg-av{background:color-mix(in srgb,var(--c,#888) 9%,#fbf8f1);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c,#888) 35%,transparent),inset 0 1px 0 #fff;color:color-mix(in srgb,var(--c) 55%,#000)}

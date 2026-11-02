@@ -15,6 +15,9 @@ permission      the browser / OS refused Bluetooth access
 needs_user      the browser needs a click to pick the panel (Web Bluetooth's user gesture)
 link_lost       the link dropped; the device layer is reconnecting by itself
 released        the user released the panel (link off); nothing reconnects until they say so
+moved           released for another DeskDot that asked for it (hand-over, ADR 0015); "Take it back" undoes it
+elsewhere       another DeskDot nearby holds the panel (or is connecting); this one waits instead of retrying
+recovering      several attempts failed: resetting the Bluetooth session and waiting for the panel to advertise
 error           anything else
 ==============  ===========================================================================
 
@@ -36,6 +39,7 @@ _OTHER_APPS = {
 }
 
 _PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("moved", re.compile(r"^moved to ", re.I)),
     ("released", re.compile(r"disconnected from the studio|unlinked in the studio|released", re.I)),
     (
         "permission",
@@ -105,6 +109,12 @@ def hint(reason: str, kind: str = "ble") -> str:
         return "Press Pick panel and choose your IDM-… panel in the browser's list (browsers need one click)."
     if reason == "link_lost":
         return "The link dropped (panel unplugged, out of range or asleep). Reconnecting by itself — nothing to do."
+    if reason == "moved":
+        return "Another DeskDot asked for the panel and has it now. Press Take it back to bring it here."
+    if reason == "elsewhere":
+        return "Another DeskDot nearby has the panel. Press Use the panel here to move it here."
+    if reason == "recovering":
+        return "Several tries failed, so DeskDot is clearing old Bluetooth sessions and waiting for the panel to show up."
     if reason == "released":
         return "You released the panel, so other apps can connect to it. Press Connect to take it back here."
     return retry

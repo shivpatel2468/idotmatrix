@@ -13,7 +13,9 @@ Bridge contract (Kotlin `com.deskdot.app.BleBridge`, listener interface `com.des
 - `connect(address: String?, namePrefix: String, listener)` — scan (by MAC, or by advertised name prefix), connect,
   request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or `onConnectFailed(msg)`.
 - `write(data: byte[], withResponse: boolean, token: int)` — reports `onWriteDone(token, ok, msg)`.
-- `disconnect()` — close the GATT session (only on shutdown; the engine never disconnects voluntarily).
+- `disconnect()` — close the GATT session, or abort a connect in progress (a release, a timed-out attempt, a
+  recovery; the engine never disconnects voluntarily). Always `gatt.disconnect()` *then* `gatt.close()` once the
+  stack reports the disconnect, so the phone never keeps a ghost link to the panel.
 - unsolicited: `onNotify(data)` for every fa03 notification, `onDisconnected(msg)` when the link drops.
 """
 
@@ -122,9 +124,15 @@ class AndroidBleDevice(Device):
         try:
             address, name, write_size = await asyncio.wait_for(self._connect_future, CONNECT_TIMEOUT)
         except TimeoutError:
+            # Abort the bridge's attempt: left running, a late success would hold the panel for a Python side that
+            # gave up on it (a "ghost" connection — the panel stops advertising for every other app).
+            self._abort_bridge()
             raise ConnectionError(
                 "panel not found — is it powered, and not connected to the iDotMatrix phone app?"
             ) from None
+        except BaseException:
+            self._abort_bridge()
+            raise
         finally:
             self._connect_future = None
         self._link_up = True
@@ -136,11 +144,22 @@ class AndroidBleDevice(Device):
     async def _disconnect(self) -> None:
         was_up, self._link_up = self._link_up, False
         self._fail_writes("disconnected")
-        if was_up and self._bridge is not None:
-            try:
-                self._bridge.disconnect()
-            except Exception as e:  # pragma: no cover — defensive: the Java side may already be gone
-                log.debug("disconnect: %s", e)
+        if was_up:
+            self._abort_bridge()
+
+    async def _reset_stack(self) -> None:
+        """Recovery / failed attempt: the bridge closes (disconnect + close) any GATT object it still holds."""
+        self._link_up = False
+        self._fail_writes("disconnected")
+        self._abort_bridge()
+
+    def _abort_bridge(self) -> None:
+        if self._bridge is None:
+            return
+        try:
+            self._bridge.disconnect()
+        except Exception as e:  # pragma: no cover — defensive: the Java side may already be gone
+            log.debug("disconnect: %s", e)
 
     async def _write_packet(self, packet: bytes, response: bool) -> None:
         if not self._link_up or self._bridge is None:

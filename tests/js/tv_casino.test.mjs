@@ -65,9 +65,14 @@ function play(app, each, opts = {}) {
   assert.ok(scene, `a scene for ${app}`);
   const ctx = ctxFor(app);
   const snaps = FIX.statuses[app];
+  let t = snaps[0]._t;
+  if (opts.wall) {
+    // a live TV: the engine's clock (status.clock anchors are wall-clock times) = the fixture's own clock + WALL
+    ctx.now = () => t;
+    ctx.serverNow = () => t + WALL;
+  }
   ctx.status = snaps[0];
   scene.mount(element(), ctx);
-  let t = snaps[0]._t;
   for (let i = 0; i < snaps.length; i++) {
     const st = snaps[i];
     t = Math.max(t, st._t);
@@ -131,6 +136,7 @@ test("roulette: every spot of both wheels has a place on the layout and the righ
     Object.keys(FIX.tables.roulette_european).length, "no two spots share a point");
 });
 
+const WALL = 1_760_000_000; // dump_casino_status.py: time.time() = WALL + the table's fake clock
 const MOTION = JSON.parse(readFileSync(new URL("./fixtures/casino_motion.json", import.meta.url), "utf8"));
 const near = (a, b, eps, msg) => assert.ok(Math.abs(a - b) <= eps, `${msg}: ${a} vs ${b}`);
 const xyOf = (style) => {
@@ -579,4 +585,160 @@ test("menu previews: every dolly style and chip set draws into a small canvas", 
   for (const set of C.CHIP_SETS) C.previewChips(element(), set, 2);
   C.previewDolly(element(), "nope", 1);
   assert.deepEqual(bad, []);
+});
+
+// ------------------------------------------------------------------ 3.10: the deal, the show, the money wheel's flapper, the housie cage
+test("teen patti / hold'em: the deal runs from the lock on the shared clock, the dealer's left first, inside the deal beat", () => {
+  for (const [nc, beat] of [[3, 2.0], [2, 2.0]]) {
+    for (let n = 2; n <= 8; n++) {
+      let prev = -1;
+      for (let c = 0; c < nc; c++)
+        for (let j = 0; j < n; j++) {
+          const at = C.dealAt(c, j, n, nc);
+          assert.ok(at > prev && at >= 1, `card ${c} of seat ${j}/${n} after the one before`);
+          prev = at;
+        }
+      // casino/games/_pvp.py: the turn starts LOCK + deal_beat after the lock; the last card lands by then (+0.15 s)
+      assert.ok(C.dealEnd(n, nc) <= 1 + beat + 0.15, `${n} seats, ${nc} cards: the deal ends at ${C.dealEnd(n, nc)}`);
+    }
+  }
+  assert.deepEqual([...C.dealOrder(4, 1)], [2, 3, 0, 1], "the seat after the dealer first, the dealer last");
+  assert.deepEqual([...C.dealOrder(3, -1)], [0, 1, 2]);
+});
+
+test("poker tables: seats, plates and face-up hands stay on the stage and off each other", () => {
+  for (let n = 1; n <= 8; n++)
+    for (let i = 0; i < n; i++) {
+      const [px, py, pw, ph] = C.pokerPlate(i, n);
+      assert.ok(px >= 0 && px + pw <= 1530 && py >= 0 && py + ph <= 984, `plate ${i}/${n}: ${[px, py, pw, ph]}`);
+      const [x, y] = C.pokerSeatXY(i, n);
+      for (let c = 0; c < 3; c++) {
+        const [cx, cy] = C.pokerCardXY(i, n, c, 3, true);
+        // a face-up card (92 × 128) never covers its owner's avatar (r 44)
+        const dx = Math.max(Math.abs(cx - x) - 46, 0);
+        const dy = Math.max(Math.abs(cy - y) - 64, 0);
+        assert.ok(Math.hypot(dx, dy) > 30, `seat ${i}/${n} card ${c} clear of the avatar`);
+      }
+    }
+});
+
+test("teen patti: the show turns the hands over from the finish (reveal − end beat), the winner glows after", () => {
+  const snaps = FIX.statuses.casino_teenpatti;
+  const anchors = new Map();
+  for (const st of snaps) {
+    const at = C.showAnchor(st);
+    if (!st.table.finished || !Object.keys(st.table.showdown || {}).length) {
+      assert.equal(at, null, "no show without the engine's showdown");
+      continue;
+    }
+    const k = st.table.hand;
+    if (anchors.has(k)) near(at, anchors.get(k), 0.15, `hand ${k}: the same show moment from every status`);
+    else anchors.set(k, at);
+    // the show starts at the finish: the moment the phase turned to dealing with the hand decided
+    if (st.phase === "dealing") near(at, st.clock.phase_at, 0.11, `hand ${k}: show = finish`);
+  }
+  assert.ok(anchors.size >= 2);
+  const tm = C.showTimes(2, 3);
+  for (let si = 0; si < 2; si++)
+    for (let c = 0; c < 3; c++) {
+      assert.equal(C.showFlip(0, si, c), 0, "backs up at the start");
+      assert.equal(C.showFlip(tm.end, si, c), 1, "all faces up by the end");
+    }
+  assert.ok(C.showFlip(C.SHOW.LEAD + C.SHOW.TURN + 1e-9, 0, 0) === 1 && C.showFlip(C.SHOW.LEAD + C.SHOW.TURN, 1, 0) < 1, "one hand after the other");
+  assert.ok(tm.glow > tm.end && tm.end < C.SHOW.BEAT - 1, "the glow comes after the last card, well inside the end beat");
+});
+
+test("teen patti on a live TV: cards fly as sprites during the deal, faces only once shown, few table redraws", () => {
+  let dealFrames = 0;
+  let maxShown = 0;
+  let lastKey = null;
+  let redraws = 0;
+  let faceTooEarly = 0;
+  play("casino_teenpatti", (S, t, st) => {
+    const m = S.fx.m;
+    const pool = S.cardPool || [];
+    const shown = pool.filter((sp) => sp && sp.l.c.style.display !== "none");
+    if (m && m.deal) {
+      dealFrames++;
+      maxShown = Math.max(maxShown, shown.length);
+      if (S.lastKey !== lastKey) redraws++;
+      assert.ok(m.deal.since >= 1 || shown.length === 0, "nothing flies during the shuffle second");
+    }
+    lastKey = S.lastKey;
+    for (const sp of shown) if (String(sp.key).startsWith("f|") && !Object.keys(st.table.showdown || {}).length) faceTooEarly++;
+  }, { wall: true });
+  assert.ok(dealFrames > 100, `${dealFrames} deal frames`);
+  assert.ok(maxShown >= 9, `every hand dealt as sprites (${maxShown})`);
+  assert.ok(redraws <= 16, `the table layer redrew ${redraws}× during the deals`);
+  assert.equal(faceTooEarly, 0, "a face shows only once the engine has shown it");
+});
+
+test("big six: the flapper leans on each peg the panel kicks on, rings back, and falls straight once the wheel stops", () => {
+  const r = MOTION.bigsix[0];
+  const m0 = { end: r.end, travel: r.travel, stop: r.stop_s };
+  let pushes = 0;
+  for (let ts = 0; ts < r.stop_s; ts += 0.004) {
+    const phi = C.b6Phi(r.end, r.travel, r.stop_s, ts);
+    const f = ((((-phi % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / C.B6_SEG) % 1;
+    const bend = C.b6Flap({ ...m0, ts });
+    assert.ok(Number.isFinite(bend) && Math.abs(bend) < 0.5, `ts=${ts}`);
+    if (f < 0.05 && ts > 4) {
+      assert.ok(bend > 0.2, `leaning on the peg at ts=${ts.toFixed(3)} (f=${f.toFixed(3)}): ${bend}`);
+      pushes++;
+    }
+  }
+  assert.ok(pushes > 5);
+  near(C.b6Flap({ ...m0, ts: r.stop_s + 1.5 }), 0, 0.01, "straight after the stop");
+  assert.equal(C.b6Flap({ ...m0, ts: -0.5 }), 0, "still during the lock second");
+});
+
+test("big six on a live TV: the motion blur shows only at speed, the lit segment is the drawn one", () => {
+  let blurFrames = 0;
+  let litChecked = 0;
+  play("casino_bigsix", (S) => {
+    const rv = (S.ctx.tv || {}).reveal;
+    if (S.L.blur.c.style.display !== "none") blurFrames++;
+    if (rv && S.L.lit.c.style.display !== "none") {
+      // the lit wedge sits at 12 o'clock within the panel's ±0.3 segment rest offset
+      const deg = Number(/rotate\(([-\d.]+)deg\)/.exec(S.L.lit.c.style.transform)[1]);
+      const rad = (deg * Math.PI) / 180;
+      const off = Math.atan2(Math.sin(rad), Math.cos(rad));
+      assert.ok(Math.abs(off) <= 0.31 * C.B6_SEG + 1e-6, `lit wedge off by ${off}`);
+      litChecked++;
+    }
+  });
+  assert.ok(blurFrames > 60, `${blurFrames} blurred frames`);
+  assert.ok(litChecked > 30);
+});
+
+test("housie: the cage winds up to each call and rests square between; the ball rolls into the cradle without jumps", () => {
+  const C0 = 100;
+  assert.deepEqual({ ...C.cageTurn(C0 - 5, [C0]) }, { a: 0, w: 0 }, "at rest well before a call");
+  near(C.cageTurn(C0 + C.HOUSIE_T.SPIN1 - 1e-6, [C0]).a, 2 * Math.PI * C.HOUSIE_T.TURNS, 1e-3, "whole turns: it stops square");
+  assert.ok(C.cageTurn(C0, [C0]).w > 6, "turning fast as the ball drops");
+  let prev = null;
+  for (let a = 0; a <= 3; a += 1 / 60) {
+    const p = C.heroPath(a);
+    assert.ok(p && Number.isFinite(p.x + p.y + p.s + p.rot + p.op));
+    if (prev) assert.ok(Math.hypot(p.x - prev.x, p.y - prev.y) < 45, `no jump at ${a.toFixed(2)}s`);
+    prev = p;
+  }
+  assert.equal(C.heroPath(-0.1), null, "nothing before the call");
+  const end = C.heroPath(C.HOUSIE_T.HOP);
+  near(end.x, C.HERO.x, 1e-6, "in the cradle");
+  near(end.s, 1, 1e-6, "full size");
+  near(end.rot, 0, 1e-6, "number upright");
+  assert.ok(C.HOUSIE_T.STAMP > C.HOUSIE_T.HOP, "the board is stamped after the ball has landed");
+});
+
+test("housie on a live TV: the ball leaves the cage at the engine's call (clock.called_at), the board fills when the stamp hits", () => {
+  let checked = 0;
+  play("casino_housie", (S, t, st) => {
+    const ck = st.clock || {};
+    if (st.phase !== "dealing" || typeof ck.called_at !== "number") return;
+    const age = S.T - ck.called_at;
+    assert.equal(S.fx.stamped, age >= C.HOUSIE_T.STAMP, `stamped at ${age.toFixed(2)}`);
+    checked++;
+  }, { wall: true, maxGap: 4 });
+  assert.ok(checked > 100);
 });
