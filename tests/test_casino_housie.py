@@ -1,5 +1,5 @@
 """Housie (Tambola): valid tickets from the fair stream, claims verified for every prize, bogeys, ties, the pot /
-rake / credit conservation, the fair replay (Python and the phone's JavaScript), host pace, the panel and rulebook."""
+credit conservation (the whole pot is paid out), the fair replay (Python and the phone's JavaScript), host pace, the panel and rulebook."""
 
 from __future__ import annotations
 
@@ -204,7 +204,7 @@ def test_late_claim_after_the_next_call_is_refused() -> None:
 
 
 def test_tie_on_the_same_call_splits_the_prize() -> None:
-    _s, g, clk, (a, b, c) = table(n=3, ticket_price=11, rake=0)
+    _s, g, clk, (a, b, c) = table(n=3, ticket_price=11)
     for p in (a, b, c):
         g.handle(p, "buy", {"count": 1}, clk.t)
     start(g, clk)
@@ -222,16 +222,15 @@ def test_tie_on_the_same_call_splits_the_prize() -> None:
 
 
 # ------------------------------------------------------------------ money
-@pytest.mark.parametrize("rake", [0, 5, 20])
-def test_pot_rake_and_conservation(rake: int) -> None:
-    s, g, clk, pids = table(n=4, ticket_price=7, rake=rake, auto_claim=True)
+def test_whole_pot_is_paid_out_and_credits_conserved() -> None:
+    s, g, clk, pids = table(n=4, ticket_price=7, auto_claim=True)
     before = total_credits(s)
     for i, p in enumerate(pids):
         g.handle(p, "buy", {"count": 1 + i % 3}, clk.t)
     start(g, clk)
     pot = 7 * sum(1 + i % 3 for i in range(4))
-    assert g.pot == pot and g.rake_taken == pot * rake // 100
-    assert sum(g.amounts.values()) == g.pool == pot - g.rake_taken
+    assert g.pot == g.pool == pot  # no rake: the whole pot is the prize pool
+    assert sum(g.amounts.values()) == pot
     for _ in range(4000):
         clk.t += 0.5
         g.tick(clk.t)
@@ -239,8 +238,8 @@ def test_pot_rake_and_conservation(rake: int) -> None:
             break
     assert g.phase == "result" and "full" in g.claims
     res = g.result
-    assert res is not None and sum(v["net"] for v in res.payouts.values()) == -g.rake_taken
-    assert total_credits(s) == before - g.rake_taken
+    assert res is not None and sum(v["net"] for v in res.payouts.values()) == 0
+    assert sum(g.awards.values()) == pot and total_credits(s) == before
     assert all(w.escrow == 0 for w in s.bank.wallets.values())
 
 

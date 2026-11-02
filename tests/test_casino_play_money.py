@@ -47,10 +47,6 @@ GAME_TERMS = {
     "can_buy": "Housie: whether tickets (bets) are open",
     "buy_seconds": "Housie: how long tickets are on sale (the betting phase)",
 }
-#: KNOWN VIOLATION of the I-CAS-1 wording "no rake" (src/deskdot/casino/SPEC.md § Open questions): Hold'em and
-#: Housie have an optional host-set rake (default 0) that the house keeps out of the pot, in play credits. It isn't
-#: money, but it contradicts the spec; it stays listed here until the spec or the code changes.
-KNOWN_RAKE = {"rake", "rake_cap", "rake_percent"}
 
 
 def _tokens(name: str) -> set[str]:
@@ -190,7 +186,7 @@ async def test_phone_and_tv_payloads_carry_no_payment_fields(engine: Any, app_id
     await app.action("casino", {"player": 2, "op": "bet", "spot": "red", "amount": 10})
     payloads = [app.status(), app.private_status(2), app.private_status(3), app.host_view(True)]
     keys = set().union(*(_keys(p) for p in payloads))
-    bad = sorted(k for k in keys if _tokens(k) & MONEY_WORDS and k not in GAME_TERMS and k not in KNOWN_RAKE)
+    bad = sorted(k for k in keys if _tokens(k) & MONEY_WORDS and k not in GAME_TERMS)
     assert not bad, f"{app_id}: payload keys that look like payment data: {bad}"
     vals = [v for p in payloads for v in _credit_values(p)]
     assert vals, "no credits in the payloads? the check would prove nothing"

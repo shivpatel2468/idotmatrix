@@ -224,11 +224,11 @@ games) → result → idle`.
 | **Blackjack** | 1–8 deck shoe, cut card ≈ 75 % | blackjack 3:2 (or 6:5), win 1:1, insurance 2:1, push returns | decks, S17/H17, BJ payout, double (any two / 9–11), double after split, splits up to 3 (4 hands), split aces one card, surrender (late/none), dealer peek, turn timer |
 | **Baccarat** | Punto Banco, standard third-card rules | Player 1:1, Banker 1:1 minus 5 % (or no-commission: banker win on 6 pays 1:2), Tie 8:1 (or 9:1), Player/Banker pair 11:1 | commission mode, tie payout, decks, bet timer |
 | **Slots** | 3 reels × 3 rows, 5 paylines, reel strips + pay table, uniform stops | per pay table; the exact RTP is computed and shown | machine theme, bet per line, lines, volatility preset (picks the reel-strip set; RTP shown) |
-| **Texas Hold'em** | no-limit, 2–10 players, button rotation, blinds, side pots, showdown | pot(s) to the best 5 of 7, ties split | blinds, blind increase, turn timer, rake (default 0) |
+| **Texas Hold'em** | no-limit, 2–10 players, button rotation, blinds, side pots, showdown | pot(s) to the best 5 of 7, ties split | blinds, blind increase, turn timer |
 | **Teen Patti** | boot, blind/seen (chaal: blind 1× stake, seen 2×), pack, show (2 left), sideshow; trail > pure sequence > sequence > colour > pair > high card (A-K-Q top sequence, A-2-3 next) | pot to the winner | boot, max blind rounds, pot limit, turn timer |
 | **Andar Bahar** | joker drawn, cards dealt alternately (first card to Andar) until a rank match | Andar 0.9:1, Bahar 1:1 | first-card side, bet timer |
 | **Big Six wheel** | 54 segments: 1×24, 2×15, 5×7, 10×4, 20×2, joker×1, logo×1 | 1:1, 2:1, 5:1, 10:1, 20:1, joker/logo 40:1 | bet timer |
-| **Housie** (Tambola) | 3×9 tickets, 15 numbers (5 a row), calls 1–90; players buy tickets into a pot | pool (pot − rake) split by prize shares: Early Five 10 %, Top / Middle / Bottom Line 15 % each, Four Corners 10 %, Full House 35 %; ties split | ticket price, max tickets, buy-in time, call pace (live), rake, bogey penalty, auto-claim, each prize on/off + share |
+| **Housie** (Tambola) | 3×9 tickets, 15 numbers (5 a row), calls 1–90; players buy tickets into a pot | the whole pot split by prize shares: Early Five 10 %, Top / Middle / Bottom Line 15 % each, Four Corners 10 %, Full House 35 %; ties split | ticket price, max tickets, buy-in time, call pace (live), bogey penalty, auto-claim, each prize on/off + share |
 
 Rock Paper Scissors is a regular **game** (category `games`, a `GameApp`), not part of the casino. It has AI vs AI
 (attract), player vs AI and player vs player modes, best-of options, and pixel-hand pickers on phones.
@@ -326,7 +326,7 @@ Where this differs from §7, this section wins. Rules: `casino/games/{holdem,tee
   `cards.new_deck()`, replayed by the phone). Then `dealing` (animation beats) ↔ `action` (one turn,
   `house.turn_seconds`; expired: Hold'em checks if free else folds, Teen Patti packs; an unanswered sideshow is
   refused).
-- Every chip goes to escrow as it is bet; settlement pays the pots once through the bank (sum of nets = −rake).
+- Every chip goes to escrow as it is bet; settlement pays the pots once through the bank (sum of nets = 0: no rake).
   Leaving mid-hand voids the hand (everything refunded); a decided hand is paid.
 - Hole cards are only in the owner's `private`; a blind Teen Patti player gets no cards until `see`. Shown hands
   become public at a showdown. After settlement the seed is revealed, so the whole deck order is recomputable —
@@ -336,8 +336,8 @@ Where this differs from §7, this section wins. Rules: `casino/games/{holdem,tee
 **Texas Hold'em** — no-limit, 2–10. Button moves one seat per hand; heads-up the button posts the small blind and
 acts first pre-flop. Min bet = BB; min raise = the last full raise; a short all-in doesn't reopen the betting for
 players who already acted (unless the raises since add up to a full raise). Side pots per all-in level
-(`build_pots`); ties split, odd chip to the first winner left of the button. Rake (default 0, %, cap) only from
-contested pots at a showdown. Blinds can double every N hands. Ops: `fold check call raise {amount: raise-to}
+(`build_pots`); ties split, odd chip to the first winner left of the button. No rake: every pot goes wholly to its
+winner(s). Blinds can double every N hands. Ops: `fold check call raise {amount: raise-to}
 allin`.
 
 **Teen Patti** (pagat.com + the common Indian limits) — boot; blind chaal 1× stake / raise 2×, seen 2× / 4× (a
@@ -504,7 +504,7 @@ generated from it (`uv run python -m deskdot.casino.rulebook > docs/CASINO_RULES
 
 Rules: `casino/games/housie.py` · panel: `apps/casino_housie.py` · phone: the "housie" block of `casino.html` (`HS.*`,
 `.hs-` styles) · tests: `tests/test_casino_housie.py`. The 10th table and the first **pot game**: players play for
-each other's ticket money, the house keeps only the rake (default 0, `edges = {"ticket": rake}`).
+each other's ticket money, the house keeps nothing (no rake; `edges = {"ticket": 0}`).
 
 - **Round machine.** `betting` is the **buy-in**: `buy {count}` sets a player's tickets (0…`max_tickets`, each
   `ticket_price` into escrow); the generic chip ops also work on the spot `ticket` (`bet` = one more, `unbet` = one
@@ -527,7 +527,7 @@ each other's ticket money, the house keeps only the rake (default 0, `edges = {"
   `auto_claim` claims for everyone.
 - **End and settlement.** Full House (3 s grace for ties), every prize won, or 90 calls → a 2.5 s beat → settled
   once through the bank (stake = tickets × price, payout = prizes). Unclaimed prizes are shared back by tickets, so
-  the nets always sum to −rake. Closing the table mid-game refunds every ticket; a decided game is paid.
+  the nets always sum to 0. Closing the table mid-game refunds every ticket; a decided game is paid.
 - **Panel.** Buy-in: HOUSIE, the countdown, the pot and a column of ticket pips per player. Calling: the number on a
   ball coloured by its decade (it pops in), the last three calls, the called count and a /90 bar, prize pips (lit in
   the winner's colour); a claim flashes a band in the winner's colour with chasing bulbs. Result: HOUSIE!, then the
@@ -538,7 +538,7 @@ each other's ticket money, the house keeps only the rake (default 0, `edges = {"
   complete (auto-daub: the server's check; manual daub: your own marks, so a wrong mark can be a bogey), the
   tickets as 3×9 paper grids with a stamp animation per daub (fits 360–430 px), the prize table and the winners.
 - **Studio.** Host bar: "Start calling", the pace − / +, "Calling · n / 90". Odds tab: the prize table (shares,
-  credits, winners) above the rake row.
+  credits, winners) above the ticket row (house edge: fair).
 
 ## 13. The dolly, chip sets, credit counters and the win moment (3.7.0)
 

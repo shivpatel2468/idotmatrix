@@ -43,6 +43,9 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Before: the housie board ran into the table's edge and labels overlapped the balls; big six's chips covered the
     odds.
   - Now: both boards sit inside the felt, every label has its own place, and the "no winners" note fits its card.
+- **No house cut at the poker and Housie tables**
+  - Before: the host could set a rake, so the house kept a share of every Hold'em pot and of the Housie ticket money.
+  - Now: the rake setting is gone. Every pot and every Housie prize pool goes wholly to the players who win it.
 
 ### Fixed
 

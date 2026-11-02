@@ -42,10 +42,6 @@ class HoldemSettings(PvPSettings):
     blind_up_every: int = Field(
         0, ge=0, le=100, title="Double the blinds every N hands", description="0 keeps the blinds fixed."
     )
-    rake_percent: int = Field(
-        0, ge=0, le=10, title="Rake (%)", description="The house's share of each pot at a showdown. 0 = none."
-    )
-    rake_cap: int = Field(0, ge=0, le=1_000_000, title="Rake cap per hand", description="0 = no cap.")
 
 
 def board_card(f: Frame, x: int, y: int, code: str | None, hi: bool = False, dim: float = 1.0) -> None:

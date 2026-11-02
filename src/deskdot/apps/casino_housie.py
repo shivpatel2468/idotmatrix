@@ -85,9 +85,6 @@ class HousieSettings(CasinoSettings):
         title="Seconds between calls",
         description="The caller's pace (also live from the host bar).",
     )
-    rake: int = Field(
-        0, ge=0, le=20, title="House rake (%)", description="The house's cut of the pot (0 = friendly)."
-    )
     bogey: str = Choice(
         "none",
         {
