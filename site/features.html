@@ -82,8 +82,8 @@
     <div class="wrap">
       <p class="kicker">Why DeskDot</p>
       <h1 id="features-h" class="page-title reveal">Everything your panel was missing</h1>
-      <p class="sub reveal">One engine owns the panel's Bluetooth link and keeps it smooth. Everything else (the studio,
-        your phone, scripts, AI agents) goes through its HTTP API.</p>
+      <p class="sub reveal">One engine keeps the panel's Bluetooth link smooth. The studio, your phone, scripts and AI
+        agents all go through it.</p>
 
       <div class="features">
         <article class="card wide reveal" style="--glow:var(--ember)">
@@ -91,9 +91,8 @@
             <div class="ledico" data-led=".#.#.|#####|#.#.#|#####|#...#"></div>
             <h3>Games &amp; multiplayer</h3>
             <p><span data-count="games">27</span> games, <span data-count="multiplayer">32</span> of them for 2–4 players on
-              your Wi-Fi. The panel shows a QR code and friends' phones become controllers: d-pad, stick, swipe, tap,
-              tilt or a real gamepad. Every game plays itself as a screensaver until you press a key; <kbd>B</kbd> opens
-              modes, maps and themes, then a football-style team select.</p>
+              your Wi-Fi. The panel shows a QR code and friends' phones become controllers. Every game plays itself as a
+              screensaver until you press a key.</p>
             <p class="card-link"><a href="/apps.html#cat=games">All games</a> · <a href="/studio.html#play-h">Play mode</a></p>
           </div>
           <img class="shot" src="/media/studio-multiplayer.webp" width="1600" height="900" loading="lazy" alt="The studio's Play with friends screen with a QR code for phones to join" />
@@ -101,37 +100,37 @@
         <article class="card reveal" style="--glow:var(--cyan);--i:1">
           <div class="ledico" data-led=".###.|#.#.#|#####|.#.#.|#...#"></div>
           <h3>AI agents via MCP</h3>
-          <p>21 tools let Claude and other agents look at the panel (as an image), run any app, change any setting, draw pixel art, push notifications and drive the playlist.</p>
+          <p>21 tools let Claude and other agents see the panel, run any app, change settings, draw pixel art and notify you.</p>
         </article>
         <article class="card reveal" style="--glow:var(--amber)">
           <div class="ledico" data-led="#....|###..|#####|###..|#...."></div>
           <h3>Smooth on the hardware</h3>
-          <p>Loops are baked once into a GIF the panel plays with its own firmware: perfectly smooth, zero Bluetooth traffic. Only live data streams.</p>
+          <p>Loops are baked into a GIF the panel plays on its own: perfectly smooth, no Bluetooth traffic. Only live data streams.</p>
         </article>
         <article class="card reveal" style="--glow:var(--green);--i:1">
           <div class="ledico" data-led="....#|...##|..###|.####|#####"></div>
           <h3>Live, location-aware data</h3>
-          <p>Weather, flights overhead, quakes, launches, tides, markets, scores and air quality from 45+ free sources. Almost none need a key.</p>
+          <p>Weather, flights overhead, quakes, launches, tides, markets and scores from 45+ free sources, almost none needing a key.</p>
         </article>
         <article class="card reveal" style="--glow:var(--pink);--i:2">
           <div class="ledico" data-led=".###.|#...#|#####|##.##|#####"></div>
           <h3>Private by design</h3>
-          <p>No account and no analytics. Settings stay on your device. The browser version uses our host for multiplayer signalling and a few data requests; see <a href="/privacy.html">Privacy</a>.</p>
+          <p>No account, no analytics; settings stay on your device. The browser version uses our host for multiplayer and a few data requests (<a href="/privacy.html">Privacy</a>).</p>
         </article>
         <article class="card reveal" style="--glow:var(--violet)">
           <div class="ledico" data-led="..#..|#.#.#|#...#|#...#|.###."></div>
           <h3>Always on: Pi or Android</h3>
-          <p>Run it 24/7 on a Raspberry Pi with one installer, or on a spare Android phone (beta). When your computer sleeps the panel hands off to its own clock or a baked loop.</p>
+          <p>Run it 24/7 on a Raspberry Pi or a spare Android phone (beta). When your computer sleeps, the panel falls back to its own clock or a loop.</p>
         </article>
         <article class="card reveal" style="--glow:var(--amber);--i:1">
           <div class="ledico" data-led="##.##|##.##|.....|##.##|##.##"></div>
           <h3>A studio for every screen</h3>
-          <p>Library, playlists, presets and live settings, with an LED-accurate preview. Every form is generated from the app's schema, on desktop and phone.</p>
+          <p>Playlists, presets and live settings with an LED-accurate preview, on desktop and phone.</p>
         </article>
         <article class="card reveal" style="--glow:var(--cyan);--i:2">
           <div class="ledico" data-led="#...#|.#.#.|..#..|.#.#.|#...#"></div>
           <h3>One file per app</h3>
-          <p>A pydantic settings model and a pure <code>render()</code>. Drop a file in <code>plugins/</code> and it appears in the studio with a form. Read the <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a>.</p>
+          <p>A settings model and a pure <code>render()</code>. Drop it in <code>plugins/</code> and it appears in the studio. See the <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/APP_SDK.md">App SDK</a>.</p>
         </article>
       </div>
 
@@ -141,11 +140,10 @@
           <p class="kicker">New · Fly Brain</p>
           <h2 id="fly-h">A fruit-fly brain that plays the games</h2>
           <p>In 2024 the FlyWire consortium mapped every connection in an adult fruit-fly brain (Dorkenwald et al.,
-            <i>Nature</i> 634, 2024). DeskDot's fly follows the cell types of its visual-to-motor pathway, feeds them the
-            panel's 32×32 frame like a compound eye, and lets it play any game from pixels alone. The studio shows its
-            activity in 3D, live.</p>
-          <p>DeskDot's fly is a small hand-tuned model inspired by this map; it does not use FlyWire data. Not
-            affiliated with the FlyWire consortium.</p>
+            <i>Nature</i> 634, 2024). DeskDot's fly follows the cell types of its visual-to-motor pathway, sees the
+            panel's 32×32 frame like a compound eye, and plays any game from pixels alone.</p>
+          <p>A small hand-tuned model inspired by that map; it does not use FlyWire data and is not affiliated with the
+            FlyWire consortium.</p>
           <div class="facts">
             <div class="fact"><span>FlyWire map (2024)</span><b>139,255</b><small>neurons</small></div>
             <div class="fact"><span>FlyWire map (2024)</span><b>~54.5 M</b><small>synapses</small></div>

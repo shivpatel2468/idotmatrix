@@ -82,18 +82,17 @@
     <div class="wrap">
       <p class="kicker">Fastest way in</p>
       <h1 id="agent-h" class="page-title reveal">Run it with your AI agent</h1>
-      <p class="sub reveal">Paste one prompt into Claude Code, Gemini CLI, Codex, Cursor or any coding agent with a terminal.
-        It clones the repo, installs everything with uv, starts the simulator, and waits for you before it touches
-        the real panel. Then it connects itself to the panel through the MCP server.</p>
+      <p class="sub reveal">Paste one prompt into Claude Code, Gemini CLI, Codex, Cursor or any coding agent. It installs
+        everything, starts the simulator and asks you before it touches the real panel.</p>
 
-      <p class="note warn reveal" role="note"><b>Read before you paste.</b> AI agents run commands on your computer. Read the prompt first, run it in an empty folder, and approve each command. DeskDot isn't responsible for actions taken by third-party AI tools. The agent must never be given your passwords or tokens.</p>
+      <p class="note warn reveal" role="note"><b>Read before you paste.</b> AI agents run commands on your computer: read the prompt, use an empty folder and approve each command. Never give the agent your passwords or tokens. DeskDot isn't responsible for actions taken by third-party AI tools.</p>
 
       <div class="agent">
         <div class="agent-steps reveal">
-          <div class="mini-step"><b>1</b><div><strong>Copy the prompt</strong><p>It follows the repo's own rules in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CLAUDE.md">CLAUDE.md</a>: only the engine talks Bluetooth, and nothing gets "fixed" by editing source.</p></div></div>
+          <div class="mini-step"><b>1</b><div><strong>Copy the prompt</strong><p>It follows the repo's rules in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/CLAUDE.md">CLAUDE.md</a>.</p></div></div>
           <div class="mini-step"><b>2</b><div><strong>Start your agent in an empty folder</strong><p>Pick your agent below for the exact command and where its MCP config lives.</p></div></div>
           <div class="mini-step"><b>3</b><div><strong>Watch the simulator</strong><p>The studio opens at <code>http://127.0.0.1:8765</code> with a simulated panel. No hardware needed yet.</p></div></div>
-          <div class="mini-step"><b>4</b><div><strong>Say "the panel is on"</strong><p>Close the iDotMatrix phone app first; the panel takes one connection at a time. The agent scans, pairs and draws a test pattern.</p></div></div>
+          <div class="mini-step"><b>4</b><div><strong>Say "the panel is on"</strong><p>Close the iDotMatrix phone app first. The agent finds the panel and draws a test pattern.</p></div></div>
           <div class="mini-step"><b>5</b><div><strong>Ask it to draw</strong><p>"Draw a pixel-art rocket, check the snapshot, fix anything that looks off." More in <a href="https://github.com/shivpatel2468/idotmatrix/blob/main/docs/MCP.md#example-prompts">docs/MCP.md</a>.</p></div></div>
         </div>
 

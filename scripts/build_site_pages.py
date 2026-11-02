@@ -215,7 +215,7 @@ TYPE = {
     "color": "colour",
     "text": "text",
 }
-FEATURED = ["synthwave", "petworld", "cycles", "weather", "nowplaying", "radar", "wireframe", "flybrain"]
+FEATURED = ["synthwave", "petworld", "cycles", "weather", "nowplaying", "radar"]
 
 
 def e(s: str) -> str:
