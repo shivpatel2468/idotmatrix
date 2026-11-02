@@ -11,6 +11,45 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.10.0 — 2 Nov 2026 · The TV casino comes alive: dealt cards, a real money wheel, the housie cage
+
+### New
+
+- **Teen Patti on the TV: the deal and the show**
+  - Before: the cards just appeared in front of each player, and at a show the hands were simply there, face up.
+  - Now: the dealer deals three cards to every seat, one at a time from the deck, starting on their left. At a show
+    the hands slide out and turn over card by card, then the winning hand lifts and glows with its name in gold.
+    Every screen deals and turns the same card at the same moment. Hold'em deals the same way.
+- **Big Six on the TV: a real money wheel**
+  - Before: a plain red pointer twitched at the top while the wheel turned.
+  - Now: a leather flapper on a brass pivot leans on each brass peg and snaps back, the wheel blurs at full speed and
+    sharpens as it slows, and the winning segment lights up under the flapper when it stops — in step with the panel.
+- **Housie on the TV: the cage, the ball and the stamp**
+  - Before: the number appeared in a big ball and its square lit up.
+  - Now: a brass cage tumbles its balls as each call comes, the drawn ball rolls down a rail into the cradle, and a
+    stamp marks the number on the board. Every prize claim gets its own banner — EARLY FIVE!, TOP LINE!, FULL HOUSE! —
+    with the player's name and a burst of sparks.
+
+### Better
+
+- **The game scenes on the TV stand in your table's room**
+  - Before: Snake, Pong, Tetris and the other games sat on a flat near-black page, whatever theme you picked.
+  - Now: the theme's felt glow and pattern show behind the panel, and the cards wear the table's colours.
+- **Nothing falls off the TV at the card tables**
+  - Before: the bottom player's name plate was cut off at the bottom of the screen, and the table's name sat under
+    their cards and chips.
+  - Now: every seat, plate and hand fits on screen; the last move shows on the player's plate, clear of the cards.
+- **A tidier Housie and Big Six board on the TV**
+  - Before: the housie board ran into the table's edge and labels overlapped the balls; big six's chips covered the
+    odds.
+  - Now: both boards sit inside the felt, every label has its own place, and the "no winners" note fits its card.
+
+### Fixed
+
+- **Smoother Teen Patti and Hold'em on TV sticks**
+  - Before: the card tables redrew the whole table four times a second, so they could stutter on a Fire TV.
+  - Now: they only redraw when something changes; the moving cards are light sprites.
+
 ## 3.9.0 — 31 Oct 2026 · Casino themes everywhere, the browser version catches up, smoother panel hand-over
 
 ### New

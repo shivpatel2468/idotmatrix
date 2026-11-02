@@ -3,6 +3,19 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
+
+- **TV casino** (`tv/tv-casino.js`, docs/TV_VIEW.md §3/§6/§7, R-TV-9…11): poker tables deal face-down card sprites
+  from `clock.lock_at` (`dealAt`/`dealEnd`/`dealOrder`), teen patti's show flips from `reveal_at − 3.2`
+  (`showAnchor`/`showFlip`) then glows the winning hand; seats/plates re-laid (`PK.cy` 476, 3-line plates), `slowHz`
+  0 with an event key. Big six: `b6Flap` (peg push + damped ring-back timed by solving the wheel's parabola), a
+  half-res motion-blur twin cross-faded by speed, a lit-segment sprite, board inside the felt. Housie: wire cage +
+  9 tumbling ball sprites (`cageTurn`), the drawn ball's path (`heroPath`), dauber stamp at 1.55 s, claim ribbons per
+  prize from `clock.claim_at`, new layout; the per-frame call ring is gone. Game scenes (`tv-games.js`) see-through
+  in the room. Engine: housie publishes `status.clock.called_at` / `claim_at` (`Housie.flash_at`). Tests:
+  `tests/js/tv_casino.test.mjs` (deal/show timing, plates on stage, flapper, blur/lit segment, cage/ball path, live-TV
+  plays), `tests/test_tv_reveal.py::test_housie_publishes_its_call_and_claim_moments`; housie fixture regenerated.
+
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
 - **Panel hand-over** (`src/deskdot/handover.py`, `handover_api.py`, ADR 0015): UDP beacon on 8767 (private networks
