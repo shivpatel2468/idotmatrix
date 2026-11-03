@@ -30,6 +30,29 @@ _1,024 pixels. Zero subscriptions._
 
 * * *
 
+## 🖥️ On Every Screen
+
+<table>
+<tr>
+<th width="26%">📱 Phone</th>
+<th width="40%">💻 Laptop</th>
+<th width="34%">📺 TV</th>
+</tr>
+<tr>
+<td align="center" valign="top"><img src="docs/media/showcase/phone-tour.gif" width="180" height="383" alt="The DeskDot Android app on a phone: the panel tab, the app library and presets"></td>
+<td align="center" valign="top"><img src="docs/media/studio-tour.gif" width="100%" alt="A tour of the studio switching apps"><br><img src="docs/media/showcase/laptop-studio-dark.webp" width="100%" alt="The studio in the Cyber grid theme: library, live preview and settings"></td>
+<td align="center" valign="top"><img src="docs/media/showcase/tv-live.gif" width="100%" alt="The TV view: the panel drawn as a huge LED matrix on the big screen"><br><img src="docs/media/showcase/tv-roulette.webp" width="100%" alt="The roulette table on the TV"></td>
+</tr>
+<tr>
+<td valign="top">The whole studio in the <a href="#-download">Android app</a>, recorded on my phone.</td>
+<td valign="top">The <a href="#-the-studio">studio</a>: library, LED-accurate preview, settings, casino and in-app updates.</td>
+<td valign="top">Any TV with a browser shows the panel, the casino tables and games. <a href="docs/TV_VIEW.md">How it works</a>.</td>
+</tr>
+</table>
+
+**⌚ Watch:** my Wear OS launcher, workout app and watch faces wear DeskDot's table themes. See them on
+[my GitHub profile](https://github.com/shivpatel2468#-watch-wear-os) and on [idotmatrix.com/showcase](https://idotmatrix.com/showcase.html).
+
 ## 🔲 Why This Exists
 
 The iDotMatrix is a lovely little 32×32 RGB pixel frame. Out of the box, its phone app lets you push a picture or a
