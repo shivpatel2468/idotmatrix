@@ -56,7 +56,7 @@ Progress is saved in `tmp/release/state.json` (git-ignored); the APKs and `check
 
 | Device | File on the release | How it arrives |
 | --- | --- | --- |
-| Windows laptop | `DeskDot-Setup-<v>-x64.exe` | Settings → Device → Updates offers it within 6 hours; Install runs the installer and restarts DeskDot |
+| Windows laptop | `DeskDot-Setup-<v>-x64.exe` | The *Update available* pill (Updates sheet) offers it within 6 hours; Install runs the installer and restarts DeskDot |
 | Mac (Apple silicon / Intel) | `DeskDot-<v>-macOS-arm64.dmg` / `…-x64.dmg` | the same; the app is swapped in place |
 | Android phone | `DeskDot-<v>.apk` | the same; Android's installer opens (same signing key, so it updates in place) |
 | Wear OS watch | `DeskDot-Wear-<v>.apk` | named so the phone never mistakes it for its own update |
