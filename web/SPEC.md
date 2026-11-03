@@ -28,9 +28,14 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
 - **R-STU-5** Connection: the status pill and the Connection sheet describe where the panel is connected with one
   `summarize()` function, show the engine's `reason` / `hint`, and offer one primary action; *Release the panel…*
   explains the pairing screen first. Tests: `tests/test_device_connection.py::test_reconnect_endpoint` (engine side only).
-- **R-STU-6** Updates UI (Settings → Device → Updates, the top-bar pill) shows the WHATS_NEW notes of a newer release,
-  installs only through the engine's verified path, and tells source installs to `git pull`.
-  Tests: `tests/test_updates.py::test_updates_api` (engine side only).
+- **R-STU-6** Updates sheet (`UpdatesSheet.tsx`, built like the Connection sheet): the top-bar update pill and
+  Settings → Device → Updates (*Open updates*, plus the auto-check switch) open one sheet that shows current → new
+  version, the WHATS_NEW notes of the newer release, one primary action (Install & restart / Download & install /
+  Reload), live steps from the engine's status (download — a percentage only when the engine reports `progress` —
+  checksums.txt, install, restart; Android's installer; version.json → reload), a failure on the step it happened in
+  with Retry, Check now and Up to date. It installs only through the engine's verified path and tells source installs
+  to `git pull`. Tests: `tests/js/update_flow.test.mjs` (steps, errors, primary action),
+  `tests/test_updates.py::test_updates_api` (engine side).
 - **R-STU-7** Casino mode follows the table theme everywhere and the studio's theme list mirrors the engine.
   Tests: `tests/test_casino_themes.py::test_studio_casino_follows_the_theme_everywhere`,
   `tests/test_casino_themes.py::test_studio_theme_list_mirrors_the_engine`.
@@ -73,6 +78,7 @@ Consumes the HTTP API and `WS /ws` ([engine spec](../src/deskdot/engine/SPEC.md)
 
 ## Open questions
 
-- The studio has no unit or component test runner; R-STU-1, 3, 4 and the UI halves of 5 and 6 are verified by hand.
+- The studio has no unit or component test runner; R-STU-1, 3, 4 and the UI half of 5 are verified by hand. Pure
+  studio logic can be tested with node (`tests/js/update_flow.test.mjs` imports `web/src/lib/updateFlow.ts`).
 
 Last verified: 2026-11-02

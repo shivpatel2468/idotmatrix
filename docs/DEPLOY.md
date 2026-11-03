@@ -159,7 +159,7 @@ before merging or deploying: [RELEASING.md](RELEASING.md). The manual steps, for
 ### How in-app updates work
 
 `src/deskdot/updates.py` (API: docs/API.md § Updates). The engine asks GitHub for the latest release at most every
-6 h (opt-out: Settings → Device → Updates). "Install" downloads the asset for this system into `data/updates/`,
+6 h (opt-out: Settings → Device → Updates). "Install" (in the Updates sheet: the top bar's *Update available*) downloads the asset for this system into `data/updates/`,
 checks its SHA-256 against `checksums.txt`, then:
 
 | Installed as | Hand-off |

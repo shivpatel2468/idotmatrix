@@ -162,7 +162,7 @@ All files are on the [latest release page](https://github.com/shivpatel2468/idot
 `checksums.txt` so you can check a download. **Close the iDotMatrix phone app first**: the panel talks to one app at a time.
 
 **After that, DeskDot updates itself.** When there's a new version a small "Update available" sign appears at the
-top. Open **Settings → Device → Updates**, read what's new, and press **Install & restart**. It downloads the new
+top. Click it to open the Updates window, read what's new, and press **Install & restart**. It downloads the new
 version, checks that it's genuine and installs it. Your settings stay. (You can turn the automatic check off there.)
 
 <details>

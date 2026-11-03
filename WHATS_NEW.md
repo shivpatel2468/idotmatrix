@@ -49,6 +49,12 @@ is in [CHANGELOG.md](CHANGELOG.md).)
     and the blur behind sheets redrew too, so scrolling and switching tabs could stutter.
   - Now: phones skip that layer and that blur, and the app no longer plays the studio's big intro scenes on top.
 
+- **Updates open in their own window**
+  - Before: "Update available" sent you into Settings, where the version, the notes and the Install button were mixed
+    in with everything else.
+  - Now: it opens an Updates window, like the panel's Connection window: your version and the new one, what's new,
+    one Install button, and each step ticking off as DeskDot downloads, checks and installs the update — with a clear
+    message and Retry if something goes wrong. In the browser it's one Reload.
 - **The game scenes on the TV stand in your table's room**
   - Before: Snake, Pong, Tetris and the other games sat on a flat near-black page, whatever theme you picked.
   - Now: the theme's felt glow and pattern show behind the panel, and the cards wear the table's colours.
