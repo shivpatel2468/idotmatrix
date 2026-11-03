@@ -46,7 +46,9 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
-            android:launchMode="singleTask" />
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.DeskDot.Starting"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- Launcher icons: exactly one alias is enabled. The manifest enables the default (MainActivity.DEFAULT_ICON);
              MainActivity.switchIcon() flips them at run time. Artwork: android/tools/gen_icons.py. -->

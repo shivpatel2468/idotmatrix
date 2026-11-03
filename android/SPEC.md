@@ -25,14 +25,28 @@ studio full screen.
   and `BootReceiver` starts it after a reboot and after an update. Tests: none yet (gap — verified on the phone).
 - **R-AND-5** Only the studio (`127.0.0.1` / `localhost`) opens inside the app; other links open in the browser.
   Tests: none yet (gap).
-- **R-AND-6** System bars and window background follow the studio theme (`DeskDotAndroid.setBars`), remembered for the
-  next cold start (no black flash). Tests: none yet (gap).
+- **R-AND-6** System bar icon contrast and the window background follow the studio theme (`DeskDotAndroid.setBars`),
+  remembered for the next cold start (no black flash). The bars themselves are transparent (R-AND-9). Tests: none yet
+  (gap — verified on the phone).
 - **R-AND-7** Self-update: the engine downloads the APK from the latest release and checks its SHA-256; `Updater.kt`
   refuses an APK signed with another key, then opens Android's installer. Tests:
   `tests/test_updates.py::test_asset_selection_per_platform`, `tests/test_updates.py::test_checksum_mismatch_is_refused`
   (engine side; the signature check is Kotlin, untested).
 - **R-AND-8** `versionCode = major*10000 + minor*100 + patch` from `src/deskdot/__init__.py`, so every release upgrades
   in place. Tests: none yet (gap — computed in `app/build.gradle.kts`).
+
+- **R-AND-9** Full screen: the app draws edge to edge (`enableEdgeToEdge`, transparent status and navigation bars, no
+  contrast scrim). The window insets reach the studio as CSS variables `--safe-top/bottom/left/right` (`insets()`
+  before first paint, pushed again on every change); the keyboard shrinks the WebView instead, so no control or field
+  hides under a bar or the keyboard. Tests: none yet (gap — verified on the phone); the studio side uses only
+  `var(--safe-*)` (web/SPEC.md R-STU-11).
+- **R-AND-10** Launch: the Android 12+ SplashScreen API (core-splashscreen) shows only the page colour and hands over at
+  once to the native LED intro (`IntroView`): the logo builds itself out of dots in about 1.4 s, stays lit with a faint
+  shimmer while the engine is still starting, and fades into the studio when it calls `introDone()`. No "starting"
+  text; a real problem (no Bluetooth permission, no engine after 30 s) gets a kind message under the logo. Animations
+  follow the system's animation scale (off = the lit logo at once). Tests: none yet (gap — verified on the phone).
+- **R-AND-11** Back closes what is open in the studio (a sheet, dialog or menu, via `window.__deskdotBack()`) before it
+  sends the app to the background. Tests: none yet (gap — verified on the phone).
 
 ## Invariants
 
@@ -47,11 +61,11 @@ studio full screen.
 
 ## Interfaces
 
-`window.DeskDotAndroid`: `setBars(status, nav, page, lightIcons)`, `icons()`, `getIcon()`, `setIcon(id)`, `display()`,
-`version()`; FileProvider `com.deskdot.app.updates`; `BleBridge` ↔ `device/android.py`.
+`window.DeskDotAndroid` (`version()` = 2): `setBars(status, nav, page, lightIcons)`, `icons()`, `getIcon()`,
+`setIcon(id)`, `display()`, `insets()`, `introDone()`; the app calls the studio's `window.__deskdotBack()`; FileProvider `com.deskdot.app.updates`; `BleBridge` ↔ `device/android.py`.
 
 ## Open questions
 
 - No Kotlin unit tests; the shell (R-AND-4…6, the signature check in R-AND-7) is verified on the user's phone.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-02

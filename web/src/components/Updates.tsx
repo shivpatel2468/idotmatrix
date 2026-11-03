@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Download, RefreshCw, Sparkles, X } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { joinContinuations } from "../lib/notes";
 import { toast, useStore } from "../lib/store";
 import type { UpdatesInfo } from "../lib/types";
 import { Row, Toggle } from "./controls";
@@ -57,13 +58,7 @@ export function Inline({ text }: { text: string }) {
 
 /** Headings (##/###), bullets with one nested level ("Before:" / "Now:"), paragraphs. No HTML is ever injected. */
 export function ReleaseNotes({ text }: { text: string }) {
-  // a bullet wrapped onto indented lines (WHATS_NEW.md wraps at 120 columns) is one bullet, not a bullet + paragraphs
-  const lines: string[] = [];
-  for (const raw of text.replace(/<!--[\s\S]*?-->/g, "").replace(/\r/g, "").split("\n")) {
-    const prev = lines.length ? lines[lines.length - 1] : "";
-    if (/^\s+\S/.test(raw) && !/^\s*([-*]\s|#)/.test(raw) && /^\s*[-*]\s/.test(prev)) lines[lines.length - 1] = `${prev} ${raw.trim()}`;
-    else lines.push(raw);
-  }
+  const lines = joinContinuations(text.replace(/<!--[\s\S]*?-->/g, "").replace(/\r/g, "").split("\n"));
   const out: React.ReactNode[] = [];
   lines.forEach((raw, i) => {
     const line = raw.trimEnd();

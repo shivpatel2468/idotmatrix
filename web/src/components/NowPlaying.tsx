@@ -71,7 +71,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
       {/* ambient light from the panel, like Spotify's colour wash */}
       <div className="np-wash pointer-events-none absolute inset-0" aria-hidden />
 
-      <header className="relative flex items-center gap-3 px-6 pt-[max(20px,env(safe-area-inset-top))]">
+      <header className="relative flex items-center gap-3 px-6 pt-[max(20px,var(--safe-top))]">
         <span className="led" data-on={running ? (focus ? "warn" : "ok") : undefined} />
         <span className="engrave">{running ? (active ? "Playing preset" : "Playing playlist") : "On the panel"}</span>
         <span className="truncate font-display text-[15px] font-[620] text-ink-2">{context}</span>
@@ -134,7 +134,7 @@ export function NowPlaying({ onClose }: { onClose: () => void }) {
       </main>
 
       {pl && pl.items.length > 0 && (
-        <footer className="relative border-t border-line/70 px-6 pb-[max(18px,env(safe-area-inset-bottom))] pt-3">
+        <footer className="relative border-t border-line/70 px-6 pb-[max(18px,var(--safe-bottom))] pt-3">
           <div className="engrave mb-2">Up next</div>
           <div className="flex gap-2 overflow-x-auto pb-1" role="list">
             {pl.items.map((it, i) => {

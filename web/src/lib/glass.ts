@@ -10,7 +10,8 @@
  *
  * Rules: reduced transparency → solid. No backdrop-filter, the Android app's WebView (its blur let content show through
  * translucent bars — the bars must never be see-through there), or a low-end device (≤ 4 GB or ≤ 4 cores) → frosted:
- * a near-opaque fill, so text never sits on raw content. Otherwise liquid.
+ * a near-opaque fill, so text never sits on raw content. Otherwise liquid. The phone tab bar has its own mode
+ * (`barMode`, html[data-bar-glass]): real blur in the Android app too.
  */
 import { useSyncExternalStore } from "react";
 
@@ -61,12 +62,25 @@ export function autoMode(): GlassMode {
 export const resolveGlass = (pref: GlassPref = getGlassPref()): GlassMode =>
   reducedTransparency?.matches ? "solid" : pref === "auto" ? autoMode() : pref === "liquid" && !supportsBlur() ? "frosted" : pref;
 
+/**
+ * The phone tab bar's own glass (html[data-bar-glass]): the same mode as the rest, except that Auto gives the bar real
+ * blur inside the Android app too — it is small, fixed and drawn with a thick tint (index.css § the bar's own glass),
+ * so nothing reads through it, and it is the one piece of chrome that should look like glass. A forced Frosted /
+ * Solid, reduced transparency, no blur support or a low-end device still get the fill.
+ */
+export function barMode(pref: GlassPref = getGlassPref()): GlassMode {
+  const mode = resolveGlass(pref);
+  if (mode !== "frosted" || pref === "frosted") return mode;
+  return supportsBlur() && !lowEnd() ? "liquid" : "frosted";
+}
+
 let current: GlassMode = "liquid";
 
 function apply() {
   const root = document.documentElement;
   current = resolveGlass();
   root.dataset.glass = current;
+  root.dataset.barGlass = barMode();
   // the edge lens: Chromium renders `backdrop-filter: url(#svg)`; a fine pointer = a desktop with GPU headroom
   root.classList.toggle("lg-lens", current === "liquid" && chromium() && !!finePointer?.matches);
   listeners.forEach((l) => l());

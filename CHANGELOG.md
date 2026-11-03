@@ -5,6 +5,18 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
 
+- **Android phone app polish** (android/SPEC.md R-AND-6, R-AND-9…11; web/SPEC.md R-STU-4, R-STU-11, R-STU-12):
+  edge to edge (`enableEdgeToEdge`, transparent bars; window insets → `--safe-*` CSS variables via `insets()` and
+  `evaluateJavascript`; IME inset pads the WebView, `adjustResize`); `core-splashscreen` launch theme with no icon →
+  native `IntroView` (the logo's glyphs built from dots, ~1.4 s, animator-scaled, shimmer while waiting, fade on
+  `introDone()`); the "Starting DeskDot…" view is gone (kind messages only for no permission / no engine after 30 s);
+  Back → `window.__deskdotBack()`. Studio: `TabBar.tsx` + `lib/tabDrag.ts` (drag the lens with a spring, rubber band,
+  flick-aware snap; tap glides via WAAPI with a `linear()` spring easing), `html[data-bar-glass]` (`barMode`) keeps
+  real blur on the tab bar in the app; touch screens drop the `.noise` blend overlay and the sheet scrim's blur;
+  Boot skips its intro in the app; `lib/notes.ts` joins wrapped bullets. Tests: `tests/js/tab_drag.test.mjs`,
+  `tests/js/release_notes.test.mjs`.
+  Baseline (3.8.0, Xiaomi 11i at 120 Hz, `dumpsys gfxinfo`): tabs + scrolling p50 13 / p90 21 / p99 89 ms, 8.8 %
+  janky; idle on Panel 73 frames/s at p50 21 ms, 30 % janky (the `.noise` blend layer recomposited per panel frame).
 - **TV casino** (`tv/tv-casino.js`, docs/TV_VIEW.md §3/§6/§7, R-TV-9…11): poker tables deal face-down card sprites
   from `clock.lock_at` (`dealAt`/`dealEnd`/`dealOrder`), teen patti's show flips from `reveal_at − 3.2`
   (`showAnchor`/`showFlip`) then glows the winning hand; seats/plates re-laid (`PK.cy` 476, 3-line plates), `slowHz`

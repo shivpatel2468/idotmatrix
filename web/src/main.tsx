@@ -9,6 +9,7 @@ import { installTheme } from "./lib/theme";
 import { installPaper } from "./lib/paper";
 import { installPaperImages } from "./lib/paperImg";
 import { installGlass } from "./lib/glass";
+import { installBackButton } from "./lib/android";
 import "./index.css";
 // the default page theme (Cyber grid), in the stylesheet so a first visit paints it before any script
 import "./pageTheme.default.gen.css";
@@ -21,6 +22,8 @@ installTheme();
 installPaper();
 // Liquid Glass: clear, frosted or solid for this device (html[data-glass]), the edge lens and the specular highlight
 installGlass();
+// the Android app's Back button closes an open sheet / dialog / menu first (lib/android.ts)
+installBackButton();
 // the engine owns the page theme: every device follows its pick (docs/STUDIO_UI.md § Page themes)
 useStore.subscribe((s) => syncPageTheme(s.state?.settings?.page_theme));
 

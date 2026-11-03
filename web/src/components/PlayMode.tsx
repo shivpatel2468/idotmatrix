@@ -442,7 +442,7 @@ function PlayView() {
       className="playmode fixed inset-0 z-[65] flex flex-col outline-none"
       onMouseDown={() => root.current?.focus({ preventScroll: true })}>
       {controls && <ControlsPanel app={playing} onClose={() => setControls(false)} />}
-      <header className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-[max(10px,env(safe-area-inset-top))] md:gap-3 md:px-6 md:pt-4">
+      <header className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-[max(10px,var(--safe-top))] md:gap-3 md:px-6 md:pt-4">
         <span className="engrave hidden items-center gap-2 !text-ember lg:flex"><span className="led" data-on="ember" /> Play mode</span>
         <GameMenu open={menu} setOpen={setMenu} cur={playing} />
         <span className="flex-1" />
@@ -471,7 +471,7 @@ function PlayView() {
       {phone ? (
         // a handheld console: score strip, the panel as big as fits, the pad in the thumb zone — one screen, no scroll
         // (unless a match card — sides, results, the lobby — needs the room); everything else is one tap away in the sheet
-        <div className={clsx("flex min-h-0 flex-1 flex-col gap-2.5 px-3 pb-[max(10px,env(safe-area-inset-bottom))]", (flowCard || fr.waiting) && "overflow-y-auto")}>
+        <div className={clsx("flex min-h-0 flex-1 flex-col gap-2.5 px-3 pb-[max(10px,var(--safe-bottom))]", (flowCard || fr.waiting) && "overflow-y-auto")}>
           {flowCard}
           {fr.multiplayer ? <VersusBoard maxPlayers={fr.maxPlayers} horizontal /> : <Scoreboard horizontal />}
           {fr.waiting || flowCard ? <div className="aspect-square w-full shrink-0">{panel}</div>
