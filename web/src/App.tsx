@@ -15,6 +15,7 @@ import { PlaybackSheet, PlaylistDock } from "./components/PlaylistDock";
 import { PlayMode } from "./components/PlayMode";
 import { Stage } from "./components/Stage";
 import { TopBar } from "./components/TopBar";
+import { UpdatesSheet } from "./components/UpdatesSheet";
 import { ThemeFab } from "./components/ThemeFab";
 import { installRecent } from "./lib/recent";
 import { api, loadPresets } from "./lib/api";
@@ -262,6 +263,7 @@ export default function App() {
       <Drawers />
       <NotifyComposer />
       <TvSheet />
+      <UpdatesSheet />
       <SettingsSheet />
       <AiCreator />
       <PlayMode />
