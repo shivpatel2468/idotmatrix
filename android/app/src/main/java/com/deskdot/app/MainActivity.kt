@@ -16,7 +16,9 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.Display
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceError
@@ -27,7 +29,10 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -40,6 +45,13 @@ import org.json.JSONObject
  * studio as on the laptop, served by the engine running on this phone.
  *
  * Phone polish (android/README.md → "The app shell"):
+ *  - edge to edge: the studio draws behind transparent status and navigation bars; the window insets reach the page
+ *    as CSS variables (--safe-top/bottom/left/right: `insets()` before first paint, then pushed on every change) and
+ *    the keyboard shrinks the WebView (IME inset padding), so nothing hides under a bar or the keyboard;
+ *  - launch: the Android 12+ splash (core-splashscreen) is only the theme's page colour and hands over at once to
+ *    [IntroView]: the LED logo builds itself in ~1.4 s and stays lit (a faint shimmer) until the studio says it is
+ *    ready (`introDone()`), then fades into it. No "starting" text; only a real problem gets a kind message;
+ *  - Back closes an open sheet / dialog / menu in the studio first (`window.__deskdotBack()`);
  *  - the highest refresh rate the screen offers (120 Hz on most recent phones) at the current resolution;
  *  - `window.DeskDotAndroid` for the studio: system bar colours + icon contrast that follow the studio theme
  *    (remembered, so the next cold start opens in the right colours with no black flash), and the launcher icon
@@ -48,7 +60,11 @@ import org.json.JSONObject
 class MainActivity : ComponentActivity() {
     private lateinit var root: FrameLayout
     private lateinit var web: WebView
-    private lateinit var status: TextView
+    private lateinit var status: TextView // a kind message under the intro's logo, only when something is wrong
+    private var intro: ViewGroup? = null
+    private var introLogo: IntroView? = null
+    private var insetsCss = """{"top":0,"bottom":0,"left":0,"right":0}"""
+    private var firstTry = 0L // when the first load attempt failed (the engine was still starting)
     private lateinit var prefs: SharedPreferences
     private val main = Handler(Looper.getMainLooper())
     private var loaded = false
@@ -69,6 +85,8 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
+        // the system splash is only the page colour, no icon (themes.xml): it leaves at once for the LED intro
+        installSplashScreen().setOnExitAnimationListener { it.remove() }
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
         // GPU compositing for the whole window (the default since API 14 — stated, so no theme or OEM overlay drops it)
@@ -100,7 +118,10 @@ class MainActivity : ComponentActivity() {
                 override fun onPageFinished(v: WebView, url: String) {
                     if (url.startsWith(STUDIO) && !failed) {
                         loaded = true
-                        status.visibility = View.GONE
+                        firstTry = 0L
+                        pushInsets()
+                        // a studio that never calls introDone() (they ship together, so it shouldn't happen) still opens
+                        main.postDelayed({ if (loaded && intro != null) handOver() }, 12_000)
                     }
                 }
 
@@ -118,27 +139,37 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        status = TextView(this).apply {
-            setTextColor(Color.rgb(249, 74, 24))
-            textSize = 16f
-            gravity = android.view.Gravity.CENTER
-            text = getString(R.string.starting)
-        }
-        root = FrameLayout(this).apply { addView(web); addView(status) }
+        root = FrameLayout(this).apply { addView(web) }
         setContentView(root)
+        showIntro(bars)
         applyBars(bars)
-        if (Build.VERSION.SDK_INT >= 35) {
-            // Android 15 always draws apps edge to edge: keep the studio clear of the bars; the window background
-            // (the theme's page colour, applyBars) shows behind them
-            ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-                val b = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-                v.setPadding(b.left, b.top, b.right, b.bottom)
-                WindowInsetsCompat.CONSUMED
-            }
+        // edge to edge: the page runs under the bars and learns their size as CSS variables. Only the keyboard takes
+        // space away from the WebView, so a focused field is never under it.
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val typing = insets.isVisible(WindowInsetsCompat.Type.ime())
+            v.setPadding(0, 0, 0, if (typing) ime.bottom else 0)
+            val d = resources.displayMetrics.density
+            fun css(px: Int) = Math.round(px / d * 10) / 10.0
+            insetsCss = JSONObject()
+                .put("top", css(sys.top)).put("bottom", if (typing) 0.0 else css(sys.bottom))
+                .put("left", css(sys.left)).put("right", css(sys.right)).toString()
+            pushInsets()
+            insets
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack() else moveTaskToBack(true) // keep running, just go home
+                if (!loaded || intro != null) {
+                    moveTaskToBack(true)
+                    return
+                }
+                // the studio closes what's open on top first (a sheet, a dialog, a menu)
+                web.evaluateJavascript("(window.__deskdotBack ? window.__deskdotBack() : false)") { handled ->
+                    if (handled != "true") {
+                        if (web.canGoBack()) web.goBack() else moveTaskToBack(true) // keep running, just go home
+                    }
+                }
             }
         })
         val missing = permissions.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
@@ -148,6 +179,63 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         requestHighRefreshRate() // some OEM skins reset the window's mode when the app comes back
+    }
+
+    // ------------------------------------------------------------------------------------------- intro
+
+    /** The LED intro over everything (under the bars too), in the remembered theme's page colour; a message slot. */
+    private fun showIntro(b: Bars) {
+        if (intro != null) return
+        val logo = IntroView(this, b.page, !b.lightIcons)
+        status = TextView(this).apply {
+            setTextColor(if (b.lightIcons) Color.rgb(205, 200, 194) else Color.rgb(74, 58, 36))
+            textSize = 14f
+            gravity = Gravity.CENTER
+            setLineSpacing(0f, 1.25f)
+            val pad = (32 * resources.displayMetrics.density).toInt()
+            setPadding(pad, 0, pad, 0)
+            visibility = View.GONE
+        }
+        val box = FrameLayout(this).apply {
+            addView(logo, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            addView(status, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
+                topMargin = (resources.displayMetrics.heightPixels * 0.58f).toInt()
+            })
+        }
+        root.addView(box, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        intro = box
+        introLogo = logo
+        logo.start()
+    }
+
+    /** The studio is ready: the intro fades into it and is gone. */
+    private fun handOver() {
+        val logo = introLogo ?: return
+        status.visibility = View.GONE
+        logo.finish {
+            intro?.let { root.removeView(it) }
+            intro = null
+            introLogo = null
+        }
+    }
+
+    /** Something is really wrong: say so kindly under the lit logo (a tap runs [onTap]). */
+    private fun say(text: String, onTap: (() -> Unit)? = null) {
+        if (intro == null) showIntro(Bars.load(prefs))
+        introLogo?.hold()
+        status.text = text
+        status.visibility = View.VISIBLE
+        status.setOnClickListener(onTap?.let { f -> View.OnClickListener { f() } })
+    }
+
+    /** The insets as CSS variables on <html> (index.html read them once before first paint, via insets()). */
+    private fun pushInsets() {
+        if (!::web.isInitialized) return
+        web.evaluateJavascript(
+            "(function(i,s){for(var k in i)s.setProperty('--safe-'+k,i[k]+'px')})($insetsCss,document.documentElement.style)",
+            null,
+        )
     }
 
     // ------------------------------------------------------------------------------------------- refresh rate
@@ -189,23 +277,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Edge to edge with transparent bars, icon contrast for the theme, the page colour behind everything. The page
+     *  draws its own header and tab bar under the bars, so the status / nav colours are only remembered for history. */
     private fun applyBars(b: Bars) {
+        val style = if (b.lightIcons) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        enableEdgeToEdge(style, style)
         window.setBackgroundDrawable(ColorDrawable(b.page))
         root.setBackgroundColor(b.page)
         web.setBackgroundColor(b.page)
-        status.setBackgroundColor(b.page)
-        barColours(b)
         if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false // no grey scrim on 3-button nav
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !b.lightIcons
             isAppearanceLightNavigationBars = !b.lightIcons
         }
-    }
-
-    @Suppress("DEPRECATION") // ignored on Android 15+ (edge to edge): the window background shows behind the bars there
-    private fun barColours(b: Bars) {
-        window.statusBarColor = b.status
-        window.navigationBarColor = b.nav
     }
 
     // ------------------------------------------------------------------------------------------- launcher icon
@@ -236,7 +320,7 @@ class MainActivity : ComponentActivity() {
     /** `window.DeskDotAndroid` (web/src/lib/android.ts). Called on a binder thread: UI work is posted to the main one. */
     private inner class Bridge {
         @JavascriptInterface
-        fun version(): Int = 1
+        fun version(): Int = 2
 
         /** System bar colours (#rrggbb) for the studio theme on screen; `lightIcons` = white bar icons. */
         @JavascriptInterface
@@ -250,6 +334,16 @@ class MainActivity : ComponentActivity() {
                 applyBars(b)
                 b.save(prefs)
             }
+        }
+
+        /** The window insets in CSS px, {"top","bottom","left","right"} (bottom is 0 while the keyboard is up). */
+        @JavascriptInterface
+        fun insets(): String = insetsCss
+
+        /** The studio is ready (engine, apps, first state): the intro hands over. */
+        @JavascriptInterface
+        fun introDone() {
+            main.post { handOver() }
         }
 
         @JavascriptInterface
@@ -287,8 +381,7 @@ class MainActivity : ComponentActivity() {
     private fun onPermissions() {
         val bt = if (Build.VERSION.SDK_INT >= 31) Manifest.permission.BLUETOOTH_CONNECT else Manifest.permission.ACCESS_FINE_LOCATION
         if (checkSelfPermission(bt) != PackageManager.PERMISSION_GRANTED) {
-            status.text = getString(R.string.need_bluetooth)
-            status.setOnClickListener {
+            say(getString(R.string.need_bluetooth)) {
                 startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
             }
             return
@@ -329,11 +422,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** The engine isn't answering yet: try again shortly, behind the intro (shown again if the studio had opened). */
     private fun retrySoon() {
         loaded = false
-        status.visibility = View.VISIBLE
-        status.text = getString(R.string.starting)
-        main.postDelayed({ if (!loaded || failed) load() }, 1500)
+        if (intro == null) showIntro(Bars.load(prefs))
+        val now = System.currentTimeMillis()
+        if (firstTry == 0L) firstTry = now
+        if (now - firstTry > SLOW_MS) {
+            say(getString(R.string.slow_start)) {
+                firstTry = System.currentTimeMillis()
+                status.visibility = View.GONE
+                EngineService.start(this)
+                load()
+            }
+        }
+        main.postDelayed({ if (!loaded || failed) load() }, 1000)
     }
 
     override fun onDestroy() {
@@ -346,6 +449,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val STUDIO = "http://127.0.0.1:${EngineService.PORT}/"
         private const val PREFS = "deskdot.ui"
+
+        /** The engine hasn't answered for this long: say so, kindly, under the logo. */
+        private const val SLOW_MS = 30_000L
 
         /** Launcher icons: one <activity-alias android:name=".Launcher<Id>"> each (android/tools/gen_icons.py draws them). */
         val ICONS = listOf("classic", "monogram", "ink", "sunset", "porcelain", "chip", "heart")

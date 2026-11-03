@@ -138,4 +138,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.core:core-splashscreen:1.0.1") // the Android 12+ launch splash, also on 8–11
 }

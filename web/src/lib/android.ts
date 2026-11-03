@@ -5,6 +5,9 @@
  *   setBars(status, nav, page, lightIcons)  system bar colours + icon contrast for the studio theme on screen
  *   icons() / getIcon() / setIcon(id)       the launcher icon (one <activity-alias> per icon)
  *   display()                               {"hz": now, "max": best, "modes": [...]} — the screen's refresh rate
+ *   insets()                                {"top","bottom","left","right"} in CSS px (index.html reads it before paint)
+ *   introDone()                             the studio is ready: the app's native LED intro hands over (Boot.tsx)
+ * The app also calls `window.__deskdotBack()` on the Back button: true = the studio closed something (a sheet, a menu).
  */
 import { pageBars } from "./pageTheme";
 
@@ -15,6 +18,8 @@ type Bridge = {
   getIcon(): string;
   setIcon(id: string): boolean;
   display(): string;
+  insets?(): string;
+  introDone?(): void;
 };
 
 const bridge = (): Bridge | null => {
@@ -78,4 +83,33 @@ export function screenInfo(): ScreenInfo | null {
   } catch {
     return null;
   }
+}
+
+/** True when the app plays its own (native) intro: the studio skips its intro and tells the app when it is ready. */
+export function nativeIntro(): boolean {
+  const b = bridge();
+  return !!b && typeof b.introDone === "function";
+}
+
+/** The studio has its engine, its apps and the first state: the app's intro may hand over now. */
+export function introDone() {
+  try {
+    bridge()?.introDone?.();
+  } catch {
+    /* an older app */
+  }
+}
+
+/**
+ * Android's Back button: close whatever is open on top (a sheet, a dialog, a menu) the way Escape does, instead of
+ * leaving the app. Returns false when nothing was open, so the app goes to the home screen as before.
+ */
+export function installBackButton() {
+  (window as unknown as { __deskdotBack?: () => boolean }).__deskdotBack = () => {
+    const open = document.querySelector('[aria-modal="true"], [role="dialog"], [role="menu"], [role="listbox"]');
+    if (!open) return false;
+    const target = (document.activeElement as HTMLElement | null) ?? document.body;
+    target.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", bubbles: true, cancelable: true }));
+    return true;
+  };
 }
