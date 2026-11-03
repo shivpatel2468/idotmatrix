@@ -69,6 +69,7 @@ NAV = [
     ("apps", "/apps.html", "Apps"),
     ("features", "/features.html", "Features"),
     ("studio", "/studio.html", "Studio"),
+    ("showcase", "/showcase.html", "Showcase"),
     ("specs", "/specs.html", "Specs"),
     ("faq", "/faq.html", "FAQ"),
     ("whatsnew", "/whats-new.html", "What's new"),
@@ -111,6 +112,12 @@ PAGES: dict[str, dict[str, Any]] = {
         "title": "The DeskDot studio: browser, phone and 3D views",
         "description": "Library, live LED-accurate preview, settings generated from each app's schema, Play mode "
         "for games, the phone controller and the 3D Fly Brain view.",
+    },
+    "showcase.html": {
+        "nav": "showcase",
+        "title": "DeskDot on every screen: watch, phone, laptop and TV",
+        "description": "Real captures of DeskDot and the projects around it: a Wear OS watch launcher and faces, "
+        "the Android app, the studio on a laptop and the TV view of the casino and games.",
     },
     "specs.html": {
         "nav": "specs",

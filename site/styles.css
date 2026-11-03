@@ -3524,3 +3524,44 @@ html:not(.js) .tagline .w { color: var(--ink); }
   --texture-size: auto;
 }
 /* /gen:themes */
+
+/* showcase.html: real captures in device frames (watch · phone · laptop · TV). Bezels are hardware black on purpose. */
+.sc .tabpanel > .sub { margin: 0 0 6px; max-width: 64ch; }
+.sc-hero, .sc-video { display: flex; justify-content: center; margin: 22px 0; }
+/* fixed column counts so rows always fill: 6 watch stills (6 · 3 · 2), 4 phone / laptop / TV stills (4 · 2 · 1-2) */
+.sc-grid { display: grid; gap: 22px 18px; align-items: start; margin: 22px 0; grid-template-columns: repeat(var(--sc-cols, 4), minmax(0, 1fr)); }
+.sc-grid.dev-watch-grid { --sc-cols: 6; }
+@media (max-width: 1100px) { .sc-grid { --sc-cols: 2; } .sc-grid.dev-watch-grid { --sc-cols: 3; } .sc-grid.dev-phone-grid { --sc-cols: 4; } }
+@media (max-width: 640px) { .sc-grid.dev-watch-grid, .sc-grid.dev-phone-grid { --sc-cols: 2; } .sc-grid.dev-laptop-grid, .sc-grid.dev-tv-grid { --sc-cols: 1; } }
+.sc-soon { text-align: center; }
+.dev { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; }
+.dev figcaption { margin-top: 10px; font: 500 11px var(--mono); color: var(--ink-3); letter-spacing: 0.04em; text-align: center; }
+.dev-screen { position: relative; overflow: hidden; background: #000; width: 100%; }
+.dev-screen img, .dev-screen video { display: block; width: 100%; height: auto; }
+/* round watch: a brushed bezel ring around a circular screen */
+.dev-watch .dev-screen { max-width: 200px; aspect-ratio: 1; border-radius: 50%; border: 9px solid #17171c;
+  box-shadow: 0 0 0 2px #3a3a44, 0 0 0 4px #121216, 0 16px 34px -18px var(--shadow, #000), 0 0 22px -8px var(--accent-line, transparent); }
+.dev-watch.big .dev-screen { max-width: 300px; }
+.dev-watch .dev-screen img, .dev-watch .dev-screen video { height: 100%; object-fit: cover; }
+/* phone: rounded slab, thin bezel, a camera dot */
+.dev-phone .dev-screen { max-width: 210px; border-radius: 30px; border: 7px solid #0c0c0f;
+  box-shadow: 0 0 0 1.5px #34343d, 0 18px 40px -22px var(--shadow, #000), 0 0 22px -10px var(--accent-line, transparent); }
+.dev-phone .dev-screen::before { content: ""; position: absolute; z-index: 1; top: 7px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #0c0c0f; box-shadow: 0 0 0 1.5px #22222a; }
+.dev-phone.big .dev-screen { max-width: 270px; }
+/* laptop: lid with a bezel, then the base */
+.dev-laptop .dev-screen { max-width: 980px; border: 9px solid #111115; border-bottom-width: 14px; border-radius: 14px 14px 4px 4px;
+  box-shadow: 0 0 0 1.5px #34343d, 0 0 26px -12px var(--accent-line, transparent); }
+.dev-laptop .dev-base { display: block; width: 112%; max-width: 1100px; height: 12px; border-radius: 2px 2px 12px 12px;
+  background: linear-gradient(180deg, #4a4a54, #26262d 55%, #18181d); box-shadow: 0 10px 20px -12px var(--shadow, #000); }
+.sc-grid .dev-laptop .dev-base { width: 108%; height: 8px; }
+/* TV: thin bezel and a small stand */
+.dev-tv .dev-screen { max-width: 980px; border: 6px solid #0b0b0e; border-radius: 8px;
+  box-shadow: 0 0 0 1.5px #303039, 0 22px 40px -24px var(--shadow, #000), 0 0 26px -12px var(--accent-line, transparent); }
+.dev-tv .dev-base { display: block; width: 22%; height: 14px; background: linear-gradient(180deg, #24242b, #121216);
+  clip-path: polygon(38% 0, 62% 0, 62% 55%, 100% 55%, 100% 100%, 0 100%, 0 55%, 38% 55%); }
+@media (max-width: 640px) {
+  .sc-grid { gap: 18px 12px; }
+  .dev-watch .dev-screen { border-width: 7px; }
+  .dev-phone .dev-screen { border-radius: 24px; border-width: 5px; }
+  .dev-laptop .dev-screen { border-width: 6px; border-bottom-width: 10px; }
+}
