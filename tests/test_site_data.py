@@ -77,7 +77,7 @@ def test_every_app_has_a_real_preview_and_a_page() -> None:
 
 
 PAGES = [
-    "index", "setup", "guide", "apps", "features", "studio", "specs", "faq", "whats-new",
+    "index", "setup", "guide", "apps", "features", "studio", "showcase", "specs", "faq", "whats-new",
     "download", "privacy", "terms", "license", "licenses",
 ]  # fmt: skip
 LEGAL = ("download", "privacy", "terms", "license", "licenses")  # not in the main nav
