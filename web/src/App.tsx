@@ -17,9 +17,10 @@ import { Stage } from "./components/Stage";
 import { TopBar } from "./components/TopBar";
 import { UpdatesSheet } from "./components/UpdatesSheet";
 import { ThemeFab } from "./components/ThemeFab";
+import { TabBar } from "./components/TabBar";
 import { installRecent } from "./lib/recent";
 import { api, loadPresets } from "./lib/api";
-import { INSPECTOR_MAX, LIBRARY_MAX, type MobileTab, appMeta, useStore } from "./lib/store";
+import { INSPECTOR_MAX, LIBRARY_MAX, appMeta, useStore } from "./lib/store";
 import { gameKeyDown, isPlayable } from "./lib/gameInput";
 import { connect } from "./lib/ws";
 import { startFlyPolling, useFlyView } from "./lib/fly";
@@ -143,38 +144,6 @@ function MiniPreview() {
       </span>
       <Icon name="maximize-2" size={14} className="text-ink-3" />
     </button>
-  );
-}
-
-const TABS: [MobileTab, string, string][] = [
-  ["panel", "Panel", "monitor-play"],
-  ["apps", "Apps", "layout-grid"],
-  ["play", "Presets", "list-music"],
-  ["tune", "Settings", "sliders-horizontal"],
-];
-
-/** Phones: the bottom tab bar (thumb zone) — a lit pill behind the active icon, labels always shown. */
-function TabBar() {
-  const tab = useStore((s) => s.mobileTab);
-  const running = useStore((s) => s.state?.engine.mode === "playlist");
-  const set = useStore((s) => s.set);
-  const pick = (id: MobileTab) => {
-    // tapping the open tab again scrolls it back to the top (the iOS / Android convention)
-    if (id === tab) document.querySelector(".phone-scroll, .phone-stage")?.scrollTo({ top: 0, behavior: "smooth" });
-    else set({ mobileTab: id });
-  };
-  return (
-    <nav className="tabbar" aria-label="Sections">
-      {TABS.map(([id, label, icon]) => (
-        <button key={id} onClick={() => pick(id)} aria-current={tab === id ? "page" : undefined} className="tabbar-btn">
-          <span className="tabbar-pill">
-            <Icon name={icon} size={21} duo={tab === id} strokeWidth={tab === id ? 1.9 : 1.7} />
-            {id === "play" && running && <span className="led absolute right-2 top-0.5 !h-[6px] !w-[6px]" data-on="ok" />}
-          </span>
-          {label}
-        </button>
-      ))}
-    </nav>
   );
 }
 

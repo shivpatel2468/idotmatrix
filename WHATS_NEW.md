@@ -32,6 +32,23 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Better
 
+- **The phone app fills the whole screen**
+  - Before: the studio sat between a solid status bar at the top and a solid navigation bar at the bottom.
+  - Now: it runs edge to edge under see-through bars, and nothing hides under them or under the keyboard.
+- **A quick LED intro on the phone instead of "Starting DeskDot…"**
+  - Before: the app opened on a "Starting DeskDot…" line, then a big sunset scene with a progress bar and tips.
+  - Now: the DeskDot logo builds itself out of LED dots in about a second and a half and fades straight into the
+    studio. If the engine needs a moment longer, the logo just stays lit. It follows your theme and your phone's
+    animation setting.
+- **A glass tab bar on the phone that you can drag**
+  - Before: the bottom bar (Panel, Apps, Presets, Settings) was a flat, nearly solid strip, and you could only tap it.
+  - Now: it is a floating pane of glass that blurs what scrolls under it. The bubble behind the open tab follows
+    your finger along the bar, springs to the nearest tab when you let go and opens it. Tapping still works.
+- **Smoother phone app**
+  - Before: on a phone every change on the live panel made the whole screen redraw through an invisible grain layer,
+    and the blur behind sheets redrew too, so scrolling and switching tabs could stutter.
+  - Now: phones skip that layer and that blur, and the app no longer plays the studio's big intro scenes on top.
+
 - **Updates open in their own window**
   - Before: "Update available" sent you into Settings, where the version, the notes and the Install button were mixed
     in with everything else.
@@ -55,6 +72,12 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Fixed
 
+- **Back closes the sheet on the phone**
+  - Before: pressing Back with Settings (or any sheet or menu) open left the app.
+  - Now: Back closes what is open first; pressed again it goes to the home screen as before.
+- **"What's new" reads properly in Settings**
+  - Before: long notes broke into stray half-lines under each item.
+  - Now: every note reads as one piece, the way it was written.
 - **Smoother Teen Patti and Hold'em on TV sticks**
   - Before: the card tables redrew the whole table four times a second, so they could stutter on a Fire TV.
   - Now: they only redraw when something changes; the moving cards are light sprites.

@@ -18,7 +18,17 @@
           // opaque, no blur) without backdrop-filter or inside the Android app, whose WebView let content show through
           var g = localStorage.getItem("deskdot.glass") || "auto", bl = window.CSS && (CSS.supports("backdrop-filter", "blur(1px)") || CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
           var rt = window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches;
-          r.setAttribute("data-glass", rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid");
+          var gm = rt || g === "solid" ? "solid" : g === "frosted" || !bl || (g !== "liquid" && window.DeskDotAndroid) ? "frosted" : "liquid";
+          r.setAttribute("data-glass", gm);
+          // the phone tab bar: real blur in the Android app too (glass.ts barMode)
+          r.setAttribute("data-bar-glass", gm === "frosted" && g !== "frosted" && bl ? "liquid" : gm);
+        } catch (e) {}
+        try { // the Android app draws edge to edge: its window insets (CSS px) before first paint (index.css --safe-*)
+          var A = window.DeskDotAndroid;
+          if (A && A.insets) {
+            var ins = JSON.parse(A.insets());
+            for (var k in ins) r.style.setProperty("--safe-" + k, ins[k] + "px");
+          }
         } catch (e) {}
         try { // the page theme (lib/pageTheme.ts) cached by the last visit: painted before the first frame
           var pt = localStorage.getItem("deskdot.pageTheme"), css = localStorage.getItem("deskdot.pageThemeCss");

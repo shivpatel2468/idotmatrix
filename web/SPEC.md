@@ -22,7 +22,9 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   Tests: none yet (gap).
 - **R-STU-4** Liquid Glass is the navigation and control layer only (never content, never glass on glass);
   `backdrop-filter` only on floating chrome, never on a scrolling area; frosted fallback where blur is missing or slow
-  (the Android app). Tests: none yet (gap).
+  (the Android app). One exception: the phone tab bar keeps real blur in the Android app too, with a thicker tint
+  (`barMode`, `html[data-bar-glass]`). Touch screens draw no full-screen blend or blur layers (the grain overlay, the
+  sheet scrim). Tests: none yet (gap).
 - **R-STU-5** Connection: the status pill and the Connection sheet describe where the panel is connected with one
   `summarize()` function, show the engine's `reason` / `hint`, and offer one primary action; *Release the panel…*
   explains the pairing screen first. Tests: `tests/test_device_connection.py::test_reconnect_endpoint` (engine side only).
@@ -43,6 +45,17 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   Tests: `tests/test_api.py::test_studio_page_revalidates_and_assets_cache`.
 - **R-STU-10** `npm run build` (typecheck + production build) passes. Tests: CI job "Studio — typecheck & build"
   (`.github/workflows/ci.yml`); no unit test file.
+
+- **R-STU-11** Phone tab bar: a floating Liquid Glass capsule with a selection bubble behind the open tab. A tap springs
+  the bubble over; pressing and dragging moves it with a spring (rubber band past the ends), lights the tab under it
+  and on release snaps to the nearest tab (a flick carries one further) and opens it. Transform and opacity only;
+  nothing animates at rest; reduced motion moves it without the spring; every tab stays a labelled button with
+  `aria-current`. Safe areas come from `var(--safe-*)` so the Android app can supply them. Tests:
+  `tests/js/tab_drag.test.mjs` (spring, snapping, rubber band, flick, slop, stretch, the linear() easing).
+- **R-STU-12** Inside the Android app the studio skips its own intro, opens as soon as the engine, the apps and the
+  first state are in, and tells the app (`introDone()`); later outros there are a calm one-line fade, never the
+  desktop commands. Release notes join a bullet's wrapped lines. Tests: `tests/js/release_notes.test.mjs` (notes);
+  the intro hand-over is verified on the phone (gap).
 
 ## Invariants
 
