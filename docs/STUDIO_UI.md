@@ -434,6 +434,25 @@ list from DeskDot on this computer (`deskdotWeb.state().handover`, `deskdotWeb.u
 explains that an https page can't reach the phone and how to release it there by hand. The Android app shows the same
 sheet (it is the studio in a WebView).
 
+## Updates (`components/UpdatesSheet.tsx`, `lib/updateFlow.ts`)
+
+Built like the Connection sheet (same `Sheet`, `qs-card`, live steps with `StepIcon`). The top bar's *Update
+available* pill (phones: the sparkle key) opens it, and so does **Open updates** in Settings → Device → Updates, which
+keeps only a one-line status and the automatic-check switch. The sheet shows the headline (*DeskDot 3.10.0 is
+available* / *Up to date* / *Couldn't check for updates* / *Updating to …* / *Restarting DeskDot…* / *Updated to
+DeskDot …*), where this copy runs (Windows / Mac / Android app / source / browser app), **current → new version**, when
+it last checked, the release's **What's new** notes (the sheet body scrolls; the actions stay pinned in its footer),
+and **one primary action**: *Install & restart* (Windows, macOS), *Download & install* (Android), *Reload* (the
+browser app), next to *Check now*. Source installs get the `git pull` hint instead.
+
+While installing, the engine's `state.updates.status` drives the steps — *Download the new version* (a percentage and
+bar only when the engine reports `progress`; otherwise just the spinner) → *Check it against checksums.txt* →
+*Install* (Android: *Open Android's installer*; the mac fallback: *Open the installer*) → *Restart DeskDot*, which is
+done when the engine comes back on the new version. The browser app shows *New build found in version.json → Reload
+this tab*. A failure marks the step it happened in with a cross, says why in one sentence and offers **Retry**
+(install again when an installer is there, otherwise check again). The step logic is pure and tested in
+`tests/js/update_flow.test.mjs`.
+
 ## Display menu (`components/DisplayMenu.tsx`, `lib/look.ts`)
 
 The gear just left of the power guard (and Play mode's look key) opens it: a popover on wide screens, a bottom sheet
