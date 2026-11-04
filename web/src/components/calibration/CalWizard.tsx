@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Check, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
-import { type Calib, type FieldKey, IDENTITY, type Search, candidates, choose, result, startSearch } from "../../lib/calib";
+import { type Calib, DEFAULT_CALIB, type FieldKey, type Search, candidates, choose, result, startSearch } from "../../lib/calib";
 import { toast } from "../../lib/store";
 import { Icon } from "../Icon";
 import { ABKeys, PanelSketch, Progress, ScreenReference, SearchMeter, useClearOnUnmount, VideoChips, CAL_VIDEO_FALLBACK } from "./parts";
@@ -81,7 +81,7 @@ export function CalWizard({ saved, onDone, onAdvanced }: { saved: Calib; onDone:
   const step = STEPS[i];
 
   const begin = () => {
-    const base = fresh ? { ...IDENTITY } : { ...saved };
+    const base = fresh ? { ...DEFAULT_CALIB } : { ...saved };  // fresh: from the house default, not "no correction"
     setWork(base);
     setHistory([]);
     setI(0);

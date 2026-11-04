@@ -34,7 +34,7 @@ from ..config import Config, Store
 from ..device import Device
 from ..device import protocol as P
 from ..gfx import Frame, to_rgb
-from ..gfx.calib import PanelCalibration
+from ..gfx.calib import PanelCalibration, initial_calibration
 from ..gfx.calib import apply as apply_calibration
 from ..gfx.calib import pattern as calibration_pattern
 from ..gfx.image import encode_gif_budget
@@ -195,7 +195,8 @@ class Engine:
         self._revert: asyncio.Task[None] | None = None
         self._revert_to: tuple[Any, str, bool] | None = None
         self.auto_rule: int | None = None  # index of the autopilot rule currently in control
-        self.calibration = PanelCalibration.load(store.get("calibration"))
+        # nothing stored: the house default (gfx/calib.py DEFAULT_CALIBRATION); a stored calibration is kept as is
+        self.calibration = initial_calibration(store.get("calibration"))
         self.released = False  # True after a hand-off: the panel runs on its own until we take it back
         # calibration / motion test card owning the panel: (card, started, until) - see show_test()
         self.pattern: tuple[CalCard | MotionCard | StillCard, float, float] | None = None
