@@ -841,13 +841,30 @@ def whats_new() -> list[dict[str, Any]]:
     return out
 
 
+def _vkey(version: str) -> tuple[int, ...]:
+    return tuple(int(p) for p in re.findall(r"\d+", version))
+
+
 def whats_new_html(release: dict[str, Any] | None = None) -> str:
-    """The versions, newest first. The latest GitHub release (from apps.json) gets its download link."""
+    """The versions, newest first. The latest GitHub release (from apps.json) gets its download link.
+
+    A section newer than the latest GitHub release is written but not released yet: it says "Coming soon" instead
+    of a date, and "Latest" stays on the released version, so the page never promises a download that isn't there.
+    """
     rels = whats_new()
+    released = (release or {}).get("version") or ""
+
+    def upcoming(r: dict[str, Any]) -> bool:
+        return bool(released) and _vkey(r["version"]) > _vkey(released)
+
+    def when(r: dict[str, Any]) -> str:
+        return "Coming soon" if upcoming(r) else r["date"]
+
     toc = "".join(
-        f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(r["date"])}</span></a></li>'
+        f'<li><a href="#v{r["version"]}"><b>{e(r["version"])}</b><span>{e(when(r))}</span></a></li>'
         for r in rels
     )
+    latest_i = next((i for i, r in enumerate(rels) if not upcoming(r)), 0)
     parts = [f'<nav class="wn-toc" aria-label="Versions"><ol>{toc}</ol></nav>']
     for i, r in enumerate(rels):
         groups = []
@@ -863,7 +880,9 @@ def whats_new_html(release: dict[str, Any] | None = None) -> str:
                 f'<div class="wn-group wn-{cls}"><h3><i aria-hidden="true"></i>{label} <small>{len(g["items"])}</small>'
                 f"</h3><ul>{cards}</ul></div>"
             )
-        latest = '<span class="wn-latest">Latest</span>' if i == 0 else ""
+        latest = '<span class="wn-latest">Latest</span>' if i == latest_i else ""
+        if upcoming(r):
+            latest = f'<span class="wn-latest">Coming in {e(r["version"])}</span>'
         gh = ""
         if release and release.get("version") == r["version"]:
             gh = (
@@ -872,7 +891,7 @@ def whats_new_html(release: dict[str, Any] | None = None) -> str:
             )
         summary = (
             f'<span class="wn-ver">v{e(r["version"])}</span><span class="wn-head">{e(r["headline"])}</span>'
-            f'<span class="wn-date">{e(r["date"])}</span>{latest}'
+            f'<span class="wn-date">{e("" if upcoming(r) else r["date"])}</span>{latest}'
         )
         parts.append(
             f'<details class="wn-rel" id="v{r["version"]}"{" open" if i < 2 else ""}><summary>{summary}</summary>'
