@@ -70,10 +70,11 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 ### Fixed
 
 - **The phone no longer loops between connecting and the panel's pairing screen**
-  - Before: on some phones the panel connected, then a few seconds later dropped back to its pairing screen and
-    reconnected, over and over, because the phone's Bluetooth sometimes forgets to confirm a message it did send.
-  - Now: one missing confirmation is ignored while the link is fine; DeskDot only reconnects when the link is
-    really gone.
+  - Before: on some phones the panel connected, then every few seconds dropped back to its pairing screen and
+    reconnected, over and over — the phone's Bluetooth choked on the big packets DeskDot sent while uploading an
+    animation.
+  - Now: the phone sends smaller packets and waits for each one to be confirmed, so animations upload and the panel
+    stays connected.
 - **Back closes the sheet on the phone**
   - Before: pressing Back with Settings (or any sheet or menu) open left the app.
   - Now: Back closes what is open first; pressed again it goes to the home screen as before.

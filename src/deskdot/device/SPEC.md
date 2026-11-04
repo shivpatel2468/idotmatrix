@@ -48,11 +48,10 @@ replay); backends (`ble.py` desktop, `android.py`, `web.py`, `sim.py`) implement
   Access for idotmatrix.com only). Tests: `tests/test_device_connection.py::test_health_probe_for_the_web_app`.
 - **R-DEV-10** Baked GIFs stay under the 40 KB budget; frames are truecolour PNG (never palette PNG).
   Tests: `tests/test_gfx.py::test_gif_budget_is_a_hard_limit`.
-- **R-DEV-11** On Android, a write whose completion callback never arrives while the link is up is not a dead link
-  (some phones' stacks lose callbacks; dropping the link looped connect → pairing screen → reconnect). Only
-  `LOST_ACKS_DEAD` (3) missing callbacks in a row, a write error, or Android reporting the link lost drop it.
-  Tests: `tests/test_android_device.py::test_a_lost_write_callback_keeps_the_link`,
-  `tests/test_android_device.py::test_callbacks_lost_in_a_row_still_reconnect`.
+- **R-DEV-11** The Android backend writes packets of at most 244 bytes, each with response (HARDWARE_PROTOCOL.md
+  finding 19): full 514-byte packets without response made a phone's stack lose write completions during GIF uploads
+  and loop connect → pairing screen → reconnect. Desktop keeps 514-byte packets without response.
+  Tests: `tests/test_android_device.py::test_phone_writes_are_small_and_acknowledged`.
 
 ## Invariants
 

@@ -30,7 +30,6 @@ class FakeBridge:
         self.in_flight = 0
         self.max_in_flight = 0
         self.fail_next_write = False
-        self.lose_callbacks = 0  # the next N writes go out but their completion callback never arrives
         self._lock = threading.Lock()
 
     def _later(self, fn: Any, *args: Any, delay: float = 0.002) -> None:
@@ -55,11 +54,6 @@ class FakeBridge:
         self.packets.append((bytes(data), with_response))
         ok = not self.fail_next_write
         self.fail_next_write = False
-        if self.lose_callbacks > 0:
-            self.lose_callbacks -= 1
-            with self._lock:
-                self.in_flight -= 1
-            return
 
         def done() -> None:
             with self._lock:
@@ -162,33 +156,18 @@ async def test_a_failed_write_marks_the_link_down_and_recovers() -> None:
         await dev.stop()
 
 
-async def test_a_lost_write_callback_keeps_the_link(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Some phones never deliver a write's callback now and then; that alone must not drop the panel (no pairing
-    screen, no reconnect loop)."""
-    monkeypatch.setattr("deskdot.device.android.WRITE_TIMEOUT", 0.1)
-    bridge = FakeBridge()
+async def test_phone_writes_are_small_and_acknowledged() -> None:
+    """HARDWARE_PROTOCOL.md finding 19: full 514-byte packets written without response made a phone's stack lose a
+    write's completion during GIF uploads, and the engine reconnected in a loop (the panel's pairing screen)."""
+    bridge = FakeBridge(write_size=514)
     dev = await _started(bridge)
     try:
-        bridge.lose_callbacks = 1
-        dev.command(P.brightness(40))
-        dev.command(P.brightness(60))
-        await _until(lambda: P.brightness(60) in [p for p, _ in bridge.packets], within=3.0)
-        await asyncio.sleep(0.3)
-        assert bridge.connects == 1 and dev.connected, "one lost callback is not a dead link"
-        assert dev._lost_acks == 0, "a delivered callback resets the count"
-    finally:
-        await dev.stop()
-
-
-async def test_callbacks_lost_in_a_row_still_reconnect(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("deskdot.device.android.WRITE_TIMEOUT", 0.05)
-    bridge = FakeBridge()
-    dev = await _started(bridge)
-    try:
-        bridge.lose_callbacks = 3
-        for level in (10, 20, 30, 40):
-            dev.command(P.brightness(level))
-        await _until(lambda: bridge.connects >= 2 and dev.connected, within=5.0)
+        assert dev.packet_size == 244 and dev.info.mtu == 244
+        gif = b"GIF89a" + bytes(range(256)) * 20  # several 4 KiB chunks
+        dev.show_gif(gif)
+        await _until(lambda: dev.info.mode == "gif", within=5.0)
+        assert bridge.packets and all(len(p) <= 244 for p, _ in bridge.packets)
+        assert all(acked for _, acked in bridge.packets), "every phone write asks for a response"
     finally:
         await dev.stop()
 

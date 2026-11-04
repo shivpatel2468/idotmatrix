@@ -33,11 +33,14 @@ log = logging.getLogger("deskdot.android")
 
 CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
 WRITE_TIMEOUT = 5.0
-#: Some phones' Bluetooth stacks (seen on a Xiaomi 11i, Android 13) now and then never deliver a write's completion
-#: callback although the packet went out and the link is fine. One missing callback is not a dead link: dropping it
-#: would show the panel's pairing screen and loop (connect, 5 s, "write timed out", reconnect…). Only this many
-#: missing callbacks in a row — or Android reporting the link lost — count as a dead link.
-LOST_ACKS_DEAD = 3
+#: Phone writes are small and acknowledged (docs/HARDWARE_PROTOCOL.md finding 19). With the full 514-byte packets
+#: written without response, a phone's Bluetooth stack under load (seen on a Xiaomi 11i: MediaTek radio, Android 13,
+#: also paging a watch) lost a write's completion during GIF uploads (`bta_gattc_op_cmpl: No pending command`). The
+#: app never heard back, Android's per-device write permit was never released, every later write was refused, and
+#: the engine reconnected in a loop — the panel flashing its pairing screen each time. 244-byte packets fit one
+#: radio frame and acknowledged writes complete through the request/response path: no lost completions, no loop.
+MAX_PACKET = 244
+ACKED_WRITES = True
 
 
 class _Events:
@@ -109,7 +112,6 @@ class AndroidBleDevice(Device):
         self._writes: dict[int, asyncio.Future[None]] = {}
         self._tokens = itertools.count(1)
         self._link_up = False
-        self._lost_acks = 0  # write callbacks missing in a row (see LOST_ACKS_DEAD)
 
     def _ensure_bridge(self) -> None:
         if self._listener is not None:
@@ -142,8 +144,7 @@ class AndroidBleDevice(Device):
         finally:
             self._connect_future = None
         self._link_up = True
-        self._lost_acks = 0
-        self.packet_size = max(20, write_size)
+        self.packet_size = max(20, min(write_size, MAX_PACKET))
         self.info.address = address
         self.info.name = name
         self.info.mtu = self.packet_size
@@ -175,16 +176,10 @@ class AndroidBleDevice(Device):
         fut: asyncio.Future[None] = asyncio.get_running_loop().create_future()
         self._writes[token] = fut
         try:
-            self._bridge.write(packet, response, token)
+            self._bridge.write(packet, response or ACKED_WRITES, token)
             await wait_for(fut, WRITE_TIMEOUT)
-            self._lost_acks = 0
         except TimeoutError:
-            self._lost_acks += 1
-            if not self._link_up or self._lost_acks >= LOST_ACKS_DEAD:
-                raise ConnectionError("write timed out") from None
-            # the link is still up: the stack lost the callback, not the packet. Carry on; latest-frame-wins
-            # resends whatever is current, and a stack that is really stuck answers the next write with "GATT busy".
-            log.info("write callback missing (%d in a row); the link is up, carrying on", self._lost_acks)
+            raise ConnectionError("write timed out") from None
         finally:
             self._writes.pop(token, None)
 

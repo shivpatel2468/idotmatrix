@@ -42,10 +42,10 @@ The technical log for developers. For the same updates in plain words (before �
   on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
   one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
 - **Watch themes** (`scripts/gen_watch_themes.py` → `android/wear/.../WatchThemes.gen.kt`): the 21 table themes as plain Kotlin (ARGB ints, dark + light, gold-leaf stops) for the Wear OS apps, from `PAGE_THEMES.tokens()` like `gen_page_themes.py`; `--check` and `tests/test_watch_themes.py` catch a stale file; `--out/--package` writes another app's copy (Orbit, the watch faces). New `android/wear/SPEC.md` (R-WEAR-1…5).
-- **Android: a lost write callback is not a dead link** (R-DEV-11, `device/android.py` `LOST_ACKS_DEAD` = 3): a write
-  whose completion callback never arrives while the link is up is carried on from instead of raising; only 3 in a row
-  (or a write error / Android's link-lost) drop the link. Fixes a connect → 5 s "write timed out" → reconnect loop seen
-  on a Xiaomi 11i. Tests: `tests/test_android_device.py`.
+- **Android: small, acknowledged writes** (R-DEV-11, HARDWARE_PROTOCOL.md finding 19, `device/android.py`
+  `MAX_PACKET` 244, `ACKED_WRITES`): 514-byte packets without response made a Xiaomi 11i's stack lose write
+  completions during GIF uploads (`bta_gattc_op_cmpl: No pending command`, then `GATT busy` until the link closed) —
+  a reconnect loop with the panel's pairing screen. Tests: `tests/test_android_device.py`.
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
