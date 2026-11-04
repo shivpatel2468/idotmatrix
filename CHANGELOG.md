@@ -27,6 +27,9 @@ The technical log for developers. For the same updates in plain words (before �
   in the room. Engine: housie publishes `status.clock.called_at` / `claim_at` (`Housie.flash_at`). Tests:
   `tests/js/tv_casino.test.mjs` (deal/show timing, plates on stage, flapper, blur/lit segment, cage/ball path, live-TV
   plays), `tests/test_tv_reveal.py::test_housie_publishes_its_call_and_claim_moments`; housie fixture regenerated.
+- **Rake removed** (R-CAS-13, I-CAS-1): Hold'em `rake_percent` / `rake_cap` and Housie `rake` settings, `_pvp.award(rake=)`,
+  `rake_taken` and the `rake` status keys are gone; pots go wholly to the winners (nets sum to 0). Stale stored rake
+  keys are ignored (`tests/test_casino_cards.py::test_stored_rake_from_an_older_version_is_ignored`).
 - **Updates sheet** (`web/src/components/UpdatesSheet.tsx`, R-STU-6): the top-bar update pill and Settings → Updates
   ("Open updates") open a Connection-style sheet (same `Sheet`, cards and `StepIcon` steps): current → new version,
   the release notes, one primary action (Install & restart / Download & install / Reload), live steps from

@@ -66,6 +66,13 @@ the studio and the TV show the rest.
 - **R-CAS-12** A wallet follows its phone across seats and tables. Tests:
   `tests/test_casino.py::test_wallet_follows_the_phone_across_seats`,
   `tests/test_casino_studio.py::test_lobby_switch_moves_phones_to_the_next_table`.
+- **R-CAS-13** Pot games (Texas Hold'em, Teen Patti, Housie) pay every pot wholly to its winner(s): there is no rake
+  setting and no house cut, so the players' nets sum to zero. A stored `rake`, `rake_percent` or `rake_cap` from an
+  older version is ignored and the other stored settings are kept. Tests:
+  `tests/test_casino_cards.py::test_holdem_split_pot_odd_chip`,
+  `tests/test_casino_cards.py::test_pvp_outcome_ignores_play_and_conserves_credits`,
+  `tests/test_casino_housie.py::test_whole_pot_is_paid_out_and_credits_conserved`,
+  `tests/test_casino_cards.py::test_stored_rake_from_an_older_version_is_ignored`.
 
 ## Invariants
 
@@ -75,8 +82,7 @@ the studio and the TV show the rest.
   `tests/test_casino_play_money.py::test_the_bank_is_an_isolated_whole_number_ledger`,
   `tests/test_casino_play_money.py::test_only_the_host_grants_credits`,
   `tests/test_casino_play_money.py::test_phone_and_tv_payloads_carry_no_payment_fields`,
-  `tests/test_casino_play_money.py::test_no_payment_sdk_anywhere`. **Known violation of "no rake"**: see
-  Open questions.
+  `tests/test_casino_play_money.py::test_no_payment_sdk_anywhere`, and "no rake" by R-CAS-13.
 - **I-CAS-2** All randomness goes through `fair.py`; nothing else may draw outcomes.
 - **I-CAS-3** Game rules (`games/*.py`) are pure and draw nothing; panel apps are thin and draw public state only.
 - **I-CAS-4** Phase timers run from the render clock — no sleeps.
@@ -91,10 +97,6 @@ studio ops through `/api/apps/{id}/actions/*`; `status.{phase, ends_in, clock, c
 
 ## Open questions
 
-- **Known violation of I-CAS-1 ("no rake").** Texas Hold'em (`rake_percent`, `rake_cap`) and Housie (`rake`) have
-  an optional host-set rake, default 0, that the house keeps out of the pot. It is play credits, not money, but it
-  contradicts the invariant's wording. Decide: drop the rake settings, or reword I-CAS-1 to "no rake of anything of
-  value". Until then `tests/test_casino_play_money.py` lists the rake keys as `KNOWN_RAKE`.
 - The website build adds an 18+ gate and "play money" copy ([netlify spec](../../../netlify/SPEC.md)); main has the "Play money only" line.
 
 Last verified: 2026-11-02

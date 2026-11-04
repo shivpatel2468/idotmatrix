@@ -33,7 +33,6 @@ const RULE_HINTS: Record<string, string> = {
   small_blind: "Forced bet left of the button.",
   big_blind: "Forced bet two left of the button; the minimum raise.",
   blind_increase: "Raise the blinds every few hands so the game finishes.",
-  rake: "The house's cut of each pot (0 = a friendly game).",
   boot: "Everyone's ante into the pot before cards are dealt.",
   max_blind_rounds: "How long a player may keep playing blind before they must look at their cards.",
   pot_limit: "The pot is shown down when it reaches this size.",
@@ -57,7 +56,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 1000, min_bet: 1, max_bet: 100, bet_seconds: 30, result_seconds: 8, turn_seconds: 30, auto_next: true },
     rules: {
       wheel: "european", la_partage: true, seven_pays: 5, decks: 2, soft17: "S17", dealer_hits_soft17: false, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "late", tie_pays: 9, rake: 0, volatility: "low",
+      double_after_split: true, surrender: "late", tie_pays: 9, volatility: "low",
     },
   },
   {
@@ -66,7 +65,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 1000, min_bet: 5, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true },
     rules: {
       wheel: "american", la_partage: false, seven_pays: 4, decks: 6, soft17: "H17", dealer_hits_soft17: true, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "none", tie_pays: 8, rake: 0, volatility: "medium",
+      double_after_split: true, surrender: "none", tie_pays: 8, volatility: "medium",
     },
   },
   {
@@ -75,7 +74,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 25000, min_bet: 100, max_bet: 25000, bet_seconds: 15, result_seconds: 6, turn_seconds: 15, auto_next: true },
     rules: {
       wheel: "european", la_partage: true, seven_pays: 5, decks: 8, soft17: "S17", dealer_hits_soft17: false, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "late", tie_pays: 8, rake: 0, volatility: "high",
+      double_after_split: true, surrender: "late", tie_pays: 8, volatility: "high",
     },
   },
 ];
@@ -432,7 +431,7 @@ const KIND: Record<string, string> = {
   firstfour: "First four (0-1-2-3)", ff: "First four (0-1-2-3)", top_line: "Top line (0-00-1-2-3)", topline: "Top line (0-00-1-2-3)",
   dozen: "Dozen", column: "Column", red: "Red", black: "Black", odd: "Odd", even: "Even", low: "Low (1–18)", high: "High (19–36)",
   down: "Under 7", seven: "Lucky 7", up: "Over 7", player: "Player", banker: "Banker", tie: "Tie",
-  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar", ticket: "Ticket (the house keeps only the rake)",
+  player_pair: "Player pair", banker_pair: "Banker pair", andar: "Andar", bahar: "Bahar", ticket: "Ticket (the whole pot goes to the prizes)",
 };
 const kindName = (k: string, sample?: string) => KIND[k] ?? (sample && sample.length < 24 ? `${k.replace(/_/g, " ")} (${sample})` : k.replace(/_/g, " "));
 
@@ -488,10 +487,9 @@ function Odds() {
 
 /** Housie: players play for the pot — the prizes, their shares of the pool and who won them. */
 function HousiePrizes({ h }: { h: HousieStatus }) {
-  const pool = Math.max(0, h.pot - h.rake);
   return (
     <div className="cz-odds mb-3" role="table" aria-label="Housie prizes">
-      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Credits{h.pot ? ` · pool ${fmt(pool)}` : ""}</span></div>
+      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Credits{h.pot ? ` · pool ${fmt(h.pot)}` : ""}</span></div>
       {h.prizes.map((p) => (
         <div role="row" key={p.id} className="cz-odds-row">
           <span className="truncate" title={p.winners.map((w) => w.name).join(", ")}>

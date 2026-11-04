@@ -38,7 +38,7 @@ PVP_BASICS: Section = (
     "Table basics",
     (
         "You play against the other players, not the house: every chip you bet goes into the pot, and the winner "
-        "takes it. The house only deals (and takes a rake only if the host sets one).",
+        "takes it. The house only deals and never takes a cut of the pot.",
         "You are dealt into the next hand when you sit down. **Sit out next hand** / **Deal me in** toggles it.",
         "A hand starts once at least two players are in (a short countdown first).",
         "Your cards are only ever on your own phone; the panel shows the shared table.",
@@ -437,7 +437,6 @@ GUIDES: dict[str, dict[str, Any]] = {
                     "Ties split the pot (odd chip to the first winner left of the button).",
                     "**Side pots**: an all-in player can only win what they matched from each opponent; the rest "
                     "forms side pots for the others.",
-                    "Rake (host option, default 0): a share of each contested pot, only after a flop, capped.",
                 ),
             ),
             (
@@ -550,9 +549,8 @@ GUIDES: dict[str, dict[str, Any]] = {
             (
                 "Payouts",
                 (
-                    "Players play for the pot: every ticket sold goes in. The house keeps only the **rake** the "
-                    "host sets (0 % by default).",
-                    "The rest is the prize pool, split by the prize shares (host option; default: Early Five **10 %**, "
+                    "Players play for the pot: every ticket sold goes in, and the house keeps nothing.",
+                    "The whole pot is the prize pool, split by the prize shares (host option; default: Early Five **10 %**, "
                     "Top Line **15 %**, Middle Line **15 %**, Bottom Line **15 %**, Four Corners **10 %**, Full "
                     "House **35 %**).",
                     "Shares are of the enabled prizes; credits are rounded down and the odd credits go to the Full "

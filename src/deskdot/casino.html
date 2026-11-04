@@ -3053,7 +3053,7 @@ registerGame("holdem", (() => {
     unmount() { PC.chrome(false); root = null; },
     replay(rng) { return { deck: PC.deck(rng).join(" ") }; },
     describe: (o) => `deck ${o.deck.split(" ").slice(0, 6).join(" ")} …`,
-    paytable(cx) { const r = cx.pub.rules || {}; return `<table class="pays"><tr><td>Blinds</td><td>${fmt(r.small_blind)} / ${fmt(r.big_blind)}</td></tr><tr><td>Blinds double every</td><td>${r.blind_up_every ? r.blind_up_every + " hands" : "never"}</td></tr><tr><td>Rake</td><td>${r.rake_percent ? r.rake_percent + " %" : "none"}</td></tr></table><p class="note">No-limit: raise at least the last raise; all-in any time. Side pots for every all-in; ties split, odd chip to the first winner left of the button. Timer: check if free, else fold.</p>`; },
+    paytable(cx) { const r = cx.pub.rules || {}; return `<table class="pays"><tr><td>Blinds</td><td>${fmt(r.small_blind)} / ${fmt(r.big_blind)}</td></tr><tr><td>Blinds double every</td><td>${r.blind_up_every ? r.blind_up_every + " hands" : "never"}</td></tr></table><p class="note">No-limit: raise at least the last raise; all-in any time. Side pots for every all-in; ties split, odd chip to the first winner left of the button. Timer: check if free, else fold.</p>`; },
   };
 })());
 
@@ -3743,7 +3743,7 @@ registerGame("housie", (() => {
     set("buy", `<div class="hs-box"><h3>Your tickets</h3>
       <div class="hs-step"><button data-act="minus" aria-label="One ticket fewer" ${!open || shown <= 0 ? "disabled" : ""}>−</button><output aria-live="polite">${shown}<small>OF ${max}</small></output><button data-act="plus" aria-label="One more ticket" ${!open || shown >= max || (shown - n + 1) * price > free ? "disabled" : ""}>+</button></div>
       <div class="hs-sum"><span>${fmt(price)} credits each</span><span>Cost <b>${fmt(shown * price)}</b></span></div>
-      <div class="hs-sum"><span>${h.sold || 0} ticket${h.sold === 1 ? "" : "s"} sold</span><span>Pot <b>${fmt(h.pot || 0)}</b>${h.rake ? ` · rake ${fmt(h.rake)}` : ""}</span></div>
+      <div class="hs-sum"><span>${h.sold || 0} ticket${h.sold === 1 ? "" : "s"} sold</span><span>Pot <b>${fmt(h.pot || 0)}</b></span></div>
       <button class="pill ${c.priv.done ? "" : "hot"} hs-go" data-act="done" ${!open || !n ? "disabled" : ""}>${c.priv.done ? "✓ Ready — waiting for the others" : "I'm ready"}</button>
       ${buyers ? `<div class="hs-buyers">${buyers}</div>` : ""}
       <p class="hs-wait">${ph === "idle" ? "The table is closed — the host opens the next game." : "Your tickets are dealt from the sealed round when the calling starts."}</p></div>`);
@@ -3755,7 +3755,7 @@ registerGame("housie", (() => {
   function renderPrizes() {
     const h = H(), ph = c.pub.phase;
     const extra = ph === "result" && h.returned ? `<p class="hs-wait">${fmt(h.returned)} unclaimed — shared back by tickets.</p>` : "";
-    set("prz", `<div class="hs-box"><h3>Prizes · pool ${fmt((h.pot || 0) - (h.rake || 0))}</h3>${prizeTable()}${extra}
+    set("prz", `<div class="hs-box"><h3>Prizes · pool ${fmt(h.pot || 0)}</h3>${prizeTable()}${extra}
       <div class="hs-meta" style="margin-top:8px"><span>Auto-daub</span><button class="hs-mini" data-act="auto" aria-pressed="${auto}">${auto ? "On" : "Off — tap numbers"}</button></div></div>`);
   }
   function board() {
@@ -3816,9 +3816,9 @@ registerGame("housie", (() => {
     describe: (o) => `${o.tickets.length} ticket${o.tickets.length === 1 ? "" : "s"} · calls ${o.calls.slice(0, 6).join(" ")} …`,
     paytable(cx) {
       const h = cx.pub.housie || {}, r = cx.pub.rules || {};
-      return `<table class="pays"><tr><td>Ticket</td><td>${fmt(h.price || r.ticket_price || 0)}</td></tr><tr><td>Max tickets each</td><td>${h.max || r.max_tickets || 1}</td></tr><tr><td>House rake</td><td>${r.rake ? r.rake + " %" : "none"}</td></tr></table>
+      return `<table class="pays"><tr><td>Ticket</td><td>${fmt(h.price || r.ticket_price || 0)}</td></tr><tr><td>Max tickets each</td><td>${h.max || r.max_tickets || 1}</td></tr></table>
         <div class="eng" style="margin:10px 0 4px">Prizes (share of the pool)</div>${(h.prizes || []).length ? prizeTable() : ""}
-        <p class="note">Players play for the pot: the pool (pot minus the rake) is split by the shares. Claims made on the same call share a prize per ticket; a prize nobody claims is shared back by tickets.</p>`;
+        <p class="note">Players play for the pot: the whole pot is the prize pool, split by the shares. Claims made on the same call share a prize per ticket; a prize nobody claims is shared back by tickets.</p>`;
     },
   };
 })());

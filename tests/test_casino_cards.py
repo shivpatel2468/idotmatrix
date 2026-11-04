@@ -390,6 +390,29 @@ def test_holdem_verify_replays_the_deck() -> None:
     assert sorted(g.outcome["deck"].split()) == sorted(c.code for c in new_deck())
 
 
+@pytest.mark.parametrize(
+    ("app_id", "old"),
+    [
+        ("casino_holdem", {"rake_percent": 5, "rake_cap": 100, "big_blind": 20}),
+        ("casino_housie", {"rake": 10, "ticket_price": 25}),
+    ],
+)
+async def test_stored_rake_from_an_older_version_is_ignored(
+    engine: Any, app_id: str, old: dict[str, Any]
+) -> None:
+    """Rule 15: the rake settings were removed (3.10.0). A state.json that still has them loads; the rake keys are
+    dropped and every other stored setting is kept."""
+    engine.store.section("apps")[app_id] = dict(old)
+    app = engine._slot(app_id).app
+    dumped = app.settings.model_dump()
+    rules = app.game.rules.model_dump()
+    for key in ("rake", "rake_percent", "rake_cap"):
+        assert key not in dumped and key not in rules
+    kept = {k: v for k, v in old.items() if not k.startswith("rake")}
+    assert all(dumped[k] == v and rules[k] == v for k, v in kept.items())
+    assert "rake" not in json.dumps(app.status())
+
+
 # ================================================================ privacy
 @pytest.mark.parametrize("cls", [Holdem, TeenPatti])
 def test_hole_cards_never_public_nor_in_other_seats_private_state(cls: Any) -> None:

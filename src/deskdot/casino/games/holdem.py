@@ -1,4 +1,4 @@
-"""Texas Hold'em, no-limit, 2–10 players against each other; the house deals (and takes an optional rake).
+"""Texas Hold'em, no-limit, 2–10 players against each other; the house only deals.
 
 Rules (the standard rulebook, Robert's Rules of Poker / TDA where they differ in detail):
 
@@ -21,8 +21,8 @@ Rules (the standard rulebook, Robert's Rules of Poker / TDA where they differ in
   from the contributions (`_pvp.build_pots`): one pot per all-in level, each won by the best hand among the
   players who matched it. Ties split the pot; **odd chips go to the first winner clockwise from the button**.
 * **Turn timer** (``house.turn_seconds``): an expired turn checks if checking is free, otherwise folds.
-* Players with less than a big blind sit out (the host can top them up); ``rake_percent`` (default 0) takes a
-  share of every contested pot, only when a flop was dealt ("no flop, no drop"), capped at ``rake_cap``.
+* Players with less than a big blind sit out (the host can top them up). There is no rake: every pot goes wholly
+  to its winner(s).
 """
 
 from __future__ import annotations
@@ -67,8 +67,6 @@ class HoldemRules(Rules):
     small_blind: int = Field(5, ge=1, le=100_000, title="Small blind")
     big_blind: int = Field(10, ge=2, le=200_000, title="Big blind")
     blind_up_every: int = Field(0, ge=0, le=100, title="Double the blinds every N hands (0 = never)")
-    rake_percent: int = Field(0, ge=0, le=10, title="Rake (% of each pot, after a flop)")
-    rake_cap: int = Field(0, ge=0, le=1_000_000, title="Rake cap per hand (0 = no cap)")
 
 
 @register_game
@@ -222,7 +220,7 @@ class Holdem(PvPGame):
 
     def _end_uncontested(self, winner: Player, now: float) -> None:
         self.uncontested = True
-        self.awards = {winner.pid: self.pot_total()}  # nobody called: no showdown, no rake
+        self.awards = {winner.pid: self.pot_total()}  # nobody called: no showdown
         self.won = {winner.pid: self.pot_total()}
         self.winners = [{"seat": winner.seat, "name": self.session.name_of(winner.pid), "hand": "",
                          "amount": self.pot_total() - winner.total, "won": self.pot_total()}]  # fmt: skip
@@ -237,21 +235,12 @@ class Holdem(PvPGame):
             self.showdown[p.pid] = [c.code for c in p.cards]
         pots = build_pots(self.contrib(), [p.pid for p in live])
         order = self.from_button(self.button)
-        rules = self.rules
-        cap = int(rules.rake_cap)
-        pct = int(rules.rake_percent)
 
         def best(elig: list[str]) -> list[str]:
             top = max(ranks[p][0] for p in elig)
             return [p for p in elig if ranks[p][0] == top]
 
-        def rake(pot: Any) -> int:  # showdown pots only, so the flop was always dealt
-            r = pot.amount * pct // 100
-            if cap:
-                r = min(r, cap - self.rake_taken)
-            return max(0, r)
-
-        self.award(pots, best, order, rake if pct else None)
+        self.award(pots, best, order)
         for pid, v in sorted(self.won.items(), key=lambda kv: -kv[1]):
             p = self.by_pid(pid)
             if p is None or v <= 0:
@@ -360,7 +349,6 @@ class Holdem(PvPGame):
         t["sb_seat"] = self.players[self.sb_i].seat if self.players else None
         t["bb_seat"] = self.players[self.bb_i].seat if self.players else None
         t["pots"] = self.display_pots()
-        t["rake"] = self.rake_taken
         return out
 
     def display_pots(self) -> list[dict[str, Any]]:
