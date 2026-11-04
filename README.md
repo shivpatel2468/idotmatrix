@@ -94,6 +94,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
     - Friends join with the QR code; the host sets everyone's credits.
     - The panel shows only the table, while phones show credits, the betting layout and private cards.
     - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
+      There is no house cut: every Hold'em, Teen Patti and Housie pot goes wholly to the players who win it.
     - 21 table themes with their own felt patterns (from classic green and royal blue to Imperial jade, Gilded deco,
       Festival of lights, Cyber grid, Sakura night and Galaxy) recolour the panel, every phone, the studio and the TV;
       a "?" on every phone opens How to play, the rulebook and the payouts, with a guided tour for new players.
@@ -276,9 +277,12 @@ Then open `http://raspberrypi.local:8765` from any device on your Wi-Fi. More ho
 The **DeskDot Android app** runs the whole Python engine on the phone (via Chaquopy) as a foreground service. It keeps
 the panel connected with the screen off, restarts itself after a reboot, and shows the studio full screen.
 
-> [!WARNING]
-> The app builds and its Bluetooth bridge is unit-tested, but it has **not yet been run on a real phone**.
-> Build and install steps are in [android/README.md](android/README.md).
+It runs edge to edge under see-through system bars, opens with a short LED intro, and has a glass tab bar you can
+drag between Panel, Apps, Presets and Settings.
+
+> [!NOTE]
+> Still a beta. Install it from the [latest release](https://github.com/shivpatel2468/idotmatrix/releases/latest)
+> (`DeskDot-….apk`); build steps are in [android/README.md](android/README.md).
 </details>
 
 <details>
