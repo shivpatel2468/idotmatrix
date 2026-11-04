@@ -56,7 +56,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 1000, min_bet: 1, max_bet: 100, bet_seconds: 30, result_seconds: 8, turn_seconds: 30, auto_next: true },
     rules: {
       wheel: "european", la_partage: true, seven_pays: 5, decks: 2, soft17: "S17", dealer_hits_soft17: false, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "late", tie_pays: 9, rake: 0, volatility: "low",
+      double_after_split: true, surrender: "late", tie_pays: 9, volatility: "low",
     },
   },
   {
@@ -65,7 +65,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 1000, min_bet: 5, max_bet: 500, bet_seconds: 20, result_seconds: 7, turn_seconds: 20, auto_next: true },
     rules: {
       wheel: "american", la_partage: false, seven_pays: 4, decks: 6, soft17: "H17", dealer_hits_soft17: true, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "none", tie_pays: 8, rake: 0, volatility: "medium",
+      double_after_split: true, surrender: "none", tie_pays: 8, volatility: "medium",
     },
   },
   {
@@ -74,7 +74,7 @@ const PRESETS: Preset[] = [
     house: { base_credits: 25000, min_bet: 100, max_bet: 25000, bet_seconds: 15, result_seconds: 6, turn_seconds: 15, auto_next: true },
     rules: {
       wheel: "european", la_partage: true, seven_pays: 5, decks: 8, soft17: "S17", dealer_hits_soft17: false, blackjack_pays: "3:2", bj_pays: "3:2",
-      double_after_split: true, surrender: "late", tie_pays: 8, rake: 0, volatility: "high",
+      double_after_split: true, surrender: "late", tie_pays: 8, volatility: "high",
     },
   },
 ];
@@ -487,10 +487,9 @@ function Odds() {
 
 /** Housie: the prizes, their shares of the prize pool (play chips) and who won them. */
 function HousiePrizes({ h }: { h: HousieStatus }) {
-  const pool = Math.max(0, h.pot - h.rake);
   return (
     <div className="cz-odds mb-3" role="table" aria-label="Housie prizes">
-      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Chips{h.pot ? ` · prize pool (play chips) ${fmt(pool)}` : ""}</span></div>
+      <div role="row" className="cz-odds-head"><span>Prize</span><span>Share</span><span>Chips{h.pot ? ` · prize pool (play chips) ${fmt(h.pot)}` : ""}</span></div>
       {h.prizes.map((p) => (
         <div role="row" key={p.id} className="cz-odds-row">
           <span className="truncate" title={p.winners.map((w) => w.name).join(", ")}>

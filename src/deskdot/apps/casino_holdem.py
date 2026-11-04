@@ -42,8 +42,7 @@ class HoldemSettings(PvPSettings):
     blind_up_every: int = Field(
         0, ge=0, le=100, title="Double the blinds every N hands", description="0 keeps the blinds fixed."
     )
-    # no rake settings (legal review L5): the house keeps nothing. Old stored keys are dropped by the engine and
-    # the rules default the rake to 0.
+    # no rake settings (legal review L5): the house keeps nothing. Old stored keys are dropped by the engine.
 
 
 def board_card(f: Frame, x: int, y: int, code: str | None, hi: bool = False, dim: float = 1.0) -> None:

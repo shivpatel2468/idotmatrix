@@ -13,9 +13,9 @@ Rules (the Indian Tambola rulebook):
   **every ticket**, in seat order (the host first), each player's tickets one after the other (`make_ticket`). The
   outcome is ``{"calls": [90 numbers], "holders": [[seat, tickets], …], "tickets": [[27 cells, 0 = blank], …]}``;
   `replay_with` rebuilds it from the revealed seeds and the stored holders, and the phone does the same.
-* The **pot** is every ticket sold; the house keeps ``rake`` % (rounded down, default 0) and the rest is the
-  **prize pool**, split between the enabled prizes by their shares (credits rounded down; the odd credits go to
-  the Full House, else the biggest prize): **Early Five** (any 5 numbers), **Top / Middle / Bottom Line** (all 5 of
+* The **pot** is every ticket sold and all of it is the **prize pool** (the house keeps nothing), split between
+  the enabled prizes by their shares (credits rounded down; the odd credits go to the Full House, else the biggest
+  prize): **Early Five** (any 5 numbers), **Top / Middle / Bottom Line** (all 5 of
   that row), **Four Corners** (the first and last number of the top and bottom rows), **Full House** (all 15).
 * The caller draws one number every ``call_seconds`` (the host can change the pace live: host op ``pace``; the
   table's pause freezes it). Players **claim** (op ``claim {prize, ticket?}`` or ``claim_<prize>``); the server
@@ -27,7 +27,7 @@ Rules (the Indian Tambola rulebook):
   after all 90 numbers; prizes nobody claimed are shared back to the ticket holders in proportion to their tickets
   (odd credits by seat order). ``auto_claim`` makes the server claim for everyone the moment a pattern completes.
 * Settlement goes through the bank once per player: stake = tickets × price, payout = prizes (+ any share back);
-  the nets add up to minus the rake.
+  the nets add up to zero.
 """
 
 from __future__ import annotations
@@ -162,8 +162,6 @@ class HousieRules(Rules):
     max_tickets: int = Field(3, ge=1, le=6, title="Max tickets per player")
     buy_seconds: int = Field(45, ge=10, le=300, title="Ticket pick time (from the first ticket)")
     call_seconds: int = Field(6, ge=3, le=20, title="Seconds between calls")
-    # engine-level only: the studio no longer offers it (casino_housie.HousieSettings has no `rake`), so it stays 0
-    rake: int = Field(0, ge=0, le=20, title="House share (% of the prize pool; always 0 in the studio)")
     bogey: Literal["none", "prize", "ticket"] = Field("none", title="False claim (bogey)")
     auto_claim: bool = Field(False, title="Claim for everyone automatically")
     early5: bool = Field(True, title="Early Five")
@@ -228,7 +226,7 @@ class Housie(CasinoGame):
         self.void: set[tuple[str, int]] = set()
         self.bogeys: list[dict[str, Any]] = []
         self.flash: dict[str, Any] | None = None
-        self.pot = self.rake_taken = self.pool = 0
+        self.pot = self.pool = 0
         self.amounts: dict[str, int] = {}
         self.awards: dict[str, int] = {}
         self.won: dict[str, list[dict[str, Any]]] = {}  # pid -> [{prize, ticket, amount}]
@@ -254,8 +252,8 @@ class Housie(CasinoGame):
         return []
 
     def edges(self) -> dict[str, float]:
-        """Players play for each other's pot: the house keeps only its rake."""
-        return {"ticket": self.rules.rake / 100}
+        """Players play for each other's pot: the house keeps nothing."""
+        return {"ticket": 0.0}
 
     def summary(self, outcome: dict[str, Any]) -> dict[str, Any]:
         """History label: the call the game ended on (live), else the call of the first Full House."""
@@ -342,8 +340,7 @@ class Housie(CasinoGame):
             self.tickets[p] = [list(t) for t in self.outcome["tickets"][k : k + n]]
             k += n
         self.pot = sum(self.stake_of(p) for p in order)
-        self.rake_taken = self.pot * self.rules.rake // 100
-        self.pool = self.pot - self.rake_taken
+        self.pool = self.pot  # every credit sold goes to the prizes
         self.amounts = prize_amounts(self.rules, self.pool)
         self.next_call_at = now + LOCK_SECONDS + TICKET_BEAT
         self.reveal_at = None
@@ -587,8 +584,7 @@ class Housie(CasinoGame):
         return rows
 
     def _pool_estimate(self) -> int:
-        pot = sum(self.stake_of(p) for p in self.bets)
-        return pot - pot * self.rules.rake // 100
+        return sum(self.stake_of(p) for p in self.bets)
 
     def public_state(self, now: float) -> dict[str, Any]:
         out = super().public_state(now)
@@ -601,7 +597,6 @@ class Housie(CasinoGame):
             "max": self.rules.max_tickets,
             "pace": self.rules.call_seconds,
             "pot": pot,
-            "rake": self.rake_taken if self.outcome is not None else pot * self.rules.rake // 100,
             "sold": sum(self.count(p) for p in buyers),
             "buyers": [
                 {

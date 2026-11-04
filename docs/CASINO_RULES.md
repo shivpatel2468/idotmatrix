@@ -346,7 +346,6 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 - If everyone else folds you win the pot without showing.
 - Otherwise, after the river every live hand is shown; the best five of seven cards wins. Ties split the pot (odd chip to the first winner left of the button).
 - **Side pots**: an all-in player can only win what they matched from each opponent; the rest forms side pots for the others.
-- Rake (host option, default 0): a share of each contested pot, only after a flop, capped.
 
 ### Hand ranking (best first)
 
@@ -354,7 +353,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 
 ### Table basics
 
-- You play against the other players, not the house: every chip you bet goes into the pot, and the winner takes it. The house only deals (and takes a rake only if the host sets one).
+- You play against the other players, not the house: every chip you bet goes into the pot, and the winner takes it. The house only deals and never takes a cut of the pot.
 - You are dealt into the next hand when you sit down. **Sit out next hand** / **Deal me in** toggles it.
 - A hand starts once at least two players are in (a short countdown first).
 - Your cards are only ever on your own phone; the panel shows the shared table.
@@ -399,7 +398,7 @@ How to play and the rules of every casino game and Rock Paper Scissors. **Genera
 
 ### Table basics
 
-- You play against the other players, not the house: every chip you bet goes into the pot, and the winner takes it. The house only deals (and takes a rake only if the host sets one).
+- You play against the other players, not the house: every chip you bet goes into the pot, and the winner takes it. The house only deals and never takes a cut of the pot.
 - You are dealt into the next hand when you sit down. **Sit out next hand** / **Deal me in** toggles it.
 - A hand starts once at least two players are in (a short countdown first).
 - Your cards are only ever on your own phone; the panel shows the shared table.

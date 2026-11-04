@@ -90,7 +90,7 @@ class HousieSettings(CasinoSettings):
         description="The caller's pace (also live from the host bar).",
     )
     # no "House rake" setting (legal review L5): the house keeps nothing, every ticket's chips go to the prize
-    # pool. An old stored `rake` is dropped by the engine (unknown key) and the rules default it to 0.
+    # pool. An old stored `rake` is dropped by the engine (unknown key).
     bogey: str = Choice(
         "none",
         {

@@ -66,7 +66,7 @@ export type HousiePrize = {
   winners: { seat: number | string | null; name: string; color: string; ticket: number }[];
 };
 export type HousieStatus = {
-  price: number; max: number; pace: number; pot: number; rake: number; sold: number; called: number; calls: number[];
+  price: number; max: number; pace: number; pot: number; sold: number; called: number; calls: number[];
   call_in: number | null; first_in: number | null; finished: boolean; returned: number; prizes: HousiePrize[];
   buyers: { seat: number | string | null; name: string; color: string; n: number }[];
 };

@@ -170,7 +170,6 @@ class PvPGame(CasinoGame):
         self.flash: dict[str, Any] | None = None  # the latest action for the panel {seat, text, at}
         self.log: list[str] = []
         self.deck: list[Card] = []
-        self.rake_taken = 0
 
     # ============================================================== rules API
     def spots(self) -> dict[str, Spot]:
@@ -183,7 +182,7 @@ class PvPGame(CasinoGame):
         return []
 
     def edges(self) -> dict[str, float]:
-        """Players play each other: the house has no edge (beyond an optional rake)."""
+        """Players play each other: the house has no edge and takes nothing from the pot."""
         return {}
 
     def buy_in(self) -> int:
@@ -231,7 +230,7 @@ class PvPGame(CasinoGame):
         super().open_betting(now)
         self.players, self.turn, self.turn_deadline, self.beat_until = [], None, None, None
         self.awards, self.won, self.finished, self.showdown, self.winners = {}, {}, False, {}, []
-        self.flash, self.log, self.deck, self.rake_taken = None, [], [], 0
+        self.flash, self.log, self.deck = None, [], []
         for pid in list(self.sitting):
             if pid in self.session.players and self.session.bank.credits(pid) < self.buy_in():
                 self.sitting.discard(pid)
@@ -334,17 +333,11 @@ class PvPGame(CasinoGame):
         pots: list[Pot],
         best: Callable[[list[str]], list[str]],
         order_from_button: Sequence[str],
-        rake: Callable[[Pot], int] | None = None,
     ) -> None:
-        """Pay every pot to its best eligible hand(s) (`best` picks the winners among the eligible)."""
+        """Pay every pot, whole, to its best eligible hand(s) (`best` picks the winners among the eligible)."""
         for pot in pots:
-            amount = pot.amount
-            if rake is not None and len(pot.eligible) > 1:
-                r = min(amount, rake(pot))
-                amount -= r
-                self.rake_taken += r
             winners = best(pot.eligible) if len(pot.eligible) > 1 else list(pot.eligible)
-            for pid, v in split_pot(amount, winners, order_from_button).items():
+            for pid, v in split_pot(pot.amount, winners, order_from_button).items():
                 self.awards[pid] = self.awards.get(pid, 0) + v
                 if len(pot.eligible) > 1:  # a real win, not an uncalled bet coming back
                     self.won[pid] = self.won.get(pid, 0) + v
