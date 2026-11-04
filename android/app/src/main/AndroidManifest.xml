@@ -142,6 +142,17 @@
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
+        <!-- The watch app's requests (android/wear/SPEC.md), delivered by Google Play services over the
+             Wearable Data Layer; only the paths under /deskdot, answered from the engine on this phone. -->
+        <service
+            android:name=".WearBridgeService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.REQUEST_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/deskdot" />
+            </intent-filter>
+        </service>
+
         <!-- hands the downloaded update (files/data/updates/) to the package installer -->
         <provider
             android:name="androidx.core.content.FileProvider"
