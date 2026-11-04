@@ -45,6 +45,16 @@ The technical log for developers. For the same updates in plain words (before �
   on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
   one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
 - **Watch themes** (`scripts/gen_watch_themes.py` → `android/wear/.../WatchThemes.gen.kt`): the 21 table themes as plain Kotlin (ARGB ints, dark + light, gold-leaf stops) for the Wear OS apps, from `PAGE_THEMES.tokens()` like `gen_page_themes.py`; `--check` and `tests/test_watch_themes.py` catch a stale file; `--out/--package` writes another app's copy (Orbit, the watch faces). New `android/wear/SPEC.md` (R-WEAR-1…5).
+- **Phone alignment** (web/SPEC.md R-STU-13; studio only, phones < 768 px): one `--gutter` (16 px) for the phone header,
+  tab scroll areas, sticky search row, docked inspector bar, Panel tab rows and the theme key (was 12 px, with 14 px in
+  the header and 16 px in sheets); settings `Row` controls `min-w-0 max-w-full flex-wrap` (status indicators and the
+  hand-off choice ran 15–130 px past the screen); phone `.seg` shrinks to its row and wraps between words; a wrapped
+  row's fader fills the line; the Settings search is 48 px and centred with the section keys (was 40 px, top-aligned)
+  and scrolls the row back into view on focus; the Apps search stretches to the view toggle (36 → 42 px); Quick
+  controls' page-theme dots are a 7 × 3 grid; the message composer stacks Style / Seconds; the Updates status text
+  keeps 11 rem before the key wraps; the inspector fills the Settings tab so Show / Playlist docks at the bottom under
+  the lifted theme key. Desktop unchanged. Tests: `tests/js/phone_layout.test.mjs`; measured at 360 / 393 / 430 px
+  (no element past the screen edge, no sideways scroll) and on a Xiaomi 11i.
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 

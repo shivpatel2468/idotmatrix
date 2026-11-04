@@ -342,6 +342,9 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
 - ≥ 1280 px: three columns. 768–1279: Library + Stage; the Inspector opens as a right drawer (“Settings” on the
   now-showing card, or clicking an app).
 - < 768 (phones) — an app shell, not a squeezed desktop (`App.tsx PhoneLayout`, `index.css` "phones" block):
+  - **Fits the screen** (web/SPEC.md R-STU-13): one 16 px side gutter (`--gutter`) everywhere — header, tabs, docked
+    bars, sheets, Settings; nothing wider than the screen and no sideways scroll except the swipe rows. Rows wrap
+    their controls, segmented controls wrap between words, a search field matches the height of the keys beside it.
   - **Header** (52 px + the notch inset): status dot, the logo, Search and one **⋯** key. Brightness, panel
     power, the fruit-fly toggle + flies-allowed sign, Device / Settings / Message live in the **Quick controls**
     bottom sheet (`TopBar.tsx QuickSheet`).

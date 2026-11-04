@@ -8,7 +8,8 @@ export function Row({ label, hint, children }: { label: string; hint?: string; c
         <div className="text-[13px] font-[560]">{label}</div>
         {hint && <div className="text-[11.5px] leading-snug text-ink-3">{hint}</div>}
       </div>
-      <div className="flex items-center gap-2">{children}</div>
+      {/* never wider than the row: on a phone the controls wrap onto their own lines instead of running off screen */}
+      <div className="row-ctl flex min-w-0 max-w-full flex-wrap items-center gap-2">{children}</div>
     </div>
   );
 }

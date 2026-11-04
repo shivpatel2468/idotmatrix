@@ -586,10 +586,14 @@ export function SettingsSheet() {
         </label>
       }>
       <div className="flex flex-col gap-5 sm:flex-row">
-        <nav className="sticky -top-4 z-10 -mx-4 -mt-4 flex shrink-0 gap-1 overflow-x-auto bg-chassis-1 px-4 py-2 [scrollbar-width:none] sm:top-0 sm:mx-0 sm:mt-0 sm:w-52 sm:flex-col sm:self-start sm:bg-transparent sm:p-0 sm:backdrop-blur-none" aria-label="Settings sections">
-          <label className="relative mb-1 block shrink-0 sm:hidden">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search settings" className="field !h-10 !w-32 !pl-8" />
+        {/* phones: one row that scrolls sideways — the search box is as tall as the section keys (48 px) and centred
+            with them; the row's own padding keeps the 16 px gutter at both ends */}
+        <nav className="sticky -top-4 z-10 -mx-4 -mt-4 flex shrink-0 items-center gap-1 overflow-x-auto bg-chassis-1 px-4 py-2 [scrollbar-width:none] sm:top-0 sm:mx-0 sm:mt-0 sm:w-52 sm:flex-col sm:items-stretch sm:self-start sm:bg-transparent sm:p-0 sm:backdrop-blur-none" aria-label="Settings sections">
+          <label className="relative block shrink-0 sm:hidden">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-4" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search settings" className="field !h-12 !w-32 !rounded-lg !pl-9"
+              onFocus={(e) => e.currentTarget.closest("nav")?.scrollTo({ left: 0, behavior: "smooth" })}
+              onKeyDown={(e) => { if (e.key === "Enter" && results?.[0]) go(results[0][2]); }} />
           </label>
           {SECTIONS.map(([id, label, icon, hint]) => (
             <button key={id} onClick={() => go(id)} aria-current={section === id && !results ? "page" : undefined}
