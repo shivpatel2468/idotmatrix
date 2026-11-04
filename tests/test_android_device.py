@@ -30,6 +30,7 @@ class FakeBridge:
         self.in_flight = 0
         self.max_in_flight = 0
         self.fail_next_write = False
+        self.lose_callbacks = 0  # the next N writes go out but their completion callback never arrives
         self._lock = threading.Lock()
 
     def _later(self, fn: Any, *args: Any, delay: float = 0.002) -> None:
@@ -54,6 +55,11 @@ class FakeBridge:
         self.packets.append((bytes(data), with_response))
         ok = not self.fail_next_write
         self.fail_next_write = False
+        if self.lose_callbacks > 0:
+            self.lose_callbacks -= 1
+            with self._lock:
+                self.in_flight -= 1
+            return
 
         def done() -> None:
             with self._lock:
@@ -151,6 +157,37 @@ async def test_a_failed_write_marks_the_link_down_and_recovers() -> None:
     try:
         bridge.fail_next_write = True
         dev.command(P.brightness(50))
+        await _until(lambda: bridge.connects >= 2 and dev.connected, within=5.0)
+    finally:
+        await dev.stop()
+
+
+async def test_a_lost_write_callback_keeps_the_link(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Some phones never deliver a write's callback now and then; that alone must not drop the panel (no pairing
+    screen, no reconnect loop)."""
+    monkeypatch.setattr("deskdot.device.android.WRITE_TIMEOUT", 0.1)
+    bridge = FakeBridge()
+    dev = await _started(bridge)
+    try:
+        bridge.lose_callbacks = 1
+        dev.command(P.brightness(40))
+        dev.command(P.brightness(60))
+        await _until(lambda: P.brightness(60) in [p for p, _ in bridge.packets], within=3.0)
+        await asyncio.sleep(0.3)
+        assert bridge.connects == 1 and dev.connected, "one lost callback is not a dead link"
+        assert dev._lost_acks == 0, "a delivered callback resets the count"
+    finally:
+        await dev.stop()
+
+
+async def test_callbacks_lost_in_a_row_still_reconnect(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("deskdot.device.android.WRITE_TIMEOUT", 0.05)
+    bridge = FakeBridge()
+    dev = await _started(bridge)
+    try:
+        bridge.lose_callbacks = 3
+        for level in (10, 20, 30, 40):
+            dev.command(P.brightness(level))
         await _until(lambda: bridge.connects >= 2 and dev.connected, within=5.0)
     finally:
         await dev.stop()

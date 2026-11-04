@@ -48,6 +48,11 @@ replay); backends (`ble.py` desktop, `android.py`, `web.py`, `sim.py`) implement
   Access for idotmatrix.com only). Tests: `tests/test_device_connection.py::test_health_probe_for_the_web_app`.
 - **R-DEV-10** Baked GIFs stay under the 40 KB budget; frames are truecolour PNG (never palette PNG).
   Tests: `tests/test_gfx.py::test_gif_budget_is_a_hard_limit`.
+- **R-DEV-11** On Android, a write whose completion callback never arrives while the link is up is not a dead link
+  (some phones' stacks lose callbacks; dropping the link looped connect → pairing screen → reconnect). Only
+  `LOST_ACKS_DEAD` (3) missing callbacks in a row, a write error, or Android reporting the link lost drop it.
+  Tests: `tests/test_android_device.py::test_a_lost_write_callback_keeps_the_link`,
+  `tests/test_android_device.py::test_callbacks_lost_in_a_row_still_reconnect`.
 
 ## Invariants
 
@@ -72,4 +77,4 @@ stats, `reason`, `hint`, `rssi`); `POST /api/device/link`, `POST /api/device/rec
 
 - Whether `packet_gap_ms` can drop below 30 ms (HARDWARE_PROTOCOL.md § Unverified).
 
-Last verified: 2026-10-29
+Last verified: 2026-11-04

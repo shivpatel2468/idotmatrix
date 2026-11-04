@@ -33,6 +33,11 @@ log = logging.getLogger("deskdot.android")
 
 CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
 WRITE_TIMEOUT = 5.0
+#: Some phones' Bluetooth stacks (seen on a Xiaomi 11i, Android 13) now and then never deliver a write's completion
+#: callback although the packet went out and the link is fine. One missing callback is not a dead link: dropping it
+#: would show the panel's pairing screen and loop (connect, 5 s, "write timed out", reconnect…). Only this many
+#: missing callbacks in a row — or Android reporting the link lost — count as a dead link.
+LOST_ACKS_DEAD = 3
 
 
 class _Events:
@@ -104,6 +109,7 @@ class AndroidBleDevice(Device):
         self._writes: dict[int, asyncio.Future[None]] = {}
         self._tokens = itertools.count(1)
         self._link_up = False
+        self._lost_acks = 0  # write callbacks missing in a row (see LOST_ACKS_DEAD)
 
     def _ensure_bridge(self) -> None:
         if self._listener is not None:
@@ -136,6 +142,7 @@ class AndroidBleDevice(Device):
         finally:
             self._connect_future = None
         self._link_up = True
+        self._lost_acks = 0
         self.packet_size = max(20, write_size)
         self.info.address = address
         self.info.name = name
@@ -170,8 +177,14 @@ class AndroidBleDevice(Device):
         try:
             self._bridge.write(packet, response, token)
             await wait_for(fut, WRITE_TIMEOUT)
+            self._lost_acks = 0
         except TimeoutError:
-            raise ConnectionError("write timed out") from None
+            self._lost_acks += 1
+            if not self._link_up or self._lost_acks >= LOST_ACKS_DEAD:
+                raise ConnectionError("write timed out") from None
+            # the link is still up: the stack lost the callback, not the packet. Carry on; latest-frame-wins
+            # resends whatever is current, and a stack that is really stuck answers the next write with "GATT busy".
+            log.info("write callback missing (%d in a row); the link is up, carrying on", self._lost_acks)
         finally:
             self._writes.pop(token, None)
 
