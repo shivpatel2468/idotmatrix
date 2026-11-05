@@ -136,10 +136,10 @@ main:focus { outline: none; }
 .wrap { max-width: calc(var(--container) + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
 
 /* ------------------------------------------------------------------ top bar */
-/* A floating capsule of glass (Liquid Glass, as in the studio: docs/STUDIO_UI.md) just off the top edge. The blur lives
-   on the capsule only (.bar > .wrap: a small surface, so scrolling stays smooth), and its tint is thick enough that
-   text scrolling underneath never reads through. Behind it, a veil (.bar::before) runs from the top edge to just below
-   the capsule — solid page colour above it, fading out below — so nothing shows in the gap above or beside the capsule.
+/* A floating capsule of glass (Liquid Glass, as in the studio: docs/STUDIO_UI.md; Glisse's lens and rim light: see
+   "Liquid Glass (after Glisse)") just off the top edge. The blur lives on the capsule only (.bar > .wrap: a small
+   surface, so scrolling stays smooth), and its tint is thick enough where the labels are that text scrolling underneath
+   never reads through. Nothing is drawn behind or around it: the page scrolls on under the floating glass.
    No backdrop-filter → frosted (near opaque); reduced transparency → solid. The nav folds into the menu button before
    anything could run out of room (see "responsive"). */
 .bar {
@@ -149,14 +149,6 @@ main:focus { outline: none; }
   z-index: 40;
   padding-top: var(--bar-top);
   pointer-events: none;
-}
-.bar::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 -12px;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(180deg, var(--bg) 0, var(--bg) var(--bar-top), color-mix(in srgb, var(--bg) 82%, transparent) 55%, transparent);
 }
 .bar > .wrap {
   position: relative;
@@ -1164,6 +1156,100 @@ html:not(.js) .theme-btn, html:not(.js) .theme-open { display: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
   .theme-menu, .js .bar nav { background: var(--chassis); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* ------------------------------------------------------------------ Liquid Glass (after Glisse)
+ * Glisse's glass (https://github.com/0kzh/glisse, MIT; main.js § 5 draws its maps) on every glass surface:
+ *   panes   cards, panels, chips, glass buttons, tables, tabs: a translucent tint of the page's own chassis (so every
+ *           table theme and light / dark tints it) with a top sheen and Glisse's rim light, a thin line lit from the
+ *           top left (a PNG per size: --lg-rim in the surface's own background; --lg-rim-over as an ::after overlay
+ *           on glass buttons and the header, whose fills change with state). No backdrop filter: they scroll, and the
+ *           page's texture behind them is fixed, so a blur there would re-render every frame.
+ *   lens    the capsule header and (with a mouse) the theme menu: Chromium bends the backdrop near the rim through
+ *           an SVG filter (--lg-bend, [data-bent]; html.lg-bend unless reduced transparency), after a light blur. The
+ *           lens needs a thin tint at the rim to show, so a band of denser tint runs through the middle, where the
+ *           labels are: text never reads through. Safari and Firefox keep the blurred glass. The apps search pane gets
+ *           the light blur without the lens (it is too large to bend smoothly while scrolling: main.js § 5).
+ * Reduced transparency: solid panes, no lens; the rim light stays. */
+/* each surface's own rim: not inherited, so a pane inside a pane never shows its parent's */
+@property --lg-rim { syntax: "*"; inherits: false; }
+:root {
+  --lg-rim-shine: 0.2;
+  --lg-pane: color-mix(in oklab, var(--chassis) 80%, transparent);
+  --lg-pane-2: color-mix(in oklab, var(--bg-2) 80%, transparent);
+  --lg-pane-sheen: linear-gradient(180deg, var(--lg-glare), transparent 38%);
+  --lg-bend-blur: 3px;
+  --lg-bend-sat: 1.5;
+  --lg-bend-tint: color-mix(in oklab, var(--chassis) 56%, transparent);
+  --lg-bend-core: color-mix(in oklab, var(--chassis) 64%, transparent);
+}
+:root[data-theme="light"] {
+  --lg-rim-shine: 0.45;
+  --lg-pane: color-mix(in oklab, var(--chassis) 76%, transparent);
+  --lg-pane-2: color-mix(in oklab, var(--bg-2) 76%, transparent);
+  --lg-pane-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 38%);
+  --lg-bend-sat: 1.35;
+  --lg-bend-tint: color-mix(in oklab, var(--chassis) 54%, transparent);
+  --lg-bend-core: color-mix(in oklab, var(--chassis) 62%, transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root, :root[data-theme="light"] { --lg-pane: var(--chassis); --lg-pane-2: var(--bg-2); }
+}
+
+/* panes: the rim light over the tint (as the solid fills they replace: a gradient on cards, flat elsewhere) */
+:root[data-theme] :is(.card, .stats, .step .num, .dl-box) {
+  background: var(--lg-rim, none) 0 0 / 100% 100% no-repeat, var(--lg-pane-sheen), linear-gradient(180deg, var(--lg-pane), var(--lg-pane-2));
+}
+:is(.tablist, .os-switch, .fact, .table-scroll, .shot, .faq details, .toc a, .summary-box, .wn-toc a, .wn-item, .dl-agree, .chip, .search input) {
+  background: var(--lg-rim, none) 0 0 / 100% 100% no-repeat, var(--lg-pane-sheen), linear-gradient(var(--lg-pane), var(--lg-pane));
+}
+.chip[aria-pressed="true"] { background: var(--lg-rim, none) 0 0 / 100% 100% no-repeat, var(--lg-pane-sheen), color-mix(in srgb, var(--c, #fff) 14%, var(--lg-pane)); }
+.theme-menu[data-rim] { background-image: var(--lg-rim, none), linear-gradient(180deg, var(--lg-glare), transparent 40%); background-size: 100% 100%, auto; background-repeat: no-repeat; }
+/* glass buttons and the header: an overlay (their fills change with hover, press and theme) */
+:is(.menu-btn, .theme-close, .seg)[data-rim] { position: relative; }
+[data-rim="over"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat;
+}
+.bar > .wrap[data-rim]::after { inset: 0; padding: 0; -webkit-mask: none; mask: none; background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat; }
+.explorer-tools[data-rim]::before {
+  background-image: var(--lg-rim-pane, none), radial-gradient(130% 160% at 50% 0%, var(--wash-2), transparent 72%);
+  background-size: 100% 100%, auto;
+  background-repeat: no-repeat;
+}
+
+/* the lens (Chromium): the header capsule… */
+:root.lg-bend .bar > .wrap[data-bent] {
+  background:
+    linear-gradient(180deg, transparent, var(--lg-bend-core) 30%, var(--lg-bend-core) 70%, transparent),
+    linear-gradient(180deg, var(--lg-glare), transparent 46%),
+    var(--lg-bend-tint);
+  -webkit-backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(var(--lg-bend-sat));
+  backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(var(--lg-bend-sat));
+}
+/* …the apps search pane: the light blur, no lens (its neon tube and flicker stay, around the glass)… */
+:root.lg-bend .explorer-tools[data-rim]::before {
+  background-color: var(--lg-bend-tint);
+  background-image:
+    var(--lg-rim-pane, none),
+    radial-gradient(130% 160% at 50% 0%, var(--wash-2), transparent 72%),
+    linear-gradient(180deg, transparent, var(--lg-bend-core) 28%, var(--lg-bend-core) 72%, transparent);
+  background-size: 100% 100%, auto, auto;
+  background-repeat: no-repeat;
+  -webkit-backdrop-filter: blur(var(--lg-bend-blur)) saturate(var(--lg-bend-sat));
+  backdrop-filter: blur(var(--lg-bend-blur)) saturate(var(--lg-bend-sat));
+}
+/* …and the theme menu, with a mouse (on touch screens it stays frosted) */
+@media (pointer: fine) {
+  :root.lg-bend .theme-menu[data-bent] {
+    -webkit-backdrop-filter: blur(14px) var(--lg-bend) saturate(var(--lg-sat));
+    backdrop-filter: blur(14px) var(--lg-bend) saturate(var(--lg-sat));
+  }
 }
 
 /* ------------------------------------------------------------------ home: the tagline, lit word by word on scroll */
