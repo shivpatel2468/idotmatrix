@@ -5,6 +5,12 @@ The technical log for developers. For the same updates in plain words (before �
 
 ## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
 
+- **Default panel calibration** (engine/SPEC.md R-ENG-13, docs/CALIBRATION.md § The default): `gfx/calib.py`
+  `DEFAULT_CALIBRATION` (the owner's tuning: gains 1.029/1.025/1.035, gamma 2.225, lift 14, saturation 1.4) and
+  `initial_calibration()`; the engine uses it only when no calibration is stored (not persisted; stored ones are kept,
+  `PanelCalibration` field defaults stay the identity). New preset `deskdot` "DeskDot (tuned)", group `deskdot`, first.
+  Studio: `DEFAULT_CALIB` in `lib/calib.ts`; "Reset to default", Advanced "Default" + per-knob resets and the
+  wizard's "Start fresh" use it; "Panel native" stays the no-correction preset. Tests: `tests/test_calibration.py`.
 - **Android phone app polish** (android/SPEC.md R-AND-6, R-AND-9…11; web/SPEC.md R-STU-4, R-STU-11, R-STU-12):
   edge to edge (`enableEdgeToEdge`, transparent bars; window insets → `--safe-*` CSS variables via `insets()` and
   `evaluateJavascript`; IME inset pads the WebView, `adjustResize`); `core-splashscreen` launch theme with no icon →

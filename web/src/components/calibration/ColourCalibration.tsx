@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
-import { type Calib, IDENTITY, calibrator, isIdentity, toCalib } from "../../lib/calib";
+import { type Calib, DEFAULT_CALIB, IDENTITY, calibrator, isIdentity, sameLook, toCalib } from "../../lib/calib";
 import { toast } from "../../lib/store";
 import type { EngineState } from "../../lib/types";
 import { Icon } from "../Icon";
@@ -76,9 +76,10 @@ export function ColourCalibration({ st }: { st: EngineState }) {
         <Tile icon="sliders-horizontal" title="Advanced" sub="every knob" body="Per-channel gamma and gains, contrast, temperature, peak, dithering, preview match." onClick={() => setMode("advanced")} />
       </div>
       <div className="flex justify-end">
-        <button className="key key-ghost !h-8" title="Back to factory colours" disabled={isIdentity(saved)}
-          onClick={async () => { await api.calibration({ ...IDENTITY, preset: "native" }); toast("Calibration reset", "ok"); }}>
-          <RotateCcw size={13} /> Reset to panel native
+        <button className="key key-ghost !h-8" title="Back to DeskDot's tuned default colours (Panel native, no correction, is under Presets)"
+          disabled={sameLook(saved, DEFAULT_CALIB) && saved.preset === DEFAULT_CALIB.preset}
+          onClick={async () => { await api.calibration({ ...DEFAULT_CALIB }); toast("Calibration reset to the DeskDot default", "ok"); }}>
+          <RotateCcw size={13} /> Reset to default
         </button>
       </div>
     </div>

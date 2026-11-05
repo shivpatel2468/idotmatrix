@@ -30,6 +30,19 @@ export const IDENTITY: Calib = {
   black_level: 0, lift: 0, saturation: 1, contrast: 1, temperature: NEUTRAL_K, level: 1, dither: false, preset: "",
 };
 
+/** Preset id of the house default ("DeskDot (tuned)", listed first). */
+export const DEFAULT_PRESET_ID = "deskdot";
+
+/**
+ * The house default a fresh install starts with: the owner's calibration, tuned by eye on their panel. Mirrors
+ * `DEFAULT_CALIBRATION` in `src/deskdot/gfx/calib.py` (`tests/test_calibration.py` pins the two together).
+ * Resets in the studio go here; "Panel native" (the identity) stays available as a preset.
+ */
+export const DEFAULT_CALIB: Calib = {
+  red: 1.029, green: 1.025, blue: 1.035, gamma: 2.225, gamma_red: 1, gamma_green: 1, gamma_blue: 1,
+  black_level: 0, lift: 14, saturation: 1.4, contrast: 1, temperature: NEUTRAL_K, level: 1, dither: false, preset: "deskdot",
+};
+
 /** Merge whatever the engine sent (older engines send fewer keys) over the identity. */
 export function toCalib(raw: unknown): Calib {
   const out: Calib = { ...IDENTITY };
@@ -169,7 +182,7 @@ export const FIELDS: FieldMeta[] = [
 export type CalibPreset = {
   id: string;
   name: string;
-  group: "claude" | "inspired" | "standard";
+  group: "deskdot" | "claude" | "inspired" | "standard";
   blurb: string;
   values: Partial<Calib>;
   swatches: string[];

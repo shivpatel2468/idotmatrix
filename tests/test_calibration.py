@@ -10,12 +10,22 @@ import pytest
 from fastapi.testclient import TestClient
 
 from deskdot.config import Config, Store
-from deskdot.gfx.calib import PanelCalibration, apply, channel_gains, kelvin_gains, lut
+from deskdot.gfx.calib import (
+    DEFAULT_CALIBRATION,
+    DEFAULT_PRESET_ID,
+    PanelCalibration,
+    apply,
+    channel_gains,
+    initial_calibration,
+    kelvin_gains,
+    lut,
+)
 from deskdot.gfx.calib_presets import (
     MIN_SAFE_PACKET_GAP_MS,
     MOTION_PRESETS,
     PRESETS,
     autotune,
+    get_preset,
     quick_match,
 )
 from deskdot.gfx.image import GIF_BUDGET, encode_gif_budget
@@ -120,12 +130,84 @@ def test_stale_stored_calibration_is_tolerated() -> None:
     assert PanelCalibration.load(["junk"]).identity
 
 
+# The owner's calibration, read from their phone engine (settings.calibration) on 2026-11-04.
+OWNER_TUNING = {
+    "red": 1.029,
+    "green": 1.025,
+    "blue": 1.035,
+    "gamma": 2.225,
+    "gamma_red": 1.0,
+    "gamma_green": 1.0,
+    "gamma_blue": 1.0,
+    "black_level": 0,
+    "lift": 14,
+    "saturation": 1.4,
+    "contrast": 1.0,
+    "temperature": 6500,
+    "level": 1.0,
+    "dither": False,
+}
+
+
+def test_house_default_is_the_owners_tuning() -> None:
+    assert DEFAULT_CALIBRATION.model_dump(exclude={"preset"}) == OWNER_TUNING
+    assert DEFAULT_CALIBRATION.preset == DEFAULT_PRESET_ID == "deskdot"
+    assert not DEFAULT_CALIBRATION.identity
+    assert PanelCalibration().identity  # the field defaults stay "no change"
+
+
+def test_initial_calibration_uses_the_default_only_when_nothing_is_stored() -> None:
+    for nothing in (None, ["junk"], "x"):
+        got = initial_calibration(nothing)
+        assert got == DEFAULT_CALIBRATION
+        assert got is not DEFAULT_CALIBRATION  # a copy: nothing can mutate the default
+    mine = {"gamma": 1.5, "lift": 5, "preset": "custom"}
+    assert initial_calibration(mine) == PanelCalibration(gamma=1.5, lift=5, preset="custom")
+    native = PanelCalibration(preset="native").model_dump()
+    assert initial_calibration(native).identity  # "Panel native" (no correction) stays off
+    # a stale stored calibration is still loaded tolerantly, missing keys meaning "no change" (rule 15)
+    assert initial_calibration({"gamma": 9, "lift": 4}) == PanelCalibration(lift=4)
+
+
+def test_house_default_preset_comes_first_and_applies_its_values() -> None:
+    assert PRESETS[0].id == DEFAULT_PRESET_ID and PRESETS[0].group == "deskdot"
+    p = get_preset(DEFAULT_PRESET_ID)
+    assert p is not None and p.name == "DeskDot (tuned)"
+    assert p.calibration() == DEFAULT_CALIBRATION  # from scratch: the preset's own gains
+    mine = PanelCalibration(red=1.0, green=0.9, blue=0.8, gamma=1.2)
+    kept = p.calibration(mine, keep_balance=True)
+    # keep_balance keeps the panel's white balance
+    assert (kept.red, kept.green, kept.blue) == (1.0, 0.9, 0.8)
+    assert kept.gamma == 2.225 and kept.lift == 14 and kept.saturation == 1.4
+    assert p.calibration(mine, keep_balance=False) == DEFAULT_CALIBRATION
+
+
+def test_studio_mirrors_the_house_default() -> None:
+    """web/src/lib/calib.ts DEFAULT_CALIB holds the same values (Advanced reset, wizard start, Reset button)."""
+    import re
+
+    ts = (Path(__file__).parents[1] / "web" / "src" / "lib" / "calib.ts").read_text(encoding="utf-8")
+    block = re.search(r"export const DEFAULT_CALIB: Calib = \{(.*?)\};", ts, re.S)
+    assert block, "DEFAULT_CALIB missing from web/src/lib/calib.ts"
+    pairs = dict(re.findall(r"(\w+):\s*([^,\s}]+)", block.group(1)))
+    want = DEFAULT_CALIBRATION.model_dump()
+    assert set(pairs) == set(want)
+    for k, v in want.items():
+        raw = pairs[k]
+        if isinstance(v, bool):
+            assert raw == str(v).lower(), k
+        elif isinstance(v, str):
+            assert raw.strip("\"'") == v, k
+        else:
+            assert float(raw.replace("NEUTRAL_K", "6500")) == pytest.approx(v), k
+
+
 # ------------------------------------------------------------------------------------------ presets
 def test_presets_are_valid_distinct_and_in_range() -> None:
     ids = [p.id for p in PRESETS]
     assert len(ids) == len(set(ids))
     groups = {p.group for p in PRESETS}
-    assert groups == {"claude", "inspired", "standard"}
+    assert groups == {"deskdot", "claude", "inspired", "standard"}
     for p in PRESETS:
         c = p.calibration()
         assert c.preset == p.id
@@ -335,6 +417,34 @@ def test_motion_endpoints(tmp_path: Path) -> None:
         tune = c.post("/api/motion/autotune", json={"seconds": 2}).json()
         assert 4 <= tune["max_fps"] <= 12 and tune["packet_gap_ms"] >= MIN_SAFE_PACKET_GAP_MS
         c.delete("/api/calibration/pattern")
+
+
+def test_fresh_engine_starts_on_the_house_default(tmp_path: Path) -> None:
+    with _client(tmp_path) as c:
+        assert c.get("/api/calibration").json() == DEFAULT_CALIBRATION.model_dump()
+        assert c.get("/api/calibration/presets").json()["current"] == DEFAULT_PRESET_ID
+        assert c.get("/api/state").json()["settings"]["calibration"]["gamma"] == 2.225
+        # "Reset" in the studio re-applies the default preset with its own gains
+        c.put("/api/calibration", json={"red": 0.8, "gamma": 1.3, "preset": "custom"})
+        back = c.post(f"/api/calibration/preset/{DEFAULT_PRESET_ID}", json={"keep_balance": False}).json()
+        assert back == DEFAULT_CALIBRATION.model_dump()
+        # "Off": Panel native is still there and sticks
+        c.post("/api/calibration/preset/native", json={"keep_balance": False})
+    with _client(tmp_path) as c:
+        assert PanelCalibration.model_validate(c.get("/api/calibration").json()).identity
+
+
+def test_stored_calibration_is_kept_as_is(tmp_path: Path) -> None:
+    mine = PanelCalibration(red=0.9, gamma=1.6, lift=3, preset="wizard").model_dump()
+    Store(tmp_path / "state.json").set("calibration", mine)
+    with _client(tmp_path) as c:
+        assert c.get("/api/calibration").json() == mine
+    assert Store(tmp_path / "state.json").get("calibration") == mine  # never overwritten by the default
+
+
+async def test_engine_fixture_starts_on_the_house_default(engine) -> None:  # type: ignore[no-untyped-def]
+    assert engine.calibration == DEFAULT_CALIBRATION
+    assert engine.store.get("calibration") is None  # the default is not written into state.json
 
 
 def test_store_with_stale_calibration_still_boots(tmp_path: Path) -> None:

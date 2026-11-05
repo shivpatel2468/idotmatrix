@@ -23,8 +23,35 @@ Per channel, in order: saturation (around the pixel mean) → contrast S-curve `
 never move) → gamma × per-channel gamma → gain (white balance × colour temperature × peak level) → shadow lift →
 black cutoff. Colour temperature uses a blackbody fit normalised to 6500 K (max gain 1: never brightens).
 Optional ordered (Bayer 4×4) dithering is static per pixel and leaves fully-off and fully-on channels alone, so
-1-bit text stays crisp. Every field defaults to "no change"; stored state is loaded tolerantly
-(`PanelCalibration.load` drops invalid keys, rule 15).
+1-bit text stays crisp. Every field of `PanelCalibration` defaults to "no change" (the identity); stored state is
+loaded tolerantly (`PanelCalibration.load` drops invalid keys and fills missing ones with "no change", rule 15).
+
+## The default
+
+A fresh install does **not** start uncorrected: when nothing is stored, the engine starts on the house default,
+`DEFAULT_CALIBRATION` in `gfx/calib.py` (preset id `deskdot`, "DeskDot (tuned)", first in the preset list).
+The owner tuned it by eye on their own panel (2026-11-04, read from their phone engine) and asked for it to be the
+starting point of every build:
+
+| red | green | blue | gamma | per-channel gamma | black cutoff | lift | saturation | contrast | temperature | peak | dither |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1.029 | 1.025 | 1.035 | 2.225 | 1 / 1 / 1 | 0 | 14 | 1.4 | 1.0 | 6500 K | 1.0 | off |
+
+Why these: the high gamma gives LED mid-tones the depth they have on a screen, the shadow lift keeps the faint
+levels that gamma would crush visible, and the extra saturation brings back colour the LEDs wash out. The RGB gains
+are *that* panel's white balance; panels vary, so for another panel they are a good start, not a measurement — the
+guided match refines them.
+
+- Every build runs the same Python engine (Windows / Mac desktop, the Android phone app, a watch hosting the engine,
+  the browser `/app` via Pyodide), so `Engine.__init__` → `calib.initial_calibration()` is the one place it applies.
+  The default is not written to `state.json`; it is simply what "nothing stored" means.
+- A stored calibration (anyone's own tuning, a preset, the wizard, or "Panel native") is kept exactly as stored and
+  is never replaced by the default, even if it is old (missing keys still mean "no change").
+- The studio's **Reset to default** (Colour calibration home), Advanced's **Default** button and per-knob resets, and
+  the wizard's **Start fresh** all go to these values (`DEFAULT_CALIB` in `web/src/lib/calib.ts`; a test pins it to
+  the Python values). **Panel native** under Presets › Standards is still the "off / no correction" choice.
+- The preset follows the usual rule: applied with *keep my panel's white balance*, your current RGB gains stay;
+  without it (or from scratch) you get the owner's gains too.
 
 ## Guided match (A/B, converging)
 
@@ -39,7 +66,7 @@ Test videos change at 4 fps; every frame stays within two BLE packets (tests pin
 
 ## Presets
 
-`claude` (Quick match from 3 questions, Accurate, Comfortable night, Punchy games, Photo & art, Low-glare desk),
+`deskdot` (DeskDot (tuned), the default above), `claude` (Quick match from 3 questions, Accurate, Comfortable night, Punchy games, Photo & art, Low-glare desk),
 `inspired` (Sony-style Natural / Cinema, LG-OLED-style Deep black, Samsung-style Vivid, MacBook-style P3 warm,
 Dell/BenQ-style sRGB office) and `standard` (sRGB D65, Rec.709 cinema, Warm night 3400 K, Panel native).
 The "-style" presets are **approximations, not official values**, unaffiliated, with no logos. A preset sets the

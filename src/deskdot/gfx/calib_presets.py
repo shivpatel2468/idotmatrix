@@ -4,6 +4,8 @@ The "inspired by" styles are *approximations* of how well-known displays tend to
 (natural, cinema, deep blacks, vivid, warm...), translated to what a 32x32 LED panel can do. They are not
 official values, not affiliated with or endorsed by those companies, and carry no logos.
 
+"DeskDot (tuned)" (`deskdot`, listed first) is the house default a fresh install starts with (`calib.DEFAULT_CALIBRATION`).
+
 A preset sets the *style* fields (gamma, black level, lift, saturation, contrast, colour temperature, peak
 level, dithering). The RGB gains are the panel's own white balance (measured by the wizard), so applying a
 preset keeps them by default; `keep_balance=False` swaps in the preset's gains instead.
@@ -15,11 +17,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from .calib import PanelCalibration, apply
+from .calib import DEFAULT_CALIBRATION, DEFAULT_PRESET_ID, PanelCalibration, apply
 from .color import to_hex
 from .frame import Frame
 
-Group = Literal["claude", "inspired", "standard"]
+Group = Literal["deskdot", "claude", "inspired", "standard"]
 
 #: The colours shown in each preset's swatch strip: skin, sky, foliage, ember, mid grey, dark grey, white.
 SWATCH_COLOURS: list[tuple[int, int, int]] = [
@@ -67,6 +69,14 @@ def _p(id: str, name: str, group: Group, blurb: str, **values: Any) -> CalibPres
 
 
 PRESETS: list[CalibPreset] = [
+    # ---- the house default (what a fresh install starts with): first, so anyone can return to it
+    _p(
+        DEFAULT_PRESET_ID,
+        "DeskDot (tuned)",
+        "deskdot",
+        "The default: deep mid-tones, a raised shadow floor and rich colour, tuned by eye on a real panel.",
+        **DEFAULT_CALIBRATION.model_dump(exclude={"preset"}),
+    ),
     # ---- Claude presets: tuned to land a good result fast on these LEDs
     _p(
         "claude_quick",

@@ -32,6 +32,13 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Better
 
+- **Colours look right out of the box**
+  - Before: a fresh install sent colours to the panel uncorrected, so mid-tones looked flat and washed out until you
+    calibrated it yourself.
+  - Now: every DeskDot (laptop, phone, watch and the browser app) starts with the colour settings we tuned by eye on
+    a real panel: deeper mid-tones, visible shadows and richer colour. Your own calibration is never touched, and
+    "DeskDot (tuned)" is the first preset (and what Reset goes back to) if you want to return to it.
+
 - **The phone app fills the whole screen**
   - Before: the studio sat between a solid status bar at the top and a solid navigation bar at the bottom.
   - Now: it runs edge to edge under see-through bars, and nothing hides under them or under the keyboard.
