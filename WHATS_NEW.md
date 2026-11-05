@@ -11,7 +11,7 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
-## 3.10.0 — 2 Nov 2026 · The TV casino comes alive: dealt cards, a real money wheel, the housie cage
+## 3.10.0 — 5 Nov 2026 · The TV casino comes alive, a smoother phone app that stays connected, updates in their own window
 
 ### New
 
