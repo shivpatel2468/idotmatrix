@@ -190,12 +190,13 @@ export function Library({ fill = false, flat = false }: {
             <button data-active={view === "list"} title="Compact list" aria-label="List view" onClick={() => prefs({ libraryView: "list" })} className="!flex-none !px-2"><List size={13} /></button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-        <label className="relative block min-w-0 flex-1">
+        {/* phones: the search field stretches to the view toggle's height, so the two sit on one line */}
+        <div className={clsx("flex gap-2", flat ? "items-stretch" : "items-center")}>
+        <label className={clsx("relative min-w-0 flex-1", flat ? "flex" : "block")}>
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-4" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${apps.length || ""} apps`} aria-label="Search apps"
             onKeyDown={(e) => e.key === "Escape" && setQ("")}
-            className="field !h-9 !pl-8 !pr-8 !text-[13px]" />
+            className={clsx("field !pl-8 !pr-8 !text-[13px]", flat ? "!h-auto" : "!h-9")} />
           {q && (
             <button className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-ink-3 hover:text-ink-1" aria-label="Clear search" onClick={() => setQ("")}>
               <X size={13} />
@@ -209,7 +210,7 @@ export function Library({ fill = false, flat = false }: {
           </div>
         )}
         </div>
-        <div ref={chipRow} className="relative -mx-3 flex gap-1 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none]" role="tablist" aria-label="Categories">
+        <div ref={chipRow} className={clsx("relative flex gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none]", flat ? "-mx-[var(--gutter)] px-[var(--gutter)]" : "-mx-3 px-3")} role="tablist" aria-label="Categories">
           {chips.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={category === id} onClick={() => pickChip(id)}
               className={clsx("lib-chip shrink-0 rounded-full border px-2.5 py-[5px] text-[11.5px] transition",
@@ -244,7 +245,7 @@ export function Library({ fill = false, flat = false }: {
         ) : (
           sections.map((s) => (
             <section key={s.id} aria-label={s.label}>
-              <h3 className={clsx("lib-sechead sticky z-[2] flex items-center gap-2 pb-2 pt-3", flat ? "lib-sec -mx-3 bg-chassis-0 px-4" : "top-0 -mx-2.5 bg-chassis-1 px-3.5")}
+              <h3 className={clsx("lib-sechead sticky z-[2] flex items-center gap-2 pb-2 pt-3", flat ? "lib-sec -mx-[var(--gutter)] bg-chassis-0 px-[var(--gutter)]" : "top-0 -mx-2.5 bg-chassis-1 px-3.5")}
                 style={flat ? { top: headH - 10 } : undefined}>
                 {s.id === "fav" && <Star size={11} className="text-gold" fill="currentColor" />}
                 <span className="engrave !text-ink-2">{s.label}</span>

@@ -94,6 +94,13 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 - **Smoother Teen Patti and Hold'em on TV sticks**
   - Before: the card tables redrew the whole table four times a second, so they could stutter on a Fire TV.
   - Now: they only redraw when something changes; the moving cards are light sprites.
+- **Everything fits on the phone screen**
+  - Before: in the phone app's Settings some rows ran off the right edge (the status indicators, "What the panel
+    shows"), the search box sat lower and shorter than the section buttons beside it, the Apps search was shorter than
+    its view switch, and the sides of the screens had uneven margins.
+  - Now: every row fits and wraps neatly on any phone, the search boxes line up with the buttons next to them, every
+    screen has the same 16 px side margin, the page-theme dots fill their card evenly, and the Show / Playlist bar sits
+    at the bottom even for apps with few settings.
 
 ## 3.9.0 — 31 Oct 2026 · Casino themes everywhere, the browser version catches up, smoother panel hand-over
 
