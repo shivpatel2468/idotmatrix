@@ -3,7 +3,7 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
+## 3.10.0 — 2026-11-05 · TV taste pass; phone polish + Android link fix; Updates sheet; default calibration; rake removed
 
 - **Default panel calibration** (engine/SPEC.md R-ENG-13, docs/CALIBRATION.md § The default): `gfx/calib.py`
   `DEFAULT_CALIBRATION` (the owner's tuning: gains 1.029/1.025/1.035, gamma 2.225, lift 14, saturation 1.4) and
