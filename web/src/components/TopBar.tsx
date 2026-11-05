@@ -18,6 +18,7 @@ import { openCasino, rememberCasino, useCasinoApp, useCasinoView } from "./casin
 import { IconTile } from "./Icon";
 import { inAndroidApp } from "../lib/android";
 import { UpdatePill } from "./Updates";
+import { glisse } from "../lib/glisse";
 
 /** The DeskDot logo, centred in the header: LEDs that build and strike like neon (components/NeonMark). */
 function Wordmark() {
@@ -209,8 +210,11 @@ function PhoneTopBar() {
   const flyOn = useFlyPlaying();
   const power = useStore((s) => s.state?.settings.power ?? true);
   const [more, setMore] = useState(false);
+  // Glisse's glass: the rim light, and the lens where the header is clear glass (index.css § Glisse)
+  const head = useRef<HTMLElement>(null);
+  useEffect(() => glisse(head.current, { lens: "ray" }), []);
   return (
-    <header className="phone-head grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-[var(--gutter)]">
+    <header ref={head} className="phone-head grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-[var(--gutter)]">
       <ConnectionSheet />
       <button className="flex min-w-0 items-center gap-2 justify-self-start rounded-full py-2 pr-2" onClick={openConnection} aria-label={`Panel: ${label} — connection details`}>
         <span className="led shrink-0" data-on={power ? tone : "bad"} />
