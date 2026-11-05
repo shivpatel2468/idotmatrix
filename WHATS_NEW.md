@@ -11,6 +11,15 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.10.1 — 5 Nov 2026 · Liquid Glass on the phone
+
+### Better
+
+- **Liquid Glass on the phone**
+  - Before: the tab bar and the header on the phone were a heavy frosted blur.
+  - Now: they are clear glass that bends what scrolls under them at the edges, with a lit rim, and the bubble behind
+    the open tab is a little lens. Sheets get the same lit rim.
+
 ## 3.10.0 — 5 Nov 2026 · The TV casino comes alive, a smoother phone app that stays connected, updates in their own window
 
 ### New

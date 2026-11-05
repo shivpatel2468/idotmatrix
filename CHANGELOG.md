@@ -3,6 +3,13 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.10.1 — 2026-11-05 · Phone glass after Glisse; release script fix
+
+- **Phone glass after Glisse** (web/SPEC.md R-STU-14, #29): `lib/glisse.ts` (rim light + backdrop lens, MIT,
+  `docs/licenses/glisse.txt`); tab bar and clear phone header bend with one ray after a 4 px blur, the bubble with the
+  colour split; sheets take the rim. Tests: `tests/js/glisse.test.mjs`.
+- **Release script** (#27): `porcelain_paths()` reads `git status` paths robustly (3.10.0 stopped on "HANGELOG.md").
+
 ## 3.10.0 — 2026-11-05 · TV taste pass; phone polish + Android link fix; Updates sheet; default calibration; rake removed
 
 - **Default panel calibration** (engine/SPEC.md R-ENG-13, docs/CALIBRATION.md § The default): `gfx/calib.py`
