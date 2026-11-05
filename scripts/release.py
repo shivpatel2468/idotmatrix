@@ -201,6 +201,12 @@ def checksum_names(text: str) -> set[str]:
     }
 
 
+def porcelain_paths(text: str) -> list[str]:
+    """The paths in `git status --porcelain` output. Robust to the output having been stripped: the first line's
+    status (" M") then loses its leading space, so slicing at column 3 would eat a letter ("HANGELOG.md")."""
+    return [m[1] for line in text.splitlines() if (m := re.match(r"^\s*\S{1,2}\s+(.+?)\s*$", line))]
+
+
 def read_properties(path: Path) -> dict[str, str]:
     out: dict[str, str] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -440,9 +446,9 @@ class Release:
         self.sh("git", "fetch", "--quiet", "origin", "--tags", quiet=True)
         branch = self.sh("git", "rev-parse", "--abbrev-ref", "HEAD", quiet=True)
         dirty = [
-            ln[3:].strip()
-            for ln in self.sh("git", "status", "--porcelain", quiet=True).splitlines()
-            if ln.strip() and ln[3:].strip() not in NOTES_FILES
+            p
+            for p in porcelain_paths(self.sh("git", "status", "--porcelain", quiet=True))
+            if p not in NOTES_FILES
         ]
         if dirty:
             problems.append(
