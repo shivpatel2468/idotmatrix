@@ -92,6 +92,18 @@ class WearBridgeService : WearableListenerService() {
             .put("theme", theme)
     }
 
+    private fun currentApp(engine: JSONObject): String {
+        if (engine.isNull("current")) return ""
+        engine.optJSONObject("current")?.let { return if (it.isNull("app")) "" else it.optString("app", "") }
+        return engine.optString("current", "")
+    }
+
+    private fun currentApp(engine: JSONObject): String {
+        if (engine.isNull("current")) return ""
+        engine.optJSONObject("current")?.let { return if (it.isNull("app")) "" else it.optString("app", "") }
+        return engine.optString("current", "")
+    }
+
     private fun apps(): JSONArray {
         val meta = JSONObject(text("/api/meta")).optJSONArray("apps") ?: JSONArray()
         val out = JSONArray()

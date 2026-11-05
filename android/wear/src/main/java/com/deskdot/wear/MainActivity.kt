@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,10 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,17 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,16 +53,25 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.wear.ambient.AmbientLifecycleObserver
 import androidx.wear.compose.foundation.BasicSwipeToDismissBox
 import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
-import com.deskdot.wear.theme.WatchPalette
-import com.deskdot.wear.theme.WatchThemes
+import com.deskdot.wear.design.GlassButton
+import com.deskdot.wear.design.GlassFactory
+import com.deskdot.wear.design.GlassRow
+import com.deskdot.wear.design.GlassVariant
+import com.deskdot.wear.design.Icons
+import com.deskdot.wear.design.LocalLook
+import com.deskdot.wear.design.Look
+import com.deskdot.wear.design.RowSlot
+import com.deskdot.wear.design.drawGlass
+import com.deskdot.wear.design.drawIcon
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 /**
- * DeskDot on the watch: a light remote of the phone (android/wear/SPEC.md). Home shows what's on the panel,
- * brightness, presets and the apps grouped by kind; a kind opens its apps. Every list is Orbit's bubbly glass
- * list. The table theme follows the phone; it's always dark (OLED black, accent on rims), and in ambient it's
- * a dim, still line of text updated once a minute.
+ * DeskDot on the watch: a light remote of the phone (android/wear/SPEC.md). Home shows what's on the panel with
+ * ‹ › to step to the previous / next app, brightness, presets and the apps grouped by kind; a kind opens its apps.
+ * It wears Orbit's look: glass pills with an icon per kind, jelly glass buttons, the table's accent and felt on the
+ * rims, OLED black. The table follows the phone; in ambient it's a dim LED-dot sleep face updated once a minute.
  */
 class MainActivity : ComponentActivity() {
     private val ambient = mutableStateOf(false)
@@ -98,10 +103,36 @@ private sealed interface Screen {
 /** Kinds in the studio's order; anything new goes after them. */
 private val KindOrder = listOf("games", "casino", "pets", "time", "data", "media", "creative", "ambient", "productivity")
 
+private fun kindRank(c: String) = KindOrder.indexOf(c).let { if (it < 0) 99 else it }
+
 private fun kindName(c: String) = when (c) {
     "" -> "Other"
     "data" -> "Info"
     else -> c.replaceFirstChar { it.uppercase() }
+}
+
+/** Every app in the order the watch lists them: kinds in the studio's order, then by name within a kind. */
+internal fun watchOrder(apps: List<AppItem>): List<AppItem> =
+    apps.sortedWith(compareBy<AppItem>({ kindRank(it.category) }, { it.category }, { it.name.lowercase() }))
+
+/**
+ * The app to show after [current] when stepping [dir] (+1 next, -1 previous) through [watchOrder], wrapping at the
+ * ends. With nothing (or an unknown app) on the panel, next starts at the first app and previous at the last.
+ */
+internal fun neighbour(apps: List<AppItem>, current: String, dir: Int): AppItem? {
+    val list = watchOrder(apps)
+    if (list.isEmpty()) return null
+    val i = list.indexOfFirst { it.id == current }
+    if (i < 0) return if (dir >= 0) list.first() else list.last()
+    return list[Math.floorMod(i + dir, list.size)]
+}
+
+/** The name to show: the phone's, else the app's own name from the list, else "Nothing on". */
+internal fun shownName(s: Summary?, apps: List<AppItem>): String = when {
+    s == null -> "…"
+    s.name.isNotEmpty() && s.name != s.current -> s.name
+    s.current.isEmpty() -> "Nothing on"
+    else -> apps.firstOrNull { it.id == s.current }?.name ?: s.name.ifEmpty { s.current }
 }
 
 @Composable
@@ -117,8 +148,13 @@ fun DeskDotWatch(link: PhoneLink, ambient: Boolean, tick: Int) {
     val lifecycle = LocalLifecycleOwner.current
     val view = LocalView.current
     fun buzz() = view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+    suspend fun refreshFrame() {
+        runCatching { link.frame() }.getOrNull()?.takeIf { it.isNotEmpty() }?.let { b ->
+            BitmapFactory.decodeByteArray(b, 0, b.size)?.let { frame = it.asImageBitmap() }
+        }
+    }
 
-    val palette = WatchThemes.get(summary?.theme).palette(true)
+    val look = remember(summary?.theme) { Look(summary?.theme?.ifEmpty { null } ?: com.deskdot.wear.theme.WatchThemes.DEFAULT, dark = true) }
 
     // Asks the phone only while the screen is awake and visible; the panel preview only on Home.
     LaunchedEffect(lifecycle, ambient, screen, retry) {
@@ -129,11 +165,7 @@ fun DeskDotWatch(link: PhoneLink, ambient: Boolean, tick: Int) {
                     .onSuccess { summary = it; problem = null }
                     .onFailure { problem = it.message ?: "Can't reach your phone." }
                 if (problem == null && apps.isEmpty()) runCatching { apps = link.apps() }
-                if (problem == null && screen == Screen.Home) {
-                    runCatching { link.frame() }.getOrNull()?.takeIf { it.isNotEmpty() }?.let { b ->
-                        BitmapFactory.decodeByteArray(b, 0, b.size)?.let { frame = it.asImageBitmap() }
-                    }
-                }
+                if (problem == null && screen == Screen.Home) refreshFrame()
                 delay(if (screen == Screen.Home) 2000 else 5000)
             }
         }
@@ -142,48 +174,58 @@ fun DeskDotWatch(link: PhoneLink, ambient: Boolean, tick: Int) {
     LaunchedEffect(ambient, tick) {
         if (!ambient) return@LaunchedEffect
         runCatching { link.summary() }.onSuccess { summary = it }
-        runCatching { link.frame() }.getOrNull()?.takeIf { it.isNotEmpty() }?.let { b ->
-            BitmapFactory.decodeByteArray(b, 0, b.size)?.let { frame = it.asImageBitmap() }
+        refreshFrame()
+    }
+
+    fun show(app: AppItem) {
+        buzz()
+        summary = summary?.copy(current = app.id, name = app.name)
+        scope.launch {
+            runCatching { link.activate(app.id) }
+            refreshFrame()
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        if (ambient) {
-            AmbientView(summary, frame, tick)
-            return@Box
-        }
-        val p = problem
-        if (p != null && summary == null) {
-            Message(p, palette) { retry++ }
-            return@Box
-        }
-        val box = rememberSwipeToDismissBoxState()
-        BasicSwipeToDismissBox(
-            onDismissed = { screen = Screen.Home },
-            state = box,
-            backgroundKey = screen,
-            contentKey = screen,
-            userSwipeEnabled = screen != Screen.Home,
-        ) { isBackground ->
-            if (isBackground && screen != Screen.Home) return@BasicSwipeToDismissBox
-            when (val s = if (isBackground) Screen.Home else screen) {
-                Screen.Home -> Home(summary, frame, apps, palette,
-                    onBright = { v -> scope.launch { runCatching { link.brightness(v) }; buzz(); summary = summary?.copy(brightness = v) } },
-                    onPresets = { scope.launch { runCatching { presets = link.presets() } }; screen = Screen.Presets },
-                    onKind = { screen = Screen.Kind(it) },
-                )
-                is Screen.Kind -> {
-                    val list = apps.filter { it.category == s.category }.sortedBy { it.name.lowercase() }
-                    PickList(kindName(s.category), list.map { it.name }, palette) { i ->
+    CompositionLocalProvider(LocalLook provides look) {
+        Box(Modifier.fillMaxSize().background(if (ambient) Color.Black else look.bg)) {
+            if (ambient) {
+                AmbientView(summary?.copy(name = shownName(summary, apps)), frame, tick)
+                return@Box
+            }
+            val p = problem
+            if (p != null && summary == null) {
+                Message(p) { retry++ }
+                return@Box
+            }
+            val box = rememberSwipeToDismissBoxState()
+            BasicSwipeToDismissBox(
+                onDismissed = { screen = Screen.Home },
+                state = box,
+                backgroundKey = screen,
+                contentKey = screen,
+                userSwipeEnabled = screen != Screen.Home,
+            ) { isBackground ->
+                if (isBackground && screen != Screen.Home) return@BasicSwipeToDismissBox
+                when (val s = if (isBackground) Screen.Home else screen) {
+                    Screen.Home -> Home(summary, frame, apps,
+                        onStep = { dir -> neighbour(apps, summary?.current.orEmpty(), dir)?.let { show(it) } },
+                        onBright = { v -> scope.launch { runCatching { link.brightness(v) }; buzz(); summary = summary?.copy(brightness = v) } },
+                        onPresets = { scope.launch { runCatching { presets = link.presets() } }; screen = Screen.Presets },
+                        onKind = { screen = Screen.Kind(it) },
+                    )
+                    is Screen.Kind -> {
+                        val list = watchOrder(apps.filter { it.category == s.category })
+                        PickList(kindName(s.category), Icons.forKind(s.category), list.map { it.name },
+                            on = list.indexOfFirst { it.id == summary?.current }) { i ->
+                            show(list[i])
+                            screen = Screen.Home
+                        }
+                    }
+                    Screen.Presets -> PickList("Presets", Icons.playlist, presets.map { it.name }, on = -1) { i ->
                         buzz()
-                        scope.launch { runCatching { link.activate(list[i].id) } }
+                        scope.launch { runCatching { link.playPreset(presets[i].id) } }
                         screen = Screen.Home
                     }
-                }
-                Screen.Presets -> PickList("Presets", presets.map { it.name }, palette) { i ->
-                    buzz()
-                    scope.launch { runCatching { link.playPreset(presets[i].id) } }
-                    screen = Screen.Home
                 }
             }
         }
@@ -195,54 +237,77 @@ internal fun Home(
     s: Summary?,
     frame: ImageBitmap?,
     apps: List<AppItem>,
-    palette: WatchPalette,
+    onStep: (Int) -> Unit,
     onBright: (Int) -> Unit,
     onPresets: () -> Unit,
     onKind: (String) -> Unit,
 ) {
-    val kinds = apps.map { it.category }.distinct().sortedBy { KindOrder.indexOf(it).let { i -> if (i < 0) 99 else i } }
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    val kinds = apps.map { it.category }.distinct().sortedBy { kindRank(it) }
     // 0 preview, 1 brightness, 2 presets, then one row per kind of app.
-    BubbleList(count = 3 + kinds.size, palette = palette, focus = focus, firstHeight = 132.dp, noBubble = setOf(0)) { i ->
+    BubbleList(count = 3 + kinds.size, firstHeight = PreviewH, noBubble = setOf(0, 1)) { i ->
         when (i) {
-            0 -> Preview(s, frame, palette)
-            1 -> BrightnessRow(s?.brightness ?: 0, palette, onBright)
-            2 -> Row("Presets", "One-tap playlists", palette, onPresets)
+            0 -> Preview(s, frame, shownName(s, apps), canStep = apps.size > 1, onStep)
+            1 -> BrightnessRow(s?.brightness ?: 0, onBright)
+            2 -> GlassRow(Icons.playlist, "Presets", "One-tap playlists", onPresets)
             else -> {
                 val k = kinds[i - 3]
                 val n = apps.count { it.category == k }
-                Row(kindName(k), if (n == 1) "1 app" else "$n apps", palette) { onKind(k) }
+                GlassRow(Icons.forKind(k), kindName(k), if (n == 1) "1 app" else "$n apps") { onKind(k) }
             }
         }
     }
 }
 
-/** Exactly what the panel shows, pixel for pixel, in a felt-and-accent glass frame, with its name under it. */
+private val PreviewH = 150.dp
+private val FrameSize = 100.dp
+
+/**
+ * Exactly what the panel shows, pixel for pixel, inside Orbit's glass frame (glass only on the border, so nothing
+ * covers the picture), with glass ‹ › either side to step to the previous / next app. A sideways swipe on the
+ * picture does the same. The app's name and the panel's state sit under it.
+ */
 @Composable
-private fun Preview(s: Summary?, frame: ImageBitmap?, palette: WatchPalette) {
-    Column(Modifier.fillMaxWidth().height(132.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Box(
-            Modifier
-                .size(92.dp)
-                .drawBehind {
-                    val r = CornerRadius(14.dp.toPx())
-                    drawRoundRect(Color(palette.felt), cornerRadius = r, style = Stroke(6.dp.toPx()))
-                    drawRoundRect(Color(palette.accent), Offset(-3f, -3f), Size(size.width + 6f, size.height + 6f), CornerRadius(r.x + 3f), style = Stroke(1.5f))
+private fun Preview(s: Summary?, frame: ImageBitmap?, name: String, canStep: Boolean, onStep: (Int) -> Unit) {
+    val look = LocalLook.current
+    Column(Modifier.fillMaxWidth().height(PreviewH), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (canStep) GlassButton(Icons.back, "Previous app", 36.dp, { onStep(-1) })
+            Spacer(Modifier.width(8.dp))
+            Box(
+                Modifier
+                    .size(FrameSize)
+                    .pointerInput(canStep) {
+                        if (!canStep) return@pointerInput
+                        var dx = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { dx = 0f },
+                            onDragEnd = { if (abs(dx) > 48f) onStep(if (dx < 0) 1 else -1) },
+                        ) { change, amount -> change.consume(); dx += amount }
+                    }
+                    .drawWithCache {
+                        val w = size.width.toInt()
+                        val g = GlassFactory.get(look.glass(w, w, 16.dp.toPx(), GlassVariant.Frame))
+                        onDrawWithContent {
+                            drawContent()
+                            drawGlass(g, 0f, 0f)
+                        }
+                    }
+                    .padding(7.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFF050505)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (frame != null) {
+                    Image(frame, contentDescription = "The panel", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
                 }
-                .padding(5.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF050505)),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (frame != null) {
-                Image(frame, contentDescription = "The panel", modifier = Modifier.fillMaxSize(), filterQuality = FilterQuality.None)
             }
+            Spacer(Modifier.width(8.dp))
+            if (canStep) GlassButton(Icons.next, "Next app", 36.dp, { onStep(1) })
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(7.dp))
         BasicText(
-            s?.name?.ifEmpty { "Nothing on" } ?: "…",
-            style = TextStyle(Color(palette.ink1), 15.sp, FontWeight.SemiBold, textAlign = TextAlign.Center),
+            name,
+            style = TextStyle(look.ink1, 15.sp, FontWeight.SemiBold, textAlign = TextAlign.Center),
             maxLines = 1, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.width(150.dp),
         )
@@ -251,71 +316,52 @@ private fun Preview(s: Summary?, frame: ImageBitmap?, palette: WatchPalette) {
             s.connected -> "On the panel"
             else -> "Panel not connected"
         }
-        BasicText(status, style = TextStyle(Color(if (s?.connected == false) 0xFFFFC24A.toInt() else palette.ink3), 11.sp, textAlign = TextAlign.Center))
+        BasicText(status, style = TextStyle(if (s?.connected == false) Color(0xFFFFC24A) else look.ink3, 11.sp, textAlign = TextAlign.Center))
     }
 }
 
+/** Jelly glass − and + either side of the level: 10 % steps, the panel's 5–100 range. */
 @Composable
-private fun Row(title: String, sub: String?, palette: WatchPalette, onClick: () -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().height(52.dp).clickable(onClick = onClick).padding(horizontal = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        BasicText(title, style = TextStyle(Color(palette.ink1), 16.sp, FontWeight.SemiBold, textAlign = TextAlign.Center), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (sub != null) BasicText(sub, style = TextStyle(Color(palette.ink3), 11.sp, textAlign = TextAlign.Center), maxLines = 1)
-    }
-}
-
-/** − 60 % + : 10 % steps, the panel's 5–100 range. */
-@Composable
-private fun BrightnessRow(value: Int, palette: WatchPalette, set: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        RoundKey("−", palette) { set((value - 10).coerceAtLeast(5)) }
-        Column(Modifier.width(76.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText("$value%", style = TextStyle(Color(palette.ink1), 16.sp, FontWeight.SemiBold))
-            BasicText("Brightness", style = TextStyle(Color(palette.ink3), 10.sp))
+private fun BrightnessRow(value: Int, set: (Int) -> Unit) {
+    val look = LocalLook.current
+    Row(Modifier.fillMaxWidth().height(RowSlot), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        GlassButton(Icons.remove, "Dimmer", 42.dp, { set((value - 10).coerceAtLeast(5)) })
+        Column(Modifier.width(84.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                Modifier.size(18.dp).drawWithCache {
+                    onDrawBehind { drawIcon(Icons.sun, size.width / 2f, size.height / 2f, size.width, look.accent) }
+                },
+            )
+            BasicText("$value%", style = TextStyle(look.ink1, 17.sp, FontWeight.SemiBold))
         }
-        RoundKey("+", palette) { set((value + 10).coerceAtMost(100)) }
+        GlassButton(Icons.add, "Brighter", 42.dp, { set((value + 10).coerceAtMost(100)) })
     }
 }
 
+/** A kind's apps (or the presets): a title, then a glass pill per item; [on] marks the one on the panel now. */
 @Composable
-private fun RoundKey(label: String, palette: WatchPalette, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .background(Color(palette.chassis2))
-            .drawBehind { drawCircle(Color(palette.accentLine), size.minDimension / 2f - 1f, style = Stroke(1.5f)) }
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) { BasicText(label, style = TextStyle(Color(palette.accent), 18.sp, FontWeight.Bold)) }
-}
-
-@Composable
-internal fun PickList(title: String, names: List<String>, palette: WatchPalette, onPick: (Int) -> Unit) {
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
-    BubbleList(count = names.size + 1, palette = palette, focus = focus, noBubble = setOf(0)) { i ->
+internal fun PickList(title: String, icon: com.deskdot.wear.design.WIcon, names: List<String>, on: Int = -1, onPick: (Int) -> Unit) {
+    val look = LocalLook.current
+    BubbleList(count = names.size + 1, noBubble = setOf(0)) { i ->
         if (i == 0) {
-            Box(Modifier.fillMaxWidth().height(52.dp), contentAlignment = Alignment.Center) {
-                BasicText(title, style = TextStyle(Color(palette.accent), 13.sp, FontWeight.SemiBold, letterSpacing = 1.sp))
+            Box(Modifier.fillMaxWidth().height(RowSlot), contentAlignment = Alignment.Center) {
+                BasicText(title, style = TextStyle(look.accent, 14.sp, FontWeight.SemiBold, letterSpacing = 1.sp))
             }
         } else {
-            Row(names[i - 1], null, palette) { onPick(i - 1) }
+            GlassRow(icon, names[i - 1], if (i - 1 == on) "On the panel now" else null) { onPick(i - 1) }
         }
     }
 }
 
 @Composable
-private fun Message(text: String, palette: WatchPalette, onRetry: () -> Unit) {
+private fun Message(text: String, onRetry: () -> Unit) {
+    val look = LocalLook.current
     Column(Modifier.fillMaxSize().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        BasicText("DeskDot", style = TextStyle(Color(palette.accent), 14.sp, FontWeight.SemiBold))
+        BasicText("DeskDot", style = TextStyle(look.accent, 14.sp, FontWeight.SemiBold))
         Spacer(Modifier.height(10.dp))
-        BasicText(text, style = TextStyle(Color(palette.ink1), 15.sp, textAlign = TextAlign.Center))
+        BasicText(text, style = TextStyle(look.ink1, 15.sp, textAlign = TextAlign.Center))
         Spacer(Modifier.height(14.dp))
-        RoundKey("↻", palette, onRetry)
+        GlassButton(Icons.retry, "Try again", 44.dp, onRetry, variant = GlassVariant.On)
     }
 }
 
@@ -340,13 +386,15 @@ internal fun AmbientView(s: Summary?, frame: ImageBitmap?, tick: Int = 0) {
         BasicText(time, style = TextStyle(Color(0xFFB0B0B0), 22.sp, textAlign = TextAlign.Center))
         Spacer(Modifier.height(8.dp))
         Box(
-            Modifier.size(104.dp).drawBehind {
-                val px = dots ?: return@drawBehind
-                val cell = size.width / 32f
-                for (y in 0 until 32) for (x in 0 until 32) {
-                    val c = px[y * 32 + x]
-                    if (c == 0) continue
-                    drawCircle(Color(c), cell * 0.32f, androidx.compose.ui.geometry.Offset((x + 0.5f) * cell, (y + 0.5f) * cell))
+            Modifier.size(104.dp).drawWithCache {
+                onDrawBehind {
+                    val px = dots ?: return@onDrawBehind
+                    val cell = size.width / 32f
+                    for (y in 0 until 32) for (x in 0 until 32) {
+                        val c = px[y * 32 + x]
+                        if (c == 0) continue
+                        drawCircle(Color(c), cell * 0.32f, androidx.compose.ui.geometry.Offset((x + 0.5f) * cell, (y + 0.5f) * cell))
+                    }
                 }
             },
         )

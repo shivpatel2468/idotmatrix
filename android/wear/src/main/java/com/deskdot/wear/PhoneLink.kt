@@ -20,6 +20,25 @@ data class Summary(
 data class AppItem(val id: String, val name: String, val category: String)
 data class PresetItem(val id: String, val name: String)
 
+/**
+ * The phone's summary. Phone builds up to 3.9.0 copied the engine's `current` object ({key, app, item, kind…})
+ * into `current` and `name` as raw text; read the app id out of it and leave the name empty, so the watch shows the
+ * app's own name from its list instead of the raw text.
+ */
+internal fun parseSummary(o: JSONObject): Summary {
+    fun appOf(v: Any?): String = when (v) {
+        is JSONObject -> if (v.isNull("app")) "" else v.optString("app")
+        is String -> if (v.trimStart().startsWith("{")) runCatching { appOf(JSONObject(v)) }.getOrDefault("") else v
+        else -> ""
+    }
+    val current = appOf(if (o.isNull("current")) null else o.opt("current"))
+    val name = o.optString("name").takeUnless { it.trimStart().startsWith("{") || it == "null" } ?: ""
+    return Summary(
+        o.optBoolean("connected"), o.optString("status"), current, name,
+        o.optInt("brightness"), o.optString("preset"), o.optString("theme"),
+    )
+}
+
 /** Why the watch can't show the panel right now, in plain words. */
 class PhoneUnavailable(message: String) : Exception(message)
 
@@ -55,10 +74,7 @@ class PhoneLink(context: Context) {
 
     suspend fun summary(): Summary {
         val o = JSONObject(check(String(ask(SUMMARY))))
-        return Summary(
-            o.optBoolean("connected"), o.optString("status"), o.optString("current"), o.optString("name"),
-            o.optInt("brightness"), o.optString("preset"), o.optString("theme"),
-        )
+        return parseSummary(o)
     }
 
     suspend fun apps(): List<AppItem> {

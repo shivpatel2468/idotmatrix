@@ -41,9 +41,15 @@ watch from the engine running on the phone (`127.0.0.1:8765`).
   Tests: none yet (gap: a bridge test against a fake engine).
 - **R-WEAR-7** Home shows exactly what the panel shows (the engine's frame, drawn pixel for pixel), the app's name
   and whether the panel is connected, brightness, presets, and the apps grouped by kind; a kind opens its apps.
-  Every list is the bubbly glass list: rows curve away at the round edge, snap to the centre once, and a glass bubble
-  floats above the centred row and moves with the scroll. Tests: `android/wear/src/test/.../WatchScreensTest`
-  (renders every screen; the scrolling cases also guard against a snap that never settles).
+  Glass ‹ › beside the preview (or a sideways swipe on it) show the previous / next app, in the order the watch lists
+  them (kinds in the studio's order, then by name), wrapping at the ends. The app's name is its real name, never the
+  engine's raw `current` object (older phone builds sent it as text; the watch reads the app id out of it).
+  Every list is the bubbly glass list in the Orbit launcher's look: glass pills with an icon per kind, jelly glass
+  buttons, the table's accent and felt on the rims; rows curve away at the round edge, snap to the centre once, and a
+  glass bubble floats above the centred row and moves with the scroll. The crown scrolls every list (Orbit's
+  `rotaryScrollable` with a centre snap); the list asks for the crown's focus when shown and again on every resume.
+  Tests: `android/wear/src/test/.../WatchScreensTest` (every screen in Cyber grid, Classic green, Royal blue and
+  Cyber grid light; the crown case scrolls Home with the crown alone), `RemoteLogicTest` (stepping, the name).
 - **R-WEAR-8** The watch asks the phone only while its screen is awake and visible (every 2 s on Home for the
   preview, 5 s elsewhere) and not at all in ambient, where it shows one dim, still line updated on the minute
   signal. When the phone or its engine can't be reached it says so in plain words with a retry. Tests: none yet (gap).
@@ -71,4 +77,4 @@ watch from the engine running on the phone (`127.0.0.1:8765`).
 - Casino chip bets from the watch, and measured battery cost of the 2 s preview (R-WEAR-5 asks for numbers).
 - Distribution: a separate `DeskDot-Watch-<version>.apk` in each GitHub release now; one Google Play listing later.
 
-Last verified: 2026-11-04
+Last verified: 2026-11-05
