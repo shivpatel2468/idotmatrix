@@ -212,3 +212,22 @@ def test_site_table_themes_are_aa() -> None:
     theme = _load("site_theme")
     low = {k: round(v, 2) for k, v in theme.contrast_report().items() if v < 4.5}
     assert not low, low
+
+
+def test_site_glass_is_glisse_and_cheap_on_scrolling_cards() -> None:
+    """R-SITE-7: Glisse's glass (MIT, credited) on the site's glass; the backdrop lens only on small fixed chrome."""
+    js = (SITE / "main.js").read_text(encoding="utf-8")
+    css = (SITE / "styles.css").read_text(encoding="utf-8")
+    assert "github.com/0kzh/glisse" in js and "feDisplacementMap" in js
+    assert "Glisse (adapted)" in (SITE / "licenses.html").read_text(encoding="utf-8")
+    assert "Kelvin Zhang" in (ROOT / "docs" / "licenses" / "glisse.txt").read_text(encoding="utf-8")
+    # the lens is fitted to the header capsule and the theme menu only
+    assert '[[$(".bar > .wrap"), false], [menu, true]]' in js
+    # no backdrop filter on anything that scrolls in numbers (cards, panes, chips)
+    for rule in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+        selector, body = rule
+        if "backdrop-filter" in body and "url(" not in selector:
+            assert not re.search(r"\.(card|app-card|chip|faq|fact|shot|wn-item|toc)\b", selector), selector
+    # the rim light everywhere: every glass surface is registered for it
+    for sel in (".card", ".chip", ".faq details", ".btn", "#theme-menu", ".bar > .wrap"):
+        assert sel in js
