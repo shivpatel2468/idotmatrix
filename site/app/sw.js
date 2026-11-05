@@ -8,7 +8,7 @@
  */
 "use strict";
 
-const BUILD = "3c20572daabd"; // replaced by scripts/build_webapp.py
+const BUILD = "4b421eea517e"; // replaced by scripts/build_webapp.py
 const PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
 const APP_CACHE = `deskdot-app-${BUILD}`;
 const RUNTIME_CACHE = `deskdot-pyodide-${PYODIDE.split("/").filter(Boolean).slice(-2).join("-")}`;
