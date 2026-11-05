@@ -31,6 +31,13 @@ DeskDot's own code, pixel art, characters and bitmap fonts are original and rele
 The Android app vendors a cross-compiled wheel of [pydantic-core](https://github.com/pydantic/pydantic-core) (MIT),
 built from the unmodified upstream source (`android/tools/build-pydantic-core.sh`).
 
+## Adapted code
+
+- **[Glisse](https://github.com/0kzh/glisse)** by Kelvin Zhang (MIT, full text in
+  [docs/licenses/glisse.txt](docs/licenses/glisse.txt)): the Liquid Glass rim light and backdrop lens (its displacement
+  maps and SVG filter graph), adapted to plain JavaScript / TypeScript in `site/main.js` § 5 (the website) and
+  `web/src/lib/glisse.ts` (the studio and the phone app).
+
 ## Data
 
 Live data comes from public APIs under their own terms; see [DATA_SOURCES.md](DATA_SOURCES.md).

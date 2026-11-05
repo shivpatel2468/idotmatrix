@@ -14,6 +14,7 @@ import {
   stretch,
 } from "../lib/tabDrag";
 import { Icon } from "./Icon";
+import { glisse } from "../lib/glisse";
 
 export const TABS: [MobileTab, string, string][] = [
   ["panel", "Panel", "monitor-play"],
@@ -167,6 +168,12 @@ export function TabBar() {
       ro.disconnect();
       stopAnim();
     };
+  }, []);
+
+  // Glisse's glass: the bar bends what scrolls under it (one ray), the bubble is a small lens with the colour split
+  useEffect(() => {
+    const off = [glisse(nav.current, { lens: "ray" }), glisse(bubble.current, { rim: false, lens: "split" })];
+    return () => off.forEach((f) => f());
   }, []);
 
   // the open tab changed (a tap, a release, or elsewhere — the "now showing" strip opens Panel): spring over
