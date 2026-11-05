@@ -33,6 +33,14 @@ log = logging.getLogger("deskdot.android")
 
 CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
 WRITE_TIMEOUT = 5.0
+#: Phone writes are small and acknowledged (docs/HARDWARE_PROTOCOL.md finding 19). With the full 514-byte packets
+#: written without response, a phone's Bluetooth stack under load (seen on a Xiaomi 11i: MediaTek radio, Android 13,
+#: also paging a watch) lost a write's completion during GIF uploads (`bta_gattc_op_cmpl: No pending command`). The
+#: app never heard back, Android's per-device write permit was never released, every later write was refused, and
+#: the engine reconnected in a loop — the panel flashing its pairing screen each time. 244-byte packets fit one
+#: radio frame and acknowledged writes complete through the request/response path: no lost completions, no loop.
+MAX_PACKET = 244
+ACKED_WRITES = True
 
 
 class _Events:
@@ -136,7 +144,7 @@ class AndroidBleDevice(Device):
         finally:
             self._connect_future = None
         self._link_up = True
-        self.packet_size = max(20, write_size)
+        self.packet_size = max(20, min(write_size, MAX_PACKET))
         self.info.address = address
         self.info.name = name
         self.info.mtu = self.packet_size
@@ -168,7 +176,7 @@ class AndroidBleDevice(Device):
         fut: asyncio.Future[None] = asyncio.get_running_loop().create_future()
         self._writes[token] = fut
         try:
-            self._bridge.write(packet, response, token)
+            self._bridge.write(packet, response or ACKED_WRITES, token)
             await wait_for(fut, WRITE_TIMEOUT)
         except TimeoutError:
             raise ConnectionError("write timed out") from None
