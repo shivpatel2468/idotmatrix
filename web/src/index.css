@@ -1900,6 +1900,45 @@ body { overscroll-behavior: none; }
   backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.9) brightness(1.04);
 }
 
+/* ---- Glisse: the phone's glass after Glisse (lib/glisse.ts; MIT, docs/licenses/glisse.txt) -------------------------
+   The tab bar, the phone header and sheets get Glisse's rim light: a thin line lit from the top left, a PNG per size in
+   --lg-rim-over ([data-rim]), drawn in the ::after ring instead of the gradient ring (the pointer / tilt highlight
+   stays). Where the glass is clear and the browser is Chromium (Chrome, Edge, the Android app's WebView), the lens
+   bends what is behind it near the rim like a thick pane (--lg-bend: an SVG displacement filter, [data-bent]): the tab
+   bar (also in the Android app: data-bar-glass) and the phone header (clear glass only: it stays frosted in the Android
+   app) with one ray after a light blur; the bubble, small, with Glisse's colour split. The lens needs a thin tint at
+   the rim to show, so a band of denser tint runs through the middle, where the labels are: text never reads through.
+   Frosted, solid and reduced transparency keep their fills (rules above; reduced transparency also drops the bubble's
+   lens). The desktop studio is unchanged: these surfaces are phone-only, except sheets, which only take the rim. */
+:root {
+  --lg-rim-shine: 0.2; --lg-bend-blur: 4px;
+  --lg-bend-tint: color-mix(in oklab, var(--color-chassis-2) 50%, transparent);
+  --lg-bend-core: color-mix(in oklab, var(--color-chassis-2) 54%, transparent);
+}
+:root[data-theme="light"] {
+  --lg-rim-shine: 0.45;
+  --lg-bend-tint: color-mix(in oklab, var(--color-chassis-2) 52%, transparent);
+  --lg-bend-core: color-mix(in oklab, var(--color-chassis-2) 56%, transparent);
+}
+:is(.tabbar, .phone-head, .sheet)[data-rim]::after {
+  background:
+    radial-gradient(150px circle at var(--lg-x) var(--lg-y), var(--lg-spec), transparent 70%),
+    var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat;
+}
+:root[data-bar-glass="liquid"] .tabbar[data-bent]::before,
+:root[data-glass="liquid"] .phone-head[data-bent]::before {
+  background:
+    linear-gradient(180deg, transparent, var(--lg-bend-core) 28%, var(--lg-bend-core) 72%, transparent),
+    linear-gradient(180deg, var(--lg-glare), transparent 46%),
+    var(--lg-bend-tint);
+  -webkit-backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(1.6);
+  backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(1.6);
+}
+:root[data-bar-glass="liquid"] .tabbar-bubble[data-bent] { -webkit-backdrop-filter: var(--lg-bend); backdrop-filter: var(--lg-bend); }
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar-bubble[data-bent] { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 /* sheets: a glass card floating above the bottom edge, its corners concentric with the screen's */
 :root[data-theme] .sheet {
   inset: auto 8px calc(8px + var(--safe-bottom)) 8px; max-height: calc(88dvh - 8px);

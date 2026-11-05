@@ -64,6 +64,14 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   = the view toggle). The desktop layout is unchanged. Tests: `tests/js/phone_layout.test.mjs` (the rules); the
   screens are measured in a 360 / 393 / 430 px phone emulation and checked on the phone (gap: no automated
   page-width test).
+- **R-STU-14** Phone glass after Glisse (MIT, credited in THIRD_PARTY_NOTICES.md, text in docs/licenses/glisse.txt;
+  `lib/glisse.ts`): the tab bar, the phone header and sheets show Glisse's rim light (a thin line lit from the top
+  left, drawn once per size, following light / dark); where the glass is clear and the browser is Chromium (Chrome,
+  Edge, the Android WebView) the tab bar (also in the Android app) and the phone header bend the backdrop near the rim
+  with one ray of Glisse's lens after a light blur, with a denser band of tint behind the labels; the tab bar's bubble
+  is a small lens with the colour split, and still drags with its spring. Frosted, solid and reduced transparency keep
+  their fills (no lens); Safari / Firefox keep the blur; the desktop studio is unchanged. Maps are drawn when idle and
+  on resize, never per frame. Tests: `tests/js/glisse.test.mjs` (the maps); the look is checked by hand.
 
 ## Invariants
 
@@ -89,4 +97,4 @@ Consumes the HTTP API and `WS /ws` ([engine spec](../src/deskdot/engine/SPEC.md)
 - The studio has no unit or component test runner; R-STU-1, 3, 4 and the UI half of 5 are verified by hand. Pure
   studio logic can be tested with node (`tests/js/update_flow.test.mjs` imports `web/src/lib/updateFlow.ts`).
 
-Last verified: 2026-11-04
+Last verified: 2026-11-05

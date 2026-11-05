@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { sheetSound } from "../lib/sound";
+import { glisse } from "../lib/glisse";
 
 /**
  * A phone bottom sheet: slides up from the thumb zone, a grab handle you can drag down to close, the home-indicator
@@ -22,6 +23,8 @@ export function Sheet({ open, onClose, title, children, footer }: {
   const scrim = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(open);
   useEffect(() => sheetSound(open, wasOpen), [open]);
+  // Glisse's rim light (the sheet is frosted on touch screens: no lens)
+  useEffect(() => (open ? glisse(panel.current) : undefined), [open]);
   useEffect(() => {
     if (!open) return;
     drag.current = 0;
