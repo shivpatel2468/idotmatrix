@@ -24,9 +24,13 @@ val deskdotVersionCode: Int = deskdotVersion.substringBefore("-").split(".").map
 
 // Release signing: android/keystore.properties (git-ignored; storeFile, storePassword, keyAlias, keyPassword).
 // Never in git, never in CI. Without it, release builds fall back to the debug key (fine for testing only).
+// A worktree has no keystore.properties of its own: -Pdeskdot.keystoreProps=<path> reads the main checkout's file
+// in place (never copied); storeFile then resolves against that checkout's android/app, as it does there.
+val keystoreFile = (findProperty("deskdot.keystoreProps") as String?)?.let { File(it) } ?: rootProject.file("keystore.properties")
 val keystoreProps = Properties().apply {
-    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+    keystoreFile.takeIf { it.isFile }?.inputStream()?.use { load(it) }
 }
+val keystoreBase: File = keystoreFile.parentFile?.resolve("app") ?: projectDir
 
 android {
     namespace = "com.deskdot.app"
@@ -46,7 +50,7 @@ android {
     signingConfigs {
         if (keystoreProps.getProperty("storeFile") != null) {
             create("release") {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storeFile = keystoreProps.getProperty("storeFile").let { File(it).takeIf { f -> f.isAbsolute } ?: keystoreBase.resolve(it) }
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
@@ -139,6 +143,9 @@ dependencies {
     // The watch app's bridge (WearBridgeService): Wearable Data Layer + a tiny HTTP client for the local engine.
     implementation("com.google.android.gms:play-services-wearable:18.2.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // play-services-wearable pulls in Fragment 1.0, which mishandles ActivityResult permission requests
+    // (lint: InvalidFragmentVersionForActivityResult); pin a current one.
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core-splashscreen:1.0.1") // the Android 12+ launch splash, also on 8–11
