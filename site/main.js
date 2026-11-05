@@ -585,4 +585,269 @@
     if (e.key === PAGE_KEY) applyPage(pageTheme());
   });
   sync();
+
+  /* ===================================================================== 5. Liquid Glass (after Glisse)
+   * Every glass surface gets Glisse's look: a thin lit rim and, on the floating chrome, a lens that bends the backdrop
+   * near the rim like a thick pane, the colours splitting a little at the edge. Adapted from Glisse by Kelvin Zhang
+   * (https://github.com/0kzh/glisse, MIT licence, see /licenses.html): its rim light (rimMap) and its backdrop lens
+   * (lensMap + the filter graph), as plain JS. CSS: "Liquid Glass (after Glisse)" in styles.css.
+   *   rim   every pane, card, chip and glass button: the rim light is drawn once per size into a PNG, shown in the
+   *         surface's own background ([data-rim="bg"], --lg-rim) — or, on glass buttons and the header, whose fills
+   *         vary, by an ::after overlay ([data-rim="over"], --lg-rim-over). Static. Not overlays on the cards: an
+   *         overlay box over every card made scrolling heavier (measured), a background layer costs nothing.
+   *         Repainted when the theme changes (its strength is --lg-rim-shine).
+   *   lens  the capsule header and the theme menu only (small, fixed): a displacement map per surface and an SVG
+   *         filter (--lg-bend, [data-bent]) in its backdrop-filter. `backdrop-filter: url()` is Chromium only;
+   *         elsewhere the glass keeps its blur and tint. Measured while scrolling (Chromium, 1440 px): Glisse's full
+   *         lens splits the colours with six displacement passes, which on the header made 12-17 % of frames late
+   *         (2 % without it); one ray (two passes, no colour split) costs next to nothing, so the header bends without
+   *         splitting and only the theme menu (open on demand, nothing scrolls behind it) splits. Never on the apps
+   *         search pane (wide and tall: even two passes made 40 % of frames late; it gets a light blur) nor on the
+   *         scrolling cards (a lens on every card: 5 fps).
+   * Maps are drawn when the page is idle and again when a surface changes size; nothing runs while scrolling.
+   * Reduced transparency: no lens (the CSS makes the glass solid; the rim stays). */
+  const opaque = matchMedia("(prefers-reduced-transparency: reduce)");
+  if ("ResizeObserver" in window) {
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    // signed distance to a rounded rectangle centred on the origin; negative inside
+    const dist = (x, y, hw, hh, r) => {
+      const qx = Math.abs(x) - hw + r, qy = Math.abs(y) - hh + r;
+      return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+    };
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const toPng = (cols, rows, fill) => {
+      canvas.width = cols;
+      canvas.height = rows;
+      const img = ctx.createImageData(cols, rows);
+      fill(img.data);
+      ctx.putImageData(img, 0, 0);
+      return canvas.toDataURL();
+    };
+    const idle = (fn) => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
+    const density = () => Math.min(devicePixelRatio || 1, 2);
+
+    /* ---- the rim light (Glisse's rimMap): a white line brightest at the very edge and gone 1.2 px in; the light from
+       the top left lights the top and left sides and its reflection the bottom and right, fading out over the two
+       corners between, a little wider on the two corners it faces. */
+    const RIM = 1.22;
+    const rims = new Map();
+    const rimMap = (w, h, r, shine, d) => {
+      const key = [w, h, r, shine, d].join("|");
+      if (rims.has(key)) return rims.get(key);
+      const cols = Math.max(1, Math.round(w * d)), rows = Math.max(1, Math.round(h * d));
+      const hw = w / 2, hh = h / 2, c = clamp(r, 0, Math.min(hw, hh)), half = 0.5 / d;
+      const url = toPng(cols, rows, (px) => {
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const x = ((col + 0.5) / cols) * w - hw, y = ((row + 0.5) / rows) * h - hh;
+            const depth = -dist(x, y, hw, hh, c);
+            if (depth < -half || depth > 2 * RIM) continue;
+            const qx = Math.abs(x) - hw + c, qy = Math.abs(y) - hh + c;
+            let nx = 0, ny = 0;
+            if (qx > 0 && qy > 0) {
+              const l = Math.hypot(qx, qy);
+              nx = (Math.sign(x) * qx) / l;
+              ny = (Math.sign(y) * qy) / l;
+            } else if (qx > qy) nx = Math.sign(x);
+            else ny = Math.sign(y);
+            const facing = Math.abs(nx + ny);
+            const along = Math.max(0, depth) / (RIM * Math.sqrt(Math.max(1, facing)));
+            const cover = clamp((depth + half) * d, 0, 1);
+            const light = along < 1 ? shine * Math.min(1, facing) ** 1.5 * (1 - along ** 1.5) * cover : 0;
+            if (light <= 0) continue;
+            const i = (row * cols + col) * 4;
+            px[i] = px[i + 1] = px[i + 2] = 255;
+            px[i + 3] = Math.round(255 * light);
+          }
+        }
+      });
+      const css = `url("${url}")`;
+      rims.set(key, css);
+      return css;
+    };
+    // the padding box (where a background or an inset-0 overlay is drawn), or a pseudo-element's box, and its corner
+    const boxOf = (el, pseudo) => {
+      const cs = getComputedStyle(el, pseudo);
+      const px = (p) => parseFloat(cs.getPropertyValue(p)) || 0;
+      if (!pseudo) {
+        const w = el.clientWidth, h = el.clientHeight;
+        return w && h ? { w, h, r: Math.max(0, px("border-top-left-radius") - px("border-top-width")) } : null;
+      }
+      const b = [px("border-left-width") + px("border-right-width"), px("border-top-width") + px("border-bottom-width")];
+      const pad = [px("padding-left") + px("padding-right"), px("padding-top") + px("padding-bottom")];
+      const bb = cs.boxSizing === "border-box";
+      const w = Math.round(px("width") + (bb ? 0 : pad[0] + b[0])), h = Math.round(px("height") + (bb ? 0 : pad[1] + b[1]));
+      return w > 0 && h > 0 ? { w, h, r: px("border-top-left-radius"), b: b[0] / 2 } : null;
+    };
+    const rimShine = () => clamp(parseFloat(getComputedStyle(root).getPropertyValue("--lg-rim-shine")) || 0.2, 0, 1);
+    const rimmed = new Map(); // element → [pseudo, property, how it is drawn: "over" (an ::after overlay) | "bg"]
+    const paintRim = (el) => {
+      const [pseudo, prop, how] = rimmed.get(el);
+      const b = boxOf(el, pseudo);
+      if (!b) return;
+      el.style.setProperty(prop, rimMap(b.w, b.h, b.r, rimShine(), density()));
+      el.setAttribute("data-rim", how);
+    };
+
+    /* ---- the lens (Glisse's lensMap and filter graph): within a band about a quarter of the shorter side around the
+       rim, each point shows the backdrop from further in, by the slope of a shallow dome; the middle is left as it is. */
+    const LENS = { strength: 0.45, dispersion: 0.4, depth: 0.25, dome: 0.5 };
+    // `split`: the colour split (three rays, red bending a little further than blue), or one ray
+    const erf = (x) => Math.tanh(1.7724538509 * x); // ≈ erf
+    // the circular arc that sags by `sag` across `half`, scaled so its slope averages one half over that span
+    const arc = (sag, half) => {
+      const radius = (half * half + sag * sag) / (2 * sag);
+      let sum = 0;
+      for (let i = 0; i <= 200; i++) {
+        const x = (i / 200) * half, s = x / Math.sqrt(radius * radius - x * x);
+        sum += i === 0 || i === 200 ? s / 2 : s;
+      }
+      const mean = sum / 200;
+      return { radius, scale: mean > 0 ? 0.5 / mean : 1 };
+    };
+    const slope = (x, { radius, scale }) => {
+      const t = Math.min(x, 0.999 * radius);
+      return (t / Math.sqrt(radius * radius - t * t)) * scale;
+    };
+    // the maps as PNGs: `across` / `down` are greys (128 = no pull); `mask` covers (alpha) where the rim bends at all
+    const lensMaps = (w, h, r, d) => {
+      const hw = w / 2, hh = h / 2;
+      r = clamp(r, 0, Math.min(hw, hh));
+      const cols = Math.max(1, Math.round(w * d)), rows = Math.max(1, Math.round(h * d));
+      const share = Math.min(w, h), depth = LENS.depth * share, dome = LENS.dome * share;
+      const iw = Math.max(0, hw - depth), ih = Math.max(0, hh - depth), ir = clamp(r, 0, Math.min(iw, ih));
+      const ramp = depth > 0 ? 1 / (depth * Math.SQRT2) : 1e6;
+      const sag = Math.max(0.01, Math.min(dome, Math.min(hw, hh) - 1));
+      const ax = arc(sag, hw), ay = arc(sag, hh);
+      const n = cols * rows, across = new Uint8ClampedArray(n * 4), down = new Uint8ClampedArray(n * 4), mask = new Uint8ClampedArray(n * 4);
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const i = (row * cols + col) * 4;
+          const x = ((col + 0.5) / cols) * w - hw, y = ((row + 0.5) / rows) * h - hh;
+          const edge = dist(x, y, hw, hh, r);
+          across[i + 3] = down[i + 3] = 255;
+          if (edge >= 0) {
+            across[i] = across[i + 1] = across[i + 2] = down[i] = down[i + 1] = down[i + 2] = 128;
+            continue;
+          }
+          const fall = 0.5 * (1 + erf(dist(x, y, iw, ih, ir) * ramp));
+          const dx = Math.sign(x) * slope(Math.abs(x), ax), dy = Math.sign(y) * slope(Math.abs(y), ay);
+          across[i] = across[i + 1] = across[i + 2] = Math.round((0.5 - 0.5 * dx * fall) * 255);
+          down[i] = down[i + 1] = down[i + 2] = Math.round((0.5 - 0.5 * dy * fall) * 255);
+          mask[i + 3] = Math.round(255 * Math.min(1, fall * 20, -edge));
+        }
+      }
+      const png = (data) => toPng(cols, rows, (px) => px.set(data));
+      return { across: png(across), down: png(down), mask: png(mask) };
+    };
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = (name, attrs = {}) => {
+      const e = document.createElementNS(NS, name);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+      return e;
+    };
+    let defs = null;
+    const holder = () => {
+      if (defs) return defs;
+      const s = svg("svg", { width: 0, height: 0, "aria-hidden": "true" });
+      s.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none";
+      defs = svg("defs");
+      s.append(defs);
+      document.body.append(s);
+      return defs;
+    };
+    /* The filter, in the glass's own px: each colour's ray is the backdrop pulled across, then down, by its map (each
+       pass reads one grey, and an alpha of one half — no pull — for the other direction); red bends a little further
+       than blue; the three rays are added up a third each and kept where the mask covers; elsewhere the backdrop shows
+       as it was. */
+    const CH = ["1 0 0 0 0  0 0 0 0 0  0 0 0 0 0", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0"];
+    let made = 0;
+    const lensFilter = (w, h, r, d, split) => {
+      const maps = lensMaps(w, h, r, d);
+      const box = { x: 0, y: 0, width: w, height: h };
+      const f = svg("filter", { id: `lg-bend-${made++}`, ...box, filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" });
+      const img = (href, result) => svg("feImage", { href, ...box, preserveAspectRatio: "none", result });
+      f.append(img(maps.across, "across"), img(maps.down, "down"), img(maps.mask, "mask"));
+      for (const pull of ["across", "down"]) {
+        const half = svg("feComponentTransfer", { in: pull, result: `${pull}-pull` });
+        half.append(svg("feFuncA", { type: "linear", slope: 0, intercept: 0.5 }));
+        f.append(half);
+      }
+      const reach = LENS.strength * Math.min(w, h);
+      const ray = (k, i) => [
+        svg("feDisplacementMap", { in: "SourceGraphic", in2: "across-pull", scale: reach * k, xChannelSelector: "R", yChannelSelector: "A", ...box, result: `a${i}` }),
+        svg("feDisplacementMap", { in: `a${i}`, in2: "down-pull", scale: reach * k, xChannelSelector: "A", yChannelSelector: "R", result: `ray${i}` }),
+      ];
+      if (split) {
+        [1 + 0.2 * LENS.dispersion, 1 + 0.1 * LENS.dispersion, 1].forEach((k, i) => {
+          f.append(...ray(k, i), svg("feColorMatrix", { in: `ray${i}`, type: "matrix", values: `${CH[i]}  0 0 0 0.3333 0`, result: `l${i}` }));
+        });
+        f.append(
+          svg("feComposite", { in: "l0", in2: "l1", operator: "arithmetic", k2: 1, k3: 1, result: "l01" }),
+          svg("feComposite", { in: "l01", in2: "l2", operator: "arithmetic", k2: 1, k3: 1, result: "spread" }),
+          svg("feColorMatrix", { in: "spread", type: "matrix", values: "3 0 0 0 0  0 3 0 0 0  0 0 3 0 0  0 0 0 1 0", result: "bent" }),
+        );
+      } else f.append(...ray(1 + 0.1 * LENS.dispersion, 0).map((e, i) => (i ? (e.setAttribute("result", "bent"), e) : e)));
+      f.append(
+        svg("feComposite", { in: "bent", in2: "mask", operator: "in", result: "inside" }),
+        svg("feComposite", { in: "SourceGraphic", in2: "mask", operator: "out", result: "outside" }),
+        svg("feComposite", { in: "inside", in2: "outside", operator: "arithmetic", k2: 1, k3: 1 }),
+      );
+      holder().append(f);
+      return f;
+    };
+    const bent = new Map(); // element → { pseudo, split, key, filter }
+    const fitLens = (el) => {
+      const lens = bent.get(el);
+      const b = boxOf(el, lens.pseudo);
+      if (!b) return;
+      // the backdrop filter covers the border box
+      const w = lens.pseudo ? b.w : el.offsetWidth, h = lens.pseudo ? b.h : el.offsetHeight;
+      const r = lens.pseudo ? b.r : parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+      const d = density(), key = [w, h, r, d].join("|");
+      if (lens.key === key) return;
+      const f = lensFilter(w, h, r, d, lens.split);
+      lens.filter?.remove();
+      Object.assign(lens, { key, filter: f });
+      el.style.setProperty("--lg-bend", `url("#${f.id}")`);
+      el.setAttribute("data-bent", "");
+    };
+
+    // one observer for every glass surface: refit once the page is idle after it changes size
+    const due = new Set();
+    let queued = false;
+    const flush = () => {
+      queued = false;
+      for (const el of due) {
+        if (rimmed.has(el)) paintRim(el);
+        if (bent.has(el)) fitLens(el);
+      }
+      due.clear();
+    };
+    const later = (el) => {
+      due.add(el);
+      if (!queued) { queued = true; idle(flush); }
+    };
+    const ro = new ResizeObserver((entries) => entries.forEach((e) => later(e.target)));
+    const rim = (how, sel, pseudo = null, prop = "--lg-rim") => $$(sel).forEach((el) => { rimmed.set(el, [pseudo, prop, how]); ro.observe(el); });
+    // rims in the surface's own background: panes, cards, chips, the search field, the theme menu
+    rim("bg", ".card, .stats, .step .num, .tablist, .os-switch, .chip, .fact, .shot, .faq details, .toc a, .summary-box, .dl-box, .wn-toc a, .wn-item, .dl-agree, .table-scroll, .search input, #theme-menu");
+    rim("bg", ".explorer-tools", "::before", "--lg-rim-pane");
+    // rims as an overlay: glass buttons and the header capsule (their fills change with state)
+    rim("over", ".btn, .menu-btn, .theme-close, .seg, .bar > .wrap", null, "--lg-rim-over");
+    // the theme changes the rim's strength: repaint (sizes are cached)
+    new MutationObserver(() => rimmed.forEach((_, el) => later(el))).observe(root, { attributes: true, attributeFilter: ["data-theme", "data-page-theme"] });
+
+    if (/Chrom(?:e|ium)\//.test(navigator.userAgent) && CSS.supports?.("backdrop-filter", "blur(1px)")) {
+      const lensOn = () => root.classList.toggle("lg-bend", !opaque.matches);
+      lensOn();
+      opaque.addEventListener?.("change", lensOn);
+      for (const [el, split] of [[$(".bar > .wrap"), false], [menu, true]]) {
+        if (!el) continue;
+        bent.set(el, { pseudo: null, split, key: "", filter: null });
+        ro.observe(el);
+      }
+    }
+  }
 })();

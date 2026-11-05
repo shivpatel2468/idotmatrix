@@ -36,6 +36,14 @@ is the generator output without those legal edits.
 - **R-SITE-6** Legal copy on the deployed site: "unofficial / not affiliated", casino behind an 18+ gate with
   play-money wording, no trademarked game names, Privacy and Terms pages with a real contact address.
   Tests: none on `main` (gap — lives in the `website` branch).
+- **R-SITE-7** Liquid Glass after Glisse (MIT, credited on /licenses.html and in THIRD_PARTY_NOTICES.md): every glass
+  surface (panes, cards, chips, glass buttons, the header, the theme menu, the apps search pane) has a translucent
+  tint of the table theme's chassis and Glisse's rim light; the backdrop lens (an SVG displacement filter, Chromium
+  only) bends what is behind the capsule header (one ray) and the theme menu (colour split) only. Scrolling stays as
+  smooth as before: no backdrop filter on cards or other surfaces that scroll in numbers, a light blur and no lens on
+  the apps search pane (its neon tube and flicker stay), measured before / after in Chromium. Nothing is drawn behind
+  or around the header. Safari / Firefox keep blurred glass; reduced transparency gives solid panes.
+  Tests: `tests/test_site_data.py::test_site_glass_is_glisse_and_cheap_on_scrolling_cards`.
 
 ## Invariants
 
@@ -58,4 +66,4 @@ is the generator output without those legal edits.
 - Should the legal copy move to `main` so the `website` branch stops diverging? (Owner's call.) Until then R-SITE-6
   is checked by hand before every production deploy.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-05

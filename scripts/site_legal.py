@@ -219,7 +219,17 @@ def licence_inventory() -> list[dict[str, Any]] | None:
             "where": "browser engine (as distributed by Pyodide)",
         },
     ]
-    return [*fonts, *_npm_packages(), *runtime, *_py_packages()]
+    adapted = [
+        {
+            "name": "Glisse (adapted)",
+            "version": "0.5.0",
+            "license": "MIT",
+            "url": "https://github.com/0kzh/glisse",
+            "text": _read(ROOT / "docs" / "licenses" / "glisse.txt"),
+            "where": "website and web app: the Liquid Glass rim light and lens, adapted (site/main.js, web/src/lib/glisse.ts)",
+        },
+    ]
+    return [*fonts, *adapted, *_npm_packages(), *runtime, *_py_packages()]
 
 
 def licences_html() -> str | None:
