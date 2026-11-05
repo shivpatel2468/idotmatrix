@@ -350,6 +350,9 @@ Connection sheet, the MCP server and scripts can say the same thing:
 
 ### Panel hand-over (`state.handover`, ADR 0015)
 
+On Android the state message also carries `power`: `{awake, reason, multicast}` — whether the engine is keeping the
+phone awake and why (ADR 0016). Beacons carry `every` (their pace in seconds).
+
 DeskDots on the same private network find each other (UDP beacon on port 8767, opt-out) and move the panel with one
 button. The studio API below is on this computer only; `tab`, `free` and `GET /api/handover` also answer the web app
 (`https://idotmatrix.com`) with CORS + Private-Network-Access headers, and refuse any other cross-site `Origin`.

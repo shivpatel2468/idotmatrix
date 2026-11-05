@@ -5,8 +5,10 @@ and keeps playing with the laptop off. Why and how: [docs/adr/0011-android-host-
 
 - **Python engine, unchanged**: `src/deskdot` is packaged with [Chaquopy](https://chaquo.com/chaquopy/) (CPython 3.13
   inside the app). Only the BLE backend differs: `device/android.py` drives `BleBridge.kt`.
-- **Always on**: `EngineService` is a foreground service (persistent notification, partial wake lock, Wi-Fi
-  lock), restarts the engine if it ever crashes, and `BootReceiver` starts it after a reboot.
+- **Always on, but asleep when idle**: `EngineService` is a foreground service (persistent notification) that restarts
+  the engine if it ever crashes; `BootReceiver` starts it after a reboot. `PowerGate.kt` holds the wake / Wi-Fi /
+  multicast locks only while the engine has something to drive, and lets the phone sleep otherwise (ADR 0016;
+  `adb shell dumpsys power | grep DeskDot` shows `DeskDot::engine` only while it's awake).
 - **Studio**: the app shows the studio full screen (`http://127.0.0.1:8765` on the phone). Phone controllers for
   multiplayer work on the Wi-Fi exactly as on the laptop (`/p/<code>`).
 

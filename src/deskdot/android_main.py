@@ -40,6 +40,7 @@ def run(files_dir: str, port: int = 8765) -> None:
 
     import uvicorn
 
+    from . import keepawake
     from .config import load_config
     from .server import create_app
 
@@ -54,6 +55,11 @@ def run(files_dir: str, port: int = 8765) -> None:
         level=cfg.log_level, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S"
     )
     log.info("DeskDot on Android: data in %s, studio %s", cfg.data_dir, web or "missing")
+    try:  # the app's PowerGate: let the phone sleep when there is nothing to drive (ADR 0016)
+        keepawake.HOST = keepawake.JavaHost()
+    except Exception as e:  # an older app shell without PowerGate: stay awake as before
+        log.warning("power gate unavailable (%s): the phone stays awake while DeskDot runs", e)
+        keepawake.HOST = None
     # pure-Python protocol stacks: uvloop / httptools are not available on Android
     config = uvicorn.Config(
         create_app(cfg),
@@ -61,7 +67,8 @@ def run(files_dir: str, port: int = 8765) -> None:
         port=cfg.port,
         log_level="warning",
         ws_ping_interval=20,
-        loop="asyncio",
+        # timers count deep sleep (CLOCK_BOOTTIME): a 3-minute back-off is 3 wall-clock minutes on a sleeping phone
+        loop="deskdot.keepawake:BootClockLoop",
         http="h11",
         ws="websockets",
     )
