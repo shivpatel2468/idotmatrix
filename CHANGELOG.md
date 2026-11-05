@@ -55,6 +55,8 @@ The technical log for developers. For the same updates in plain words (before �
   `MAX_PACKET` 244, `ACKED_WRITES`): 514-byte packets without response made a Xiaomi 11i's stack lose write
   completions during GIF uploads (`bta_gattc_op_cmpl: No pending command`, then `GATT busy` until the link closed) —
   a reconnect loop with the panel's pairing screen. Tests: `tests/test_android_device.py`.
+- **Android Back on a tab** (R-AND-11, `web/src/lib/backStep.ts`): with nothing open, Back on Apps / Presets / Settings
+  goes to the Panel tab instead of leaving the app (Settings is a tab on phones, not a sheet). Tests: `tests/js/back_step.test.mjs`.
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 
