@@ -475,7 +475,22 @@ h3 { font: 650 19px/1.25 var(--display); letter-spacing: -0.01em; margin: 0 0 6p
 .two-up { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 
 /* ------------------------------------------------------------------ apps explorer */
-.explorer-tools { position: sticky; top: var(--bar-h); z-index: 20; padding: 12px 0; margin-bottom: 18px; background: transparent; }
+.explorer-tools { position: sticky; top: var(--bar-h); z-index: 20; padding: 12px 0; margin-bottom: 18px; background: transparent; isolation: isolate; --neon: 1; }
+/* A diffused neon tube behind the search and chips, in the selected table's accent: a soft tinted pane (so cards
+   scrolling under it stay out of the way), a lit edge and a bloom. main.js strikes it now and then like the logo
+   (`--neon` 0..1); only opacity changes, so it costs nothing while scrolling. No backdrop-filter: it lagged here. */
+.explorer-tools::before,
+.explorer-tools::after { content: ""; position: absolute; inset: 2px -14px; border-radius: 20px; pointer-events: none; z-index: -1; }
+.explorer-tools::before {
+  background: radial-gradient(130% 160% at 50% 0%, var(--wash-2), transparent 72%), color-mix(in srgb, var(--bg) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-a) 26%, transparent);
+}
+.explorer-tools::after {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-a) 34%, transparent), 0 0 14px var(--primary-glow),
+    0 0 42px var(--primary-glow), 0 10px 60px -18px var(--primary-glow), inset 0 0 26px var(--wash-2);
+  opacity: calc(0.25 + 0.75 * var(--neon));
+}
+@media (prefers-reduced-motion: reduce) { .explorer-tools { --neon: 1 !important; } }
 .search { position: relative; }
 .search input {
   width: 100%;
