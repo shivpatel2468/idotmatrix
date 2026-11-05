@@ -113,7 +113,7 @@ export function UpdatesBlock() {
     <>
       <div className="flex flex-wrap items-center gap-3 rounded-lg bg-chassis-0 px-3 py-3">
         <span className="led" data-on={available ? "ember" : status === "error" ? "warn" : "ok"} />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[11rem] flex-1">
           <div className="text-[13.5px] font-[560]">{headline}</div>
           <div className="text-[11.5px] text-ink-3">This is version {info.current} · checked {updatesAgo(info.checked_at)}</div>
         </div>

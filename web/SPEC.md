@@ -56,6 +56,14 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   first state are in, and tells the app (`introDone()`); later outros there are a calm one-line fade, never the
   desktop commands. Release notes join a bullet's wrapped lines. Tests: `tests/js/release_notes.test.mjs` (notes);
   the intro hand-over is verified on the phone (gap).
+- **R-STU-13** Phone layout fits the screen: at 360–430 px nothing is wider than the screen and nothing scrolls
+  sideways except the rows built to swipe (app rows, category chips, the Settings section row). One 16 px side gutter
+  (`--gutter`) for the header, every tab, the docked bars and the theme key, matching sheets and Settings; settings
+  rows wrap their controls (`Row`: `min-w-0 max-w-full flex-wrap`), segmented controls shrink and wrap between words,
+  and search fields are as tall as the buttons beside them and centred with them (Settings search 48 px, Apps search
+  = the view toggle). The desktop layout is unchanged. Tests: `tests/js/phone_layout.test.mjs` (the rules); the
+  screens are measured in a 360 / 393 / 430 px phone emulation and checked on the phone (gap: no automated
+  page-width test).
 
 ## Invariants
 
@@ -81,4 +89,4 @@ Consumes the HTTP API and `WS /ws` ([engine spec](../src/deskdot/engine/SPEC.md)
 - The studio has no unit or component test runner; R-STU-1, 3, 4 and the UI half of 5 are verified by hand. Pure
   studio logic can be tested with node (`tests/js/update_flow.test.mjs` imports `web/src/lib/updateFlow.ts`).
 
-Last verified: 2026-11-02
+Last verified: 2026-11-04
