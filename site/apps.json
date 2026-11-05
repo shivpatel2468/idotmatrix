@@ -1,5 +1,5 @@
 {
- "version": "3.9.0",
+ "version": "3.10.0",
  "count": 116,
  "games": 27,
  "multiplayer": 32,
@@ -20527,42 +20527,42 @@
   }
  ],
  "release": {
-  "version": "3.9.0",
-  "tag": "v3.9.0",
-  "date": "2 November 2026",
-  "page": "https://github.com/shivpatel2468/idotmatrix/releases/tag/v3.9.0",
-  "checksums": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/checksums.txt",
+  "version": "3.10.0",
+  "tag": "v3.10.0",
+  "date": "5 November 2026",
+  "page": "https://github.com/shivpatel2468/idotmatrix/releases/tag/v3.10.0",
+  "checksums": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.10.0/checksums.txt",
   "assets": [
    {
     "key": "windows",
     "platform": "windows",
-    "name": "DeskDot-Setup-3.9.0-x64.exe",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-Setup-3.9.0-x64.exe",
-    "size": 80257752,
+    "name": "DeskDot-Setup-3.10.0-x64.exe",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.10.0/DeskDot-Setup-3.10.0-x64.exe",
+    "size": 80281443,
     "note": "Windows 10/11 (64-bit)"
    },
    {
     "key": "mac_arm",
     "platform": "mac",
-    "name": "DeskDot-3.9.0-macOS-arm64.dmg",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0-macOS-arm64.dmg",
-    "size": 83402170,
+    "name": "DeskDot-3.10.0-macOS-arm64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.10.0/DeskDot-3.10.0-macOS-arm64.dmg",
+    "size": 83498885,
     "note": "Apple silicon (M1 and newer)"
    },
    {
     "key": "mac_intel",
     "platform": "mac",
-    "name": "DeskDot-3.9.0-macOS-x64.dmg",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0-macOS-x64.dmg",
-    "size": 75567278,
+    "name": "DeskDot-3.10.0-macOS-x64.dmg",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.10.0/DeskDot-3.10.0-macOS-x64.dmg",
+    "size": 75608260,
     "note": "Intel Mac"
    },
    {
     "key": "android",
     "platform": "android",
-    "name": "DeskDot-3.9.0.apk",
-    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.9.0/DeskDot-3.9.0.apk",
-    "size": 49236578,
+    "name": "DeskDot-3.10.0.apk",
+    "url": "https://github.com/shivpatel2468/idotmatrix/releases/download/v3.10.0/DeskDot-3.10.0.apk",
+    "size": 49291548,
     "note": "Android 8 or newer"
    }
   ]

@@ -75,8 +75,9 @@ export function NotifyComposer() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+        {/* phones: Style and Seconds stack — side by side the three style keys ran into the fader */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="min-w-0">
             <div className="engrave mb-1.5">Style</div>
             <div className="seg">
               {(["banner", "full", "celebrate"] as const).map((s) => (

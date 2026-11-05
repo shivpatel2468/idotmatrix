@@ -11,7 +11,7 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
-## 3.10.0 — 2 Nov 2026 · The TV casino comes alive: dealt cards, a real money wheel, the housie cage
+## 3.10.0 — 5 Nov 2026 · The TV casino comes alive, a smoother phone app that stays connected, updates in their own window
 
 ### New
 
@@ -31,6 +31,13 @@ is in [CHANGELOG.md](CHANGELOG.md).)
     with the player's name and a burst of sparks.
 
 ### Better
+
+- **Colours look right out of the box**
+  - Before: a fresh install sent colours to the panel uncorrected, so mid-tones looked flat and washed out until you
+    calibrated it yourself.
+  - Now: every DeskDot (laptop, phone, watch and the browser app) starts with the colour settings we tuned by eye on
+    a real panel: deeper mid-tones, visible shadows and richer colour. Your own calibration is never touched, and
+    "DeskDot (tuned)" is the first preset (and what Reset goes back to) if you want to return to it.
 
 - **The phone app fills the whole screen**
   - Before: the studio sat between a solid status bar at the top and a solid navigation bar at the bottom.
@@ -72,15 +79,29 @@ is in [CHANGELOG.md](CHANGELOG.md).)
 
 ### Fixed
 
+- **The phone no longer loops between connecting and the panel's pairing screen**
+  - Before: on some phones the panel connected, then every few seconds dropped back to its pairing screen and
+    reconnected, over and over — the phone's Bluetooth choked on the big packets DeskDot sent while uploading an
+    animation.
+  - Now: the phone sends smaller packets and waits for each one to be confirmed, so animations upload and the panel
+    stays connected.
 - **Back closes the sheet on the phone**
   - Before: pressing Back with Settings (or any sheet or menu) open left the app.
-  - Now: Back closes what is open first; pressed again it goes to the home screen as before.
+  - Now: Back closes what is open first; on the Apps, Presets or Settings tab it takes you to the Panel tab; only
+    from the Panel tab does it go to the home screen.
 - **"What's new" reads properly in Settings**
   - Before: long notes broke into stray half-lines under each item.
   - Now: every note reads as one piece, the way it was written.
 - **Smoother Teen Patti and Hold'em on TV sticks**
   - Before: the card tables redrew the whole table four times a second, so they could stutter on a Fire TV.
   - Now: they only redraw when something changes; the moving cards are light sprites.
+- **Everything fits on the phone screen**
+  - Before: in the phone app's Settings some rows ran off the right edge (the status indicators, "What the panel
+    shows"), the search box sat lower and shorter than the section buttons beside it, the Apps search was shorter than
+    its view switch, and the sides of the screens had uneven margins.
+  - Now: every row fits and wraps neatly on any phone, the search boxes line up with the buttons next to them, every
+    screen has the same 16 px side margin, the page-theme dots fill their card evenly, and the Show / Playlist bar sits
+    at the bottom even for apps with few settings.
 
 ## 3.9.0 — 31 Oct 2026 · Casino themes everywhere, the browser version catches up, smoother panel hand-over
 

@@ -156,6 +156,22 @@ async def test_a_failed_write_marks_the_link_down_and_recovers() -> None:
         await dev.stop()
 
 
+async def test_phone_writes_are_small_and_acknowledged() -> None:
+    """HARDWARE_PROTOCOL.md finding 19: full 514-byte packets written without response made a phone's stack lose a
+    write's completion during GIF uploads, and the engine reconnected in a loop (the panel's pairing screen)."""
+    bridge = FakeBridge(write_size=514)
+    dev = await _started(bridge)
+    try:
+        assert dev.packet_size == 244 and dev.info.mtu == 244
+        gif = b"GIF89a" + bytes(range(256)) * 20  # several 4 KiB chunks
+        dev.show_gif(gif)
+        await _until(lambda: dev.info.mode == "gif", within=5.0)
+        assert bridge.packets and all(len(p) <= 244 for p, _ in bridge.packets)
+        assert all(acked for _, acked in bridge.packets), "every phone write asks for a response"
+    finally:
+        await dev.stop()
+
+
 @pytest.mark.parametrize("kind", ["android"])
 def test_config_builds_the_android_device(kind: str) -> None:
     dev = build_device(Config(device=kind))  # type: ignore[arg-type]

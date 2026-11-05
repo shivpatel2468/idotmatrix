@@ -3,8 +3,14 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
-## 3.10.0 — 2026-11-02 · TV taste pass: synced deal / show, money-wheel flapper, housie cage
+## 3.10.0 — 2026-11-05 · TV taste pass; phone polish + Android link fix; Updates sheet; default calibration; rake removed
 
+- **Default panel calibration** (engine/SPEC.md R-ENG-13, docs/CALIBRATION.md § The default): `gfx/calib.py`
+  `DEFAULT_CALIBRATION` (the owner's tuning: gains 1.029/1.025/1.035, gamma 2.225, lift 14, saturation 1.4) and
+  `initial_calibration()`; the engine uses it only when no calibration is stored (not persisted; stored ones are kept,
+  `PanelCalibration` field defaults stay the identity). New preset `deskdot` "DeskDot (tuned)", group `deskdot`, first.
+  Studio: `DEFAULT_CALIB` in `lib/calib.ts`; "Reset to default", Advanced "Default" + per-knob resets and the
+  wizard's "Start fresh" use it; "Panel native" stays the no-correction preset. Tests: `tests/test_calibration.py`.
 - **Android phone app polish** (android/SPEC.md R-AND-6, R-AND-9…11; web/SPEC.md R-STU-4, R-STU-11, R-STU-12):
   edge to edge (`enableEdgeToEdge`, transparent bars; window insets → `--safe-*` CSS variables via `insets()` and
   `evaluateJavascript`; IME inset pads the WebView, `adjustResize`); `core-splashscreen` launch theme with no icon →
@@ -45,6 +51,22 @@ The technical log for developers. For the same updates in plain words (before �
   on any 3.11 runtime (the archived watch build, tag `archive/wear-armv7`). `test_web_device` pacing tolerance is
   one clock tick (3.11 on Windows uses a 15.6 ms `monotonic()`).
 - **Watch themes** (`scripts/gen_watch_themes.py` → `android/wear/.../WatchThemes.gen.kt`): the 21 table themes as plain Kotlin (ARGB ints, dark + light, gold-leaf stops) for the Wear OS apps, from `PAGE_THEMES.tokens()` like `gen_page_themes.py`; `--check` and `tests/test_watch_themes.py` catch a stale file; `--out/--package` writes another app's copy (Orbit, the watch faces). New `android/wear/SPEC.md` (R-WEAR-1…5).
+- **Phone alignment** (web/SPEC.md R-STU-13; studio only, phones < 768 px): one `--gutter` (16 px) for the phone header,
+  tab scroll areas, sticky search row, docked inspector bar, Panel tab rows and the theme key (was 12 px, with 14 px in
+  the header and 16 px in sheets); settings `Row` controls `min-w-0 max-w-full flex-wrap` (status indicators and the
+  hand-off choice ran 15–130 px past the screen); phone `.seg` shrinks to its row and wraps between words; a wrapped
+  row's fader fills the line; the Settings search is 48 px and centred with the section keys (was 40 px, top-aligned)
+  and scrolls the row back into view on focus; the Apps search stretches to the view toggle (36 → 42 px); Quick
+  controls' page-theme dots are a 7 × 3 grid; the message composer stacks Style / Seconds; the Updates status text
+  keeps 11 rem before the key wraps; the inspector fills the Settings tab so Show / Playlist docks at the bottom under
+  the lifted theme key. Desktop unchanged. Tests: `tests/js/phone_layout.test.mjs`; measured at 360 / 393 / 430 px
+  (no element past the screen edge, no sideways scroll) and on a Xiaomi 11i.
+- **Android: small, acknowledged writes** (R-DEV-11, HARDWARE_PROTOCOL.md finding 19, `device/android.py`
+  `MAX_PACKET` 244, `ACKED_WRITES`): 514-byte packets without response made a Xiaomi 11i's stack lose write
+  completions during GIF uploads (`bta_gattc_op_cmpl: No pending command`, then `GATT busy` until the link closed) —
+  a reconnect loop with the panel's pairing screen. Tests: `tests/test_android_device.py`.
+- **Android Back on a tab** (R-AND-11, `web/src/lib/backStep.ts`): with nothing open, Back on Apps / Presets / Settings
+  goes to the Panel tab instead of leaving the app (Settings is a tab on phones, not a sheet). Tests: `tests/js/back_step.test.mjs`.
 
 ## 3.9.0 — 2026-10-31 · Table themes everywhere; web app parity; panel hand-over
 

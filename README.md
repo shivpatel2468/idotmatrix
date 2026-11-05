@@ -17,7 +17,7 @@ _1,024 pixels. Zero subscriptions._
 [![React + Vite](https://img.shields.io/badge/studio-React%20%2B%20Vite-61dafb.svg?logo=react&logoColor=white)](web)
 [![MCP](https://img.shields.io/badge/MCP-21%20tools-8a2be2.svg)](docs/MCP.md)
 [![Website](https://img.shields.io/badge/web-idotmatrix.com-111.svg)](https://idotmatrix.com)
-[![Version 3.9.0](https://img.shields.io/badge/version-3.9.0-ffcc33.svg)](WHATS_NEW.md)
+[![Version 3.10.0](https://img.shields.io/badge/version-3.10.0-ffcc33.svg)](WHATS_NEW.md)
 
 **[Download](#-download) · [Quick Start](#-quick-start) · [First Five Minutes](#-the-first-five-minutes) · [The Studio](#-the-studio) · [Games](#-games--multiplayer) · [Talk to It](#-talk-to-it--ai-agents--mcp) · [Live Data](#-whats-on-the-panel) · [Spec Sheet](#-spec-sheet--the-idotmatrix-panel) · [Under the Hood](#-under-the-hood) · [What's Next](#-whats-next) · [What's New](WHATS_NEW.md)**
 
@@ -94,6 +94,7 @@ that anyone, including an AI agent, can make a new app in one Python file.
     - Friends join with the QR code; the host sets everyone's credits.
     - The panel shows only the table, while phones show credits, the betting layout and private cards.
     - Every round is provably fair, with commit–reveal and "Verify this round", and pays by the real rulebooks.
+      There is no house cut: every Hold'em, Teen Patti and Housie pot goes wholly to the players who win it.
     - 21 table themes with their own felt patterns (from classic green and royal blue to Imperial jade, Gilded deco,
       Festival of lights, Cyber grid, Sakura night and Galaxy) recolour the panel, every phone, the studio and the TV;
       a "?" on every phone opens How to play, the rulebook and the payouts, with a guided tour for new players.
@@ -276,9 +277,12 @@ Then open `http://raspberrypi.local:8765` from any device on your Wi-Fi. More ho
 The **DeskDot Android app** runs the whole Python engine on the phone (via Chaquopy) as a foreground service. It keeps
 the panel connected with the screen off, restarts itself after a reboot, and shows the studio full screen.
 
-> [!WARNING]
-> The app builds and its Bluetooth bridge is unit-tested, but it has **not yet been run on a real phone**.
-> Build and install steps are in [android/README.md](android/README.md).
+It runs edge to edge under see-through system bars, opens with a short LED intro, and has a glass tab bar you can
+drag between Panel, Apps, Presets and Settings.
+
+> [!NOTE]
+> Still a beta. Install it from the [latest release](https://github.com/shivpatel2468/idotmatrix/releases/latest)
+> (`DeskDot-….apk`); build steps are in [android/README.md](android/README.md).
 </details>
 
 <details>

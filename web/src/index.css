@@ -1146,6 +1146,8 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 :root {
   --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px);
+  /* the phone's side gutter: header, every tab, the docked bars, sheets and Settings all line up on it */
+  --gutter: 16px;
 }
 #root { height: 100dvh; }
 button, a, [role="button"], input, select, label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -1154,6 +1156,14 @@ body { overscroll-behavior: none; }
 @media (max-width: 767.98px) {
   input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
   .noise { padding-left: var(--safe-left); padding-right: var(--safe-right); }
+  /* nothing may push the page sideways: a segmented control shrinks to its row and long labels wrap inside their key */
+  .seg { max-width: 100%; min-width: 0; }
+  .seg > button { white-space: normal; line-height: 1.15; } /* wraps between words only; a key never gets narrower than its longest word */
+  /* a settings row that wrapped: its fader takes the line, so the value lines up with the switches on the right */
+  .row-ctl:has(> .fader) { flex: 1 1 auto; }
+  .row-ctl > .fader { flex: 1 1 auto; min-width: 0; }
+  /* Quick controls: the 21 page themes as an even 7 × 3 grid across the card, not a ragged left-aligned row */
+  .qs-card .pt-dots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); justify-items: center; }
 }
 
 .phone-head {
@@ -1165,7 +1175,7 @@ body { overscroll-behavior: none; }
 .phone-panel { padding-top: 10px; padding-bottom: calc(66px + var(--safe-bottom)); }
 .phone-scroll {
   min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
-  padding: 10px 12px calc(78px + var(--safe-bottom)); scrollbar-width: none;
+  padding: 10px var(--gutter) calc(78px + var(--safe-bottom)); scrollbar-width: none;
   display: flex; flex-direction: column; gap: 10px;
 }
 .phone-scroll::-webkit-scrollbar { display: none; }
@@ -1205,7 +1215,7 @@ body { overscroll-behavior: none; }
 /* sticky offsets count from the scroller's padding edge: -10px (= .phone-scroll's top padding) pins the row to the very
    top, and the row is fully opaque so nothing scrolling underneath can show through */
 .lib-head {
-  position: sticky; top: -10px; z-index: 5; margin: -10px -12px 0; padding: 16px 12px 10px;
+  position: sticky; top: -10px; z-index: 5; margin: -10px calc(-1 * var(--gutter)) 0; padding: 16px var(--gutter) 10px;
   background: var(--color-chassis-0);
 }
 .lib-grid-phone { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -1217,9 +1227,14 @@ body { overscroll-behavior: none; }
 
 /* inspector on phones: Show / Playlist docked above the tab bar */
 .insp-actions {
-  position: sticky; bottom: -1px; z-index: 5; display: flex; gap: 8px; margin: 10px -12px 0; padding: 10px 12px;
+  position: sticky; bottom: -1px; z-index: 5; display: flex; gap: 8px; margin: 10px calc(-1 * var(--gutter)) 0; padding: 10px var(--gutter);
   background: var(--color-chassis-0); border-top: 1px solid var(--color-line);
 }
+/* an app with only a few settings: the form still fills the tab, so the bar sits at the bottom (where the theme key is
+   lifted clear of it) instead of floating up under the key */
+.phone-scroll[data-tab="tune"] > .inspector-box { flex: 1 0 auto; }
+.phone-scroll[data-tab="tune"] .insp-actions { margin-top: auto; }
+.phone-scroll[data-tab="tune"] .inspector-box > :has(+ .insp-actions) { margin-bottom: 10px; }
 
 /* bottom sheet (components/Sheet.tsx) */
 .sheet-root { position: fixed; inset: 0; z-index: 80; } /* above Play mode (z 65) */
@@ -1299,7 +1314,7 @@ body { overscroll-behavior: none; }
 }
 
 /* phone Panel tab: one scroll area with the panel, its tools and the app rows */
-.phone-stage { padding: 0 12px 72px; overflow-x: hidden; overscroll-behavior-y: contain; scrollbar-width: none; }
+.phone-stage { padding: 0 var(--gutter) 72px; overflow-x: hidden; overscroll-behavior-y: contain; scrollbar-width: none; }
 .phone-stage::-webkit-scrollbar { display: none; }
 /* room for the floating theme key, bottom-left (components/ThemeFab.tsx): a spacer after the content (not more
    padding, which would also move the Settings tab's sticky Show / Playlist bar — that tab lifts the key instead) */
@@ -1307,7 +1322,7 @@ body { overscroll-behavior: none; }
 .phone-scroll[data-tab="tune"]::after { display: none; }
 
 /* ---- the floating theme key */
-.theme-fab { position: fixed; left: 12px; bottom: calc(78px + var(--safe-bottom)); z-index: 32; }
+.theme-fab { position: fixed; left: var(--gutter); bottom: calc(78px + var(--safe-bottom)); z-index: 32; }
 .theme-fab[data-lift="true"] { bottom: calc(140px + var(--safe-bottom)); }
 .theme-fab-key {
   position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px;
@@ -1387,13 +1402,13 @@ body { overscroll-behavior: none; }
 /* ---- Panel tab: app rows under the panel (components/AppRail.tsx) */
 .rails { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
 /* full-bleed rows: the row box spans the screen (content-visibility clips painting to it), the track scrolls edge to edge */
-.rail { margin: 0 -12px; padding: 0 12px; content-visibility: auto; contain-intrinsic-size: auto 180px; }
+.rail { margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); content-visibility: auto; contain-intrinsic-size: auto 180px; }
 .rail-head { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
 .rail-all { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 6px 0 12px; border-radius: 99px; font: 500 11px var(--font-mono); color: var(--color-ink-3); }
 .rail-all:active { background: var(--color-chassis-3); color: var(--color-ink-1); }
 .rail-track {
   display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3.3); gap: 10px;
-  margin: 0 -12px; padding: 4px 12px 6px; scroll-padding-inline: 12px;
+  margin: 0 calc(-1 * var(--gutter)); padding: 4px var(--gutter) 6px; scroll-padding-inline: var(--gutter);
   overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
@@ -1488,7 +1503,7 @@ body { overscroll-behavior: none; }
 }
 
 /* the casino table on the phone Panel tab keeps the side margins the panel scroll area has */
-.phone-panel > main:not(.phone-stage) { padding-inline: 12px; }
+.phone-panel > main:not(.phone-stage) { padding-inline: var(--gutter); }
 
 /* =====================================================================================================================
  * MATERIALS v2 in use — ornament, hierarchy and the accent in the studio (docs/STUDIO_UI.md § Materials).

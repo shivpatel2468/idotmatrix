@@ -45,8 +45,9 @@ studio full screen.
   shimmer while the engine is still starting, and fades into the studio when it calls `introDone()`. No "starting"
   text; a real problem (no Bluetooth permission, no engine after 30 s) gets a kind message under the logo. Animations
   follow the system's animation scale (off = the lit logo at once). Tests: none yet (gap — verified on the phone).
-- **R-AND-11** Back closes what is open in the studio (a sheet, dialog or menu, via `window.__deskdotBack()`) before it
-  sends the app to the background. Tests: none yet (gap — verified on the phone).
+- **R-AND-11** Back works innermost first (`window.__deskdotBack()`, `web/src/lib/backStep.ts`): it closes what is open
+  in the studio (a sheet, dialog or menu); else, on the Apps, Presets or Settings tab, it goes to the Panel tab; only on
+  the Panel tab with nothing open does it send the app to the background. Tests: `tests/js/back_step.test.mjs`.
 
 ## Invariants
 
@@ -68,4 +69,4 @@ studio full screen.
 
 - No Kotlin unit tests; the shell (R-AND-4…6, the signature check in R-AND-7) is verified on the user's phone.
 
-Last verified: 2026-11-02
+Last verified: 2026-11-05
