@@ -8,8 +8,8 @@ import { Icon } from "../Icon";
 import { Toggle } from "../controls";
 import { PanelSketch, ScreenReference, Swatches, useClearOnUnmount, VideoChips, CAL_VIDEO_FALLBACK } from "./parts";
 
-const GROUP_ORDER: CalibPreset["group"][] = ["claude", "inspired", "standard"];
-const GROUP_ICON: Record<CalibPreset["group"], string> = { claude: "sparkles", inspired: "tv", standard: "ruler" };
+const GROUP_ORDER: CalibPreset["group"][] = ["deskdot", "claude", "inspired", "standard"];
+const GROUP_ICON: Record<CalibPreset["group"], string> = { deskdot: "star", claude: "sparkles", inspired: "tv", standard: "ruler" };
 
 /**
  * One-tap picture styles. "Try" plays a before/after wipe on the panel (nothing is saved, so clips aren't

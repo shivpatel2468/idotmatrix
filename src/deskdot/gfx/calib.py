@@ -94,6 +94,31 @@ class PanelCalibration(BaseModel):
 
 _IDENTITY = PanelCalibration().model_dump(exclude={"preset"})
 
+#: Preset id of the house default (also listed first in `calib_presets.PRESETS`).
+DEFAULT_PRESET_ID = "deskdot"
+
+#: The house default every build starts with when nothing is stored: the owner's calibration, tuned by eye on their
+#: own panel (docs/CALIBRATION.md § The default). The gains are that panel's white balance, a good start for others.
+#: Mirrored as `DEFAULT_CALIB` in web/src/lib/calib.ts (tests pin the two together). The field defaults above stay
+#: the identity: a stored calibration missing a key still means "no change" for that key.
+DEFAULT_CALIBRATION = PanelCalibration(
+    red=1.029,
+    green=1.025,
+    blue=1.035,
+    gamma=2.225,
+    lift=14,
+    saturation=1.4,
+    preset=DEFAULT_PRESET_ID,
+)
+
+
+def initial_calibration(raw: Any) -> PanelCalibration:
+    """The calibration the engine starts with: the stored one (loaded tolerantly, rule 15), or a copy of the house
+    default when nothing usable is stored. A stored calibration, however old, is never replaced by the default."""
+    if not isinstance(raw, dict):
+        return DEFAULT_CALIBRATION.model_copy()
+    return PanelCalibration.load(raw)
+
 
 def _blackbody(kelvin: float) -> tuple[float, float, float]:
     """Tanner Helland's fit of blackbody colour (0..255 per channel)."""

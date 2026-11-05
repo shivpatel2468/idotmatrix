@@ -51,6 +51,19 @@ The HTTP + WebSocket server in `server.py` is a stateless view over the engine.
 - **R-ENG-12** The page theme is an engine setting shared by every screen (`POST /api/theme`) and recolours themed
   apps on the panel. Tests: `tests/test_page_themes.py::test_theme_api`,
   `tests/test_page_themes.py::test_engine_switches_the_panel_theme`.
+- **R-ENG-13** Panel calibration: with no calibration stored, the engine starts on the house default
+  (`gfx/calib.py` `DEFAULT_CALIBRATION`, preset `deskdot` "DeskDot (tuned)", listed first; the owner's tuning) on
+  every build, without writing it to `state.json`; a stored calibration is kept as stored and never replaced by the
+  default; `PanelCalibration`'s field defaults stay the identity. The studio's resets go to the same values
+  (`web/src/lib/calib.ts` `DEFAULT_CALIB`) and "Panel native" remains the no-correction preset
+  (docs/CALIBRATION.md § The default). Tests: `tests/test_calibration.py::test_house_default_is_the_owners_tuning`,
+  `tests/test_calibration.py::test_initial_calibration_uses_the_default_only_when_nothing_is_stored`,
+  `tests/test_calibration.py::test_house_default_preset_comes_first_and_applies_its_values`,
+  `tests/test_calibration.py::test_studio_mirrors_the_house_default`,
+  `tests/test_calibration.py::test_fresh_engine_starts_on_the_house_default`,
+  `tests/test_calibration.py::test_stored_calibration_is_kept_as_is`,
+  `tests/test_calibration.py::test_engine_fixture_starts_on_the_house_default`,
+  `tests/test_calibration.py::test_default_is_identity_and_passes_frames_through`.
 
 ## Invariants
 
@@ -81,4 +94,4 @@ the [TV spec](../tv/SPEC.md), updates to the [packaging spec](../../../packaging
 - I-ENG-1's runtime check covers a handful of apps (stream, clip, casino, game, a network provider); a blocking
   call in a rarely shown app is caught only by the static scan.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-04
