@@ -87,7 +87,8 @@ is in [CHANGELOG.md](CHANGELOG.md).)
     stays connected.
 - **Back closes the sheet on the phone**
   - Before: pressing Back with Settings (or any sheet or menu) open left the app.
-  - Now: Back closes what is open first; pressed again it goes to the home screen as before.
+  - Now: Back closes what is open first; on the Apps, Presets or Settings tab it takes you to the Panel tab; only
+    from the Panel tab does it go to the home screen.
 - **"What's new" reads properly in Settings**
   - Before: long notes broke into stray half-lines under each item.
   - Now: every note reads as one piece, the way it was written.
