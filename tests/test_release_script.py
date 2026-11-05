@@ -388,6 +388,11 @@ def test_android_xml_check_rejects_double_dash_in_comments(tmp_path):
 def test_porcelain_paths_survive_a_stripped_first_line() -> None:
     """3.10.0's release stopped on "HANGELOG.md": `sh()` strips its output, so the first line's " M" lost its space."""
     raw = " M CHANGELOG.md\n M WHATS_NEW.md\nM  src/x.py\n?? new file.txt\n"
-    assert release.porcelain_paths(raw.strip()) == ["CHANGELOG.md", "WHATS_NEW.md", "src/x.py", "new file.txt"]
+    assert release.porcelain_paths(raw.strip()) == [
+        "CHANGELOG.md",
+        "WHATS_NEW.md",
+        "src/x.py",
+        "new file.txt",
+    ]
     assert release.porcelain_paths("MM both.py") == ["both.py"]
     assert release.porcelain_paths("") == []
