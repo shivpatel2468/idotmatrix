@@ -18,9 +18,13 @@ val deskdotVersionCode: Int = deskdotVersion.substringBefore("-").split(".").map
 
 // The same git-ignored android/keystore.properties as the phone app; storeFile resolves like the phone's
 // (relative to android/app), so both APKs carry one signature.
+// A worktree has no keystore.properties of its own: -Pdeskdot.keystoreProps=<path> reads the main checkout's file
+// in place (never copied).
+val keystoreFile = (findProperty("deskdot.keystoreProps") as String?)?.let { File(it) } ?: rootProject.file("keystore.properties")
 val keystoreProps = Properties().apply {
-    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+    keystoreFile.takeIf { it.isFile }?.inputStream()?.use { load(it) }
 }
+val keystoreBase: File = keystoreFile.parentFile?.resolve("app") ?: rootProject.file("app")
 
 android {
     namespace = "com.deskdot.wear"
@@ -37,7 +41,7 @@ android {
     signingConfigs {
         keystoreProps.getProperty("storeFile")?.let { path ->
             create("release") {
-                storeFile = File(path).takeIf { it.isAbsolute } ?: rootProject.file("app/$path")
+                storeFile = File(path).takeIf { it.isAbsolute } ?: keystoreBase.resolve(path)
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")

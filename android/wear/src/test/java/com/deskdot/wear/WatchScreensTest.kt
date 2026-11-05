@@ -112,7 +112,7 @@ class WatchScreensTest {
     }
 
     @Test fun ambient() {
-        rule.setContent { Watch { AmbientView(summary) } }
+        rule.setContent { Watch { AmbientView(summary, panel(), 0) } }
         save("06_sleep")
     }
 }

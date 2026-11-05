@@ -43,17 +43,18 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /** Distance (px) of item [index]'s centre from the viewport's centre, or null if it isn't laid out. */
-private fun LazyListState.offsetOf(index: Int): Float? {
+/** Item [it]'s centre on the actual screen, minus the screen's centre (px). Works with uneven content padding. */
+private fun LazyListState.fromScreenCentre(it: androidx.compose.foundation.lazy.LazyListItemInfo): Float {
     val li = layoutInfo
-    val mid = (li.viewportStartOffset + li.viewportEndOffset) / 2f
-    return li.visibleItemsInfo.firstOrNull { it.index == index }?.let { it.offset + it.size / 2f - mid }
+    val onScreen = it.offset - li.viewportStartOffset + it.size / 2f
+    return onScreen - li.viewportSize.height / 2f
 }
 
-private fun LazyListState.centre(): Pair<Int, Float>? {
-    val li = layoutInfo
-    val mid = (li.viewportStartOffset + li.viewportEndOffset) / 2f
-    return li.visibleItemsInfo.minByOrNull { abs(it.offset + it.size / 2f - mid) }?.let { it.index to (it.offset + it.size / 2f - mid) }
-}
+private fun LazyListState.offsetOf(index: Int): Float? =
+    layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }?.let { fromScreenCentre(it) }
+
+private fun LazyListState.centre(): Pair<Int, Float>? =
+    layoutInfo.visibleItemsInfo.minByOrNull { abs(fromScreenCentre(it)) }?.let { it.index to fromScreenCentre(it) }
 
 /**
  * Orbit's bubbly glass list, for DeskDot: rows on OLED black that curve away at the round edge, snap to the
@@ -168,7 +169,9 @@ fun BubbleList(
                 val h0 = rowHeight.toPx()
                 val h = h0 * (1f - 0.07f * p) + abs(lag) * 0.9f
                 val w = w0 * (1f + 0.05f * p) - abs(lag) * 0.25f
-                val cy = size.height / 2f + shift + lag * 0.5f
+                // Anchored to where the centred row really is (read every frame), plus the liquid trail.
+                val rowAt = state.centre()?.second ?: 0f
+                val cy = size.height / 2f + rowAt + lag * 0.5f
                 val tl = Offset((size.width - w) / 2f, cy - h / 2f)
                 val r = CornerRadius(h / 2f)
                 val accent = Color(palette.accent)

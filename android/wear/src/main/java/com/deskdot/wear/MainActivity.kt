@@ -41,6 +41,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalView
@@ -137,12 +138,18 @@ fun DeskDotWatch(link: PhoneLink, ambient: Boolean, tick: Int) {
             }
         }
     }
-    // In ambient: one refresh a minute, on the system's signal.
-    LaunchedEffect(ambient, tick) { if (ambient) runCatching { link.summary() }.onSuccess { summary = it } }
+    // In ambient: one refresh a minute, on the system's signal (the name and the panel's picture).
+    LaunchedEffect(ambient, tick) {
+        if (!ambient) return@LaunchedEffect
+        runCatching { link.summary() }.onSuccess { summary = it }
+        runCatching { link.frame() }.getOrNull()?.takeIf { it.isNotEmpty() }?.let { b ->
+            BitmapFactory.decodeByteArray(b, 0, b.size)?.let { frame = it.asImageBitmap() }
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (ambient) {
-            AmbientView(summary)
+            AmbientView(summary, frame, tick)
             return@Box
         }
         val p = problem
@@ -312,12 +319,63 @@ private fun Message(text: String, palette: WatchPalette, onRetry: () -> Unit) {
     }
 }
 
-/** Ambient: black, one dim still line of what's on, no frame, no glass; once a minute. */
+/**
+ * Ambient: the sleep face. The panel's picture redrawn as dim LED dots (so every app gets its own sleep look:
+ * the clock, a game, the weather...), the time of day above it and the app's name below, in grey. Redrawn once a
+ * minute; the whole face drifts a few px each minute against burn-in. Lit pixels stay well under 15 %.
+ */
 @Composable
-internal fun AmbientView(s: Summary?) {
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        BasicText("DeskDot", style = TextStyle(Color(0xFF8A8A8A), 12.sp))
-        Spacer(Modifier.height(6.dp))
-        BasicText(s?.name?.ifEmpty { "Nothing on" } ?: "", style = TextStyle(Color(0xFFD0D0D0), 18.sp, textAlign = TextAlign.Center), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(160.dp))
+internal fun AmbientView(s: Summary?, frame: ImageBitmap?, tick: Int = 0) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val dots = remember(frame) { frame?.let { ledDots(it) } }
+    val now = remember(tick) { java.util.Date() }
+    val time = remember(tick) { android.text.format.DateFormat.getTimeFormat(context).format(now) }
+    val dx = ((tick % 5) - 2) * 2
+    val dy = (((tick / 5) % 5) - 2) * 2
+    Column(
+        Modifier.fillMaxSize().padding(start = (dx + 4).coerceAtLeast(0).dp, top = (dy + 4).coerceAtLeast(0).dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        BasicText(time, style = TextStyle(Color(0xFFB0B0B0), 22.sp, textAlign = TextAlign.Center))
+        Spacer(Modifier.height(8.dp))
+        Box(
+            Modifier.size(104.dp).drawBehind {
+                val px = dots ?: return@drawBehind
+                val cell = size.width / 32f
+                for (y in 0 until 32) for (x in 0 until 32) {
+                    val c = px[y * 32 + x]
+                    if (c == 0) continue
+                    drawCircle(Color(c), cell * 0.32f, androidx.compose.ui.geometry.Offset((x + 0.5f) * cell, (y + 0.5f) * cell))
+                }
+            },
+        )
+        Spacer(Modifier.height(8.dp))
+        BasicText(
+            s?.name?.ifEmpty { "Nothing on" } ?: "DeskDot",
+            style = TextStyle(Color(0xFF9A9A9A), 14.sp, textAlign = TextAlign.Center),
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(150.dp),
+        )
     }
+}
+
+/**
+ * The panel's 32 x 32 picture as dim LED colours for ambient: each LED sampled from its cell, darkened to ~45 % and
+ * dropped when nearly black, so the sleep face lights only the dots the app lights. 0 = off.
+ */
+private fun ledDots(img: ImageBitmap): IntArray {
+    val bmp = img.asAndroidBitmap()
+    val out = IntArray(32 * 32)
+    val sx = bmp.width / 32f
+    val sy = bmp.height / 32f
+    for (y in 0 until 32) for (x in 0 until 32) {
+        val c = bmp.getPixel(((x + 0.5f) * sx).toInt().coerceAtMost(bmp.width - 1), ((y + 0.5f) * sy).toInt().coerceAtMost(bmp.height - 1))
+        val r = (c shr 16) and 255
+        val g = (c shr 8) and 255
+        val b = c and 255
+        if (r + g + b < 60) continue
+        val k = 0.45f
+        out[y * 32 + x] = (0xFF shl 24) or ((r * k).toInt() shl 16) or ((g * k).toInt() shl 8) or (b * k).toInt()
+    }
+    return out
 }
