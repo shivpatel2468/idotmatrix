@@ -11,6 +11,20 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.10.2 — 6 Nov 2026 · Your phone sleeps when DeskDot has nothing to do
+
+### Better
+
+- **The phone app saves battery**
+  - Before: the Android app kept your phone awake all night, even when it wasn't driving the panel.
+  - Now: the phone sleeps whenever there is nothing to show (the panel is released, on another DeskDot, out of
+    reach, or playing a clip by itself), and wakes for live content, hand-overs and reconnect attempts.
+- **Finding the panel uses less power**
+  - Before: when the panel was lost, the phone searched for every nearby device with its most power-hungry scan,
+    every 20 seconds, forever, and with the screen off it often couldn't find the panel at all.
+  - Now: it looks only for your panel with a low-power scan that works with the screen off, and after 10 minutes
+    without it, checks every few minutes. Opening the app tries again straight away.
+
 ## 3.10.1 — 5 Nov 2026 · Liquid Glass on the phone
 
 ### Better
