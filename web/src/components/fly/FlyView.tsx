@@ -8,6 +8,7 @@ import {
   loadBrainConfig, loadBrainPresets, patchBrainConfig, useFly,
 } from "../../lib/fly";
 import { appMeta, toast } from "../../lib/store";
+import { useFitScreen } from "../../lib/useFitScreen";
 import { LedPanel } from "../LedPanel";
 import { Slider, Toggle } from "../controls";
 import { RoamSign } from "../FlyToggle";
@@ -549,6 +550,7 @@ function FlySettings({ onClose }: { onClose: () => void }) {
   const setGfx = useFly((s) => s.setGfx);
   const [tab, setTab] = useState<Tab>("graphics");
   const ref = useRef<HTMLDivElement>(null);
+  useFitScreen(ref, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const onDown = (e: PointerEvent) => {
@@ -562,7 +564,7 @@ function FlySettings({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
   return (
-    <div ref={ref} className="fly-settings surface absolute left-1/2 top-11 z-30 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 animate-rise p-3" role="dialog" aria-label="Fly view settings">
+    <div ref={ref} className="fly-settings surface absolute left-1/2 top-11 z-30 flex w-[min(420px,calc(100vw-32px))] -translate-x-1/2 flex-col animate-rise p-3" role="dialog" aria-label="Fly view settings">
       <div className="mb-2 flex items-center gap-2">
         <Gauge size={15} className="text-ember" />
         <div className="flex-1 font-display text-[14px] font-[640]">Fly view</div>
@@ -570,7 +572,7 @@ function FlySettings({ onClose }: { onClose: () => void }) {
         <button className="key !h-7 !px-2" onClick={onClose} aria-label="Close"><X size={13} /></button>
       </div>
       <Seg value={tab} onChange={setTab} options={[["graphics", "Graphics"], ["scene", "Scene"], ["fly", "Fly & keys"], ["brain", "Brain"], ["layout", "Layout"]]} />
-      <div className="mt-2 max-h-[min(60vh,540px)] divide-y divide-line overflow-y-auto pr-1">
+      <div className="mt-2 max-h-[min(60vh,540px)] min-h-0 divide-y divide-line overflow-y-auto overscroll-contain pr-1">
         {tab === "graphics" && (
           <>
             <Line label="Quality" hint="Auto adjusts to keep it smooth on this computer">
