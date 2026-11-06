@@ -34,7 +34,7 @@ Object.assign(g, { document: stub, window: g, localStorage: { getItem: () => nul
   WebSocket: function () { throw new Error("offline"); }, devicePixelRatio: 1, ResizeObserver: function () { return { observe() {}, disconnect() {} }; } });
 g.setInterval = () => 0; g.setTimeout = () => 0;
 const api = new Function(src + "\n;return { GAMES, Rng, S };")();
-const cases = JSON.parse(fs.readFileSync(0, "utf8"));
+const cases = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 const hexBytes = (s) => new Uint8Array(s.match(/../g).map((x) => parseInt(x, 16)));
 const out = cases.map((c) => {
   api.S.pub = { history: c.history || [] };
@@ -51,8 +51,16 @@ def _node(cases: list[dict[str, Any]], tmp_path: Path) -> list[Any]:
         pytest.skip("node is not installed")
     h = tmp_path / "harness.js"
     h.write_text(HARNESS, encoding="utf-8")
+    # The cases go in a file, not stdin: on CI node once exited (code 1) while Python was still writing stdin, and
+    # the blocked write turned that into a 60 s timeout that hid node's error. No pipe in, nothing to block on.
+    c = tmp_path / "cases.json"
+    c.write_text(json.dumps(cases), encoding="utf-8")
     r = subprocess.run(
-        [node, str(h), str(PAGE)], input=json.dumps(cases), capture_output=True, text=True, timeout=60
+        [node, str(h), str(PAGE), str(c)],
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert r.returncode == 0, r.stderr
     return json.loads(r.stdout)  # type: ignore[no-any-return]

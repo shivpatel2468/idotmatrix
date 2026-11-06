@@ -30,7 +30,7 @@ Object.assign(g, { document: stub, window: g, localStorage: { getItem: () => nul
   WebSocket: function () { throw new Error("offline"); }, devicePixelRatio: 1, ResizeObserver: function () { return { observe() {}, disconnect() {} }; } });
 g.setInterval = () => 0; g.setTimeout = () => 0;
 const api = new Function(src + "\n;return { rouletteSpot, short, chipRack, rackChips, chipStyle, S };")();
-const q = JSON.parse(fs.readFileSync(0, "utf8"));
+const q = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 const out = {
   points: q.points.map(([u, v, us]) => api.rouletteSpot(u, v, us, 0.22, 0.22)),
   sweep: {},
@@ -55,8 +55,14 @@ def _run(query: dict[str, Any], tmp_path: Path) -> dict[str, Any]:
         pytest.skip("node is not installed")
     h = tmp_path / "roulette.js"
     h.write_text(HARNESS, encoding="utf-8")
+    q = tmp_path / "query.json"  # a file, not stdin (see test_casino_house_phone._node)
+    q.write_text(json.dumps(query), encoding="utf-8")
     r = subprocess.run(
-        [node, str(h), str(PAGE)], input=json.dumps(query), capture_output=True, text=True, timeout=120
+        [node, str(h), str(PAGE), str(q)],
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, r.stderr
     return json.loads(r.stdout)  # type: ignore[no-any-return]
