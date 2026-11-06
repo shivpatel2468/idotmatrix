@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import io
 import math
+import random
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -376,11 +377,17 @@ def test_the_fly_brain_app_rebakes_when_the_config_changes() -> None:
 
 
 # ================================================================= the fly plays every game
+GAME_SEED = 0
+
+
 def _fly_game(gid: str) -> tuple[Any, dict[str, float]]:
     cls = REGISTRY[gid]
     app = cls(Ctx(), cls.Settings(pilot="fly"))  # type: ignore[arg-type,call-arg]
     clock = {"t": 1000.0}
     app._clock = lambda: clock["t"]  # type: ignore[method-assign]
+    # The brain is seeded; the game's world (mines board, opponent's throws, AI's opening) must be too, or each
+    # run deals a new one: across 200 deals the fly misses these thresholds on 1.5-7 % of them, so CI flaked.
+    app.rng = random.Random(GAME_SEED)
     app.reset()
     return app, clock
 
