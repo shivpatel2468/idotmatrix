@@ -14,6 +14,14 @@ async def _run(engine, seconds: float) -> None:  # type: ignore[no-untyped-def]
     await asyncio.sleep(seconds)
 
 
+async def _until(cond, tries: int = 150) -> None:  # type: ignore[no-untyped-def]
+    """Wait until cond() holds, checked every 20 ms, at most `tries` times (3 s by default)."""
+    for _ in range(tries):
+        if cond():
+            return
+        await asyncio.sleep(0.02)
+
+
 async def test_stream_app_reaches_device(engine) -> None:  # type: ignore[no-untyped-def]
     engine.activate("clock")
     await _run(engine, 0.6)
@@ -124,7 +132,9 @@ async def test_bad_render_shows_error_frame(engine) -> None:  # type: ignore[no-
         raise RuntimeError("kaboom")
 
     engine.current.app.render = boom
-    await asyncio.sleep(0.8)
+    # Wait for the next render rather than a fixed time: until the sim panel connects the engine ticks once a
+    # second (IDLE_TICK), and that tick landed at the same moment a fixed 0.8 s sleep ended, so CI flaked.
+    await _until(lambda: engine.current.error is not None)
     assert engine.current.error and "kaboom" in engine.current.error
     assert engine.frame.px.any()  # error frame, loop still alive
     await engine.stop()
