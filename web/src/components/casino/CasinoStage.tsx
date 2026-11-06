@@ -220,7 +220,7 @@ function LobbyStrip({ app }: { app: string }) {
           <QrCode text={lobby.url} size={58} />
         </button>
       )}
-      <span className="min-w-0 flex-1">
+      <span className="cz-lobby-info min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
           <span className="engrave !text-[8px]">Room</span>
           <b className="font-mono text-[18px] tracking-[0.24em] text-[var(--gold)]">{lobby.code}</b>
@@ -231,6 +231,7 @@ function LobbyStrip({ app }: { app: string }) {
         </button>
         {!lobby.lan_ready && <span className="block text-[10.5px] cz-neg">Phones can't reach this computer: set host = "0.0.0.0" in deskdot.toml.</span>}
       </span>
+      <div className="cz-lobby-keys">
       {tvKey}
       {waiting ? (
         <button className="key !h-8" disabled={busy} onClick={() => run(hideCasinoQr)} title="Hide the QR on the panel and show the table (phones can still join with the code)"><EyeOff size={13} /> Hide QR</button>
@@ -238,6 +239,7 @@ function LobbyStrip({ app }: { app: string }) {
         <button className="key !h-8" disabled={busy} onClick={() => run(() => showCasinoQr(app, lobby.url!))} title="Put the join QR back on the panel (the table keeps its seats)"><Eye size={13} /> Show QR</button>
       )}
       <button className="key key-icon !h-8 !w-8" disabled={busy} onClick={() => run(closeCasinoLobby)} title="Close the room and disconnect the phones (wallets are kept)"><X size={14} /></button>
+      </div>
       {big && lobby.url && (
         <div className="cz-qrbig" role="dialog" aria-label="Join QR code" onClick={() => setBig(false)} onKeyDown={(e) => e.key === "Escape" && setBig(false)}>
           <div onClick={(e) => e.stopPropagation()}>
