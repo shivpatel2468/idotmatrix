@@ -1,7 +1,7 @@
 {
-  "version": "3.10.1",
-  "build": "4b421eea517e",
-  "engine": "deskdot-77a97bbe6f0e.zip",
+  "version": "3.10.2",
+  "build": "98807b1f246b",
+  "engine": "deskdot-7bcfc0595902.zip",
   "wheels": [
     "python_multipart-0.0.32-py3-none-any.whl"
   ],

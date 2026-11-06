@@ -1,5 +1,5 @@
 {
-  "version": "3.10.1",
-  "build": "4b421eea517e",
-  "notes": "## 3.10.1 — 5 Nov 2026 · Liquid Glass on the phone\n\n### Better\n\n- **Liquid Glass on the phone**\n  - Before: the tab bar and the header on the phone were a heavy frosted blur.\n  - Now: they are clear glass that bends what scrolls under them at the edges, with a lit rim, and the bubble behind\n    the open tab is a little lens. Sheets get the same lit rim.\n"
+  "version": "3.10.2",
+  "build": "98807b1f246b",
+  "notes": "## 3.10.2 — 6 Nov 2026 · Your phone sleeps when DeskDot has nothing to do\n\n### Better\n\n- **The phone app saves battery**\n  - Before: the Android app kept your phone awake all night, even when it wasn't driving the panel.\n  - Now: the phone sleeps whenever there is nothing to show (the panel is released, on another DeskDot, out of\n    reach, or playing a clip by itself), and wakes for live content, hand-overs and reconnect attempts.\n- **Finding the panel uses less power**\n  - Before: when the panel was lost, the phone searched for every nearby device with its most power-hungry scan,\n    every 20 seconds, forever, and with the screen off it often couldn't find the panel at all.\n  - Now: it looks only for your panel with a low-power scan that works with the screen off, and after 10 minutes\n    without it, checks every few minutes. Opening the app tries again straight away.\n"
 }
