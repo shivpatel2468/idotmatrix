@@ -3,6 +3,17 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.10.2 — 2026-11-06 · Android power model (ADR 0016)
+
+- Android: the engine reports awake/asleep to `PowerGate`; wake, Wi-Fi and multicast locks are held only when needed;
+  alarms wake the engine for reconnects (ADR 0016, R-AND-12…14) (#31).
+- Android: fallback BLE scans are filtered (remembered MAC, else manufacturer id) and use low-power mode unless the app
+  is on screen; the last panel's MAC is remembered.
+- Device: after 10 minutes of failed attempts, retries every ~3 minutes (R-DEV-12).
+- Hand-over: slower beacons when nobody listens, beacons carry their pace, and a taker asks the paired last holder
+  (R-ENG-15).
+- Engine: ticks at most once a second when no one can see a frame (R-ENG-14).
+
 ## 3.10.1 — 2026-11-05 · Phone glass after Glisse; release script fix
 
 - **Phone glass after Glisse** (web/SPEC.md R-STU-14, #29): `lib/glisse.ts` (rim light + backdrop lens, MIT,
