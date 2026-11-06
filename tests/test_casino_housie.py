@@ -41,8 +41,14 @@ def _node(cases: list[dict[str, Any]], tmp_path: Path) -> list[Any]:
         pytest.skip("node is not installed")
     h = tmp_path / "harness.js"
     h.write_text(_HARNESS, encoding="utf-8")
+    c = tmp_path / "cases.json"  # a file, not stdin (see test_casino_house_phone._node)
+    c.write_text(json.dumps(cases), encoding="utf-8")
     r = subprocess.run(
-        [node, str(h), str(PAGE)], input=json.dumps(cases), capture_output=True, text=True, timeout=60
+        [node, str(h), str(PAGE), str(c)],
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert r.returncode == 0, r.stderr
     return json.loads(r.stdout)  # type: ignore[no-any-return]
