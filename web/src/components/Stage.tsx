@@ -8,6 +8,7 @@ import { isPlayable, openPlay } from "../lib/gameInput";
 import { Icon, IconTile } from "./Icon";
 import { AppRail } from "./AppRail";
 import { usePhone } from "../lib/useMedia";
+import { useFitScreen } from "../lib/useFitScreen";
 import { ComposerOverlay, ComposerToolbar } from "./ComposerEditor";
 import { LedPanel } from "./LedPanel";
 import { MediaPrompt } from "./MediaPrompt";
@@ -240,6 +241,8 @@ function MagnifyBar({ app }: { app: string }) {
 /** Everything you can *make* for the panel, in one menu — keeps the top bar calm. */
 function CreateMenu() {
   const [open, setOpen] = useState(false);
+  const menu = useRef<HTMLDivElement>(null);
+  useFitScreen(menu, open, "up");
   const file = useRef<HTMLInputElement>(null);
   const set = useStore((s) => s.set);
   const items: [React.ReactNode, string, string, () => void][] = [
@@ -267,8 +270,9 @@ function CreateMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div role="menu" className="surface absolute bottom-full right-0 z-50 mb-2 w-[min(290px,86vw)] p-1.5 animate-rise"
+          <div ref={menu} role="menu" className="surface absolute bottom-full right-0 z-50 mb-2 flex w-[min(290px,86vw)] flex-col p-1.5 animate-rise"
             onKeyDown={(e) => e.key === "Escape" && setOpen(false)}>
+            <div className="min-h-0 overflow-y-auto overscroll-contain">
             {items.map(([ic, label, hint, run]) => (
               <button key={label} role="menuitem" className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-chassis-3 focus:bg-chassis-3"
                 onClick={() => { setOpen(false); run(); }}>
@@ -279,6 +283,7 @@ function CreateMenu() {
                 </span>
               </button>
             ))}
+            </div>
           </div>
         </>
       )}
