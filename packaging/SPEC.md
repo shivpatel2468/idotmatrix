@@ -40,9 +40,12 @@ update it from inside the app. Developers release by pushing a version tag on `m
   `tests/test_launcher.py::test_autostart_windows_registry_only_when_enabled`.
 - **R-REL-10** `scripts/release.py <version>` does the whole release in order (PR → CI → merge → tag → GitHub build →
   APK → publish → website), saves its progress and carries on from the first unfinished step; `--only` redoes one part,
-  `--dry-run` / `--status` change nothing. Tests: `tests/test_release_script.py::test_plan_resumes_after_the_last_done_step`,
+  `--dry-run` / `--status` change nothing. After rebuilding the website it pushes the `website` branch to GitHub (never
+  forced; a refused push stops with what to do). Tests: `tests/test_release_script.py::test_plan_resumes_after_the_last_done_step`,
   `tests/test_release_script.py::test_run_marks_steps_done_and_a_stop_keeps_the_rest`,
-  `tests/test_release_script.py::test_cli_refuses_another_version_while_one_is_in_progress`.
+  `tests/test_release_script.py::test_cli_refuses_another_version_while_one_is_in_progress`,
+  `tests/test_release_script.py::test_the_website_branch_is_pushed_after_the_rebuild_never_forced`,
+  `tests/test_release_script.py::test_a_refused_website_push_stops_with_what_to_do`.
 - **R-REL-11** The version bump edits exactly `pyproject.toml`, `src/deskdot/__init__.py`, `uv.lock` (the deskdot entry)
   and the README badge; the release stops unless WHATS_NEW.md has a well-shaped plain-words section for the version.
   Tests: `tests/test_release_script.py::test_version_bump_edits_exactly_the_version_files`,
@@ -97,4 +100,4 @@ release assets `DeskDot-Setup-<v>-x64.exe`, `DeskDot-<v>-macOS-{arm64,x64}.dmg`,
 
 - Builds are unsigned (SmartScreen / Gatekeeper warnings on first start) until certificates exist.
 
-Last verified: 2026-10-31
+Last verified: 2026-11-06
