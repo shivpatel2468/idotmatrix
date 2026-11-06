@@ -42,6 +42,20 @@ RECOVER_AFTER = 4
 RECOVER_SCAN = 30.0
 #: how long a release waits for the item in flight (a GIF upload waits for each chunk's ack: 3 s x up to ~10)
 RELEASE_DRAIN = 35.0
+#: back-off ceiling while the panel has been missing for a short while (s)
+SHORT_BACKOFF = 20.0
+#: after this long failing without a break (s), the panel is probably off or far away: retry rarely (ADR 0016)
+LONG_FAIL = 600.0
+#: retry delay once LONG_FAIL is reached (s, jittered ±25 %: about 2¼–3¾ minutes)
+LONG_BACKOFF = 180.0
+
+
+def next_backoff(delay: float, failing_for: float) -> float:
+    """The supervisor's next retry delay after a failed attempt: doubling up to SHORT_BACKOFF, then LONG_BACKOFF once
+    the panel has been missing for LONG_FAIL seconds. "Reconnect now" (or opening the app) starts it over at 1 s."""
+    if failing_for >= LONG_FAIL:
+        return LONG_BACKOFF
+    return min(delay * 2, SHORT_BACKOFF)
 
 
 async def wait_for(aw, timeout: float):  # noqa: ASYNC109 — this *is* the asyncio.timeout wrapper
@@ -152,6 +166,9 @@ class Device(ABC):
             0.0  # monotonic time the link last dropped / was released (REARM_DELAY counts from it)
         )
         self._safe_replay = False  # the next connect follows a recovery: replay gently (no GIF right away)
+        #: loop.time() when the current streak of failed attempts began (None: not failing). On Android the loop's
+        #: clock counts deep sleep too (keepawake.BootClockLoop), so "10 minutes missing" means wall-clock minutes.
+        self._failing_since: float | None = None
         #: Optional coordination hook (handover.py): returns a plain-words message while another DeskDot holds the
         #: panel or holds the connect lease, so this supervisor waits instead of adding connect attempts to the air.
         self.gate: Callable[[], str | None] | None = None
@@ -241,6 +258,18 @@ class Device(ABC):
     def retry_now(self) -> None:
         """Wake the supervisor: the next connect attempt starts now instead of after the back-off."""
         self._retry.set()
+
+    def failing_for(self) -> float:
+        """Seconds the current streak of failed connect attempts has lasted (0 when not failing)."""
+        if self._failing_since is None:
+            return 0.0
+        return max(0.0, asyncio.get_running_loop().time() - self._failing_since)
+
+    def has_work(self) -> bool:
+        """Something is going out to the panel or waiting to (keeps the phone awake until it's written)."""
+        return self._busy or bool(
+            self._commands or self._gif is not None or self._frame is not None or self._pixels
+        )
 
     async def wait_connected(self, limit: float) -> bool:
         """True once the link is up (within `limit` s)."""
@@ -423,6 +452,8 @@ class Device(ABC):
                 # Another DeskDot holds the panel (or is connecting to it under the lease): don't add connect
                 # attempts to the air. "Use the panel here" or the holder letting go wakes us (retry_now).
                 self._set(status="disconnected", reason="elsewhere", hint=held, retry_at=None)
+                self._failing_since = None  # waiting our turn is not failing
+                delay = 1.0
                 await self._wait_retry(3.0)
                 continue
             rearm = self._dropped_at + self.rearm_delay - time.monotonic()
@@ -445,6 +476,7 @@ class Device(ABC):
                     await self._reset_stack()
                     raise
                 delay = 1.0
+                self._failing_since = None
                 now = time.time()
                 self._set(
                     status="connected",
@@ -463,12 +495,19 @@ class Device(ABC):
             except asyncio.CancelledError:
                 raise
             except Exception as e:
+                loop_now = asyncio.get_running_loop().time()
+                if self._failing_since is None:
+                    self._failing_since = loop_now
                 # jitter: two DeskDots that lost the panel at the same moment must not retry in lockstep
                 wait = delay * random.uniform(0.8, 1.25)
                 log.warning("connect failed: %s — retrying in %.0fs", e, wait)
                 self._note_failure(str(e) or type(e).__name__, retry_in=wait)
-                # "Reconnect now" starts the back-off over
-                delay = 1.0 if await self._wait_retry(wait) else min(delay * 2, 20.0)
+                # "Reconnect now" (or opening the app) starts the back-off over
+                if await self._wait_retry(wait):
+                    delay = 1.0
+                    self._failing_since = None
+                else:
+                    delay = next_backoff(delay, self.failing_for())
                 self._set(retry_at=None)
 
     async def _recover(self) -> None:

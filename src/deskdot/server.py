@@ -36,6 +36,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 
 from . import __version__, platforms
+from . import keepawake as keepawake_mod
 from .apps import load_plugins
 from .apps.canvas import frame_from_rows
 from .apps.games_core import KEYS
@@ -352,14 +353,24 @@ def create_app(cfg: Config) -> FastAPI:
                 and (saved.get("enabled", True) if isinstance(saved, dict) else True)
             ),
             on_change=ws_hub.state_changed,
+            screen_on=keepawake_mod.HOST.screen_on if keepawake_mod.HOST is not None else None,
         )
         ws_hub.extras["handover"] = handover.brief
+    # The phone sleeps when there is nothing to drive (ADR 0016); only the Android app has a power host.
+    keepawake: keepawake_mod.KeepAwake | None = None
+    if keepawake_mod.HOST is not None and cfg.device == "android":
+        keepawake = keepawake_mod.KeepAwake(
+            keepawake_mod.HOST, device=device, engine=engine, handover=handover
+        )
+        ws_hub.extras["power"] = keepawake.brief
 
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         await engine.start()
         if handover is not None:
             await handover.start()
+        if keepawake is not None:
+            await keepawake.start()
         if cfg.device not in ("sim", "web"):
             start_power_watch(engine, asyncio.get_running_loop())  # sleep -> hand the panel its clock
         beat = asyncio.create_task(ws_hub.heartbeat())
@@ -377,12 +388,16 @@ def create_app(cfg: Config) -> FastAPI:
         finally:
             beat.cancel()
             update_check.cancel()
+            if keepawake is not None:
+                await keepawake.stop()
             if handover is not None:
                 await handover.stop()
             await engine.stop()
 
     app = FastAPI(title="DeskDot", version=__version__, lifespan=lifespan)
     app.add_middleware(LanGate, allow_all=cfg.lan_studio)
+    if keepawake is not None:
+        app.add_middleware(keepawake_mod.LanActivity, keepawake=keepawake)
     app.state.engine = engine
     app.state.library = library
     lobby = Lobby(cfg.host, cfg.port, cfg.public_url)

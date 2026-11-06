@@ -65,6 +65,19 @@ The HTTP + WebSocket server in `server.py` is a stateless view over the engine.
   `tests/test_calibration.py::test_engine_fixture_starts_on_the_house_default`,
   `tests/test_calibration.py::test_default_is_identity_and_passes_frames_through`.
 
+- **R-ENG-14** The engine says whether it needs the CPU (`Engine.cpu_reason()`): only for live content — a stream,
+  an overlay or transition, a test card, a takeover, a timed app, a playlist of two or more, background providers,
+  a clip being baked. A baked clip or the firmware clock with nothing live needs none (ADR 0016). While no one can see
+  a frame (the panel released or not connected, no studio or TV watching) it ticks at most once a second. Tests:
+  `tests/test_keepawake.py::test_engine_needs_the_cpu_only_for_live_content`,
+  `tests/test_keepawake.py::test_engine_ticks_slowly_when_nobody_can_see_a_frame`.
+- **R-ENG-15** Hand-over beacons (ADR 0015/0016) go every 4 s while the screen is on or another DeskDot was heard in
+  the last minute; otherwise every 10 s while holding the panel (under the 15 s that 3.10 peers allow) and every 20 s
+  when not. Each beacon carries its pace (`every`), and a peer stays nearby for 2.5 × that (15–60 s). "Use the panel
+  here" with no fresh holder asks the paired instance that last held it before waiting for the advertisement.
+  Tests: `tests/test_keepawake.py::test_beacon_pace`, `tests/test_keepawake.py::test_peer_freshness_follows_the_announced_pace`,
+  `tests/test_keepawake.py::test_a_slow_holder_stays_nearby_and_the_screen_sets_the_pace`, `tests/test_keepawake.py::test_busy_while_taking_or_pairing`,
+  `tests/test_keepawake.py::test_take_asks_the_quiet_last_holder_to_let_go`.
 ## Invariants
 
 - **I-ENG-1** One asyncio task runs the tick; only it mutates what is on screen. CPU-heavy work (GIF bakes, image
@@ -94,4 +107,4 @@ the [TV spec](../tv/SPEC.md), updates to the [packaging spec](../../../packaging
 - I-ENG-1's runtime check covers a handful of apps (stream, clip, casino, game, a network provider); a blocking
   call in a rarely shown app is caught only by the static scan.
 
-Last verified: 2026-11-04
+Last verified: 2026-11-05

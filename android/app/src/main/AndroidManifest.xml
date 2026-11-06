@@ -16,7 +16,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- receive other DeskDots' LAN beacons for the panel hand-over (ADR 0015); many phones drop broadcasts without it -->
+    <!-- receive other DeskDots' LAN beacons for the panel hand-over (ADR 0015); many phones drop broadcasts without it.
+         Held only while the screen is on or a hand-over runs (ADR 0016). -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <!-- always on: a foreground service that survives the screen turning off and starts at boot -->
@@ -152,6 +153,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/update_paths" />
         </provider>
+
+        <!-- the engine's alarm while the phone sleeps (PowerGate, ADR 0016): wakes it for a reconnect attempt -->
+        <receiver
+            android:name=".NudgeReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".BootReceiver"

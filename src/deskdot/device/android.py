@@ -10,8 +10,10 @@ against a fake (tests/test_android_device.py).
 
 Bridge contract (Kotlin `com.deskdot.app.BleBridge`, listener interface `com.deskdot.app.BleListener`):
 
-- `connect(address: String?, namePrefix: String, listener)` — scan (by MAC, or by advertised name prefix), connect,
-  request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or `onConnectFailed(msg)`.
+- `connect(address: String?, namePrefix: String, listener)` — connect directly by MAC (the given one, else the last
+  panel this phone connected to), falling back to a scan filtered by that MAC (by the advertised name prefix only with
+  the screen on); request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or
+  `onConnectFailed(msg)`. The scan is low-latency only while the app is open, balanced or low-power otherwise.
 - `write(data: byte[], withResponse: boolean, token: int)` — reports `onWriteDone(token, ok, msg)`.
 - `disconnect()` — close the GATT session, or abort a connect in progress (a release, a timed-out attempt, a
   recovery; the engine never disconnects voluntarily). Always `gatt.disconnect()` *then* `gatt.close()` once the
@@ -31,7 +33,8 @@ from .base import Device, wait_for
 
 log = logging.getLogger("deskdot.android")
 
-CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
+#: direct connect by MAC (8 s) + fallback scan (10 s; 20 s with the screen off, BleBridge.kt) + MTU + discovery
+CONNECT_TIMEOUT = 40.0
 WRITE_TIMEOUT = 5.0
 #: Phone writes are small and acknowledged (docs/HARDWARE_PROTOCOL.md finding 19). With the full 514-byte packets
 #: written without response, a phone's Bluetooth stack under load (seen on a Xiaomi 11i: MediaTek radio, Android 13,
