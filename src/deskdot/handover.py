@@ -7,8 +7,8 @@ Release there, then Reconnect here, with a fair chance of a stuck panel in betwe
 
 Pieces (all pure asyncio, no new dependencies):
 
-* **Discovery** — a small UDP broadcast beacon on the LAN (port 8767, every 4 s): who I am, whether I hold the panel,
-  and whether I hold the *connect lease*. Only sent and accepted on private networks (RFC 1918 / link-local), and
+* **Discovery** — a small UDP broadcast beacon on the LAN (port 8767, every 4 s; slower when nobody listens, see
+  `beacon_interval`): who I am, whether I hold the panel, and whether I hold the *connect lease*. Only sent and accepted on private networks (RFC 1918 / link-local), and
   only while the user's "Find other DeskDots on this network" setting is on (`handover.enabled`).
 * **Lease** — at most one instance may be connecting at a time. An instance taking the panel claims the lease (in its
   beacon, and the holder grants it when it lets go); others' supervisors stay quiet while it is held
@@ -58,7 +58,16 @@ log = logging.getLogger("deskdot.handover")
 
 BEACON_PORT = 8767
 BEACON_EVERY = 4.0  # s between beacons (and right away on every change)
-PEER_FRESH = 15.0  # s: a peer heard from within this is "nearby"
+#: s between beacons while this instance holds the panel but nobody seems to listen (the phone's screen is off and no
+#: beacon was heard lately). Stays under PEER_FRESH so DeskDots older than 3.11 still see the holder as nearby.
+BEACON_HOLDING_QUIET = 10.0
+#: s between beacons when nobody seems to listen and we don't hold the panel (ADR 0016): each beacon wakes the radio
+BEACON_QUIET = 20.0
+QUIET_AFTER = 60.0  # s without hearing another DeskDot's beacon before "nobody seems to listen"
+PEER_FRESH = (
+    15.0  # s: a peer heard from within this is "nearby" (at least; a slow beaconer gets 2.5 x its interval)
+)
+PEER_FRESH_MAX = 60.0  # s: the longest a peer stays "nearby" after its last beacon
 PEER_FORGET = 600.0  # s: unpaired peers not heard from in this long drop off the list
 LEASE_TTL = 30.0  # s: a connect lease nobody renews expires
 TAB_FRESH = 10.0  # s: the browser tab on this computer reports every ~3 s
@@ -69,6 +78,26 @@ ADVERT_WAIT = 20.0  # s: how long the taker waits for the panel to advertise
 CONNECT_WAIT = 50.0  # s: how long the taker waits for its supervisor to connect
 
 TAB_ID = "tab"  # the browser tab on this computer, as a pseudo-peer
+
+
+def beacon_interval(screen_on: bool, heard_ago: float, holding: bool) -> float:
+    """Seconds until the next beacon (ADR 0016). Fast while someone may be looking (the screen is on, or another
+    DeskDot was heard within QUIET_AFTER); slower otherwise, and slowest when we don't hold the panel either."""
+    if screen_on or heard_ago < QUIET_AFTER:
+        return BEACON_EVERY
+    return BEACON_HOLDING_QUIET if holding else BEACON_QUIET
+
+
+def fresh_window(every: object) -> float:
+    """How long a peer stays "nearby" after a beacon that says it beacons every `every` seconds."""
+    try:
+        e = float(every)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return PEER_FRESH
+    if e != e or e <= 0:  # NaN or nonsense: the 3.10 default
+        return PEER_FRESH
+    return max(PEER_FRESH, min(PEER_FRESH_MAX, 2.5 * e))
+
 
 #: signed request headers
 H_PEER, H_TS, H_NONCE, H_SIG = "x-deskdot-peer", "x-deskdot-ts", "x-deskdot-nonce", "x-deskdot-sig"
@@ -201,10 +230,14 @@ class Peer:
     last_holding_at: float | None = None  # the last time it said it held the panel (for "probably held by")
     lease_until: float | None = None
     paired: bool = False
+    fresh: float = PEER_FRESH  # s it stays "nearby" after its last beacon (from the interval it announces)
+
+    def nearby(self, now: float) -> bool:
+        return now - self.last_seen < self.fresh
 
     def public(self, now: float) -> dict[str, Any]:
         d = asdict(self)
-        d["online"] = now - self.last_seen < PEER_FRESH
+        d["online"] = self.nearby(now)
         d["ago"] = round(now - self.last_seen, 1) if self.last_seen else None
         return d
 
@@ -264,8 +297,12 @@ class Handover:
         transport: Transport | None = None,
         clock: Callable[[], float] = time.time,
         on_change: Callable[[], None] | None = None,
+        screen_on: Callable[[], bool] | None = None,
     ) -> None:
         self.device = device
+        #: is someone looking at this device? (the phone's screen; always True on a computer) — sets the beacon pace
+        self.screen_on: Callable[[], bool] = screen_on or (lambda: True)
+        self.heard_at = -1e9  # self.clock() when another DeskDot's beacon last arrived
         self.path = data_dir / "handover.json"
         self.kind = kind
         self.port = port
@@ -389,7 +426,7 @@ class Handover:
         """The nearby instance that says it holds the panel (fresh beacon), if any."""
         now = self.clock()
         for p in self.peers.values():
-            if p.holding and now - p.last_seen < PEER_FRESH:
+            if p.holding and p.nearby(now):
                 return p
         return None
 
@@ -418,6 +455,18 @@ class Handover:
         if p:
             return f"{p.name} has the panel. Press Use the panel here to move it here."
         return None
+
+    def busy(self) -> bool:
+        """A hand-over or a pairing is in progress: the phone must stay awake and listen to the LAN (ADR 0016)."""
+        if not self.enabled:
+            return False
+        self._expire_pairs()
+        taking = self._task is not None and not self._task.done()
+        pairing = any(r.get("status") == "pending" for r in self.pair_in.values()) or bool(self.pair_out)
+        return taking or pairing
+
+    def beacon_every(self) -> float:
+        return beacon_interval(self.screen_on(), self.clock() - self.heard_at, self.holding())
 
     # ------------------------------------------------------------------ beacons
     def beacon(self) -> dict[str, Any]:
@@ -455,7 +504,9 @@ class Handover:
             if len(self.peers) >= 32:
                 return
             p = self.peers[pid] = Peer(id=pid, name="", kind="ble")
-        was_holding = p.holding and now - p.last_seen < PEER_FRESH
+        was_holding = p.holding and p.nearby(now)
+        self.heard_at = now
+        p.fresh = fresh_window(msg.get("every"))
         p.name = str(msg.get("name") or pid)[:48]
         p.kind = str(msg.get("kind") or "ble")[:12]
         p.addr = addr or p.addr
@@ -842,7 +893,18 @@ class Handover:
         self.changed()
         self._phase = "ask"
         try:
-            # 1. ask whoever has it to let go
+            # 1. ask whoever has it to let go. A phone whose screen is off sleeps between beacons (ADR 0016), so
+            # nobody may *say* they hold it: then ask the paired instance that last did — quietly, it may be gone.
+            if holder is None and not tab_holds and not force:
+                quiet = self.probable_holder()
+                if (
+                    quiet is not None
+                    and quiet.id in self.keys
+                    and quiet.addr
+                    and await self._ask_release(quiet) is None
+                ):
+                    holder = quiet
+                    self._step("ask", "active", f"Asked {quiet.name} to let go")
             if holder is not None:
                 why = await self._ask_release(holder)
                 if why:
@@ -923,7 +985,7 @@ class Handover:
         """Tell paired peers we hold the panel (their "Panel moved to …" updates at once)."""
         body = {"holding": True, "panel": self.device.info.name}
         for p in list(self.peers.values()):
-            if p.id in self.keys and p.addr and self.clock() - p.last_seen < PEER_FRESH:
+            if p.id in self.keys and p.addr and p.nearby(self.clock()):
                 with contextlib.suppress(Exception):
                     await self._call(p, "/lan/handover/announce", body)
         self.changed()
@@ -1048,11 +1110,11 @@ class _Beacon(asyncio.DatagramProtocol):
         while True:
             ip = await asyncio.to_thread(lan_ip)
             if self.transport and is_private(ip) and not ipaddress.ip_address(ip).is_loopback:
-                msg = {**self.ho.beacon(), "now": self.ho.clock()}
+                msg = {**self.ho.beacon(), "now": self.ho.clock(), "every": self.ho.beacon_every()}
                 with contextlib.suppress(OSError):
                     self.transport.sendto(json.dumps(msg).encode(), ("255.255.255.255", BEACON_PORT))
             with contextlib.suppress(TimeoutError):
-                await asyncio.wait_for(self._kick.wait(), BEACON_EVERY)
+                await asyncio.wait_for(self._kick.wait(), self.ho.beacon_every())
             self._kick.clear()
             await asyncio.sleep(0.2)  # coalesce bursts of changes
 

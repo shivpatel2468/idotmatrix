@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
@@ -32,6 +33,12 @@ import java.util.UUID
  * [CLOSE_GRACE_MS]). Calling `close()` straight away — what this bridge used to do — unregisters the callback before
  * the link-layer disconnect happens, and on many phones the controller then keeps a "ghost" link to the panel: the
  * panel stops advertising and no other app can connect until it is power-cycled (ADR 0015).
+ *
+ * Finding the panel (ADR 0016): a direct connect by MAC — the engine's, else the last panel this phone connected to
+ * (remembered) — then a fallback scan. Android delivers nothing from an *unfiltered* scan while the screen is off, so
+ * with a known MAC the scan is filtered by it, else (screen off) by the panel's manufacturer id; only with the
+ * screen on is it unfiltered (any IDM- name). The scan is low-latency only while the user watches the app
+ * ([PowerPolicy.scanMode]).
  */
 @SuppressLint("MissingPermission") // MainActivity requests the permissions before the service starts
 class BleBridge private constructor(private val context: Context) {
@@ -41,7 +48,10 @@ class BleBridge private constructor(private val context: Context) {
         private val WRITE_UUID = UUID.fromString("0000fa02-0000-1000-8000-00805f9b34fb")
         private val NOTIFY_UUID = UUID.fromString("0000fa03-0000-1000-8000-00805f9b34fb")
         private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-        private const val SCAN_MS = 10_000L
+        /** The manufacturer id in the panel's advertisement (IDM-039C09, 2026-11-05): a screen-off scan filter. */
+        private const val PANEL_MANUFACTURER_ID = 0x5254
+        private const val PREFS = "deskdot.ble"
+        private const val LAST_MAC = "last_mac"
         private const val DIRECT_MS = 8_000L
         private const val CLOSE_GRACE_MS = 2_000L
 
@@ -72,6 +82,8 @@ class BleBridge private constructor(private val context: Context) {
     private var direct = false // this attempt is a direct connect by MAC (falls back to a scan)
     private var scanPrefix = "IDM-"
     private var scanAddress: String? = null
+    private var configured: String? = null // the MAC the engine asked for (vs. one remembered here)
+    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     // ------------------------------------------------------------------ API used by Python
 
@@ -131,7 +143,9 @@ class BleBridge private constructor(private val context: Context) {
         connecting = true
         val my = ++attempt
         scanPrefix = prefix
-        scanAddress = address?.uppercase()?.takeIf { BluetoothAdapter.checkBluetoothAddress(it) }
+        configured = address?.uppercase()
+        scanAddress = (address ?: prefs.getString(LAST_MAC, null))?.uppercase()
+            ?.takeIf { BluetoothAdapter.checkBluetoothAddress(it) }
         val mac = scanAddress
         if (mac != null) {
             // Fast path: the panel's MAC is known (the default config), no scan needed.
@@ -154,11 +168,14 @@ class BleBridge private constructor(private val context: Context) {
 
     private fun scan(prefix: String, address: String?, my: Int) {
         val scanner = adapter?.bluetoothLeScanner ?: return fail("Bluetooth LE scanner unavailable")
+        // No MAC: by name (any IDM- panel). A remembered MAC may be an old panel: with the screen on, a name will do too.
+        val byName = address == null || (PowerGate.isScreenOn() && address != configured)
         val cb = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val dev = result.device
                 val name = result.scanRecord?.deviceName ?: dev.name ?: ""
-                val match = if (address != null) dev.address.equals(address, true) else name.startsWith(prefix)
+                val match = (address != null && dev.address.equals(address, true)) ||
+                    (byName && name.startsWith(prefix))
                 if (match && my == attempt && scanning != null) {
                     stopScan()
                     openGatt(dev)
@@ -170,14 +187,28 @@ class BleBridge private constructor(private val context: Context) {
             }
         }
         scanning = cb
-        val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-        scanner.startScan(null, settings, cb)
+        val mode = PowerPolicy.scanMode(PowerGate.isScreenOn(), PowerGate.isAppVisible())
+        val settings = ScanSettings.Builder().setScanMode(mode).build()
+        // Android drops unfiltered results while the screen is off: filter by MAC whenever we can, else (screen off,
+        // no MAC yet) by the panel's manufacturer id; the name check above still decides
+        val filters = when {
+            !byName -> listOf(ScanFilter.Builder().setDeviceAddress(address).build())
+            PowerGate.isScreenOn() -> null
+            else -> listOf(ScanFilter.Builder().setManufacturerData(PANEL_MANUFACTURER_ID, ByteArray(0)).build())
+        }
+        val how = when {
+            filters == null -> "unfiltered"
+            byName -> "filtered by manufacturer"
+            else -> "filtered by MAC"
+        }
+        Log.i(TAG, "scanning for ${address ?: "$prefix*"} (mode $mode, $how)")
+        scanner.startScan(filters, settings, cb)
         handler.postDelayed({
             if (my == attempt && scanning === cb) {
                 stopScan()
                 fail("panel not found — is it powered, and not connected to the iDotMatrix phone app?")
             }
-        }, SCAN_MS)
+        }, PowerPolicy.scanMillis(mode))
     }
 
     private fun stopScan() {
@@ -311,6 +342,7 @@ class BleBridge private constructor(private val context: Context) {
         val dev = g.device
         val name = dev.name ?: "IDM panel"
         Log.i(TAG, "connected to $name (${dev.address}), mtu $mtu")
+        prefs.edit().putString(LAST_MAC, dev.address).apply()
         listener?.onConnected(dev.address, name, mtu - 3)
     }
 }

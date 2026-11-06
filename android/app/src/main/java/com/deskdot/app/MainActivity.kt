@@ -176,6 +176,16 @@ class MainActivity : ComponentActivity() {
         if (missing.isEmpty()) onPermissions() else ask.launch(missing.toTypedArray())
     }
 
+    override fun onStart() {
+        super.onStart()
+        PowerGate.setAppVisible(true) // the user is looking: stay awake, retry the panel now (ADR 0016)
+    }
+
+    override fun onStop() {
+        PowerGate.setAppVisible(false)
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         requestHighRefreshRate() // some OEM skins reset the window's mode when the app comes back
