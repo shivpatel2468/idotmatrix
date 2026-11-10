@@ -435,6 +435,12 @@ html.theme-fade .led-mask { transition: --led-gap 0.42s ease !important; }
   .key-ghost { background: transparent; border-color: transparent; box-shadow: none !important; color: var(--color-ink-2); }
   .key-ghost:hover { background: var(--lg-control); color: var(--color-ink-1); border-color: var(--lg-edge); }
   .key-icon { width: 2.1rem; padding: 0; }
+  /* Glisse's other button roles (components on the phone: § Glisse buttons at the end): tinted = an accent label on
+     glass, tinted filled = a gold fill, destructive = a red label, destructive filled = a red fill */
+  .key-tint, .key-tint:hover { color: var(--key-tint, var(--color-ember)); border-color: var(--color-ember-line); }
+  .key-tint-fill, .key-tint-fill:hover { color: #1a1204; background: var(--key-tint, var(--color-gold)); border-color: transparent; text-shadow: none; }
+  .key-bad, .key-bad:hover { color: var(--color-bad); }
+  .key-bad-fill, .key-bad-fill:hover { color: #fff; background: var(--color-bad); border-color: transparent; text-shadow: none; }
 
   /* LED status dot */
   .led {
@@ -1862,25 +1868,35 @@ body { overscroll-behavior: none; }
 :root[data-theme] .tabbar-btn[aria-current="page"] .tabbar-pill { background: transparent; box-shadow: none; }
 .tabbar-btn:active .tabbar-pill { transform: scale(0.9); transition: transform 0.12s; }
 .tabbar-btn .tabbar-pill { transition: transform 0.4s var(--lg-spring); }
-/* the bubble (components/TabBar.tsx, lib/tabDrag.ts): a lens of brighter glass behind the open tab that you can drag
-   along the bar; it springs to the nearest tab on release. Only its transform moves (set from JS / WAAPI); the fill
-   and rim cross-fade (opacity) while a finger holds it, so it turns clearer like a drop of water being pressed. */
+/* the bubble (components/TabBar.tsx, lib/tabDrag.ts), as Glisse's tab bar: at rest a soft plate of selection behind
+   the open tab (Glisse's --lg-selection with a dash of the table's accent); a finger on the bar lifts it into a clear
+   lens 24 x 16 px bigger (.tabbar-lens, its own spring) that rides over the labels, bending them and the page where
+   the browser can (Chromium: [data-bent]), with Glisse's rim light; you can drag it along the bar and it springs to
+   the nearest tab on release, then settles back into the plate. Only transforms move (JS / WAAPI); the plate and the
+   lens cross-fade (opacity). */
 .tabbar { touch-action: none; -webkit-user-select: none; user-select: none; }
+:root {
+  --lg-tab-sel: color-mix(in oklab, var(--color-ember) 16%, rgb(255 255 255 / 0.12));
+  --lg-tab-lens: rgb(255 255 255 / 0.055); --lg-tab-lens-edge: rgb(255 255 255 / 0.22); --lg-tab-lens-drop: 0 0 0 transparent;
+}
+:root[data-theme="light"] {
+  --lg-tab-sel: color-mix(in oklab, var(--color-ember) 12%, rgb(64 48 24 / 0.08));
+  --lg-tab-lens: rgb(255 255 255 / 0.18); --lg-tab-lens-edge: rgb(64 48 24 / 0.1); --lg-tab-lens-drop: 0 7px 11px rgb(64 48 24 / 0.12);
+}
 .tabbar-bubble {
   position: absolute; z-index: 0; left: 5px; top: 5px; bottom: 5px; width: var(--tab-slot, 25%);
   border-radius: 24px; pointer-events: none; will-change: transform; transform-origin: 50% 50%;
 }
-.tabbar-bubble > i { position: absolute; inset: 0; border-radius: inherit; transition: opacity 0.25s ease; }
-.tabbar-bubble-fill {
-  background: linear-gradient(180deg, color-mix(in oklab, var(--color-ember) 12%, transparent), color-mix(in oklab, var(--color-ember) 4%, transparent)), var(--lg-lens);
-  box-shadow: var(--lg-lens-shadow);
+.tabbar[data-lifted] .tabbar-bubble { z-index: 2; }
+.tabbar-bubble > i { position: absolute; border-radius: inherit; transform-origin: 50% 50%; will-change: transform; transition: opacity 0.14s ease; }
+.tabbar-bubble-fill { inset: 0; background: var(--lg-tab-sel); }
+.tabbar-bubble > .tabbar-lens {
+  inset: -8px -12px; border-radius: 32px; opacity: 0; transform: scale(0.8, 0.76);
+  background: var(--lg-tab-lens); box-shadow: inset 0 0 0 0.5px var(--lg-tab-lens-edge), var(--lg-tab-lens-drop);
 }
-.tabbar-bubble-rim {
-  box-shadow: var(--lg-lens-rim), inset 0 -6px 12px -8px rgba(255, 255, 255, 0.22), 0 0 0 0.5px color-mix(in oklab, var(--color-ember) 30%, transparent);
-  opacity: 0.85;
-}
-.tabbar[data-drag="true"] .tabbar-bubble-fill { opacity: 0.55; }
-.tabbar[data-drag="true"] .tabbar-bubble-rim { opacity: 1; }
+.tabbar-bubble > .tabbar-lens[data-rim] { background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat, var(--lg-tab-lens); }
+.tabbar[data-lifted] .tabbar-bubble-fill { opacity: 0; transition-duration: 0.1s; }
+.tabbar[data-lifted] .tabbar-lens { opacity: 1; transition-duration: 0.1s; }
 /* the tab under the moving bubble lights up before it opens */
 :root[data-theme] .tabbar[data-drag="true"] .tabbar-btn[aria-current="page"]:not([data-near]) { color: var(--color-ink-2); }
 :root[data-theme] .tabbar-btn[data-near] { color: var(--color-ember); }
@@ -1891,16 +1907,25 @@ body { overscroll-behavior: none; }
 }
 
 /* the bar's own glass: real blur wherever it is smooth — also in the Android app, where the rest of the chrome stays
-   frosted (lib/glass.ts → html[data-bar-glass]). Thick enough that text scrolling under it never reads through: a
-   denser tint than regular glass, a strong blur, saturation for vibrancy, a lit top edge and a soft caustic along the
-   bottom (the light bent through the rim). Frosted / solid / reduced transparency keep their fills (rules above). */
-:root { --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 64%, transparent); --lg-bar-blur: 22px; }
-:root[data-theme="light"] { --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 68%, transparent); }
+   frosted (lib/glass.ts → html[data-bar-glass]). Clear glass after Glisse: a thin tint and a light blur (Glisse's
+   tab bar: 3 px, saturate 1.5), so the page shows through in colour; where the browser can't bend the backdrop
+   (Safari, iOS) the blur is a little stronger. A band of denser tint runs behind the labels, so text scrolling under
+   the bar never reads through them. Frosted / solid / reduced transparency keep their fills (rules above). */
+:root {
+  --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 40%, transparent);
+  --lg-bar-core: color-mix(in oklab, var(--color-chassis-2) 56%, transparent); --lg-bar-blur: 6px;
+}
+:root[data-theme="light"] {
+  --lg-bar-tint: color-mix(in oklab, var(--color-chassis-2) 36%, transparent);
+  --lg-bar-core: color-mix(in oklab, var(--color-chassis-2) 52%, transparent);
+}
 :root[data-bar-glass="liquid"] .tabbar::before {
-  background: linear-gradient(180deg, var(--lg-glare), transparent 46%), var(--lg-bar-tint);
-  box-shadow: var(--lg-inner), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -10px 18px -14px rgba(255, 255, 255, 0.2);
-  -webkit-backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.9) brightness(1.04);
-  backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.9) brightness(1.04);
+  background:
+    linear-gradient(180deg, transparent, var(--lg-bar-core) 30%, var(--lg-bar-core) 70%, transparent),
+    linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 40%), var(--lg-bar-tint);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.06);
+  -webkit-backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--lg-bar-blur)) saturate(1.5);
 }
 
 /* ---- Glisse: the phone's glass after Glisse (lib/glisse.ts; MIT, docs/licenses/glisse.txt) -------------------------
@@ -1928,7 +1953,13 @@ body { overscroll-behavior: none; }
     radial-gradient(150px circle at var(--lg-x) var(--lg-y), var(--lg-spec), transparent 70%),
     var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat;
 }
-:root[data-bar-glass="liquid"] .tabbar[data-bent]::before,
+:root[data-bar-glass="liquid"] .tabbar[data-bent]::before {
+  background:
+    linear-gradient(180deg, transparent, var(--lg-bar-core) 30%, var(--lg-bar-core) 70%, transparent),
+    linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 40%), var(--lg-bar-tint);
+  -webkit-backdrop-filter: blur(3px) var(--lg-bend) saturate(1.5);
+  backdrop-filter: blur(3px) var(--lg-bend) saturate(1.5);
+}
 :root[data-glass="liquid"] .phone-head[data-bent]::before {
   background:
     linear-gradient(180deg, transparent, var(--lg-bend-core) 28%, var(--lg-bend-core) 72%, transparent),
@@ -1937,9 +1968,9 @@ body { overscroll-behavior: none; }
   -webkit-backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(1.6);
   backdrop-filter: blur(var(--lg-bend-blur)) var(--lg-bend) saturate(1.6);
 }
-:root[data-bar-glass="liquid"] .tabbar-bubble[data-bent] { -webkit-backdrop-filter: var(--lg-bend); backdrop-filter: var(--lg-bend); }
+:root[data-bar-glass="liquid"] .tabbar[data-lifted] .tabbar-lens[data-bent] { -webkit-backdrop-filter: var(--lg-bend) saturate(1.2); backdrop-filter: var(--lg-bend) saturate(1.2); }
 @media (prefers-reduced-transparency: reduce) {
-  .tabbar-bubble[data-bent] { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .tabbar-lens[data-bent] { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 }
 
 /* sheets: a glass card floating above the bottom edge, its corners concentric with the screen's */
@@ -2110,3 +2141,104 @@ body { overscroll-behavior: none; }
 }
 /* section rules and hairlines inside the wings take the accent, like the casino's sections */
 :root:not([data-theme="light"]):not([data-cz]) .surface .border-line { border-color: rgba(var(--pt-acc-rgb, 255, 72, 24), 0.1); }
+
+/* ============================================================= Glisse buttons, segmented controls and menu keys (phone)
+ * After Glisse by Kelvin Zhang (MIT, docs/licenses/glisse.txt; R-STU-15). The phone layout only (below md, as usePhone):
+ * the desktop studio keeps its keys and rails. Glass here is a material, not a filter: keys and segmented controls sit
+ * in scrolling content, so they never blur (no backdrop-filter); only the menu keys in the floating chrome (the
+ * header's quick-controls key, the Display key, the theme key) bend the backdrop with Glisse's lens (lib/glisse.ts).
+ *   glass             .key              translucent glass, a 0.5 px edge and a rim lit from the top left
+ *   filled            .key-ember        the table's accent, flat
+ *   tinted            .key-tint         glass with an accent label
+ *   tinted filled     .key-tint-fill    gold, flat
+ *   destructive       .key-bad          glass with a red label
+ *   destructive filled .key-bad-fill    red, flat
+ * Pressed, a key lights up at once and stretches toward the finger (lib/glissePress.ts: `scale` / `translate` only);
+ * a segmented control's picked option is Glisse's thumb on a clear track and lifts into a lens while held.
+ * ===================================================================================================================== */
+:root {
+  --gl-glass: color-mix(in oklab, var(--color-chassis-3) 62%, transparent);
+  --gl-glass-active: color-mix(in oklab, var(--color-ink-1) 14%, var(--gl-glass));
+  --gl-edge: rgb(255 255 255 / 0.09);
+  --gl-rim: inset 0.75px 1px 0 -0.25px rgb(255 255 255 / 0.2), inset -0.5px -0.75px 0 -0.25px rgb(255 255 255 / 0.06);
+  --gl-drop: 0 1px 3px transparent;
+  --gl-track: rgb(118 118 128 / 0.24);
+  --gl-thumb: color-mix(in oklab, var(--color-ember) 34%, rgb(235 235 245 / 0.24));
+  --gl-thumb-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --gl-lens: rgb(255 255 255 / 0.06);
+  --gl-lens-rim: inset 0 0 0 1px rgb(255 255 255 / 0.32), inset 0 1.5px 1px rgb(255 255 255 / 0.3), 0 4px 14px rgb(0 0 0 / 0.25);
+}
+:root[data-theme="light"] {
+  --gl-glass: rgb(255 255 255 / 0.62);
+  --gl-glass-active: color-mix(in oklab, var(--color-chassis-3) 88%, transparent);
+  --gl-edge: rgb(64 48 24 / 0.1);
+  --gl-rim: inset 0.75px 1px 0 -0.25px rgb(255 255 255 / 0.95), inset -0.5px -0.75px 0 -0.25px rgb(255 255 255 / 0.5);
+  --gl-drop: 0 1px 3px rgb(64 48 24 / 0.08);
+  --gl-track: rgb(118 108 96 / 0.12);
+  --gl-thumb: #ffffff;
+  --gl-thumb-shadow: 0 3px 8px rgb(64 48 24 / 0.12), 0 3px 1px rgb(64 48 24 / 0.04), inset 0 0 0 0.5px rgb(64 48 24 / 0.06);
+  --gl-lens: rgb(255 255 255 / 0.3);
+  --gl-lens-rim: inset 0 0 0 1px rgb(255 255 255 / 0.9), inset 0 1.5px 1px #fff, 0 6px 16px rgb(64 48 24 / 0.16);
+}
+@media (max-width: 767.98px) {
+  /* glass: the key itself is the glass (no ::before), so a press can light it at once */
+  :root[data-theme] .key {
+    background: var(--gl-glass); border-color: transparent; text-shadow: none;
+    box-shadow: inset 0 0 0 0.5px var(--gl-edge), var(--gl-rim), var(--gl-drop);
+    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+  :root[data-theme] .key:hover { background: var(--gl-glass); border-color: transparent; }
+  :root[data-theme] .key:is(:active, [data-pressed]) { transform: none; filter: none; background: var(--gl-glass-active); transition-duration: 0s; }
+  :root[data-theme] .key-ghost { background: transparent; box-shadow: none !important; }
+  :root[data-theme] .key-ghost:hover { background: transparent; }
+  :root[data-theme] .key-ghost:is(:active, [data-pressed]) { background: var(--gl-glass-active); }
+  /* filled: the accent, flat; pressed, 15 % darker */
+  :root[data-theme] .key-ember, :root[data-theme] .key-ember:hover {
+    background: var(--color-ember); border-color: transparent; text-shadow: none;
+    box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.18), 0 6px 16px -8px color-mix(in oklab, var(--color-ember) 70%, transparent);
+  }
+  :root[data-theme] .key-ember:is(:active, [data-pressed]) { background: color-mix(in srgb, var(--color-ember) 85%, #000); }
+  /* tinted: glass with an accent label; tinted filled: gold, flat */
+  :root[data-theme] .key-tint, :root[data-theme] .key-tint:hover { color: var(--key-tint, var(--color-ember)); }
+  :root[data-theme] .key-tint-fill, :root[data-theme] .key-tint-fill:hover { background: var(--key-tint, var(--color-gold)); color: #1a1204; box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.25); }
+  :root[data-theme] .key-tint-fill:is(:active, [data-pressed]) { background: color-mix(in srgb, var(--key-tint, var(--color-gold)) 85%, #000); }
+  /* destructive: glass with a red label; destructive filled: red, flat */
+  :root[data-theme] .key-bad, :root[data-theme] .key-bad:hover { color: var(--color-bad); }
+  :root[data-theme] .key-bad-fill, :root[data-theme] .key-bad-fill:hover { background: var(--color-bad); color: #fff; box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.2); }
+  :root[data-theme] .key-bad-fill:is(:active, [data-pressed]) { background: color-mix(in srgb, var(--color-bad) 85%, #000); }
+
+  /* menu keys in the floating chrome: Glisse's Menu button — its glass bends what is behind it (Chromium; one lens
+     per key, drawn once per size) under the rim light; a light blur keeps the icon on top readable */
+  :root[data-theme] .key-menu[data-rim] { background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat, var(--gl-glass); box-shadow: var(--gl-drop); }
+  :root[data-theme] .key-menu[data-rim]:is(:active, [data-pressed]) { background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat, var(--gl-glass-active); }
+  :root[data-bar-glass="liquid"] .key-menu[data-bent] { -webkit-backdrop-filter: blur(2px) var(--lg-bend) saturate(1.5); backdrop-filter: blur(2px) var(--lg-bend) saturate(1.5); }
+  :root[data-theme] .theme-fab-key { border-color: transparent; transition: none; }
+  :root[data-theme] .theme-fab-key[data-rim] { background: var(--lg-rim-over, none) 0 0 / 100% 100% no-repeat, var(--gl-glass); box-shadow: var(--gl-drop), 0 10px 24px -12px rgb(0 0 0 / 0.5); }
+  :root[data-theme] .theme-fab-key:is(:active, [data-pressed]) { transform: none; }
+  :root[data-bar-glass="liquid"] .theme-fab-key[data-bent] { -webkit-backdrop-filter: blur(2px) var(--lg-bend) saturate(1.5); backdrop-filter: blur(2px) var(--lg-bend) saturate(1.5); }
+
+  /* segmented control: Glisse's thumb, inset 2 px on a clear track; held, it lifts into a lens (transform only) */
+  :root .seg, :root:not([data-theme="light"]):not([data-cz]) .seg {
+    padding: 2px; gap: 0; border: 0; background: var(--gl-track); box-shadow: inset 0 0 0 0.5px var(--gl-edge);
+  }
+  :root .seg > button { color: var(--color-ink-1); transition: color 0.15s, background-color 0.2s, transform 0.42s var(--lg-spring), box-shadow 0.2s; }
+  :root .seg > button:is(:active, [data-pressed]):not([data-active="true"]) { background: color-mix(in oklab, var(--color-ink-1) 6%, transparent); transition-duration: 0s; }
+  :root .seg > button[data-active="true"],
+  :root[data-theme="light"]:not([data-cz]) .seg > button[data-active="true"],
+  :root:not([data-theme="light"]):not([data-cz]) .seg > button[data-active="true"] {
+    color: var(--color-ink-1); font-weight: 600; border-color: transparent; text-shadow: none;
+    background: var(--gl-thumb); box-shadow: var(--gl-thumb-shadow);
+  }
+  :root[data-theme="light"]:not([data-cz]) .seg > button[data-active="true"] { color: var(--color-ember); }
+  :root .seg > button[data-active="true"]:active,
+  :root:not([data-theme="light"]):not([data-cz]) .seg > button[data-active="true"]:active {
+    transform: scale(1.1, 1.24); background: var(--gl-lens); box-shadow: var(--gl-lens-rim);
+    transition: transform 0.36s cubic-bezier(0.2, 0.9, 0.3, 1.25), background-color 0.1s, box-shadow 0.1s;
+  }
+}
+@media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+  :root .seg > button[data-active="true"]:active { transform: none; }
+}
+@media (max-width: 767.98px) and (prefers-reduced-transparency: reduce) {
+  :root[data-theme] :is(.key-menu, .theme-fab-key)[data-bent] { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}

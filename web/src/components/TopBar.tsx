@@ -213,6 +213,9 @@ function PhoneTopBar() {
   // Glisse's glass: the rim light, and the lens where the header is clear glass (index.css § Glisse)
   const head = useRef<HTMLElement>(null);
   useEffect(() => glisse(head.current, { lens: "ray" }), []);
+  // the quick-controls key is Glisse's Menu button: its glass bends what is behind it (index.css § Glisse buttons)
+  const moreKey = useRef<HTMLButtonElement>(null);
+  useEffect(() => glisse(moreKey.current, { lens: "split" }), []);
   return (
     <header ref={head} className="phone-head grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-[var(--gutter)]">
       <ConnectionSheet />
@@ -226,7 +229,7 @@ function PhoneTopBar() {
         <button onClick={() => set({ palette: true })} className="key key-ghost key-icon" title="Find an app or action" aria-label="Search">
           <Search size={17} />
         </button>
-        <button className="key key-icon relative" aria-label="Quick controls: brightness, power, fruit fly, settings" aria-haspopup="dialog" onClick={() => setMore(true)}>
+        <button ref={moreKey} className="key key-menu key-icon relative" aria-label="Quick controls: brightness, power, fruit fly, settings" aria-haspopup="dialog" onClick={() => setMore(true)}>
           <Ellipsis size={18} />
           {flyOn && <span className="led absolute -right-0.5 -top-0.5 !h-[7px] !w-[7px]" data-on="ember" />}
         </button>
