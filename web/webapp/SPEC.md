@@ -39,6 +39,12 @@ unchanged studio talks to it through shims, and the page drives the panel over W
   (`http://127.0.0.1:8765/api/health`, never on page load). Tests:
   `tests/test_device_connection.py::test_health_probe_for_the_web_app`.
 
+- **R-WEB-9** Engine images work without a service worker: while none controls the page (Bluefy and other
+  WKWebView browsers have none), `host.js` points `<img src="/api/…">` where `sw.js` would have answered it, app
+  thumbnails at the site's reel `/media/apps/<id>.gif` (the engine draws it if the reel is missing), other engine
+  images at the engine's answer as a `blob:` URL; with a service worker nothing changes. Tests: none yet (gap) —
+  checked in Playwright WebKit with service workers blocked (library tiles empty in dark mode before, drawn after).
+
 ## Invariants
 
 - **I-WEB-1** Protocol bytes and link physics are identical to the desktop; never a browser-only shortcut.
@@ -56,4 +62,4 @@ unchanged studio talks to it through shims, and the page drives the panel over W
 
 - Two-tab hand-over and Web Bluetooth flows are verified with `web/webapp/dev/mock-bluetooth.js` by hand, not in CI.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-10

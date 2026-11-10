@@ -41,6 +41,9 @@ panel straight from the tab. Nothing to install. Decision record: [adr/0012-web-
   which hosts need the proxy.
 - **Library thumbnails** come from the website's prebuilt reels (`/media/apps/<id>.gif`, served by the service
   worker for `/api/apps/<id>/preview.gif`) instead of rendering 90 GIFs in WebAssembly. They show default settings.
+  Browsers without service workers (in-app browsers built on WKWebView, such as **Bluefy** on iPhone/iPad) get the
+  same: while no service worker controls the page, `host.js` points every `<img src="/api/…">` at the reel, or at the
+  engine's answer as a `blob:` URL for other engine images.
 - **Caching.** The service worker (`/app/sw.js`, scope `/app/`) caches the pinned Pyodide CDN files, the engine
   archive and the studio; the second visit downloads nothing and the app opens offline (live data still needs the
   network, the panel doesn't).
