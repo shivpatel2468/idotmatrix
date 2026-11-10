@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useFly } from "../lib/fly";
 import { useStore } from "../lib/store";
+import { useFitScreen } from "../lib/useFitScreen";
 import { flyGames, letFlyPlay, takeBackFromFly, useCurrentIsFlyGame, useFlyPicker, useFlyPlaying } from "../lib/flyControl";
 import { Icon } from "./Icon";
 
@@ -76,10 +77,12 @@ function FlyGamePicker({ onClose, up = false }: { onClose: () => void; up?: bool
   const lastGame = useStore((s) => s.lastGame);
   const games = flyGames(meta);
   const last = games.find((g) => g.id === lastGame);
+  const menu = useRef<HTMLDivElement>(null);
+  useFitScreen(menu, true, up ? "up" : "down");
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div role="menu" aria-label="Games the fly can play"
+      <div ref={menu} role="menu" aria-label="Games the fly can play"
         className={clsx("surface absolute right-0 z-50 flex max-h-[min(420px,70vh)] w-[min(280px,86vw)] flex-col overflow-hidden animate-rise", up ? "bottom-11" : "top-11")}
         onKeyDown={(e) => e.key === "Escape" && onClose()}>
         <div className="border-b border-line px-3.5 py-2.5">
