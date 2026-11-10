@@ -134,7 +134,7 @@ function PresetCard({ p, active, variant }: { p: Preset; active: boolean; varian
         variant === "dock" ? "h-12" : "min-h-[150px] flex-col justify-center !gap-2.5 !rounded-[16px] p-3 text-center")}>
         <span className="text-[12.5px] text-ink-1">Delete “{p.name}”?</span>
         <span className="flex gap-2">
-          <button className="key !h-8 !px-2.5 !text-bad" onClick={async () => { await api.deletePreset(p.id); setConfirm(false); toast("Preset deleted", "ok"); loadPresets(); }}>
+          <button className="key key-bad !h-8 !px-2.5" onClick={async () => { await api.deletePreset(p.id); setConfirm(false); toast("Preset deleted", "ok"); loadPresets(); }}>
             <Trash2 size={12} /> Delete
           </button>
           <button className="key key-ghost !h-8 !px-2" onClick={() => setConfirm(false)}>Keep</button>

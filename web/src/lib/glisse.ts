@@ -79,6 +79,10 @@ export function rimPixels({ w, h, r }: Shape, shine: number, d: number): { cols:
 /** How the lens bends: the pull reaches `strength` × the shorter side, in a band `depth` × it wide, along a dome
  *  that sags `dome` × it; red bends `dispersion` / 5 further than blue (Glisse's glass defaults). */
 export const LENS = { strength: 0.45, dispersion: 0.4, depth: 0.25, dome: 0.5 };
+export type LensShape = typeof LENS;
+/** Glisse's tab bar lens (its src/internal/segments.tsx): a narrow band at the rim, no dome, a strong colour split —
+ *  it bends what crosses its rim along it and leaves the labels inside it sharp. */
+export const TAB_LENS: LensShape = { strength: 0.2, dispersion: 2, depth: 0.08, dome: 0.01 };
 
 const erf = (x: number) => Math.tanh(1.7724538509 * x);
 
@@ -101,15 +105,15 @@ function slope(x: number, { radius, scale }: { radius: number; scale: number }) 
 
 /** The lens's maps as RGBA: `across` / `down` are greys (128 = no pull; lighter pulls from the right / below) and
  *  `mask` covers (alpha) where the rim bends at all, so the middle shows the backdrop exactly. */
-export function lensPixels({ w, h, r }: Shape, d: number) {
+export function lensPixels({ w, h, r }: Shape, d: number, L: LensShape = LENS) {
   const hw = w / 2;
   const hh = h / 2;
   const rr = clamp(r, 0, Math.min(hw, hh));
   const cols = Math.max(1, Math.round(w * d));
   const rows = Math.max(1, Math.round(h * d));
   const share = Math.min(w, h);
-  const depth = LENS.depth * share;
-  const dome = LENS.dome * share;
+  const depth = L.depth * share;
+  const dome = L.dome * share;
   const iw = Math.max(0, hw - depth);
   const ih = Math.max(0, hh - depth);
   const ir = clamp(rr, 0, Math.min(iw, ih));
@@ -193,8 +197,8 @@ let made = 0;
 /** Glisse's filter in the glass's own px: each ray is the backdrop pulled across, then down, by its map (each pass
  *  reads one grey and an alpha of one half — no pull — for the other direction); with `split`, three rays a third
  *  each; kept where the mask covers, the backdrop as it was elsewhere. */
-function lensFilter(s: Shape, d: number, split: boolean): SVGElement {
-  const { cols, rows, across, down, mask } = lensPixels(s, d);
+function lensFilter(s: Shape, d: number, split: boolean, L: LensShape): SVGElement {
+  const { cols, rows, across, down, mask } = lensPixels(s, d, L);
   const box = { x: 0, y: 0, width: s.w, height: s.h };
   const f = node("filter", { id: `lg-bend-${made++}`, ...box, filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" });
   const img = (data: Uint8ClampedArray, result: string) => node("feImage", { href: png(cols, rows, data), ...box, preserveAspectRatio: "none", result });
@@ -204,13 +208,13 @@ function lensFilter(s: Shape, d: number, split: boolean): SVGElement {
     half.append(node("feFuncA", { type: "linear", slope: 0, intercept: 0.5 }));
     f.append(half);
   }
-  const reach = LENS.strength * Math.min(s.w, s.h);
+  const reach = L.strength * Math.min(s.w, s.h);
   const ray = (k: number, i: number, result: string) => [
     node("feDisplacementMap", { in: "SourceGraphic", in2: "across-pull", scale: reach * k, xChannelSelector: "R", yChannelSelector: "A", ...box, result: `a${i}` }),
     node("feDisplacementMap", { in: `a${i}`, in2: "down-pull", scale: reach * k, xChannelSelector: "A", yChannelSelector: "R", result }),
   ];
   if (split) {
-    [1 + 0.2 * LENS.dispersion, 1 + 0.1 * LENS.dispersion, 1].forEach((k, i) => {
+    [1 + 0.2 * L.dispersion, 1 + 0.1 * L.dispersion, 1].forEach((k, i) => {
       f.append(...ray(k, i, `ray${i}`), node("feColorMatrix", { in: `ray${i}`, type: "matrix", values: `${CH[i]}  0 0 0 0.3333 0`, result: `l${i}` }));
     });
     f.append(
@@ -218,7 +222,7 @@ function lensFilter(s: Shape, d: number, split: boolean): SVGElement {
       node("feComposite", { in: "l01", in2: "l2", operator: "arithmetic", k2: 1, k3: 1, result: "spread" }),
       node("feColorMatrix", { in: "spread", type: "matrix", values: "3 0 0 0 0  0 3 0 0 0  0 0 3 0 0  0 0 0 1 0", result: "bent" }),
     );
-  } else f.append(...ray(1 + 0.1 * LENS.dispersion, 0, "bent"));
+  } else f.append(...ray(1 + 0.1 * L.dispersion, 0, "bent"));
   f.append(
     node("feComposite", { in: "bent", in2: "mask", operator: "in", result: "inside" }),
     node("feComposite", { in: "SourceGraphic", in2: "mask", operator: "out", result: "outside" }),
@@ -240,6 +244,8 @@ export interface GlisseOptions {
   rim?: boolean;
   /** Bend the backdrop (`--lg-bend`, [data-bent]): one ray, or Glisse's colour split. */
   lens?: false | "ray" | "split";
+  /** The lens's shape (default: Glisse's glass lens, `LENS`). */
+  shape?: LensShape;
 }
 
 const idle = (fn: () => void) =>
@@ -255,7 +261,7 @@ function shapeOf(el: HTMLElement): Shape | null {
 }
 
 /** Gives `el` Glisse's glass and keeps it fitted to its size and the theme; returns the cleanup. */
-export function glisse(el: HTMLElement | null, { rim = true, lens = false }: GlisseOptions = {}): () => void {
+export function glisse(el: HTMLElement | null, { rim = true, lens = false, shape = LENS }: GlisseOptions = {}): () => void {
   if (!el || typeof ResizeObserver === "undefined") return () => {};
   const bend = lens && bendsBackdrop();
   let key = "";
@@ -283,7 +289,7 @@ export function glisse(el: HTMLElement | null, { rim = true, lens = false }: Gli
       const k = [s.w, s.h, s.r, d].join("|");
       if (k !== key) {
         key = k;
-        const next = lensFilter(s, d, lens === "split");
+        const next = lensFilter(s, d, lens === "split", shape);
         filter?.remove();
         filter = next;
         el.style.setProperty("--lg-bend", `url("#${next.id}")`);

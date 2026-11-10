@@ -54,7 +54,7 @@ export function MusicDeck() {
               </button>
             )}
             {can("toggle") && (
-              <button className="key key-icon !h-11 !w-11 !border-ember-line !text-ember" onClick={() => api.nowplaying("toggle")} aria-label={st.playing ? "Pause music" : "Play music"} title={st.playing ? "Pause" : "Play"}>
+              <button className="key key-tint key-icon !h-11 !w-11" onClick={() => api.nowplaying("toggle")} aria-label={st.playing ? "Pause music" : "Play music"} title={st.playing ? "Pause" : "Play"}>
                 {st.playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="translate-x-[1px]" />}
               </button>
             )}

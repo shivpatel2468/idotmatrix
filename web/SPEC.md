@@ -46,12 +46,16 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
 - **R-STU-10** `npm run build` (typecheck + production build) passes. Tests: CI job "Studio — typecheck & build"
   (`.github/workflows/ci.yml`); no unit test file.
 
-- **R-STU-11** Phone tab bar: a floating Liquid Glass capsule with a selection bubble behind the open tab. A tap springs
-  the bubble over; pressing and dragging moves it with a spring (rubber band past the ends), lights the tab under it
-  and on release snaps to the nearest tab (a flick carries one further) and opens it. Transform and opacity only;
-  nothing animates at rest; reduced motion moves it without the spring; every tab stays a labelled button with
-  `aria-current`. Safe areas come from `var(--safe-*)` so the Android app can supply them. Tests:
-  `tests/js/tab_drag.test.mjs` (spring, snapping, rubber band, flick, slop, stretch, the linear() easing).
+- **R-STU-11** Phone tab bar: a floating Liquid Glass capsule with a selection bubble behind the open tab, after Glisse's
+  tab bar. A press lifts the selection into a clear lens 24 × 16 px bigger over the tab under the finger (its own
+  spring; the lens is laid out at its lifted size so its refraction fits, and keeps its shape while it slides), and it
+  settles back into the plate on release. A tap springs the bubble over; pressing and dragging moves it with a spring
+  (rubber band past the ends), lights the tab under it and on release snaps to the nearest tab (a flick carries one
+  further) and opens it; a press that opens nothing sends it home. Transform and opacity only; nothing animates at
+  rest; reduced motion moves it without the spring; every tab stays a labelled button with `aria-current`. Safe areas
+  come from `var(--safe-*)` so the Android app can supply them. Tests: `tests/js/tab_drag.test.mjs` (spring, snapping,
+  rubber band, flick, slop, stretch, the linear() easing), `tests/js/glisse_press.test.mjs` (the lift's spring, the
+  tab lens's narrow rim band); the look is checked by hand.
 - **R-STU-12** Inside the Android app the studio skips its own intro, opens as soon as the engine, the apps and the
   first state are in, and tells the app (`introDone()`); later outros there are a calm one-line fade, never the
   desktop commands. Release notes join a bullet's wrapped lines. Tests: `tests/js/release_notes.test.mjs` (notes);
@@ -68,10 +72,24 @@ inspector, library, playlist, play mode, casino mode and settings. It renders en
   `lib/glisse.ts`): the tab bar, the phone header and sheets show Glisse's rim light (a thin line lit from the top
   left, drawn once per size, following light / dark); where the glass is clear and the browser is Chromium (Chrome,
   Edge, the Android WebView) the tab bar (also in the Android app) and the phone header bend the backdrop near the rim
-  with one ray of Glisse's lens after a light blur, with a denser band of tint behind the labels; the tab bar's bubble
-  is a small lens with the colour split, and still drags with its spring. Frosted, solid and reduced transparency keep
+  with one ray of Glisse's lens after a light blur, with a denser band of tint behind the labels. The tab bar is clear
+  glass after Glisse (a thin tint, a 3 px blur and saturate 1.5; a 6 px blur where nothing bends); its lifted lens is
+  Glisse's tab-bar lens (a narrow rim band with the colour split, `TAB_LENS`). Frosted, solid and reduced transparency keep
   their fills (no lens); Safari / Firefox keep the blur; the desktop studio is unchanged. Maps are drawn when idle and
   on resize, never per frame. Tests: `tests/js/glisse.test.mjs` (the maps); the look is checked by hand.
+
+- **R-STU-15** Phone buttons, segmented controls and menu keys after Glisse (MIT; `lib/glissePress.ts`, index.css
+  § Glisse buttons), on the phone layout only (below md): keys are Glisse's six buttons — glass `.key`, filled
+  `.key-ember`, tinted `.key-tint`, tinted filled `.key-tint-fill`, destructive `.key-bad`, destructive filled
+  `.key-bad-fill` — a translucent material with a lit rim and no backdrop-filter (they sit in scrolling content); a
+  press lights a key at once and stretches it toward the finger (~15 px bigger, leaning up to 8 px, springing back
+  past its size), moving only `scale` / `translate`; `.seg` is Glisse's segmented control (a thumb inset 2 px on a
+  clear track, lifting into a lens while held, transform only); the menu keys in the floating chrome (quick controls,
+  Display, the theme key) bend the backdrop with Glisse's lens (Chromium) under the rim light, and the theme key's
+  menu swells and gives under a finger (≤ 7 px). Reduced motion jumps to the end; reduced transparency drops the
+  lens. The desktop studio keeps its keys and rails. Scrolling under the new glass measured the same as before
+  (Apps tab, 390 × 844, headless Chromium on the dev PC: 38–41 fps before, 39–43 after). Tests:
+  `tests/js/glisse_press.test.mjs` (the press target, the rubber band, the spring); the look is checked by hand.
 
 ## Invariants
 
@@ -97,4 +115,4 @@ Consumes the HTTP API and `WS /ws` ([engine spec](../src/deskdot/engine/SPEC.md)
 - The studio has no unit or component test runner; R-STU-1, 3, 4 and the UI half of 5 are verified by hand. Pure
   studio logic can be tested with node (`tests/js/update_flow.test.mjs` imports `web/src/lib/updateFlow.ts`).
 
-Last verified: 2026-11-05
+Last verified: 2026-11-10

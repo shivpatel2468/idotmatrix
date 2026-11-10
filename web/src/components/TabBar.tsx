@@ -14,7 +14,8 @@ import {
   stretch,
 } from "../lib/tabDrag";
 import { Icon } from "./Icon";
-import { glisse } from "../lib/glisse";
+import { TAB_LENS, glisse } from "../lib/glisse";
+import { createSpring } from "../lib/glissePress";
 
 export const TABS: [MobileTab, string, string][] = [
   ["panel", "Panel", "monitor-play"],
@@ -31,6 +32,8 @@ const linearEasing = typeof CSS !== "undefined" && CSS.supports?.("animation-tim
  * Phones: the bottom tab bar — a floating capsule of Liquid Glass with a lens ("bubble") behind the open tab.
  * Tap a tab and the bubble springs over; or press anywhere on the bar and drag: the bubble follows the finger with a
  * spring (squashing as it moves), lights the tab under it, and on release snaps to the nearest tab and opens it.
+ * As in Glisse's tab bar (lib/glisse.ts, MIT), a press lifts the bubble into a clear lens 24 × 16 px bigger that bends
+ * the labels and the page under it (Chromium), and it settles back into the selection when the finger lifts.
  *
  * Hot path: transform and opacity only, written straight to the DOM (no React render per pointer move). While a
  * finger drags, a spring runs on requestAnimationFrame; a tap or a release hands the rest of the move to a compositor
@@ -43,6 +46,8 @@ export function TabBar() {
   const set = useStore((s) => s.set);
   const nav = useRef<HTMLElement>(null);
   const bubble = useRef<HTMLSpanElement>(null);
+  const lens = useRef<HTMLElement>(null);
+  const plate = useRef<HTMLElement>(null);
   const g = useRef({
     slot: 0,
     spring: { x: 0, v: 0 } as Spring,
@@ -63,13 +68,36 @@ export function TabBar() {
     else set({ mobileTab: id });
   };
 
-  /** Write the bubble's transform: position, squash / stretch, and the lift while held. */
+  /** Write the bubble's transform: position and squash / stretch (the lift while held is the lens's, `liftTo`).
+   *  Held, the lifted lens keeps its shape as it slides, as Glisse's does (its refraction maps fit it unsquashed). */
   const paint = (x: number, v: number, held: boolean) => {
     const b = bubble.current;
     if (!b) return;
-    const { sx, sy } = reduced?.matches ? { sx: 1, sy: 1 } : stretch(v);
-    const lift = held ? 1.06 : 1;
-    b.style.transform = `translate3d(${x.toFixed(2)}px,0,0) scale(${(sx * lift).toFixed(4)},${(sy * lift).toFixed(4)})`;
+    const { sx, sy } = reduced?.matches || held ? { sx: 1, sy: 1 } : stretch(v);
+    b.style.transform = `translate3d(${x.toFixed(2)}px,0,0) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
+  };
+
+  /** Glisse's lift: the selection grows into a lens while a finger holds the bar (its own spring, on the plate and the
+   *  lens, so it never fights the bubble's slide). The lens is laid out at its lifted size (24 × 16 px bigger), so its
+   *  refraction maps fit it exactly once lifted; at rest it is scaled down to the plate and hidden. */
+  const lifter = useRef<ReturnType<typeof createSpring> | null>(null);
+  const lensBox = useRef({ w: 1, h: 1 });
+  const liftTo = (on: boolean) => {
+    let sp = lifter.current;
+    if (!sp) {
+      sp = lifter.current = createSpring(0, 676, 47.8, (l) => {
+        const { w, h } = lensBox.current;
+        const sx = 1 + (24 / w) * l;
+        const sy = 1 + (16 / h) * l;
+        if (plate.current) plate.current.style.transform = l > 0.001 ? `scale(${sx.toFixed(4)},${sy.toFixed(4)})` : "";
+        if (lens.current) lens.current.style.transform = `scale(${((w * sx) / (w + 24)).toFixed(4)},${((h * sy) / (h + 16)).toFixed(4)})`;
+        nav.current?.toggleAttribute("data-lifted", l > 0.02);
+      });
+    }
+    if (on && plate.current) lensBox.current = { w: plate.current.offsetWidth || 1, h: plate.current.offsetHeight || 1 };
+    if (on) sp.tune(576, 44.2);
+    else sp.tune(676, 47.8);
+    sp.set(on ? 1 : 0);
   };
 
   /** Light the tab under the bubble while it moves (data-near), without a React render. */
@@ -170,10 +198,14 @@ export function TabBar() {
     };
   }, []);
 
-  // Glisse's glass: the bar bends what scrolls under it (one ray), the bubble is a small lens with the colour split
+  // Glisse's glass: the bar bends what scrolls under it (one ray); the lifted lens is a small lens with the colour
+  // split and its own rim light
   useEffect(() => {
-    const off = [glisse(nav.current, { lens: "ray" }), glisse(bubble.current, { rim: false, lens: "split" })];
-    return () => off.forEach((f) => f());
+    const off = [glisse(nav.current, { lens: "ray" }), glisse(lens.current, { lens: "split", shape: TAB_LENS })];
+    return () => {
+      off.forEach((f) => f());
+      lifter.current?.stop();
+    };
   }, []);
 
   // the open tab changed (a tap, a release, or elsewhere — the "now showing" strip opens Panel): spring over
@@ -198,6 +230,13 @@ export function TabBar() {
     s.press = { id: e.pointerId, x0: e.clientX, y0: e.clientY, grab: onBubble ? x - s.spring.x : s.slot / 2, dragging: false };
     s.lastMove = { x: e.clientX, t: e.timeStamp, v: 0 };
     s.swallowClick = false;
+    liftTo(true);
+    // as in Glisse, the lens lifts over the tab under the finger at once
+    if (!onBubble && s.slot) {
+      stopAnim();
+      s.target = slotX(nearestTab(x - s.slot / 2, s.slot, TABS.length), s.slot);
+      kick();
+    }
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -223,7 +262,15 @@ export function TabBar() {
     const p = s.press;
     if (!p || p.id !== e.pointerId) return;
     s.press = null;
-    if (!p.dragging) return; // a plain tap: the button's click handles it
+    liftTo(false);
+    if (!p.dragging) {
+      // a plain tap: the button's click opens the tab; if none did (cancelled, or lifted off the bar), go home
+      setTimeout(() => {
+        const cur = Math.max(0, TABS.findIndex(([id]) => id === useStore.getState().mobileTab));
+        if (!s.press && Math.abs(s.target - slotX(cur, s.slot)) > 0.5) glide(slotX(cur, s.slot));
+      }, 0);
+      return;
+    }
     nav.current?.removeAttribute("data-drag");
     s.swallowClick = true; // the click that follows a drag must not open the tab where the finger lifted
     setTimeout(() => (s.swallowClick = false), 0);
@@ -240,7 +287,9 @@ export function TabBar() {
     <nav ref={nav} className="tabbar" aria-label="Sections"
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={(e) => finish(e, false)} onPointerCancel={(e) => finish(e, true)}>
-      <span ref={bubble} className="tabbar-bubble" aria-hidden><i className="tabbar-bubble-fill" /><i className="tabbar-bubble-rim" /></span>
+      <span ref={bubble} className="tabbar-bubble" aria-hidden>
+        <i ref={plate} className="tabbar-bubble-fill" /><i ref={lens} className="tabbar-lens" />
+      </span>
       {TABS.map(([id, label, icon]) => (
         <button key={id} onClick={() => !g.current.swallowClick && pick(id)} aria-current={tab === id ? "page" : undefined} className="tabbar-btn">
           <span className="tabbar-pill">

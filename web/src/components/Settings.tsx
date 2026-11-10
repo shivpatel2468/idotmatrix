@@ -354,7 +354,7 @@ function PresetManager() {
           <button className="key !h-8" onClick={() => api.playPreset(p.id, useStore.getState().shuffle)}><Icon name="play" size={12} /> Play</button>
           {confirm === p.id ? (
             <>
-              <button className="key !h-8 !text-bad" onClick={async () => { await api.deletePreset(p.id); setConfirm(null); loadPresets(); toast("Preset deleted", "ok"); }}>Delete</button>
+              <button className="key key-bad !h-8" onClick={async () => { await api.deletePreset(p.id); setConfirm(null); loadPresets(); toast("Preset deleted", "ok"); }}>Delete</button>
               <button className="key key-ghost !h-8" onClick={() => setConfirm(null)}>Keep</button>
             </>
           ) : (

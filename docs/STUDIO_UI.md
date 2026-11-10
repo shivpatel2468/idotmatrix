@@ -229,6 +229,20 @@ of glass in a browser tab (frosted inside the `deskdot launcher` window, which c
 | frosted | no `backdrop-filter`, `window.DeskDotAndroid` (its WebView let content show through translucent bars), ≤ 4 GB or ≤ 4 cores, or chosen | no backdrop-filter, `--lg-frost` (98 % dark / opaque light): text never sits on raw content |
 | solid | `prefers-reduced-transparency` or chosen | opaque fills, quieter rims |
 
+**Phone glass after Glisse** (Kelvin Zhang, MIT; `lib/glisse.ts`, `lib/glissePress.ts`, index.css § Glisse and
+§ Glisse buttons; R-STU-11, R-STU-14, R-STU-15). The tab bar is clear glass: a thin tint, a 3 px blur and saturate 1.5
+with Glisse's lens bending the rim (6 px blur where the browser can't bend: Safari, iOS), a denser band behind the
+labels. Its selection is a soft plate; a finger on the bar lifts it into a clear lens 24 × 16 px bigger over the
+labels (Glisse's narrow tab-bar lens, `TAB_LENS`: the rim bends and splits colour, the middle stays sharp), which
+slides with a drag and settles back on release. On the phone layout only: keys are Glisse's buttons — glass (`.key`),
+filled (`.key-ember`), tinted (`.key-tint`), tinted filled (`.key-tint-fill`, gold), destructive (`.key-bad`),
+destructive filled (`.key-bad-fill`) — a translucent material with a lit rim and no blur (they sit in scrolling
+content); a press lights a key at once and stretches it toward the finger (Glisse's press: `scale` / `translate` on
+the compositor, one document listener). `.seg` is Glisse's segmented control: a thumb inset 2 px on a clear track
+that lifts into a lens while held (transform only). The menu keys in the floating chrome — the header's quick-controls
+key, the Display key, the theme key — are Glisse's Menu button: their glass bends what is behind them (Chromium) under
+the rim light, and the theme key's menu swells and gives under a finger. The desktop studio keeps its keys and rails.
+
 Touch screens keep real blur only on the small fixed bars (tab bar, phone header); panels, sheets, dialogs, veils and
 badges are frosted there — a blur re-renders on every scroll frame and whenever the live panel behind it changes.
 `@supports not (backdrop-filter…)` and `@media (prefers-reduced-transparency)` guard the CSS without JS. Glass panels
@@ -349,8 +363,8 @@ Fonts are bundled with `@fontsource` — the studio works fully offline.
     power, the fruit-fly toggle + flies-allowed sign, Device / Settings / Message live in the **Quick controls**
     bottom sheet (`TopBar.tsx QuickSheet`).
   - **Bottom tab bar** in the thumb zone — **Panel**, **Apps**, **Presets**, **Settings** — a floating glass capsule
-    (content scrolls under it) with a glass lens behind the open tab that morphs in (the active glyph turns duotone);
-    tapping the open tab scrolls it to the top.
+    (content scrolls under it) with a plate of selection behind the open tab that a finger lifts into a lens, as in
+    Glisse's tab bar (the active glyph turns duotone); tapping the open tab scrolls it to the top.
   - **Panel tab** = one scroll area (`.phone-stage`): the panel at full width but at most 40 % of the screen height,
     its tools, the now-showing card, then **app rows** (`components/AppRail.tsx`) you swipe left / right —
     Favourites, Recent (`lib/recent.ts`, the last 16 apps shown, per browser), then one row per category. Native
