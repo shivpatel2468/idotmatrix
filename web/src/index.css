@@ -883,6 +883,9 @@ summary::-webkit-details-marker { display: none; }
 .fly-canvas, .fly-labels { position: absolute !important; inset: 0; display: block; }
 .fly-labels { z-index: 1; cursor: grab; touch-action: none; }
 .fly-labels:active { cursor: grabbing; }
+/* the pane's title and quick controls (brain view, fly look, camera, full screen) sit above the drag layer: it is
+   z-index 1 and swallowed their clicks. The header itself lets clicks through, so dragging still orbits around it. */
+.fly-pane-head { z-index: 2; }
 .fly-label {
   pointer-events: none; white-space: nowrap;
   font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
