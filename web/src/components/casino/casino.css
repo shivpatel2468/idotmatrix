@@ -456,6 +456,11 @@ button.cz-chip:hover { transform: translateY(-2px); }
   position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px;
   background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(var(--gold-rgb), 0.16);
 }
+/* One row while it fits; on a phone (or a narrow wing) the keys move as one group to a second row, so the room
+   code and the address keep their width instead of being squeezed under the keys. */
+.cz-lobby:has(.cz-lobby-keys) { flex-wrap: wrap; row-gap: 8px; }
+.cz-lobby-info { flex: 1 1 190px; }
+.cz-lobby-keys { display: flex; flex: none; align-items: center; gap: 10px; margin-left: auto; }
 .cz-qr { flex: none; border-radius: 8px; transition: transform 0.15s; }
 .cz-qr:hover { transform: scale(1.05); }
 .cz-qrbig { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); animation: rise 0.3s both; }
