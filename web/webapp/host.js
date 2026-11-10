@@ -605,6 +605,60 @@
     navigator.serviceWorker.register(new URL("sw.js", APP), { scope: APP.pathname }).catch((err) => console.warn("DeskDot: service worker", err));
   }
 
+  // ------------------------------------------------------- <img src="/api/…"> without a service worker
+  // In-app browsers built on WKWebView (Bluefy on iPhone/iPad, the browser to use there for Web Bluetooth) have no
+  // service workers, so an <img> pointing at the engine goes to the website and gets a 404: the library tiles and
+  // rails stayed empty in dark mode (light mode hid it: the paper panel fetches the GIFs itself, through the fetch
+  // shim). While no service worker controls this page, such images are pointed where sw.js would have sent them:
+  // app thumbnails at the site's prebuilt reel (/media/apps/<id>.gif), anything else at the engine's answer as a blob.
+  const imgBlobs = new WeakMap(); // img -> the blob: URL it shows now (revoked when it changes)
+  function rehomeImg(img) {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) return;
+    const src = img.getAttribute("src");
+    if (!src || !src.startsWith("/api/")) return;
+    const u = new URL(src, location.href);
+    const reel = u.pathname.match(/^\/api\/apps\/([\w-]+)\/preview\.gif$/);
+    const viaEngine = async () => {
+      try {
+        const r = await engineRequest("GET", u.pathname + u.search, [], null);
+        if (img.getAttribute("src") !== src && img.dataset.apiSrc !== src) return; // the page moved on meanwhile
+        if (r.status < 200 || r.status >= 300 || !r.body) return;
+        const type = (r.headers.find(([k]) => k.toLowerCase() === "content-type") || [])[1] || "";
+        const url = URL.createObjectURL(new Blob([r.body], type ? { type } : {}));
+        const old = imgBlobs.get(img);
+        imgBlobs.set(img, url);
+        img.src = url;
+        if (old) URL.revokeObjectURL(old);
+      } catch (err) {
+        console.warn("DeskDot: image", src, err);
+      }
+    };
+    img.dataset.apiSrc = src;
+    if (reel) {
+      img.addEventListener("error", function once() {
+        img.removeEventListener("error", once);
+        if (img.dataset.apiSrc === src) viaEngine(); // no reel for this app on the site: let the engine draw it
+      });
+      img.src = new URL(`/media/apps/${reel[1]}.gif`, location.href).href;
+    } else {
+      viaEngine();
+    }
+  }
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+    const scan = (root) => {
+      if (root.nodeType !== 1) return;
+      if (root.tagName === "IMG") rehomeImg(root);
+      else for (const img of root.querySelectorAll('img[src^="/api/"]')) rehomeImg(img);
+    };
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === "attributes") rehomeImg(r.target);
+        else for (const n of r.addedNodes) scan(n);
+      }
+    }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["src"] });
+    scan(document.documentElement);
+  }
+
   // ======================================================================================= Web Bluetooth
   // DeskDot on this computer (the desktop engine) answers here; the web app asks it whether it holds the panel.
   const DESKTOP = "http://127.0.0.1:8765";
