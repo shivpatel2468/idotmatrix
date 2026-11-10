@@ -1,6 +1,8 @@
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { THEME_CHOICES, type ThemePref, setThemePref, toggleTheme, useTheme, useThemePref } from "../lib/theme";
+import { glisse } from "../lib/glisse";
+import { cardPress } from "../lib/glissePress";
 
 const ICON: Record<ThemePref, React.ReactNode> = {
   light: <Sun size={15} />,
@@ -20,6 +22,11 @@ export function ThemeFab({ lift = false }: { lift?: boolean }) {
   const timer = useRef(0);
   const longPressed = useRef(false);
   const box = useRef<HTMLDivElement>(null);
+  const key = useRef<HTMLButtonElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  // Glisse's Menu: the key's glass bends what scrolls behind it; the open menu swells and gives under a finger
+  useEffect(() => glisse(key.current, { lens: "split" }), []);
+  useEffect(() => (menu ? cardPress(card.current) : undefined), [menu]);
 
   useEffect(() => {
     if (!menu) return;
@@ -53,7 +60,7 @@ export function ThemeFab({ lift = false }: { lift?: boolean }) {
   return (
     <div ref={box} className="theme-fab" data-lift={lift}>
       {menu && (
-        <div role="menu" aria-label="Studio theme" className="theme-fab-menu">
+        <div ref={card} role="menu" aria-label="Studio theme" className="theme-fab-menu">
           {THEME_CHOICES.map((t) => (
             <button key={t.id} role="menuitemradio" aria-checked={pref === t.id}
               onClick={() => { setThemePref(t.id); setMenu(false); }}>
@@ -67,7 +74,7 @@ export function ThemeFab({ lift = false }: { lift?: boolean }) {
           ))}
         </div>
       )}
-      <button className="theme-fab-key" data-theme-now={theme}
+      <button ref={key} className="theme-fab-key" data-theme-now={theme}
         aria-label={`Switch to ${next} theme (hold for Auto)`} title={`Switch to ${next} theme — hold for more`}
         aria-haspopup="menu" aria-expanded={menu}
         onPointerDown={down} onPointerUp={cancel} onPointerLeave={cancel} onPointerCancel={cancel}

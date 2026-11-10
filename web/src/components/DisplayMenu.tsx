@@ -8,6 +8,7 @@ import { PANEL_LIGHT_HINT, PANEL_LIGHT_LABEL, type PanelLight, setPanelLight, us
 import { openSettings, type SettingsTab } from "../lib/store";
 import { useFitScreen } from "../lib/useFitScreen";
 import { GLASS_CHOICES, setGlassPref, useGlassPref } from "../lib/glass";
+import { glisse } from "../lib/glisse";
 import { usePhone } from "../lib/useMedia";
 import { LedPanel } from "./LedPanel";
 import { Sheet } from "./Sheet";
@@ -46,6 +47,8 @@ export function DisplayMenu({ trigger, open: openProp, setOpen: setOpenProp, bef
   const panel = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(open);
   useFitScreen(panel, open && !phone);
+  // on the phone the key is Glisse's Menu button: its glass bends what is behind it (index.css § Glisse buttons)
+  useEffect(() => (phone ? glisse(key.current, { lens: "split" }) : undefined), [phone]);
 
   // opening: focus the chosen tile; closing (any way — Esc, a click outside, Play mode): focus goes back to the key
   useEffect(() => {
@@ -75,12 +78,12 @@ export function DisplayMenu({ trigger, open: openProp, setOpen: setOpenProp, bef
   return (
     <div className="relative">
       {trigger === "settings" ? (
-        <button ref={key} className="key key-icon" title="Display & settings" aria-label="Display and settings"
+        <button ref={key} className="key key-menu key-icon" title="Display & settings" aria-label="Display and settings"
           aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(!open)}>
           <Settings2 size={15} />
         </button>
       ) : (
-        <button ref={key} className="key" onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(!open)}
+        <button ref={key} className="key key-menu" onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(!open)}
           aria-haspopup="dialog" aria-expanded={open} aria-label={`Display: ${LOOK_LABEL[look]} look`} title="How the panel looks on this screen">
           <Monitor size={14} /> <span className="hidden sm:inline">{LOOK_LABEL[look]}</span>
         </button>
