@@ -45,6 +45,7 @@ uv run python scripts/release.py --reset             # forget the saved progress
 | Publish | Adds each APK's SHA-256 to `checksums.txt`, uploads them, checks the release has every file and that `checksums.txt` lists all of them, then publishes it as the latest release. |
 | Website: catch up | In the website copy (`..\idotmatrix-website`, branch `website`), cherry-picks the commits between the previous release tag and this one that it doesn't have yet. On a conflict it stops and lists the files (see below). |
 | Website: rebuild | `scripts/build_webapp.py` (the browser version at /app), `build_site_data.py`, `build_site_pages.py`, and commits `site/`. |
+| Website: push | Pushes the `website` branch to GitHub (never forced), so the next release starts from what goes live. If GitHub has commits the copy doesn't, it stops: `git pull --rebase origin website` in the copy, then `--only website`. |
 | Website: preview | A free Netlify preview deploy; prints its address. Look at it: the home page, /app/ and What's new. |
 | Website: live | Only with `--deploy`, or if you type y at the prompt that says it costs 15 credits. |
 

@@ -247,6 +247,7 @@ STEPS: tuple[Step, ...] = (
     Step("publish", "github", "Add the APK(s) and their checksums, publish the release as the latest"),
     Step("website_sync", "website", "Bring the website copy up to date (cherry-pick the new main commits)"),
     Step("website_build", "website", "Rebuild the web app (/app) and the website pages"),
+    Step("website_push", "website", "Push the website branch to GitHub"),
     Step("website_preview", "website", "Free preview deploy of the website"),
     Step(
         "website_prod",
@@ -941,6 +942,21 @@ class Release:
             self.sh("git", "commit", "-m", f"Website: /app and pages rebuilt for DeskDot {self.v}", cwd=w)
         else:
             self.say("  nothing changed in site/")
+
+    def step_website_push(self) -> None:
+        """GitHub's website branch gets the catch-up and the rebuild too (never force-pushed), so the next release
+        and every other copy start from what goes live."""
+        w = self.website
+        cmd = ["git", "push", "origin", WEBSITE_BRANCH]
+        self.say(f"    $ {' '.join(cmd)}")
+        p = self._run(cmd, cwd=str(w), capture_output=True, text=True)
+        if p.returncode != 0:
+            tail = "\n".join(((p.stderr or "") + (p.stdout or "")).strip().splitlines()[-8:])
+            raise Stop(
+                f"GitHub refused the {WEBSITE_BRANCH} branch (it may have commits this copy doesn't):\n{tail}\n"
+                f"In {w}: `git pull --rebase origin {WEBSITE_BRANCH}`, then run "
+                "`uv run python scripts/release.py --only website`. Nothing is ever force-pushed."
+            )
 
     def netlify(self) -> list[str]:
         return ["netlify"] if shutil.which("netlify") else ["npx", "--yes", "netlify-cli"]
