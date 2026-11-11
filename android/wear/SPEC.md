@@ -50,6 +50,8 @@ watch from the engine running on the phone (`127.0.0.1:8765`).
   `rotaryScrollable` with a centre snap); the list asks for the crown's focus when shown and again on every resume.
   Tests: `android/wear/src/test/.../WatchScreensTest` (every screen in Cyber grid, Classic green, Royal blue and
   Cyber grid light; the crown case scrolls Home with the crown alone), `RemoteLogicTest` (stepping, the name).
+  CI gap: these are Gradle (Robolectric) tests run locally with `./gradlew :wear:testDebugUnitTest`; CI runs no
+  Gradle tests yet.
 - **R-WEAR-8** The watch asks the phone only while its screen is awake and visible (every 2 s on Home for the
   preview, 5 s elsewhere) and not at all in ambient, where it shows one dim, still line updated on the minute
   signal. When the phone or its engine can't be reached it says so in plain words with a retry. Tests: none yet (gap).
@@ -77,4 +79,4 @@ watch from the engine running on the phone (`127.0.0.1:8765`).
 - Casino chip bets from the watch, and measured battery cost of the 2 s preview (R-WEAR-5 asks for numbers).
 - Distribution: a separate `DeskDot-Watch-<version>.apk` in each GitHub release now; one Google Play listing later.
 
-Last verified: 2026-11-05
+Last verified: 2026-11-11
