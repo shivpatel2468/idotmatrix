@@ -16,15 +16,17 @@ import java.security.MessageDigest
 /**
  * In-app updates, Android side (the engine's src/deskdot/updates.py does the rest).
  *
- * The engine checks GitHub Releases, downloads `DeskDot-<version>.apk` into `files/data/updates/` and verifies its
- * SHA-256 against the release's checksums; then it calls, from Python:
+ * The engine checks GitHub Releases, downloads `DeskDot-<version>.apk` into `files/data/updates/`, checks the
+ * release's signed `checksums.txt` (ADR 0017) and the APK's SHA-256, saves `checksums.txt` and `checksums.txt.sig`
+ * next to the APK, then calls, from Python:
  *
- *     jclass("com.deskdot.app.Updater").install(path)
+ *     jclass("com.deskdot.app.Updater").install(apk, checksums, signature)
  *
- * which opens Android's package installer for that file (through [FileProvider]; authority `<package>.updates`,
+ * which checks the same signature and checksum once more ([ReleaseVerifier], the key built into this app) and opens
+ * Android's package installer for that file (through [FileProvider]; authority `<package>.updates`,
  * res/xml/update_paths.xml). Returns "started", "permission" (DeskDot may not install apps yet: the matching
- * settings screen was opened), "signature" (the APK isn't signed with this app's key, so Android would refuse it)
- * or "missing".
+ * settings screen was opened), "unverified" (the release's signature or the APK's checksum didn't check out: nothing
+ * is installed), "signature" (the APK isn't signed with this app's key, so Android would refuse it) or "missing".
  */
 object Updater {
     private const val TAG = "DeskDot"
@@ -38,10 +40,16 @@ object Updater {
     }
 
     @JvmStatic
-    fun install(path: String): String {
+    fun install(path: String, checksums: String, signature: String): String {
         val c = context ?: return "missing"
         val apk = File(path)
         if (!apk.isFile) return "missing"
+        val verdict = ReleaseVerifier.verify(apk, File(checksums), File(signature))
+        if (verdict != ReleaseVerifier.Result.OK) {
+            Log.w(TAG, "update refused: $verdict")
+            apk.delete()
+            return "unverified"
+        }
         if (!sameSigner(c, apk)) return "signature"
         if (Build.VERSION.SDK_INT >= 26 && !c.packageManager.canRequestPackageInstalls()) {
             val settings = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${c.packageName}"))

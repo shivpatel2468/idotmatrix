@@ -14,8 +14,11 @@ itself. Installing (docs/API.md § Updates, docs/DEPLOY.md § Releases):
   The check reads the site's own `/app/version.json` (written by scripts/build_webapp.py: version, build id,
   release notes) instead of GitHub, every 30 min, and offers a reload when its build differs from the tab's.
 
-Every download must be an HTTPS asset of this repository's release, and its SHA-256 must match the release's
-`checksums.txt` (or a `<asset>.sha256` file next to it); anything else is refused and deleted.
+Every download must be an HTTPS asset of this repository's release, named for the release's version, and its
+SHA-256 must match its line in the release's `checksums.txt` — and that `checksums.txt` must carry a valid signature
+(`checksums.txt.sig`) from the owner's release key built into the app (update_signature.py, ADR 0017). A release
+without that signature (every release made before signing began) is not installed automatically; anything else is
+refused and deleted, and the current version keeps running.
 Network calls are async (httpx); hashing and hand-off subprocesses go through `asyncio.to_thread`.
 """
 
@@ -41,6 +44,7 @@ from typing import Any, Literal
 import httpx
 
 from . import __version__
+from .update_signature import RELEASE_KEYS, SIGNATURE_NAME, checksums_are_signed
 
 log = logging.getLogger("deskdot.updates")
 
@@ -57,6 +61,8 @@ AUTO_FIRST_DELAY_S = 30.0
 AUTO_TICK_S = 3600.0
 #: the biggest installer we accept (the Windows one is ~150 MB)
 MAX_ASSET_BYTES = 600 * 1024 * 1024
+#: checksums.txt and its signature are a few hundred bytes; anything much bigger isn't them
+MAX_SMALL_BYTES = 64 * 1024
 
 Kind = Literal["windows", "macos", "android", "source", "web"]
 Status = Literal["idle", "checking", "downloading", "verifying", "installing", "error"]
@@ -154,6 +160,17 @@ def pick_asset(assets: list[dict[str, Any]], kind: str, machine: str | None = No
     return None
 
 
+_NAME_VERSION = re.compile(
+    r"^DeskDot-(?:Setup-)?(\d[\w.+-]*?)(?:-x64\.exe|-macOS(?:-arm64|-x64)?\.dmg|\.apk)$"
+)
+
+
+def asset_version(name: str) -> str | None:
+    """The version in an installer's file name ('DeskDot-Setup-3.9.0-x64.exe' → '3.9.0'), or None."""
+    m = _NAME_VERSION.match(name)
+    return m.group(1) if m else None
+
+
 def parse_checksums(text: str) -> dict[str, str]:
     """`sha256sum` output ('<hex>  name' or '<hex> *name') → {name: hex}."""
     out: dict[str, str] = {}
@@ -210,6 +227,7 @@ class Updater:
         handoff: Callable[[Kind, Path], str] | None = None,
         web_version_url: str | None = None,
         build: str | None = None,
+        release_keys: tuple[str, ...] | None = None,
     ) -> None:
         self.store = store
         self.dir = Path(data_dir) / "updates"
@@ -222,6 +240,8 @@ class Updater:
         #: the browser app: where the site publishes its current build, and the build this tab runs
         self.web_version_url = web_version_url
         self.build = build or None
+        #: the public keys a release's checksums.txt must be signed with (tests pass a throwaway one)
+        self.release_keys = release_keys or RELEASE_KEYS
         self.status: Status = "idle"
         self.progress: float | None = None
         self.error: str | None = None
@@ -468,6 +488,11 @@ class Updater:
                 )
             elif result == "started":
                 self._set(status="idle", message="Android's installer is open: tap Update.")
+            elif result == "unverified":  # Updater.kt's own check of the signed checksums said no
+                await asyncio.to_thread(path.unlink, missing_ok=True)
+                msg = "The update didn't pass its signature check, so it wasn't installed."
+                self._set(status="error", progress=None, error=msg)
+                raise UpdateError(msg)
             elif result == "signature":
                 self._set(
                     status="error",
@@ -508,36 +533,57 @@ class Updater:
         self._set(progress=1.0)
         return final
 
-    async def _expected_sha(self, name: str) -> str | None:
+    async def _small(self, http: httpx.AsyncClient, asset: dict[str, Any]) -> bytes:
+        r = await http.get(str(asset["browser_download_url"]))
+        r.raise_for_status()
+        if len(r.content) > MAX_SMALL_BYTES:
+            raise UpdateError("The release's checksum file is unexpectedly large; refused.")
+        return r.content
+
+    async def _signed_checksums(self) -> tuple[bytes, bytes]:
+        """The release's `checksums.txt` and `checksums.txt.sig`, only once the signature checks out against the
+        key built into the app. Refuses (UpdateError) a missing file, an unsigned release or a bad signature."""
         assets = (self.release or {}).get("assets", [])
-        by_name = {str(a.get("name")): a for a in assets}
+        by_name = {
+            str(a.get("name")): a for a in assets if trusted_url(str(a.get("browser_download_url", "")))
+        }
+        sums_asset, sig_asset = by_name.get("checksums.txt"), by_name.get(SIGNATURE_NAME)
+        if sums_asset is None:
+            raise UpdateError("The release has no checksum for this file, so it wasn't installed.")
+        if sig_asset is None:
+            raise UpdateError(
+                "This release isn't signed, so DeskDot didn't install it. Your current version keeps working; "
+                "you can download the new one from GitHub yourself."
+            )
         async with self._client() as http:
-            for candidate in ("checksums.txt", f"{name}.sha256"):
-                a = by_name.get(candidate)
-                if not a or not trusted_url(str(a.get("browser_download_url", ""))):
-                    continue
-                r = await http.get(str(a["browser_download_url"]))
-                r.raise_for_status()
-                text = r.text
-                if candidate.endswith(".sha256"):
-                    m = re.match(r"^\s*([0-9a-fA-F]{64})\b", text)
-                    if m:
-                        return m.group(1).lower()
-                else:
-                    sha = parse_checksums(text).get(name)
-                    if sha:
-                        return sha
-        return None
+            sums = await self._small(http, sums_asset)
+            sig = await self._small(http, sig_asset)
+        if not await asyncio.to_thread(checksums_are_signed, sums, sig, self.release_keys):
+            raise UpdateError(
+                "This release's signature doesn't match DeskDot's release key, so it wasn't installed. "
+                "Your current version keeps working."
+            )
+        return sums, sig
 
     async def _verify(self, asset: dict[str, Any], path: Path) -> None:
         name = path.name
-        expected = await self._expected_sha(name)
-        if expected is None:
+        try:
+            if asset_version(name) != self.latest:
+                raise UpdateError(
+                    "The download is for a different version than the release, so it wasn't installed."
+                )
+            sums, sig = await self._signed_checksums()
+            expected = parse_checksums(sums.decode("utf-8", "replace")).get(name)
+            if expected is None:
+                raise UpdateError("The release has no checksum for this file, so it wasn't installed.")
+            if not await asyncio.to_thread(verify_file, path, expected):
+                raise UpdateError("The download didn't match its checksum, so it wasn't installed.")
+        except BaseException:
             await asyncio.to_thread(path.unlink, missing_ok=True)
-            raise UpdateError("The release has no checksum for this file, so it wasn't installed.")
-        if not await asyncio.to_thread(verify_file, path, expected):
-            await asyncio.to_thread(path.unlink, missing_ok=True)
-            raise UpdateError("The download didn't match its checksum, so it wasn't installed.")
+            raise
+        if self.kind == "android":  # Updater.kt checks the APK again against the same signed file
+            await asyncio.to_thread((self.dir / "checksums.txt").write_bytes, sums)
+            await asyncio.to_thread((self.dir / SIGNATURE_NAME).write_bytes, sig)
 
 
 def _async(fn: Callable[[httpx.Request], None]) -> Callable[[httpx.Request], Any]:
@@ -651,9 +697,12 @@ def _handoff_macos(path: Path) -> str:
 
 
 def _handoff_android(path: Path) -> str:
+    """Updater.kt verifies the signed checksums.txt (saved next to the APK by `_verify`) once more, in Kotlin,
+    then opens Android's installer."""
     from java import jclass  # type: ignore[import-not-found]
 
-    return str(jclass("com.deskdot.app.Updater").install(str(path)))
+    sums, sig = path.parent / "checksums.txt", path.parent / SIGNATURE_NAME
+    return str(jclass("com.deskdot.app.Updater").install(str(path), str(sums), str(sig)))
 
 
 def _exit_engine() -> None:
