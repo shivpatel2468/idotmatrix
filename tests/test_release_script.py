@@ -1,6 +1,7 @@
 """scripts/release.py (docs/RELEASING.md) and scripts/check_android_res.py: the one-command release.
 
 Nothing here touches git, GitHub, Gradle or Netlify: every command goes through a fake runner that records it.
+Signing uses a throwaway key made in the test (never the real update-signing key).
 """
 
 from __future__ import annotations
@@ -13,8 +14,11 @@ import sys
 from pathlib import Path
 
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from deskdot import updates
+from deskdot.update_signature import checksums_are_signed
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -350,36 +354,170 @@ def test_ci_failure_shows_the_failing_lines_and_stops(tmp_path):
 # ---------------------------------------------------------------- publish
 
 
-def test_publish_appends_apk_checksums_uploads_and_checks_every_asset(tmp_path):
+def _signing_key(tmp_path: Path) -> tuple[Path, str]:
+    """A throwaway update-signing key on disk and its public key (base64 SubjectPublicKeyInfo)."""
+    key = ec.generate_private_key(ec.SECP256R1())
+    path = tmp_path / "keys" / "test-signing.pem"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(
+        key.private_bytes(
+            serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+        )
+    )
+    return path, release.public_key_b64(key)
+
+
+class FakeGitHub(FakeRun):
+    """FakeRun plus a release's files: `gh release upload` stores them, `gh release download` hands them back."""
+
+    def __init__(self, names: list[str], files: dict[str, bytes], *, draft: bool = True) -> None:
+        super().__init__()
+        self.names = list(names)
+        self.files = dict(files)
+        self.draft = draft
+        self.tamper: dict[str, bytes] = {}  # what GitHub serves instead, after an upload
+
+    def __call__(self, cmd, **kw):
+        self.calls.append(list(cmd))
+        line = " ".join(cmd)
+        out = ""
+        if line.startswith("gh release view"):
+            out = json.dumps({"assets": [{"name": n} for n in self.names], "isDraft": self.draft, "url": "u"})
+        elif line.startswith("gh release upload"):
+            for f in cmd[4:]:
+                if not f.startswith("--"):
+                    name = Path(f).name
+                    self.files[name] = self.tamper.get(name) or Path(f).read_bytes()
+                    if name not in self.names:
+                        self.names.append(name)
+        elif line.startswith("gh release download"):
+            name, dest = cmd[cmd.index("-p") + 1], Path(cmd[cmd.index("-D") + 1])
+            dest.mkdir(parents=True, exist_ok=True)
+            (dest / name).write_bytes(self.files[name])
+        return subprocess.CompletedProcess(cmd, 0, stdout=out, stderr="")
+
+
+def test_publish_appends_apk_checksums_signs_uploads_and_checks_every_asset(tmp_path):
     names = release.asset_names("3.10.0")
     existing = "".join(f"{'1' * 64}  {n}\n" for k, n in names.items() if k != "android")
+    key, pub = _signing_key(tmp_path)
+    run = FakeGitHub(
+        [n for k, n in names.items() if k != "android"] + ["checksums.txt"],
+        {"checksums.txt": existing.encode()},
+    )
+    said: list[str] = []
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(pub,))
+    rel.say = said.append
     out_dir = tmp_path / "tmp" / "release" / "v3.10.0"
-
-    def download():
-        out_dir.mkdir(parents=True, exist_ok=True)
-        if not (out_dir / "checksums.txt").exists():
-            (out_dir / "checksums.txt").write_text(existing, encoding="ascii")
-        return ""
-
-    view = {"assets": [{"name": n} for n in [*names.values(), "checksums.txt"]], "isDraft": True, "url": "u"}
-    run = FakeRun({"gh release download": download, "gh release view": json.dumps(view)})
-    rel, _ = make(tmp_path, run)
+    out_dir.mkdir(parents=True)
+    (out_dir / names["android"]).write_bytes(b"apk")
     rel.state.data["apks"] = {names["android"]: "2" * 64}
     rel.step_publish()
-    sums = updates.parse_checksums((out_dir / "checksums.txt").read_text(encoding="ascii"))
+    sums = updates.parse_checksums(run.files["checksums.txt"].decode("ascii"))
     assert sums[names["android"]] == "2" * 64 and len(sums) == 4
+    # the signature on GitHub is over exactly the checksums.txt on GitHub, by the key the apps trust
+    assert checksums_are_signed(run.files["checksums.txt"], run.files["checksums.txt.sig"], (pub,))
     assert run.ran("gh release upload v3.10.0")
     assert run.ran("gh release edit v3.10.0 --draft=false --latest")
+    # the key is never printed or passed to a command
+    secret = key.read_text(encoding="ascii")
+    body = "".join(secret.splitlines()[1:-1])
+    assert not any(body[:40] in s for s in said)
+    assert not any(body[:40] in " ".join(c) for c in run.calls)
+
+
+def test_publish_signs_even_when_github_built_the_apk(tmp_path):
+    """No local APK (GitHub signed it): checksums.txt is still signed before publishing."""
+    names = release.asset_names("3.10.0")
+    existing = "".join(f"{'1' * 64}  {n}\n" for n in names.values())
+    key, pub = _signing_key(tmp_path)
+    run = FakeGitHub([*names.values(), "checksums.txt"], {"checksums.txt": existing.encode()})
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(pub,))
+    rel.step_publish()
+    assert run.files["checksums.txt"] == existing.encode()  # untouched
+    assert checksums_are_signed(run.files["checksums.txt"], run.files["checksums.txt.sig"], (pub,))
+    assert run.ran("gh release edit v3.10.0 --draft=false --latest")
+
+
+def test_publish_refuses_when_the_signature_github_serves_does_not_check_out(tmp_path):
+    names = release.asset_names("3.10.0")
+    existing = "".join(f"{'1' * 64}  {n}\n" for n in names.values())
+    key, pub = _signing_key(tmp_path)
+    run = FakeGitHub([*names.values(), "checksums.txt"], {"checksums.txt": existing.encode()})
+    run.tamper["checksums.txt.sig"] = b"MEUCIQ==\n"
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(pub,))
+    with pytest.raises(release.Stop, match="don't check out"):
+        rel.step_publish()
+    assert not run.ran("gh release edit")
 
 
 def test_publish_refuses_a_release_with_a_missing_file(tmp_path):
     names = release.asset_names("3.10.0")
-    view = {"assets": [{"name": names["windows"]}, {"name": "checksums.txt"}], "isDraft": True, "url": "u"}
-    run = FakeRun({"gh release view": json.dumps(view)})
-    rel, _ = make(tmp_path, run)
+    key, pub = _signing_key(tmp_path)
+    run = FakeGitHub([names["windows"], "checksums.txt"], {"checksums.txt": b""})
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(pub,))
     with pytest.raises(release.Stop, match="missing"):
         rel.step_publish()
+    assert not run.ran("gh release upload")
     assert not run.ran("gh release edit")
+
+
+def test_preflight_stops_without_the_signing_key_and_never_shows_it(tmp_path):
+    key, pub = _signing_key(tmp_path)
+    run = FakeRun()
+    # missing
+    rel, _ = make(tmp_path, run, signing_key=tmp_path / "nowhere.pem", release_keys=(pub,))
+    problems = rel.check_signing_key()
+    assert problems and "isn't at" in problems[0] and "backup" in problems[0]
+    with pytest.raises(release.Stop, match="update-signing key"):
+        rel.preflight(["publish"])
+    # a different key than the apps trust
+    _, other_pub = _signing_key(tmp_path / "other")
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(other_pub,))
+    problems = rel.check_signing_key()
+    assert problems and "isn't the one built into the apps" in problems[0]
+    # not a key at all
+    junk = tmp_path / "junk.pem"
+    junk.write_text("-----BEGIN PRIVATE KEY-----\nnot really\n-----END PRIVATE KEY-----\n")
+    rel, _ = make(tmp_path, run, signing_key=junk, release_keys=(pub,))
+    problems = rel.check_signing_key()
+    assert problems and "couldn't read" in problems[0] and "not really" not in problems[0]
+    # the right key
+    rel, _ = make(tmp_path, run, signing_key=key, release_keys=(pub,))
+    assert rel.check_signing_key() == []
+
+
+def test_the_signing_key_is_found_through_the_git_ignored_config(tmp_path, monkeypatch):
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "appdata"))
+    assert (
+        release.signing_key_path(tmp_path)
+        == tmp_path / "appdata/DotDeckAndroid/release/deskdot-update-signing.pem"
+    )
+    (tmp_path / "release-signing.local.toml").write_text(
+        "key_file = 'D:\\keys\\sign.pem'\n", encoding="utf-8"
+    )
+    assert release.signing_key_path(tmp_path) == Path("D:\\keys\\sign.pem")
+    assert (
+        subprocess.run(
+            ["git", "check-ignore", "-q", "release-signing.local.toml"], cwd=ROOT, capture_output=True
+        ).returncode
+        == 0
+    ), "the config must be git-ignored"
+
+
+def test_make_release_key_refuses_to_overwrite_or_write_inside_a_checkout(tmp_path):
+    mk = _load("make_release_key")
+    path = tmp_path / "outside" / "k.pem"
+    pub = mk.make_key(path)
+    assert (
+        release.load_signing_key(path) is not None
+        and release.public_key_b64(release.load_signing_key(path)) == pub
+    )
+    with pytest.raises(SystemExit, match="not overwriting"):
+        mk.make_key(path)
+    with pytest.raises(SystemExit, match="inside a git checkout"):
+        mk.make_key(ROOT / "tmp" / "never.pem")
+    assert not (ROOT / "tmp" / "never.pem").exists()
 
 
 # ---------------------------------------------------------------- Android XML check
