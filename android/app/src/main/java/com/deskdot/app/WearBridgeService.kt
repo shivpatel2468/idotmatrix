@@ -80,7 +80,8 @@ class WearBridgeService : WearableListenerService() {
         val engine = state.optJSONObject("engine") ?: JSONObject()
         val device = state.optJSONObject("device") ?: JSONObject()
         val settings = state.optJSONObject("settings") ?: JSONObject()
-        val current = engine.optString("current", "")
+        // engine.current is an object ({key, app, item, kind, status...}) or null; older engines sent the id as text.
+        val current = currentApp(engine)
         val theme = runCatching { JSONObject(text("/api/theme")).optString("id", "") }.getOrDefault("")
         return JSONObject()
             .put("connected", device.optString("status") == "connected")
@@ -90,12 +91,6 @@ class WearBridgeService : WearableListenerService() {
             .put("brightness", settings.optInt("brightness", 0))
             .put("preset", engine.optString("active_preset", ""))
             .put("theme", theme)
-    }
-
-    private fun currentApp(engine: JSONObject): String {
-        if (engine.isNull("current")) return ""
-        engine.optJSONObject("current")?.let { return if (it.isNull("app")) "" else it.optString("app", "") }
-        return engine.optString("current", "")
     }
 
     private fun currentApp(engine: JSONObject): String {
