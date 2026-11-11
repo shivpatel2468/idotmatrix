@@ -11,8 +11,8 @@ plays and pauses, and works as a small casino remote, while the phone app runs t
 `com.deskdot.app` with the same release signature as the phone app, so Google's Wearable Data Layer links the two;
 it talks to the phone only (Message / Data / Channel clients), never to the laptop over Wi-Fi.
 
-This PR adds the shared piece every watch surface needs first: the casino's table themes as generated Kotlin. The
-Gradle module itself lands in a following PR.
+The `:wear` Gradle module is the watch app; the phone half is `WearBridgeService` in `android/app`, which answers the
+watch from the engine running on the phone (`127.0.0.1:8765`).
 
 ## Requirements
 
@@ -34,6 +34,28 @@ Gradle module itself lands in a following PR.
   wake locks; Tiles and Complications before an always-running activity. Every change reports measured numbers
   (`dumpsys batterystats`, the Energy profiler). Tests: none yet (gap).
 
+- **R-WEAR-6** The watch is a remote only: it asks the phone over the Wearable Data Layer and the phone's
+  `WearBridgeService` answers from its own engine. The phone answers **only** the paths listed under Interfaces
+  (read the state, the frame, the app and preset lists; show an app; play a preset; set brightness 5–100) — never
+  raw device, calibration, link or settings endpoints. App and preset ids must match `^[a-z0-9_-]{1,64}$`.
+  Tests: none yet (gap: a bridge test against a fake engine).
+- **R-WEAR-7** Home shows exactly what the panel shows (the engine's frame, drawn pixel for pixel), the app's name
+  and whether the panel is connected, brightness, presets, and the apps grouped by kind; a kind opens its apps.
+  Glass ‹ › beside the preview (or a sideways swipe on it) show the previous / next app, in the order the watch lists
+  them (kinds in the studio's order, then by name), wrapping at the ends. The app's name is its real name, never the
+  engine's raw `current` object (older phone builds sent it as text; the watch reads the app id out of it).
+  Every list is the bubbly glass list in the Orbit launcher's look: glass pills with an icon per kind, jelly glass
+  buttons, the table's accent and felt on the rims; rows curve away at the round edge, snap to the centre once, and a
+  glass bubble floats above the centred row and moves with the scroll. The crown scrolls every list (Orbit's
+  `rotaryScrollable` with a centre snap); the list asks for the crown's focus when shown and again on every resume.
+  Tests: `android/wear/src/test/.../WatchScreensTest` (every screen in Cyber grid, Classic green, Royal blue and
+  Cyber grid light; the crown case scrolls Home with the crown alone), `RemoteLogicTest` (stepping, the name).
+  CI gap: these are Gradle (Robolectric) tests run locally with `./gradlew :wear:testDebugUnitTest`; CI runs no
+  Gradle tests yet.
+- **R-WEAR-8** The watch asks the phone only while its screen is awake and visible (every 2 s on Home for the
+  preview, 5 s elsewhere) and not at all in ambient, where it shows one dim, still line updated on the minute
+  signal. When the phone or its engine can't be reached it says so in plain words with a retry. Tests: none yet (gap).
+
 ## Invariants
 
 - **I-WEAR-1** OLED black first: the table's accent and felt tone appear as rims, rings, tiles and the glass edge,
@@ -47,12 +69,14 @@ Gradle module itself lands in a following PR.
 - `WatchThemes.gen.kt` (package `com.deskdot.wear.theme`): `WatchThemes.ALL`, `WatchThemes.get(id)`,
   `WatchThemes.DEFAULT`, `WatchTheme.palette(dark)`; colours are ARGB ints (`android.graphics.Color` or Compose
   `Color(Int)`).
-- Planned: Data Layer paths between the phone app and the watch app (to be specified with the module).
+- Data Layer request/response paths (watch `PhoneLink` → phone `WearBridgeService`), JSON in and out, errors as
+  `{"error": "engine" | ...}`: `/deskdot/summary` → `{connected, status, current, name, brightness, preset, theme}` ·
+  `/deskdot/apps` → `[{id, name, category}]` · `/deskdot/presets` → `[{id, name}]` · `/deskdot/frame` → PNG
+  (128 × 128) · `/deskdot/activate` ← `{id}` · `/deskdot/preset` ← `{id}` · `/deskdot/brightness` ← `{value}`.
 
 ## Open questions
 
-- The exact Data Layer messages (panel preview frames, app and preset lists, casino chip bets) and how often the
-  preview may update without costing battery.
+- Casino chip bets from the watch, and measured battery cost of the 2 s preview (R-WEAR-5 asks for numbers).
 - Distribution: a separate `DeskDot-Watch-<version>.apk` in each GitHub release now; one Google Play listing later.
 
-Last verified: 2026-10-31
+Last verified: 2026-11-11

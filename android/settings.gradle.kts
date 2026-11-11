@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "DeskDot"
 include(":app")
+include(":wear") // the Wear OS remote (android/wear/SPEC.md)
