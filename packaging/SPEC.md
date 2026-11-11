@@ -73,6 +73,13 @@ update it from inside the app. Developers release by pushing a version tag on `m
   tagged: CI's `android-resources` job and the release script's checks run `scripts/check_android_res.py`. Tests:
   `tests/test_release_script.py::test_android_xml_check_rejects_double_dash_in_comments`, the `android-resources`
   job of `.github/workflows/ci.yml`.
+- **R-REL-20** Build provenance: `release.yml`'s `release` job attests every installer it built in that run (the exe,
+  both dmgs, and the APKs when GitHub built them) with `actions/attest-build-provenance` before writing
+  `checksums.txt`; only that job has `id-token: write` and `attestations: write`. An APK built locally by `release.py`
+  is not attested (GitHub didn't build it). Anyone checks a file with
+  `gh attestation verify <file> --repo shivpatel2468/idotmatrix` (docs/RELEASING.md). Tests:
+  `tests/test_release_workflow.py::test_the_installers_get_build_provenance_before_checksums_and_upload`,
+  `tests/test_release_workflow.py::test_only_the_release_job_may_mint_attestations`.
 - **R-REL-16** When all four `ANDROID_*` secrets exist, `release.yml`'s `android` job builds the phone (and watch) APK,
   checks it is signed with the release key, attaches it and deletes the key; without them the job is skipped and the
   release still drafts. Tests: the `android` job of `.github/workflows/release.yml` (no unit test: needs the secrets).
@@ -99,5 +106,7 @@ release assets `DeskDot-Setup-<v>-x64.exe`, `DeskDot-<v>-macOS-{arm64,x64}.dmg`,
 ## Open questions
 
 - Builds are unsigned (SmartScreen / Gatekeeper warnings on first start) until certificates exist.
+- `release.py` doesn't run `gh attestation verify` on the GitHub-built installers before publishing (it would download
+  ~400 MB per release); the attestations are checked by hand when wanted.
 
-Last verified: 2026-11-06
+Last verified: 2026-11-11
