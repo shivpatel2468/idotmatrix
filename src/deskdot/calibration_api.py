@@ -126,6 +126,7 @@ def register(app: FastAPI, engine: Engine, store: Store) -> None:
         return {
             "presets": preset_listing(),
             "groups": {
+                "deskdot": "DeskDot default",
                 "claude": "Claude presets",
                 "inspired": "Inspired by popular displays",
                 "standard": "Standards",

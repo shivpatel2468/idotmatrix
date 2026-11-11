@@ -34,7 +34,7 @@ from ..config import Config, Store
 from ..device import Device
 from ..device import protocol as P
 from ..gfx import Frame, to_rgb
-from ..gfx.calib import PanelCalibration
+from ..gfx.calib import PanelCalibration, initial_calibration
 from ..gfx.calib import apply as apply_calibration
 from ..gfx.calib import pattern as calibration_pattern
 from ..gfx.image import encode_gif_budget
@@ -53,6 +53,8 @@ from .persistent import ActiveIndicator, Indicator, draw_indicators, draw_onair_
 log = logging.getLogger("deskdot.engine")
 
 TRANSITION_SECONDS = 0.4
+#: s between ticks while no one can see a frame (the panel isn't ours or isn't connected, no studio open)
+IDLE_TICK = 1.0
 #: Minimum seconds between motion-test GIF uploads (frequent uploads stall the panel, HARDWARE_PROTOCOL #16).
 TEST_GIF_COOLDOWN = 20.0
 #: A page-theme pick reaches the panel after this many quiet seconds (someone browsing the swatches re-bakes once)
@@ -195,7 +197,8 @@ class Engine:
         self._revert: asyncio.Task[None] | None = None
         self._revert_to: tuple[Any, str, bool] | None = None
         self.auto_rule: int | None = None  # index of the autopilot rule currently in control
-        self.calibration = PanelCalibration.load(store.get("calibration"))
+        # nothing stored: the house default (gfx/calib.py DEFAULT_CALIBRATION); a stored calibration is kept as is
+        self.calibration = initial_calibration(store.get("calibration"))
         self.released = False  # True after a hand-off: the panel runs on its own until we take it back
         # calibration / motion test card owning the panel: (card, started, until) - see show_test()
         self.pattern: tuple[CalCard | MotionCard | StillCard, float, float] | None = None
@@ -225,6 +228,9 @@ class Engine:
         self.panel_theme: PageTheme = self.page_theme
         self._theme_task: asyncio.Task[None] | None = None
         self._theme_applied_at = -1e9
+        self.streaming = (
+            False  # the last tick streamed frames to the panel (a stream app, an overlay, a transition)
+        )
         hub.listeners.append(self._on_event)
 
     # ================================================================ lifecycle
@@ -881,7 +887,44 @@ class Engine:
             return {"active": False, "app": s.app.id}
         return {"active": True, "app": s.app.id, **snap}
 
+    def cpu_reason(self) -> str | None:
+        """Why the engine needs the CPU right now, in a word, or None when the panel runs by itself (a baked clip or
+        the firmware clock with nothing live to stream). The Android app lets the phone sleep on None (ADR 0016)."""
+        if self.released:
+            return None
+        if self.pattern is not None:
+            return "test card"
+        if self.streaming or self.overlay is not None or self.notices or self._trans is not None:
+            return "streaming"
+        if self.takeover is not None:
+            return "takeover"
+        if self._revert is not None and not self._revert.done():
+            return "timed app"
+        if self.mode == "playlist" and self.playlist.enabled and len(self._playlist_items()) > 1:
+            return "playlist"
+        if self._bg:  # autopilot, alerts, On Air, eye breaks: background providers poll live data
+            return "background"
+        s = self.current
+        if s is not None and s.baking is not None:
+            return "baking"
+        return None
+
+    def wake_in(self) -> float | None:
+        """While the phone sleeps: seconds until the engine should look again (a clip that re-bakes as time passes)."""
+        s = self.current
+        if s is not None and not self.released and s.app.kind() == "clip" and s.app.clip_refresh > 0:
+            return float(s.app.clip_refresh)
+        return None
+
     def _delay(self) -> float:
+        d = self._base_delay()
+        # Nobody can see a frame: the panel isn't ours (released / not connected) and no screen watches the engine.
+        # Tick slowly: playlists, night mode and overlays still advance, without rendering 30 fps for nobody.
+        if (self.released or not self.device.connected) and not self.frame_listeners:
+            return max(d, IDLE_TICK)
+        return d
+
+    def _base_delay(self) -> float:
         if self._trans or self.overlay:
             return 1 / 20
         if self.pattern is not None and self.pattern[0].fps > 0:
@@ -991,6 +1034,7 @@ class Engine:
         drawn = self._draw_persistent(frame, now)
 
         streaming = kind == "stream" or self.overlay is not None or self._trans is not None or drawn
+        self.streaming = streaming
         frame = self._smooth(frame, kind == "stream" and self.overlay is None and self._trans is None)
         if streaming:
             if kind == "clip":

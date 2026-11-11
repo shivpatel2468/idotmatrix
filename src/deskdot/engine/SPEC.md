@@ -51,7 +51,33 @@ The HTTP + WebSocket server in `server.py` is a stateless view over the engine.
 - **R-ENG-12** The page theme is an engine setting shared by every screen (`POST /api/theme`) and recolours themed
   apps on the panel. Tests: `tests/test_page_themes.py::test_theme_api`,
   `tests/test_page_themes.py::test_engine_switches_the_panel_theme`.
+- **R-ENG-13** Panel calibration: with no calibration stored, the engine starts on the house default
+  (`gfx/calib.py` `DEFAULT_CALIBRATION`, preset `deskdot` "DeskDot (tuned)", listed first; the owner's tuning) on
+  every build, without writing it to `state.json`; a stored calibration is kept as stored and never replaced by the
+  default; `PanelCalibration`'s field defaults stay the identity. The studio's resets go to the same values
+  (`web/src/lib/calib.ts` `DEFAULT_CALIB`) and "Panel native" remains the no-correction preset
+  (docs/CALIBRATION.md § The default). Tests: `tests/test_calibration.py::test_house_default_is_the_owners_tuning`,
+  `tests/test_calibration.py::test_initial_calibration_uses_the_default_only_when_nothing_is_stored`,
+  `tests/test_calibration.py::test_house_default_preset_comes_first_and_applies_its_values`,
+  `tests/test_calibration.py::test_studio_mirrors_the_house_default`,
+  `tests/test_calibration.py::test_fresh_engine_starts_on_the_house_default`,
+  `tests/test_calibration.py::test_stored_calibration_is_kept_as_is`,
+  `tests/test_calibration.py::test_engine_fixture_starts_on_the_house_default`,
+  `tests/test_calibration.py::test_default_is_identity_and_passes_frames_through`.
 
+- **R-ENG-14** The engine says whether it needs the CPU (`Engine.cpu_reason()`): only for live content — a stream,
+  an overlay or transition, a test card, a takeover, a timed app, a playlist of two or more, background providers,
+  a clip being baked. A baked clip or the firmware clock with nothing live needs none (ADR 0016). While no one can see
+  a frame (the panel released or not connected, no studio or TV watching) it ticks at most once a second. Tests:
+  `tests/test_keepawake.py::test_engine_needs_the_cpu_only_for_live_content`,
+  `tests/test_keepawake.py::test_engine_ticks_slowly_when_nobody_can_see_a_frame`.
+- **R-ENG-15** Hand-over beacons (ADR 0015/0016) go every 4 s while the screen is on or another DeskDot was heard in
+  the last minute; otherwise every 10 s while holding the panel (under the 15 s that 3.10 peers allow) and every 20 s
+  when not. Each beacon carries its pace (`every`), and a peer stays nearby for 2.5 × that (15–60 s). "Use the panel
+  here" with no fresh holder asks the paired instance that last held it before waiting for the advertisement.
+  Tests: `tests/test_keepawake.py::test_beacon_pace`, `tests/test_keepawake.py::test_peer_freshness_follows_the_announced_pace`,
+  `tests/test_keepawake.py::test_a_slow_holder_stays_nearby_and_the_screen_sets_the_pace`, `tests/test_keepawake.py::test_busy_while_taking_or_pairing`,
+  `tests/test_keepawake.py::test_take_asks_the_quiet_last_holder_to_let_go`.
 ## Invariants
 
 - **I-ENG-1** One asyncio task runs the tick; only it mutates what is on screen. CPU-heavy work (GIF bakes, image
@@ -81,4 +107,4 @@ the [TV spec](../tv/SPEC.md), updates to the [packaging spec](../../../packaging
 - I-ENG-1's runtime check covers a handful of apps (stream, clip, casino, game, a network provider); a blocking
   call in a rarely shown app is caught only by the static scan.
 
-Last verified: 2026-10-29
+Last verified: 2026-11-05

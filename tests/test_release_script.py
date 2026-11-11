@@ -291,6 +291,25 @@ def test_production_deploy_only_when_asked(tmp_path):
     assert asked2 == [] and any("--prod" in c for c in run2.calls)
 
 
+def test_the_website_branch_is_pushed_after_the_rebuild_never_forced(tmp_path):
+    ids = list(release.STEP_IDS)
+    assert ids.index("website_build") < ids.index("website_push") < ids.index("website_preview")
+    run = FakeRun()
+    rel, _ = make(tmp_path, run)
+    rel.step_website_push()
+    assert run.calls == [["git", "push", "origin", "website"]]
+    assert not any("--force" in a or a == "-f" or a.startswith("+") for c in run.calls for a in c)
+
+
+def test_a_refused_website_push_stops_with_what_to_do(tmp_path):
+    run = FakeRun({"git push origin website": (1, "! [rejected] website -> website (fetch first)")})
+    rel, _ = make(tmp_path, run)
+    with pytest.raises(release.Stop) as e:
+        rel.step_website_push()
+    assert "rejected" in str(e.value) and "git pull --rebase origin website" in str(e.value)
+    assert "--only website" in str(e.value)
+
+
 def test_yes_does_not_deploy_the_website(tmp_path):
     run = FakeRun()
     rel, _ = make(tmp_path, run, yes=True)
@@ -383,3 +402,16 @@ def test_android_xml_check_rejects_double_dash_in_comments(tmp_path):
     )
     found = check_android_res.check(tmp_path / "android")
     assert len(found) == 1 and found[0].startswith("android/wear/src/main/res/values/colors.xml")
+
+
+def test_porcelain_paths_survive_a_stripped_first_line() -> None:
+    """3.10.0's release stopped on "HANGELOG.md": `sh()` strips its output, so the first line's " M" lost its space."""
+    raw = " M CHANGELOG.md\n M WHATS_NEW.md\nM  src/x.py\n?? new file.txt\n"
+    assert release.porcelain_paths(raw.strip()) == [
+        "CHANGELOG.md",
+        "WHATS_NEW.md",
+        "src/x.py",
+        "new file.txt",
+    ]
+    assert release.porcelain_paths("MM both.py") == ["both.py"]
+    assert release.porcelain_paths("") == []

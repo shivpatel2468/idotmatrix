@@ -17,5 +17,6 @@
 | 0013 | [The user may release the panel; the engine never lets go on its own](0013-user-release-of-the-panel.md) | Accepted |
 | 0014 | [Living specs beside the code, and one pull request per change](0014-living-specs-and-pr-per-change.md) | Proposed |
 | 0015 | [Hand the panel over between DeskDots, cleanly, with one button](0015-panel-handover-between-deskdots.md) | Proposed |
+| 0016 | [Let the phone sleep when there is nothing to drive](0016-android-power-model.md) | Proposed |
 
 New decisions: copy the format, next number, status `Proposed` → `Accepted`. Never rewrite an accepted ADR; supersede it.

@@ -10,6 +10,8 @@
  * The app also calls `window.__deskdotBack()` on the Back button: true = the studio closed something (a sheet, a menu).
  */
 import { pageBars } from "./pageTheme";
+import { backStep } from "./backStep";
+import { useStore } from "./store";
 
 type Bridge = {
   version(): number;
@@ -101,15 +103,22 @@ export function introDone() {
 }
 
 /**
- * Android's Back button: close whatever is open on top (a sheet, a dialog, a menu) the way Escape does, instead of
- * leaving the app. Returns false when nothing was open, so the app goes to the home screen as before.
+ * Android's Back button, innermost first: close whatever is open on top (a sheet, a dialog, a menu) the way Escape
+ * does; else, on a tab other than Panel (Apps, Presets, Settings), go back to the Panel tab. Returns false only on
+ * the Panel tab with nothing open, so the app then goes to the home screen as before.
  */
-export function installBackButton() {
-  (window as unknown as { __deskdotBack?: () => boolean }).__deskdotBack = () => {
-    const open = document.querySelector('[aria-modal="true"], [role="dialog"], [role="menu"], [role="listbox"]');
-    if (!open) return false;
+export function backAction(): boolean {
+  const open = document.querySelector('[aria-modal="true"], [role="dialog"], [role="menu"], [role="listbox"]');
+  const step = backStep(open !== null, useStore.getState().mobileTab);
+  if (step === "close") {
     const target = (document.activeElement as HTMLElement | null) ?? document.body;
     target.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", bubbles: true, cancelable: true }));
-    return true;
-  };
+  } else if (step === "panel") {
+    useStore.setState({ mobileTab: "panel" });
+  }
+  return step !== "leave";
+}
+
+export function installBackButton() {
+  (window as unknown as { __deskdotBack?: () => boolean }).__deskdotBack = backAction;
 }

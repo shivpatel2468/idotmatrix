@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Check, RotateCcw, Undo2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
-import { type Calib, FIELDS, type FieldKey, type FieldMeta, IDENTITY, channelGains, sameLook } from "../../lib/calib";
+import { type Calib, FIELDS, type FieldKey, type FieldMeta, DEFAULT_CALIB, channelGains, sameLook } from "../../lib/calib";
 import { MATCHES, MATCH_HINT, MATCH_LABEL, useLook } from "../../lib/look";
 import { toast } from "../../lib/store";
 import { Slider, Toggle } from "../controls";
@@ -36,7 +36,8 @@ export function CalAdvanced({ saved, start, onDone }: { saved: Calib; start?: Ca
 
   const set = (k: FieldKey, v: number) => setC((x) => ({ ...x, [k]: v, preset: "custom" }));
   const save = async () => {
-    await api.calibration({ ...c, preset: c.preset && c.preset !== "custom" && sameLook(c, saved) ? c.preset : "custom" });
+    const preset = sameLook(c, DEFAULT_CALIB) ? DEFAULT_CALIB.preset : c.preset && c.preset !== "custom" && sameLook(c, saved) ? c.preset : "custom";
+    await api.calibration({ ...c, preset });
     toast("Calibration saved", "ok");
     onDone();
   };
@@ -93,7 +94,7 @@ export function CalAdvanced({ saved, start, onDone }: { saved: Calib; start?: Ca
       </section>
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-2 border-t border-line bg-chassis-1 py-3">
-        <button className="key key-ghost" title="Every knob back to factory" onClick={() => setC({ ...IDENTITY, preset: "custom" })}><RotateCcw size={13} /> Factory</button>
+        <button className="key key-ghost" title="Every knob back to DeskDot's tuned default" onClick={() => setC({ ...DEFAULT_CALIB })}><RotateCcw size={13} /> Default</button>
         <button className="key key-ghost" disabled={!dirty} onClick={() => setC(saved)}><Undo2 size={13} /> Revert</button>
         <span className={clsx("ml-auto font-mono text-[10.5px]", dirty ? "text-warn" : "text-ink-4")}>{dirty ? "unsaved changes" : "saved"}</span>
         <button className="key key-ember" disabled={!dirty} onClick={save}><Check size={13} /> Save</button>
@@ -103,7 +104,7 @@ export function CalAdvanced({ saved, start, onDone }: { saved: Calib; start?: Ca
 }
 
 function FieldRow({ m, value, onChange }: { m: FieldMeta; value: number; onChange: (v: number) => void }) {
-  const def = IDENTITY[m.key];
+  const def = DEFAULT_CALIB[m.key];
   const changed = Math.abs(value - def) > 1e-6;
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">

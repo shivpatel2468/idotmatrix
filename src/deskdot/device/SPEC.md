@@ -27,8 +27,8 @@ replay); backends (`ble.py` desktop, `android.py`, `web.py`, `sim.py`) implement
   `tests/test_web_device.py::test_frames_are_split_into_paced_packets_one_at_a_time`,
   `tests/test_web_device.py::test_gif_chunks_wait_for_their_ack`,
   `tests/test_android_device.py::test_frames_are_split_into_paced_packets_one_at_a_time`.
-- **R-DEV-5** On link loss the device reconnects by itself (back-off 1 → 20 s, a hung connect abandoned after 45 s)
-  and replays brightness, power and the last visual. Tests:
+- **R-DEV-5** On link loss the device reconnects by itself (back-off 1 → 20 s, a hung connect abandoned after 45 s;
+  after 10 minutes of failures see R-DEV-12) and replays brightness, power and the last visual. Tests:
   `tests/test_engine.py::test_a_hung_connect_is_abandoned_and_retried`,
   `tests/test_web_device.py::test_link_loss_reconnects_and_replays_the_screen`,
   `tests/test_android_device.py::test_link_loss_reconnects_and_replays_the_screen`.
@@ -48,7 +48,15 @@ replay); backends (`ble.py` desktop, `android.py`, `web.py`, `sim.py`) implement
   Access for idotmatrix.com only). Tests: `tests/test_device_connection.py::test_health_probe_for_the_web_app`.
 - **R-DEV-10** Baked GIFs stay under the 40 KB budget; frames are truecolour PNG (never palette PNG).
   Tests: `tests/test_gfx.py::test_gif_budget_is_a_hard_limit`.
+- **R-DEV-11** The Android backend writes packets of at most 244 bytes, each with response (HARDWARE_PROTOCOL.md
+  finding 19): full 514-byte packets without response made a phone's stack lose write completions during GIF uploads
+  and loop connect → pairing screen → reconnect. Desktop keeps 514-byte packets without response.
+  Tests: `tests/test_android_device.py::test_phone_writes_are_small_and_acknowledged`.
 
+- **R-DEV-12** When the panel stays missing for 10 minutes the retry delay grows to ~3 minutes (jittered 2¼–3¾);
+  *Reconnect now*, a holder letting go or opening the Android app starts the back-off over at 1 s. Waiting at the
+  hand-over gate is not failing. Tests: `tests/test_keepawake.py::test_next_backoff_grows_long_after_ten_minutes`,
+  `tests/test_keepawake.py::test_supervisor_backs_off_long_and_reconnect_now_starts_over`.
 ## Invariants
 
 - **I-DEV-1** The engine is the only process that owns the link. `bleak` is imported only in `device/`.
@@ -72,4 +80,4 @@ stats, `reason`, `hint`, `rssi`); `POST /api/device/link`, `POST /api/device/rec
 
 - Whether `packet_gap_ms` can drop below 30 ms (HARDWARE_PROTOCOL.md § Unverified).
 
-Last verified: 2026-10-29
+Last verified: 2026-11-05

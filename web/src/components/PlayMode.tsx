@@ -8,6 +8,7 @@ import {
 import { type GameKey, gameKeyDown, isPlayable, openPlay, playableGames, releaseAll, usePressedKeys } from "../lib/gameInput";
 import { startGamepads, usePads } from "../lib/gamepads";
 import { appMeta, onFrame, useStore } from "../lib/store";
+import { useFitScreen } from "../lib/useFitScreen";
 import { Icon } from "./Icon";
 import { ControlsPanel } from "./ControlsPanel";
 import { DisplayMenu } from "./DisplayMenu";
@@ -249,6 +250,8 @@ function Scoreboard({ horizontal }: { horizontal?: boolean }) {
 }
 
 function GameMenu({ open, setOpen, cur }: { open: boolean; setOpen: (o: boolean) => void; cur: string | null }) {
+  const menu = useRef<HTMLDivElement>(null);
+  useFitScreen(menu, open);
   const meta = useStore((s) => s.meta);
   const games = playableGames(meta);
   const name = appMeta(cur)?.name ?? "Pick a game";
@@ -264,7 +267,8 @@ function GameMenu({ open, setOpen, cur }: { open: boolean; setOpen: (o: boolean)
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div role="menu" className="surface absolute left-0 top-full z-20 mt-2 grid w-[min(460px,calc(100vw-24px))] grid-cols-2 gap-1 p-1.5 animate-rise sm:grid-cols-3">
+          <div ref={menu} role="menu" className="surface absolute left-0 top-full z-20 mt-2 flex w-[min(460px,calc(100vw-24px))] flex-col p-1.5 animate-rise">
+            <div className="grid min-h-0 grid-cols-2 gap-1 overflow-y-auto overscroll-contain sm:grid-cols-3">
             {games.map((g) => (
               <button key={g.id} role="menuitem" onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { setOpen(false); if (g.id !== cur) goTo(g.id); }}
@@ -274,6 +278,7 @@ function GameMenu({ open, setOpen, cur }: { open: boolean; setOpen: (o: boolean)
                 <span className="truncate">{g.name}</span>
               </button>
             ))}
+            </div>
           </div>
         </>
       )}

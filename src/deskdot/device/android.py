@@ -10,8 +10,10 @@ against a fake (tests/test_android_device.py).
 
 Bridge contract (Kotlin `com.deskdot.app.BleBridge`, listener interface `com.deskdot.app.BleListener`):
 
-- `connect(address: String?, namePrefix: String, listener)` — scan (by MAC, or by advertised name prefix), connect,
-  request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or `onConnectFailed(msg)`.
+- `connect(address: String?, namePrefix: String, listener)` — connect directly by MAC (the given one, else the last
+  panel this phone connected to), falling back to a scan filtered by that MAC (by the advertised name prefix only with
+  the screen on); request MTU, enable notifications; reports `onConnected(address, name, writeSize)` or
+  `onConnectFailed(msg)`. The scan is low-latency only while the app is open, balanced or low-power otherwise.
 - `write(data: byte[], withResponse: boolean, token: int)` — reports `onWriteDone(token, ok, msg)`.
 - `disconnect()` — close the GATT session, or abort a connect in progress (a release, a timed-out attempt, a
   recovery; the engine never disconnects voluntarily). Always `gatt.disconnect()` *then* `gatt.close()` once the
@@ -31,8 +33,17 @@ from .base import Device, wait_for
 
 log = logging.getLogger("deskdot.android")
 
-CONNECT_TIMEOUT = 25.0  # scan (≤10 s) + connect + MTU + service discovery
+#: direct connect by MAC (8 s) + fallback scan (10 s; 20 s with the screen off, BleBridge.kt) + MTU + discovery
+CONNECT_TIMEOUT = 40.0
 WRITE_TIMEOUT = 5.0
+#: Phone writes are small and acknowledged (docs/HARDWARE_PROTOCOL.md finding 19). With the full 514-byte packets
+#: written without response, a phone's Bluetooth stack under load (seen on a Xiaomi 11i: MediaTek radio, Android 13,
+#: also paging a watch) lost a write's completion during GIF uploads (`bta_gattc_op_cmpl: No pending command`). The
+#: app never heard back, Android's per-device write permit was never released, every later write was refused, and
+#: the engine reconnected in a loop — the panel flashing its pairing screen each time. 244-byte packets fit one
+#: radio frame and acknowledged writes complete through the request/response path: no lost completions, no loop.
+MAX_PACKET = 244
+ACKED_WRITES = True
 
 
 class _Events:
@@ -136,7 +147,7 @@ class AndroidBleDevice(Device):
         finally:
             self._connect_future = None
         self._link_up = True
-        self.packet_size = max(20, write_size)
+        self.packet_size = max(20, min(write_size, MAX_PACKET))
         self.info.address = address
         self.info.name = name
         self.info.mtu = self.packet_size
@@ -168,7 +179,7 @@ class AndroidBleDevice(Device):
         fut: asyncio.Future[None] = asyncio.get_running_loop().create_future()
         self._writes[token] = fut
         try:
-            self._bridge.write(packet, response, token)
+            self._bridge.write(packet, response or ACKED_WRITES, token)
             await wait_for(fut, WRITE_TIMEOUT)
         except TimeoutError:
             raise ConnectionError("write timed out") from None

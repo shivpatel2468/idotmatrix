@@ -8,18 +8,17 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
-import android.os.PowerManager
 import android.util.Log
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 
 /**
- * Keeps DeskDot running: a foreground service (persistent notification) that starts the Python engine once and
- * holds a partial wake lock and a Wi-Fi lock, so the panel keeps playing and the studio / phone controllers stay
- * reachable with the screen off. Started by [MainActivity] and at boot by [BootReceiver].
+ * Keeps DeskDot running: a foreground service (persistent notification) that starts the Python engine once. The wake,
+ * Wi-Fi and multicast locks are [PowerGate]'s: held while the engine has something to drive, released (with an alarm
+ * for the next look) when it hasn't, so the phone can sleep (ADR 0016). Started by [MainActivity] and at boot by
+ * [BootReceiver].
  */
 class EngineService : Service() {
     companion object {
@@ -36,10 +35,6 @@ class EngineService : Service() {
             if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(i) else context.startService(i)
         }
     }
-
-    private var wakeLock: PowerManager.WakeLock? = null
-    private var wifiLock: WifiManager.WifiLock? = null
-    private var multicastLock: WifiManager.MulticastLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -58,19 +53,7 @@ class EngineService : Service() {
         } else {
             startForeground(NOTE_ID, note)
         }
-        wakeLock = getSystemService(PowerManager::class.java)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DeskDot::engine")
-            .apply { setReferenceCounted(false); acquire() }
-        @Suppress("DEPRECATION")
-        val mode = if (Build.VERSION.SDK_INT >= 29) WifiManager.WIFI_MODE_FULL_LOW_LATENCY else WifiManager.WIFI_MODE_FULL_HIGH_PERF
-        wifiLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
-            .createWifiLock(mode, "DeskDot::studio")
-            .apply { setReferenceCounted(false); acquire() }
-        // Other DeskDots on the Wi-Fi announce who holds the panel with UDP broadcasts (ADR 0015); many phones filter
-        // broadcast packets unless an app holds a multicast lock.
-        multicastLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
-            .createMulticastLock("DeskDot::handover")
-            .apply { setReferenceCounted(false); acquire() }
+        PowerGate.init(applicationContext) // awake until the engine's first report
         startEngine()
     }
 
@@ -104,9 +87,7 @@ class EngineService : Service() {
         } catch (t: Throwable) {
             Log.w(TAG, "stop: $t")
         }
-        wakeLock?.release()
-        wifiLock?.release()
-        multicastLock?.release()
+        PowerGate.shutdown()
         super.onDestroy()
     }
 
