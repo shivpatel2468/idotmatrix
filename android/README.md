@@ -117,9 +117,11 @@ Builds before 3.8 were signed with a debug key, so going from one of those to 3.
 ### Updates
 
 The app updates itself (Settings → Device → Updates): the engine finds the new `DeskDot-<version>.apk` on the latest
-GitHub release, downloads it into `files/data/updates/`, checks its SHA-256 against the release's `checksums.txt`,
-and `Updater.kt` opens Android's installer for it (FileProvider authority `com.deskdot.app.updates`,
-`REQUEST_INSTALL_PACKAGES`). It refuses an APK signed with another key. The first time, Android asks to allow
+GitHub release, downloads it into `files/data/updates/`, checks the release's signed `checksums.txt`
+(`checksums.txt.sig`, the owner's key built into the app; ADR 0017) and the APK's SHA-256 against it, and
+`Updater.kt` checks both again (`ReleaseVerifier.kt`) and opens Android's installer for it (FileProvider authority
+`com.deskdot.app.updates`, `REQUEST_INSTALL_PACKAGES`). It refuses an unsigned release and an APK signed with another
+key. `ReleaseVerifier` has JVM unit tests: `.\gradlew :app:testDebugUnitTest`. The first time, Android asks to allow
 DeskDot to install apps. After the update, `BootReceiver` (MY_PACKAGE_REPLACED) starts the engine again.
 
 ## Install on the phone

@@ -37,7 +37,9 @@ deskdot = "deskdot.cli:main"
 deskdot-mcp = "deskdot.mcp_server:main"
 
 [dependency-groups]
-dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13"]
+# cryptography: signing checksums.txt at release time (scripts/release.py) and the tests' throwaway keys; the apps
+# only verify, in plain Python (src/deskdot/update_signature.py)
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13", "cryptography>=43"]
 # the installers (packaging/, docs/DEPLOY.md § Releases): uv sync --no-dev --extra launcher --group packaging
 packaging = ["pyinstaller>=6.11"]
 

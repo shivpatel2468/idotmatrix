@@ -13,6 +13,11 @@ tmp/release/state.json (git-ignored), and the next run carries on from the first
 
 Safe by default: nothing is merged unless you type y (or pass --yes), the website goes live only with --deploy or
 a y at its prompt, nothing is force-pushed, no secret is printed, keystore files are never added to git.
+
+Before publishing, checksums.txt is signed here with the update-signing key (ADR 0017; made once by
+scripts/make_release_key.py, kept outside the repo, found through the git-ignored release-signing.local.toml), the
+signature is uploaded as checksums.txt.sig, and what GitHub then serves is checked against the key built into the
+apps. The key itself is never printed, copied or uploaded.
 """
 
 from __future__ import annotations
@@ -26,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import time
+import tomllib
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,6 +43,10 @@ WEBSITE_DIR = ROOT.parent / "idotmatrix-website"
 WEBSITE_BRANCH = "website"
 MIN_FREE_RAM = 2 * 1024**3
 NETLIFY_PROD_CREDITS = 15
+#: git-ignored (*.local.toml): `key_file = '<path>'`, where the update-signing key lives (outside every checkout)
+SIGNING_CONFIG = "release-signing.local.toml"
+SIGNING_KEY_NAME = "deskdot-update-signing.pem"
+SIGNATURE_NAME = "checksums.txt.sig"
 
 #: files the version bump edits, and nothing else
 VERSION_FILES = ("pyproject.toml", "src/deskdot/__init__.py", "uv.lock", "README.md")
@@ -193,6 +203,81 @@ def append_checksums(text: str, new: dict[str, str]) -> str:
     return "\n".join(keep) + "\n"
 
 
+def default_signing_key() -> Path:
+    base = os.environ.get("LOCALAPPDATA") or str(Path.home() / ".local" / "share")
+    return Path(base) / "DotDeckAndroid" / "release" / SIGNING_KEY_NAME
+
+
+def signing_key_path(root: Path) -> Path:
+    """Where the update-signing key is: `key_file` in the checkout's release-signing.local.toml, else the default
+    place next to the Android release key (%LOCALAPPDATA%\\DotDeckAndroid\\release)."""
+    cfg = root / SIGNING_CONFIG
+    if cfg.is_file():
+        try:
+            key = tomllib.loads(cfg.read_text(encoding="utf-8")).get("key_file")
+        except (OSError, ValueError):
+            key = None
+        if key:
+            return Path(str(key))
+    return default_signing_key()
+
+
+def update_signature(root: Path) -> Any:
+    """The apps' own signature check and built-in keys (src/deskdot/update_signature.py)."""
+    try:
+        from deskdot import update_signature as mod
+    except ImportError:  # not installed in this environment: use the checkout's
+        sys.path.insert(0, str(root / "src"))
+        try:
+            from deskdot import update_signature as mod
+        finally:
+            sys.path.pop(0)
+    return mod
+
+
+def load_signing_key(path: Path):
+    """The private key at `path`, or Stop with a plain message. Error messages never include the key."""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    if not path.is_file():
+        raise Stop(
+            f"the update-signing key isn't at {path}. It signs checksums.txt so the apps trust the release "
+            "(docs/RELEASING.md § The update-signing key). Restore it from your private backup there, or point "
+            f"`key_file` in {SIGNING_CONFIG} at it. Make a new one only if it is really lost (ADR 0017)."
+        )
+    try:
+        key = serialization.load_pem_private_key(path.read_bytes(), password=None)
+    except Exception:
+        raise Stop(
+            f"couldn't read the update-signing key at {path} (is it the file make_release_key.py made?)"
+        ) from None
+    if not isinstance(key, ec.EllipticCurvePrivateKey) or key.curve.name != "secp256r1":
+        raise Stop(f"the key at {path} isn't a P-256 update-signing key")
+    return key
+
+
+def public_key_b64(key) -> str:
+    import base64
+
+    from cryptography.hazmat.primitives import serialization
+
+    der = key.public_key().public_bytes(
+        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    return base64.b64encode(der).decode("ascii")
+
+
+def sign_checksums(data: bytes, key) -> bytes:
+    """`checksums.txt.sig`: one line, base64 of the DER ECDSA P-256 / SHA-256 signature of exactly `data`."""
+    import base64
+
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    return base64.b64encode(key.sign(data, ec.ECDSA(hashes.SHA256()))) + b"\n"
+
+
 def checksum_names(text: str) -> set[str]:
     return {
         m[1]
@@ -244,7 +329,11 @@ STEPS: tuple[Step, ...] = (
         "android",
         "Build and sign the Android APK(s) here (skipped when GitHub already signed them)",
     ),
-    Step("publish", "github", "Add the APK(s) and their checksums, publish the release as the latest"),
+    Step(
+        "publish",
+        "github",
+        "Add the APK(s) and their checksums, sign checksums.txt, publish the release as the latest",
+    ),
     Step("website_sync", "website", "Bring the website copy up to date (cherry-pick the new main commits)"),
     Step("website_build", "website", "Rebuild the web app (/app) and the website pages"),
     Step("website_push", "website", "Push the website branch to GitHub"),
@@ -338,6 +427,8 @@ class Release:
         sleep: Callable[[float], None] = time.sleep,
         state_file: Path | None = None,
         out: Callable[[str], None] = print,
+        signing_key: Path | None = None,
+        release_keys: tuple[str, ...] | None = None,
     ) -> None:
         self.state = state
         self.v = state.version
@@ -353,6 +444,9 @@ class Release:
         self.state_file = state_file or STATE_FILE
         self.say = out
         self.out_dir = root / "tmp" / "release" / self.tag
+        #: the update-signing key (a path only; the key is read when signing) and the public keys the apps trust
+        self.signing_key = signing_key or signing_key_path(root)
+        self._release_keys = release_keys
 
     # ---------------------------------------------------------------- helpers
 
@@ -436,6 +530,8 @@ class Release:
                     self.say(f"  note: {p} — fine only if GitHub signs the APK (the ANDROID_* secrets)")
             else:
                 problems += tools
+        if "publish" in steps:
+            problems += self.check_signing_key()
         if any(s.startswith("website") for s in steps):
             problems += self.check_website()
         if problems:
@@ -535,6 +631,26 @@ class Release:
         if shutil.which("npm") is None:
             problems.append("npm isn't installed (the studio is built into the APK)")
         return problems
+
+    @property
+    def release_keys(self) -> tuple[str, ...]:
+        if self._release_keys is None:
+            self._release_keys = tuple(update_signature(self.root).RELEASE_KEYS)
+        return self._release_keys
+
+    def check_signing_key(self) -> list[str]:
+        """The update-signing key is there, readable, and is the one the apps trust. Says where, never what."""
+        try:
+            key = load_signing_key(self.signing_key)
+        except Stop as e:
+            return [str(e)]
+        if public_key_b64(key) not in self.release_keys:
+            return [
+                f"the update-signing key at {self.signing_key} isn't the one built into the apps "
+                "(src/deskdot/update_signature.py): every app would refuse a release signed with it. "
+                "Point release-signing.local.toml at the right key file."
+            ]
+        return []
 
     def check_website(self) -> list[str]:
         w = self.website
@@ -833,47 +949,50 @@ class Release:
     # ---------------------------------------------------------------- publish
 
     def step_publish(self) -> None:
+        """APK(s) and their checksums in, checksums.txt signed, every file and the signature checked as GitHub serves
+        them, then published. Nothing is published unless the apps would accept it."""
+        checksums_are_signed = update_signature(self.root).checksums_are_signed
         apks: dict[str, str] = self.state.data.get("apks") or {}
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        if apks:
-            self.sh(
-                "gh",
-                "release",
-                "download",
-                self.tag,
-                "-p",
-                "checksums.txt",
-                "-D",
-                str(self.out_dir),
-                "--clobber",
-            )
-            sums = self.out_dir / "checksums.txt"
-            sums.write_text(
-                append_checksums(sums.read_text(encoding="utf-8"), apks), encoding="ascii", newline="\n"
-            )
-            files = [str(self.out_dir / n) for n in apks] + [str(sums)]
-            self.say("  uploading " + ", ".join(Path(f).name for f in files))
-            self.sh("gh", "release", "upload", self.tag, *files, "--clobber")
-        info = self.release_assets()
-        names = set(info["names"])
         want = set(asset_names(self.v, watch=self.has_watch()).values()) | {"checksums.txt"}
-        missing = sorted(want - names)
+        missing = sorted(want - set(self.release_assets()["names"]) - set(apks))
         if missing:
             raise Stop(f"the release is missing {', '.join(missing)}; not publishing")
         self.sh(
-            "gh",
-            "release",
-            "download",
-            self.tag,
-            "-p",
-            "checksums.txt",
-            "-D",
-            str(self.out_dir),
-            "--clobber",
-            quiet=True,
+            "gh", "release", "download", self.tag, "-p", "checksums.txt", "-D", str(self.out_dir), "--clobber"
         )
-        listed = checksum_names((self.out_dir / "checksums.txt").read_text(encoding="utf-8"))
-        unlisted = sorted(n for n in names - {"checksums.txt"} if n not in listed)
+        sums = self.out_dir / "checksums.txt"
+        if apks:
+            sums.write_text(
+                append_checksums(sums.read_text(encoding="utf-8"), apks), encoding="ascii", newline="\n"
+            )
+        sig = self.out_dir / SIGNATURE_NAME
+        sig.write_bytes(sign_checksums(sums.read_bytes(), load_signing_key(self.signing_key)))
+        self.say(f"  checksums.txt signed with the update-signing key ({SIGNATURE_NAME})")
+        files = [str(self.out_dir / n) for n in apks] + ([str(sums)] if apks else []) + [str(sig)]
+        self.say("  uploading " + ", ".join(Path(f).name for f in files))
+        self.sh("gh", "release", "upload", self.tag, *files, "--clobber")
+
+        info = self.release_assets()
+        names = set(info["names"])
+        missing = sorted((want | {SIGNATURE_NAME}) - names)
+        if missing:
+            raise Stop(f"the release is missing {', '.join(missing)}; not publishing")
+        check = self.out_dir / "as-published"
+        check.mkdir(parents=True, exist_ok=True)
+        for name in ("checksums.txt", SIGNATURE_NAME):
+            self.sh(
+                "gh", "release", "download", self.tag, "-p", name, "-D", str(check), "--clobber", quiet=True
+            )
+        served = (check / "checksums.txt").read_bytes()
+        if not checksums_are_signed(served, (check / SIGNATURE_NAME).read_bytes(), self.release_keys):
+            raise Stop(
+                "the checksums.txt and signature GitHub now serves don't check out against the key built into the "
+                "apps, so every app would refuse this release; not publishing. Run `--only github` again."
+            )
+        self.say("  the signature GitHub serves checks out against the apps' key ✓")
+        listed = checksum_names(served.decode("utf-8", "replace"))
+        unlisted = sorted(n for n in names - {"checksums.txt", SIGNATURE_NAME} if n not in listed)
         if unlisted:
             raise Stop(
                 f"checksums.txt doesn't list {', '.join(unlisted)}; the in-app updater would refuse them"
