@@ -3,6 +3,23 @@
 The technical log for developers. For the same updates in plain words (before → now), see
 [WHATS_NEW.md](WHATS_NEW.md).
 
+## 3.10.3 — 2026-11-11 · Wear OS remote; Glisse controls on the phone; popover, fly and Bluefy fixes
+
+- Wear OS watch app (`android/wear`, SPEC R-WEAR-*): a remote of the phone over the Wearable Data Layer, answered by
+  the phone's `WearBridgeService` (summary, apps, presets, frame, activate, preset, brightness); prev/next app, the
+  crown via `rotaryScrollable`, Orbit's glass look; `engine.current` read as an object for the app name (#24).
+- Studio (phone): Glisse tab bar lift, segmented control, six button variants and menu keys with the stretchy press
+  (`lib/glissePress.ts`, R-STU-11/14/15) (#40).
+- Studio: popovers fit the window and scroll inside (`lib/useFitScreen.ts`) (#37); the fly panes' header sits above
+  the orbit drag layer (#36); the casino room bar wraps its keys (#38).
+- Web app: without a service worker (Bluefy / WKWebView) `host.js` points `/api` images at the prebuilt reels or a
+  blob of the engine's answer (R-WEB-9) (#39).
+- Updates: `checksums.txt` is signed at release (ECDSA P-256, `checksums.txt.sig`, ADR 0017, R-REL-17..19); the
+  desktop/phone engine and the Android installer verify it before installing (#41). Release builds carry GitHub build
+  provenance (R-REL-20) (#42).
+- Release script pushes the `website` branch after rebuilding it (R-REL-10) (#34). Tests: deterministic fly worlds and
+  engine error-frame wait (#33); casino Node harnesses read their input from a file (#35).
+
 ## 3.10.2 — 2026-11-06 · Android power model (ADR 0016)
 
 - Android: the engine reports awake/asleep to `PowerGate`; wake, Wi-Fi and multicast locks are held only when needed;
