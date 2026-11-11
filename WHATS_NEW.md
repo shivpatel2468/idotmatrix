@@ -11,6 +11,47 @@ is in [CHANGELOG.md](CHANGELOG.md).)
   - Now: <one or two sentences>
 -->
 
+## 3.10.3 — 11 Nov 2026 · DeskDot on your watch, and clearer glass on your phone
+
+### New
+
+- **DeskDot on your Wear OS watch**
+  - Before: there was no way to see or change the panel from a watch.
+  - Now: a watch app shows exactly what the panel shows, with its name, brightness, presets and every app by kind.
+    Glass buttons either side of the picture (or a sideways swipe) switch to the previous or next app, and the crown
+    scrolls every list. The watch is a remote of your phone: keep the DeskDot phone app installed and the phone nearby.
+
+### Better
+
+- **Clearer glass on the phone**
+  - Before: the bottom tab bar was frosty, and buttons and switches were flat.
+  - Now: the tab bar is clear glass that bends what is behind it; holding it lifts a lens that follows your finger.
+    Buttons and the settings key stretch toward your finger and bounce back, and the option switches in Settings
+    have a glass thumb.
+
+- **Safer updates**
+  - Before: an update was checked only against the list of file fingerprints published next to it, so someone who
+    could change the release could change both.
+  - Now: that list is signed with a key that never leaves the owner's computer, and DeskDot installs an update only
+    when the signature and the fingerprint both match. Anyone can still download and install DeskDot as before.
+
+### Fixed
+
+- **The settings menu stays on screen**
+  - Before: on smaller windows the menu under the settings key ran off the bottom of the page, so "More" could not
+    be reached.
+  - Now: the menu and every other pop-up menu fit the window and scroll inside.
+- **The fly's view controls work again**
+  - Before: the brain view, fly look and camera choices, and the full-screen buttons, above the fly's views could not
+    be clicked.
+  - Now: they respond to a click or tap, and dragging still turns the camera.
+- **The casino room bar on phones**
+  - Before: on a phone the room code and join address were squeezed under the TV and Hide QR buttons.
+  - Now: the buttons move to a second row, so the code and address show in full.
+- **App pictures in the browser on iPhone**
+  - Before: in dark mode in the Bluefy browser, the app pictures stayed empty.
+  - Now: they show in every mode.
+
 ## 3.10.2 — 6 Nov 2026 · Your phone sleeps when DeskDot has nothing to do
 
 ### Better
