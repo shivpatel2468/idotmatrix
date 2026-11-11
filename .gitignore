@@ -6,6 +6,8 @@
 deskdot.toml
 dotdeck.toml
 *.local.toml
+# where release.py finds the update-signing key (the key itself lives outside the repo; docs/RELEASING.md)
+release-signing.local.toml
 android/local.properties
 android/keystore.properties
 keystore.properties

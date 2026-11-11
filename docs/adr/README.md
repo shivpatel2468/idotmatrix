@@ -18,5 +18,6 @@
 | 0014 | [Living specs beside the code, and one pull request per change](0014-living-specs-and-pr-per-change.md) | Proposed |
 | 0015 | [Hand the panel over between DeskDots, cleanly, with one button](0015-panel-handover-between-deskdots.md) | Proposed |
 | 0016 | [Let the phone sleep when there is nothing to drive](0016-android-power-model.md) | Proposed |
+| 0017 | [Sign each release's checksums.txt; the apps install only what the owner signed](0017-signed-release-checksums.md) | Proposed |
 
 New decisions: copy the format, next number, status `Proposed` → `Accepted`. Never rewrite an accepted ADR; supersede it.

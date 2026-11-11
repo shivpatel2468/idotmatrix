@@ -160,11 +160,14 @@ before merging or deploying: [RELEASING.md](RELEASING.md). The manual steps, for
 
 `src/deskdot/updates.py` (API: docs/API.md § Updates). The engine asks GitHub for the latest release at most every
 6 h (opt-out: Settings → Device → Updates). "Install" (in the Updates sheet: the top bar's *Update available*) downloads the asset for this system into `data/updates/`,
-checks its SHA-256 against `checksums.txt`, then:
+checks that the release's `checksums.txt` is signed by the owner's key built into the app (`checksums.txt.sig`,
+`src/deskdot/update_signature.py`, ADR 0017), that the file is named for the release's version and that its SHA-256
+matches its line in that signed file. An unsigned release or any mismatch is refused: nothing is installed, the
+download is deleted. Then:
 
 | Installed as | Hand-off |
 | --- | --- |
 | Windows installer | quits the launcher, starts the new installer with `/SILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS` and exits the engine the normal way (the panel gets its hand-off); the installer waits up to 20 s for DeskDot to close, replaces the program folder and starts DeskDot again |
 | macOS app | a small script waits for the engine to exit, mounts the dmg, swaps the `.app` where it is (e.g. `/Applications`) and opens it; if that folder isn't writable it just opens the dmg to drag across |
-| Android app | `Updater.kt` checks the APK is signed with the same key, then opens Android's installer (the first time, Android asks to let DeskDot install apps) |
+| Android app | `Updater.kt` checks the signed `checksums.txt` and the APK's SHA-256 again (`ReleaseVerifier.kt`) and that the APK is signed with the same key, then opens Android's installer (the first time, Android asks to let DeskDot install apps) |
 | From source (`uv run`, the Pi service) | nothing is installed: the studio says `git pull`, `uv sync`, `cd web && npm run build`, restart |

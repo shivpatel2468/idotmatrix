@@ -55,10 +55,13 @@ studio full screen.
 - **R-AND-6** System bar icon contrast and the window background follow the studio theme (`DeskDotAndroid.setBars`),
   remembered for the next cold start (no black flash). The bars themselves are transparent (R-AND-9). Tests: none yet
   (gap — verified on the phone).
-- **R-AND-7** Self-update: the engine downloads the APK from the latest release and checks its SHA-256; `Updater.kt`
-  refuses an APK signed with another key, then opens Android's installer. Tests:
-  `tests/test_updates.py::test_asset_selection_per_platform`, `tests/test_updates.py::test_checksum_mismatch_is_refused`
-  (engine side; the signature check is Kotlin, untested).
+- **R-AND-7** Self-update: the engine downloads the APK from the latest release and checks the release's signed
+  `checksums.txt` and the APK's SHA-256 (packaging/SPEC.md R-REL-17); `Updater.kt` checks the same signature and
+  checksum again in Kotlin (`ReleaseVerifier`, the key built into the app; anything wrong → `unverified`, the APK is
+  deleted), refuses an APK signed with another key, then opens Android's installer. Tests:
+  `tests/test_updates.py::test_asset_selection_per_platform`, `tests/test_updates.py::test_checksum_mismatch_is_refused`,
+  `tests/test_updates.py::test_android_refuses_when_updater_kt_says_unverified`,
+  `android/app/src/test/java/com/deskdot/app/ReleaseVerifierTest.kt` (the APK-signer check is still untested).
 - **R-AND-8** `versionCode = major*10000 + minor*100 + patch` from `src/deskdot/__init__.py`, so every release upgrades
   in place. Tests: none yet (gap — computed in `app/build.gradle.kts`).
 
@@ -94,9 +97,10 @@ studio full screen.
 
 ## Open questions
 
-- No Kotlin unit tests; the shell (R-AND-4…6, the signature check in R-AND-7, the locks of R-AND-12…14) is verified on
-  the user's phone.
+- Kotlin unit tests exist only for `ReleaseVerifier` (`android/app/src/test`, CI job "Android — JVM unit tests");
+  the rest of the shell (R-AND-4…6, the APK-signer check in R-AND-7, the locks of R-AND-12…14) is verified on the
+  user's phone.
 - Connected but idle, the link keeps `CONNECTION_PRIORITY_HIGH`; a low-power connection interval while a clip plays
   would save radio power but changes link physics (rule 13): measure on the panel first.
 
-Last verified: 2026-11-05
+Last verified: 2026-11-11
