@@ -40,7 +40,7 @@ uv run python scripts/release.py --reset             # forget the saved progress
 | CI | Waits for the checks on the pull request (every 15 s, then a bit longer each time, up to 2 min). If one fails, it prints the failing lines and stops; push a fix to the branch and run again. |
 | Merge | Asks **Merge release PR #N? [y/N]**. Nothing is merged unless you type y (or passed `--yes`). Squash-merges and updates your `main`. |
 | Tag | Checks GitHub's `main` really has the new version and Android's XML is fine, then tags `v<version>` and pushes only the tag. |
-| GitHub build | `release.yml` runs the checks again, builds the Windows installer, the Apple-silicon and Intel Mac disk images (each one started and asked `/api/health`), writes `checksums.txt` and makes a **draft** release with the WHATS_NEW section as its notes. About 25 minutes. If it fails it shows the failing lines; `gh run rerun <id> --failed`, then run again. |
+| GitHub build | `release.yml` runs the checks again, builds the Windows installer, the Apple-silicon and Intel Mac disk images (each one started and asked `/api/health`), attests where each file was built (GitHub build provenance, see below), writes `checksums.txt` and makes a **draft** release with the WHATS_NEW section as its notes. About 25 minutes. If it fails it shows the failing lines; `gh run rerun <id> --failed`, then run again. |
 | Android | Skipped when GitHub already signed the APK (see below). Otherwise: needs 2 GB of free memory, builds the studio (`npm run build`, it goes inside the APK), then `gradlew assembleRelease` with the JDK in `%LOCALAPPDATA%\DotDeckAndroid\jdk`. The watch APK too, once `android/wear` exists. Then it checks each APK is signed with the release key (`apksigner` against `keytool`'s fingerprint of the keystore): an APK signed with any other key stops the release, because phones would refuse it as an update. |
 | Publish | Checks the release has every file, adds each APK's SHA-256 to `checksums.txt`, **signs `checksums.txt`** with the update-signing key and uploads it as `checksums.txt.sig` (with the APKs), downloads `checksums.txt` and its signature back from GitHub and checks them exactly the way the apps will (the key built into them) and that `checksums.txt` lists every file, then publishes it as the latest release. If the check fails, nothing is published. |
 | Website: catch up | In the website copy (`..\idotmatrix-website`, branch `website`), cherry-picks the commits between the previous release tag and this one that it doesn't have yet. On a conflict it stops and lists the files (see below). |
@@ -108,6 +108,29 @@ backup):
 - **Wrong signing key**: check `android/keystore.properties` points at the release keystore (android/README.md §
   Release signing). Never publish an APK signed with another key.
 - Anything else: `--status` shows where it is; each step can be redone on its own with `--only`.
+
+## Check where a download was built (build provenance)
+
+GitHub records, for every installer the release workflow builds, a signed statement that this exact file came from
+`.github/workflows/release.yml` in this repository at that tag (an *artifact attestation*, made with GitHub's
+Sigstore). Anyone can check a downloaded file, with the GitHub CLI logged in:
+
+```powershell
+gh attestation verify DeskDot-Setup-3.11.0-x64.exe --repo shivpatel2468/idotmatrix
+gh attestation verify DeskDot-3.11.0-macOS-arm64.dmg --repo shivpatel2468/idotmatrix
+```
+
+It prints the workflow, the tag and the commit the file was built from, and fails for a file GitHub's workflow didn't
+build (or one that changed afterwards). Attested: the Windows installer and both Mac disk images, and the APKs when
+GitHub built them (the four `ANDROID_*` secrets, below). The APK built on your PC by `release.py` is **not** attested:
+it wasn't built by GitHub, and attesting it from GitHub would claim something untrue. Its proof is the Android release
+key (phones only update to an APK signed with it) and the signed `checksums.txt`. Releases made before this have no
+attestations.
+
+This is a check for people (and for you); the apps don't use it. They rely on the signed `checksums.txt`, which works
+offline and covers the APK too (docs/adr/0017-signed-release-checksums.md). `release.py` doesn't verify the attestations
+before publishing: it would have to download every installer (about 400 MB) on each release, and GitHub's own build
+made them in the same run.
 
 ## Signing the APK on GitHub (optional)
 
