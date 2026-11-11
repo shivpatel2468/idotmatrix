@@ -35,23 +35,24 @@ uv run python scripts/release.py --reset             # forget the saved progress
 
 | Step | What happens |
 | --- | --- |
-| Checks | GitHub CLI logged in; on `main`, the same as GitHub's, nothing uncommitted except WHATS_NEW.md / CHANGELOG.md; the WHATS_NEW section exists, has the right shape and reads as plain words (it warns about code words like file names); Android's XML is well-formed (`scripts/check_android_res.py`); the JDK, Android SDK, `android/keystore.properties` and npm are there; the website copy is clean and on its branch. |
+| Checks | GitHub CLI logged in; on `main`, the same as GitHub's, nothing uncommitted except WHATS_NEW.md / CHANGELOG.md; the WHATS_NEW section exists, has the right shape and reads as plain words (it warns about code words like file names); Android's XML is well-formed (`scripts/check_android_res.py`); the JDK, Android SDK, `android/keystore.properties` and npm are there; the update-signing key is there and is the one built into the apps (see below); the website copy is clean and on its branch. |
 | Release pull request | Branch `release/v<version>`: the version goes into `pyproject.toml`, `src/deskdot/__init__.py` (the Android version code follows from it: 3.10.0 → 31000), `uv.lock` and the README badge, with your WHATS_NEW / CHANGELOG edits. Pushed, and a pull request opened. |
 | CI | Waits for the checks on the pull request (every 15 s, then a bit longer each time, up to 2 min). If one fails, it prints the failing lines and stops; push a fix to the branch and run again. |
 | Merge | Asks **Merge release PR #N? [y/N]**. Nothing is merged unless you type y (or passed `--yes`). Squash-merges and updates your `main`. |
 | Tag | Checks GitHub's `main` really has the new version and Android's XML is fine, then tags `v<version>` and pushes only the tag. |
-| GitHub build | `release.yml` runs the checks again, builds the Windows installer, the Apple-silicon and Intel Mac disk images (each one started and asked `/api/health`), writes `checksums.txt` and makes a **draft** release with the WHATS_NEW section as its notes. About 25 minutes. If it fails it shows the failing lines; `gh run rerun <id> --failed`, then run again. |
+| GitHub build | `release.yml` runs the checks again, builds the Windows installer, the Apple-silicon and Intel Mac disk images (each one started and asked `/api/health`), attests where each file was built (GitHub build provenance, see below), writes `checksums.txt` and makes a **draft** release with the WHATS_NEW section as its notes. About 25 minutes. If it fails it shows the failing lines; `gh run rerun <id> --failed`, then run again. |
 | Android | Skipped when GitHub already signed the APK (see below). Otherwise: needs 2 GB of free memory, builds the studio (`npm run build`, it goes inside the APK), then `gradlew assembleRelease` with the JDK in `%LOCALAPPDATA%\DotDeckAndroid\jdk`. The watch APK too, once `android/wear` exists. Then it checks each APK is signed with the release key (`apksigner` against `keytool`'s fingerprint of the keystore): an APK signed with any other key stops the release, because phones would refuse it as an update. |
-| Publish | Adds each APK's SHA-256 to `checksums.txt`, uploads them, checks the release has every file and that `checksums.txt` lists all of them, then publishes it as the latest release. |
+| Publish | Checks the release has every file, adds each APK's SHA-256 to `checksums.txt`, **signs `checksums.txt`** with the update-signing key and uploads it as `checksums.txt.sig` (with the APKs), downloads `checksums.txt` and its signature back from GitHub and checks them exactly the way the apps will (the key built into them) and that `checksums.txt` lists every file, then publishes it as the latest release. If the check fails, nothing is published. |
 | Website: catch up | In the website copy (`..\idotmatrix-website`, branch `website`), cherry-picks the commits between the previous release tag and this one that it doesn't have yet. On a conflict it stops and lists the files (see below). |
 | Website: rebuild | `scripts/build_webapp.py` (the browser version at /app), `build_site_data.py`, `build_site_pages.py`, and commits `site/`. |
 | Website: push | Pushes the `website` branch to GitHub (never forced), so the next release starts from what goes live. If GitHub has commits the copy doesn't, it stops: `git pull --rebase origin website` in the copy, then `--only website`. |
 | Website: preview | A free Netlify preview deploy; prints its address. Look at it: the home page, /app/ and What's new. |
 | Website: live | Only with `--deploy`, or if you type y at the prompt that says it costs 15 credits. |
 
-Progress is saved in `tmp/release/state.json` (git-ignored); the APKs and `checksums.txt` are kept in
-`tmp/release/v<version>/`. Nothing is ever force-pushed, no password is printed (the keystore password reaches
-`keytool` through an environment variable), and no keystore file is ever added to git.
+Progress is saved in `tmp/release/state.json` (git-ignored); the APKs, `checksums.txt` and `checksums.txt.sig` are
+kept in `tmp/release/v<version>/`. Nothing is ever force-pushed, no password is printed (the keystore password reaches
+`keytool` through an environment variable), no keystore file is ever added to git, and the update-signing key is
+only read to sign: never printed, copied or uploaded.
 
 ## How people get it
 
@@ -64,7 +65,35 @@ Progress is saved in `tmp/release/state.json` (git-ignored); the APKs and `check
 | Browser (idotmatrix.com/app/) | — | the website deploy; open tabs offer a reload |
 | From source / Raspberry Pi | — | `git pull`, `uv sync`, `cd web && npm run build`, restart |
 
-Every download is checked against `checksums.txt` before it's installed (src/deskdot/updates.py).
+Before anything is installed, the app checks that `checksums.txt` carries a valid signature from the owner's key
+(`checksums.txt.sig`, the public key is built into the app) and that the download matches its line in it
+(src/deskdot/updates.py; on the phone `ReleaseVerifier.kt` checks again). A release without that signature (every
+release made before signing began) isn't installed automatically: the app says so and keeps the current version.
+Apps from 3.10.2 and older don't look at the signature yet; they update to the first signed release with the plain
+checksum as before, and are signature-checked from then on. Why and how: docs/adr/0017-signed-release-checksums.md.
+
+## The update-signing key
+
+`release.py` signs each release's `checksums.txt` with a private key that exists only on your PC (and in your
+backup):
+
+| What | Where |
+| --- | --- |
+| The key (keep it secret) | `%LOCALAPPDATA%\DotDeckAndroid\release\deskdot-update-signing.pem`, next to the Android release key |
+| What points the checkout at it (git-ignored) | `release-signing.local.toml` in the repo folder: `key_file = '…'`. Without that file `release.py` looks in the place above. |
+| Its public half (in the apps) | `RELEASE_KEYS` in `src/deskdot/update_signature.py` and in `android/app/src/main/java/com/deskdot/app/ReleaseVerifier.kt` (a test keeps them equal) |
+
+- **Back it up**: copy `deskdot-update-signing.pem` into your private keys folder, next to the keystore backup. Never
+  put it in git, a GitHub secret, a chat or a release.
+- **A new checkout or PC**: put the `.pem` back in the folder above (or anywhere outside git and point
+  `release-signing.local.toml` at it). `uv run python scripts/make_release_key.py --show --key <file>` prints its
+  public key, to compare with `RELEASE_KEYS`.
+- **If it is lost**: updates can't be signed any more, and the apps already out there will refuse every new release.
+  Make a new key (`uv run python scripts/make_release_key.py --key <new file>`; it never overwrites one), put its
+  public key into both `RELEASE_KEYS` lists in a pull request, release, and tell people to download that version by
+  hand once (docs/adr/0017-signed-release-checksums.md § If the key is lost).
+- `release.py` stops before doing anything when a run would publish and the key is missing, unreadable, or isn't the
+  one the apps trust.
 
 ## When it stops
 
@@ -79,6 +108,29 @@ Every download is checked against `checksums.txt` before it's installed (src/des
 - **Wrong signing key**: check `android/keystore.properties` points at the release keystore (android/README.md §
   Release signing). Never publish an APK signed with another key.
 - Anything else: `--status` shows where it is; each step can be redone on its own with `--only`.
+
+## Check where a download was built (build provenance)
+
+GitHub records, for every installer the release workflow builds, a signed statement that this exact file came from
+`.github/workflows/release.yml` in this repository at that tag (an *artifact attestation*, made with GitHub's
+Sigstore). Anyone can check a downloaded file, with the GitHub CLI logged in:
+
+```powershell
+gh attestation verify DeskDot-Setup-3.11.0-x64.exe --repo shivpatel2468/idotmatrix
+gh attestation verify DeskDot-3.11.0-macOS-arm64.dmg --repo shivpatel2468/idotmatrix
+```
+
+It prints the workflow, the tag and the commit the file was built from, and fails for a file GitHub's workflow didn't
+build (or one that changed afterwards). Attested: the Windows installer and both Mac disk images, and the APKs when
+GitHub built them (the four `ANDROID_*` secrets, below). The APK built on your PC by `release.py` is **not** attested:
+it wasn't built by GitHub, and attesting it from GitHub would claim something untrue. Its proof is the Android release
+key (phones only update to an APK signed with it) and the signed `checksums.txt`. Releases made before this have no
+attestations.
+
+This is a check for people (and for you); the apps don't use it. They rely on the signed `checksums.txt`, which works
+offline and covers the APK too (docs/adr/0017-signed-release-checksums.md). `release.py` doesn't verify the attestations
+before publishing: it would have to download every installer (about 400 MB) on each release, and GitHub's own build
+made them in the same run.
 
 ## Signing the APK on GitHub (optional)
 

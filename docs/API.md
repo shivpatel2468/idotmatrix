@@ -399,15 +399,17 @@ replayed / wrong, 429 over 10 / min per peer or 30 / min per address, 404 when h
 
 DeskDot asks GitHub (`GET https://api.github.com/repos/shivpatel2468/idotmatrix/releases/latest`) at most every
 6 h while `auto_check` is on (default), and whenever `POST /api/updates/check` is called. Nothing but that request
-is sent. Installing only accepts HTTPS assets of that repository's release whose SHA-256 matches the release's
-`checksums.txt` (or `<asset>.sha256`). Local only, like the rest of the studio API.
+is sent. Installing only accepts HTTPS assets of that repository's release, named for the release's version, whose
+SHA-256 matches the release's `checksums.txt` — and only when `checksums.txt.sig` is a valid signature of that file by
+the owner's key built into the app (ADR 0017; a release without it isn't installed). Local only, like the rest of the
+studio API.
 
 | Method | Path | Returns / body |
 | --- | --- | --- |
 | GET | `/api/updates` | `{current, latest, available, notes, name, published_at, url, assets: [{name, size, url}], checked_at, auto_check, kind, can_install, source_hint, status, progress, error, message}` — `notes` is the release body (WHATS_NEW-style markdown); `assets` is the one installer for this system; `kind` = `windows` / `macos` / `android` (installed apps) / `source` (a checkout or `uv run`: `source_hint` says to `git pull` and rebuild) / `web` (the browser app: also `build` = this tab's build and `latest_build` = the build the site serves now, from `/app/version.json`; `available` = they differ; `can_install` is always false — the studio offers *Reload to update*) |
 | POST | `/api/updates/check` | asks GitHub now (the browser app: its site's `/app/version.json`); same reply |
 | PUT | `/api/updates` | `{auto_check: bool}`; same reply |
-| POST | `/api/updates/install` | downloads, verifies and hands off; reply adds `result`: `restart` (Windows/macOS: the installer takes over and the engine exits ~1.5 s later, DeskDot starts again), `opened` (macOS: the dmg was opened because the app's folder isn't writable), `started` / `permission` / `signature` (Android: installer open / allow DeskDot to install apps first / the APK is signed with another key). `409 {detail}` with a message when it refuses: running from source, already up to date, no installer for this system, checksum missing or wrong, download failed |
+| POST | `/api/updates/install` | downloads, verifies and hands off; reply adds `result`: `restart` (Windows/macOS: the installer takes over and the engine exits ~1.5 s later, DeskDot starts again), `opened` (macOS: the dmg was opened because the app's folder isn't writable), `started` / `permission` / `signature` (Android: installer open / allow DeskDot to install apps first / the APK is signed with another key). `409 {detail}` with a message when it refuses: running from source, already up to date, no installer for this system, the release isn't signed or its signature is wrong, the file is for another version, checksum missing or wrong, download failed |
 
 Progress rides on the WebSocket: `state.updates = {current, latest, available, kind, latest_build, status, progress, error}` with
 `status` = `idle` · `checking` · `downloading` (`progress` 0–1) · `verifying` · `installing` · `error`.
